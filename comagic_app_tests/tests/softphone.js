@@ -127,7 +127,11 @@ tests.addTest(options => {
                                 notificationTester.grantPermission();
                                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
-                                registrationRequest = tester.registrationRequest().expectToBeSent();
+                                tester.registrationRequest().receiveUnauthorized();
+
+                                registrationRequest = tester.registrationRequest().
+                                    authorization().
+                                    expectToBeSent();
                             });
 
                             describe('Получен доступ к микрофону.', function() {
@@ -606,7 +610,11 @@ tests.addTest(options => {
                                                             webRTCServerConnected().
                                                             expectToBeSent();
 
-                                                        tester.registrationRequest().receiveResponse();
+                                                        tester.registrationRequest().receiveUnauthorized();
+
+                                                        tester.registrationRequest().
+                                                            authorization().
+                                                            receiveResponse();
 
                                                         tester.slavesNotification().
                                                             userDataFetched().
@@ -1038,7 +1046,11 @@ tests.addTest(options => {
                                                                 softphoneServerConnected().
                                                                 expectToBeSent();
 
-                                                            tester.registrationRequest().receiveResponse();
+                                                            tester.registrationRequest().receiveUnauthorized();
+
+                                                            tester.registrationRequest().
+                                                                authorization().
+                                                                receiveResponse();
 
                                                             tester.slavesNotification().
                                                                 userDataFetched().
@@ -1435,6 +1447,30 @@ tests.addTest(options => {
                                                             );
 
                                                         tester.anchor.withFileName('20191219.121007.000.log.txt').
+                                                            expectHrefToBeBlobWithoutSubstring(
+                                                                'message sent:' +
+                                                                "\n\n" +
+                                                                '{}'
+                                                            );
+
+                                                        tester.anchor.withFileName('20191219.121007.000.log.txt').
+                                                            expectHrefToBeBlobWithoutSubstring(
+                                                                'message received:' +
+                                                                "\n\n" +
+                                                                '{}'
+                                                            );
+
+                                                        tester.anchor.withFileName('20191219.121007.000.log.txt').
+                                                            expectHrefToBeBlobWithSubstring(
+                                                                '"name":"init",' +
+                                                                '"params":{' +
+                                                                    '"jwt":' +
+                                                                        '"XaRnb2KVS0V7v08oa4Ua-' +
+                                                                        'sTvpxMKSg9XuKrYaGSinB0"' +
+                                                                '}'
+                                                            );
+
+                                                        tester.anchor.withFileName('20191219.121007.000.log.txt').
                                                             expectHrefToBeBlobWithSubstring('Pong received');
                                                     });
                                                     it(
@@ -1481,6 +1517,32 @@ tests.addTest(options => {
                                                     tester.softphone.expectTextContentToHaveSubstring(
                                                         'Софтфон открыт в другом окне'
                                                     );
+                                                });
+                                                it(
+                                                    'Доступ к серверу кол-центра отключен. Выход из аккаунта не ' +
+                                                    'произошёл.',
+                                                function() {
+                                                    tester.eventsWebSocket.disconnect(4404);
+                                                    tester.authLogoutRequest().receiveResponse();
+
+                                                    tester.masterInfoMessage().leaderDeath().expectToBeSent();
+
+                                                    tester.slavesNotification().
+                                                        userDataFetched().
+                                                        enabled().
+                                                        twoChannels().
+                                                        destroyed().
+                                                        microphoneAccessGranted().
+                                                        expectToBeSent();
+
+                                                    tester.registrationRequest().
+                                                        expired().
+                                                        receiveResponse();
+
+                                                    spendTime(2000);
+                                                    tester.webrtcWebsocket.finishDisconnecting();
+
+                                                    tester.softphone.expectToBeVisible();
                                                 });
                                                 it(
                                                     'Соединение разрывается. Отображено сообщение об установке ' +
@@ -1660,7 +1722,11 @@ tests.addTest(options => {
                                                         softphoneServerConnected().
                                                         expectToBeSent();
 
-                                                    tester.registrationRequest().receiveResponse();
+                                                    tester.registrationRequest().receiveUnauthorized();
+
+                                                    tester.registrationRequest().
+                                                        authorization().
+                                                        receiveResponse();
 
                                                     tester.slavesNotification().
                                                         userDataFetched().
@@ -2142,7 +2208,11 @@ tests.addTest(options => {
                                     softphoneServerConnected().
                                     expectToBeSent();
 
-                                tester.registrationRequest().receiveResponse();
+                                tester.registrationRequest().receiveUnauthorized();
+
+                                tester.registrationRequest().
+                                    authorization().
+                                    receiveResponse();
 
                                 tester.slavesNotification().
                                     userDataFetched().
@@ -2271,7 +2341,11 @@ tests.addTest(options => {
                                 microphoneAccessGranted().
                                 expectToBeSent();
 
-                            tester.registrationRequest().receiveResponse();
+                            tester.registrationRequest().receiveUnauthorized();
+
+                            tester.registrationRequest().
+                                authorization().
+                                receiveResponse();
 
                             tester.slavesNotification().
                                 twoChannels().
@@ -2417,7 +2491,11 @@ tests.addTest(options => {
 
                                         numberCapacityRequest = tester.numberCapacityRequest().expectToBeSent();
 
-                                        tester.registrationRequest().receiveResponse();
+                                        tester.registrationRequest().receiveUnauthorized();
+
+                                        tester.registrationRequest().
+                                            authorization().
+                                            receiveResponse();
 
                                         tester.slavesNotification().
                                             twoChannels().
@@ -2618,7 +2696,11 @@ tests.addTest(options => {
                                         microphoneAccessGranted().
                                         expectToBeSent();
 
-                                    tester.registrationRequest().receiveResponse();
+                                    tester.registrationRequest().receiveUnauthorized();
+
+                                    tester.registrationRequest().
+                                        authorization().
+                                        receiveResponse();
 
                                     tester.slavesNotification().
                                         twoChannels().
@@ -2673,8 +2755,12 @@ tests.addTest(options => {
                                         expectToBeSent();
 
                                     tester.numberCapacityRequest().withComment().receiveResponse();
-                                    
-                                    tester.registrationRequest().receiveResponse();
+                                        
+                                    tester.registrationRequest().receiveUnauthorized();
+
+                                    tester.registrationRequest().
+                                        authorization().
+                                        receiveResponse();
 
                                     tester.slavesNotification().
                                         twoChannels().
@@ -2890,7 +2976,11 @@ tests.addTest(options => {
 
                                     tester.numberCapacityRequest().withLongComment().receiveResponse();
 
-                                    tester.registrationRequest().receiveResponse();
+                                    tester.registrationRequest().receiveUnauthorized();
+
+                                    tester.registrationRequest().
+                                        authorization().
+                                        receiveResponse();
                                     
                                     tester.slavesNotification().
                                         twoChannels().
@@ -3419,7 +3509,11 @@ tests.addTest(options => {
                         userDataFetched().
                         expectToBeSent();
 
-                    tester.registrationRequest().receiveResponse();
+                    tester.registrationRequest().receiveUnauthorized();
+
+                    tester.registrationRequest().
+                        authorization().
+                        receiveResponse();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -3534,8 +3628,11 @@ tests.addTest(options => {
                                 expectToBeSent();
 
                             tester.authenticatedUserRequest().receiveResponse();
+                            tester.registrationRequest().receiveUnauthorized();
 
-                            tester.registrationRequest().receiveResponse();
+                            tester.registrationRequest().
+                                authorization().
+                                receiveResponse();
 
                             tester.slavesNotification().
                                 twoChannels().
@@ -3675,7 +3772,11 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.authenticatedUserRequest().receiveResponse();
-                    tester.registrationRequest().receiveResponse();
+                    tester.registrationRequest().receiveUnauthorized();
+
+                    tester.registrationRequest().
+                        authorization().
+                        receiveResponse();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -3790,7 +3891,11 @@ tests.addTest(options => {
                         userDataFetched().
                         expectToBeSent();
 
-                    tester.registrationRequest().receiveResponse();
+                    tester.registrationRequest().receiveUnauthorized();
+
+                    tester.registrationRequest().
+                        authorization().
+                        receiveResponse();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -3885,7 +3990,11 @@ tests.addTest(options => {
                         userDataFetched().
                         expectToBeSent();
 
-                    tester.registrationRequest().receiveResponse();
+                    tester.registrationRequest().receiveUnauthorized();
+
+                    tester.registrationRequest().
+                        authorization().
+                        receiveResponse();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -4099,7 +4208,11 @@ tests.addTest(options => {
                     userDataFetched().
                     expectToBeSent();
 
-                tester.registrationRequest().receiveResponse();
+                tester.registrationRequest().receiveUnauthorized();
+
+                tester.registrationRequest().
+                    authorization().
+                    receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -4189,7 +4302,11 @@ tests.addTest(options => {
                     userDataFetched().
                     expectToBeSent();
 
-                tester.registrationRequest().receiveResponse();
+                tester.registrationRequest().receiveUnauthorized();
+
+                tester.registrationRequest().
+                    authorization().
+                    receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().

@@ -1,5 +1,4 @@
 tests.requireClass('Comagic.base.store.Condition');
-tests.requireClass('ULib.ux.data.TreeComboStore');
 tests.requireClass('Comagic.services.ats.hook.controller.EditPage');
 
 function ServicesAtsHook(args) {

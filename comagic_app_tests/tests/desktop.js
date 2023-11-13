@@ -148,7 +148,15 @@ tests.addTest(options => {
                                 tester.employeeRequest().receiveResponse();
                                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
-                                tester.registrationRequest().desktopSoftphone().receiveResponse();
+                                tester.registrationRequest().
+                                    desktopSoftphone().
+                                    receiveUnauthorized();
+
+                                tester.registrationRequest().
+                                    desktopSoftphone().
+                                    authorization().
+                                    receiveResponse();
+
                                 secondAccountRequest.receiveResponse();
                                 
                                 tester.chatsWebSocket.connect();
@@ -260,6 +268,123 @@ tests.addTest(options => {
 
                                                         tester.button('Запускать свернуто').expectToBeEnabled();
                                                         tester.button('Запускать свернуто').expectNotToBeChecked();
+                                                    });
+                                                });
+                                                describe('Открываю вкладку "Помощь".', function() {
+                                                    beforeEach(function() {
+                                                        tester.button('Помощь').click();
+                                                    });
+
+                                                    describe('Получена версия софтфона.', function() {
+                                                        beforeEach(function() {
+                                                            getPackage('electron').ipcRenderer.receiveMessage(
+                                                                'app-version',
+                                                                '1.0.0',
+                                                            );
+                                                        });
+
+                                                        describe('Получена последняя версия софтфона.', function() {
+                                                            beforeEach(function() {
+                                                                getPackage('electron').ipcRenderer.receiveMessage(
+                                                                    'update-available',
+                                                                    {
+                                                                        version: '1.0.1',
+                                                                        updateServerUrl:
+                                                                            'https://software-releases.uiscom.ru',
+                                                                        path: '/download/flavor/comagic/1.0.1/' +
+                                                                            'windows_64/' +
+                                                                            'Softphone-comagic-installer.exe',
+                                                                    }
+                                                                );
+                                                            });
+
+                                                            it(
+                                                                'Нажимаю на кнопку максимизации. Открыт раздел ' +
+                                                                'настроек.',
+                                                            function() {
+                                                                tester.maximizednessButton.click();
+
+                                                                getPackage('electron').ipcRenderer.
+                                                                    recentlySentMessage().
+                                                                    expectToBeSentToChannel('maximize');
+
+                                                                tester.accountRequest().
+                                                                    operatorWorkplaceAvailable().
+                                                                    forChats().
+                                                                    receiveResponse();
+
+                                                                tester.reportsListRequest().receiveResponse();
+                                                                tester.countersRequest().receiveResponse();
+                                                                tester.offlineMessageCountersRequest().
+                                                                    receiveResponse();
+                                                                tester.chatChannelListRequest().receiveResponse();
+                                                                tester.siteListRequest().receiveResponse();
+                                                                tester.markListRequest().receiveResponse();
+
+                                                                tester.chatListRequest().
+                                                                    forCurrentEmployee().
+                                                                    secondPage().
+                                                                    receiveResponse();
+
+                                                                tester.chatListRequest().
+                                                                    forCurrentEmployee().
+                                                                    secondPage().
+                                                                    active().
+                                                                    receiveResponse();
+
+                                                                tester.chatListRequest().
+                                                                    forCurrentEmployee().
+                                                                    secondPage().
+                                                                    closed().
+                                                                    receiveResponse();
+
+                                                                tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                                tester.offlineMessageListRequest().
+                                                                    notProcessed().
+                                                                    receiveResponse();
+
+                                                                tester.offlineMessageListRequest().
+                                                                    processing().
+                                                                    receiveResponse();
+
+                                                                tester.offlineMessageListRequest().
+                                                                    processed().
+                                                                    receiveResponse();
+                                                            });
+                                                            it(
+                                                                'Отображена ссылка на новую версию софтфона.',
+                                                            function() {
+                                                                tester.body.expectTextContentToHaveSubstring(
+                                                                    'Версия Софтфона 1.0.0 ' +
+
+                                                                    'Есть более новая версия 1.0.1. Обратитесь к ' +
+                                                                    'менеджеру чтобы её скачать или перейдите по ссылке'
+                                                                );
+
+                                                                tester.anchor('ссылке').click()
+
+                                                                getPackage('electron').ipcRenderer.
+                                                                    recentlySentMessage().
+                                                                    expectToBeSentToChannel('download').
+                                                                    expectToBeSentWithArguments(
+                                                                        'https://software-releases.uiscom.ru/' +
+                                                                        'download/flavor/comagic/1.0.1/windows_64/' +
+                                                                        'Softphone-comagic-installer.exe'
+                                                                    );
+                                                            });
+                                                        });
+                                                        it('Отображена версия софтфона.', function() {
+                                                            tester.body.expectTextContentToHaveSubstring(
+                                                                'Версия Софтфона 1.0.0 ' +
+                                                                'У вас последняя версия Софтфона'
+                                                            );
+                                                        });
+                                                    });
+                                                    it('Версия софтфона не отображается.', function() {
+                                                        tester.body.expectTextContentNotToHaveSubstring(
+                                                            'Версия Софтфона'
+                                                        );
                                                     });
                                                 });
                                                 it(
@@ -452,6 +577,9 @@ tests.addTest(options => {
                                                     tester.button('Запускать свернуто').expectNotToBeChecked();
                                                     tester.button('Запускать свернуто').expectToBeDisabled();
 
+                                                    tester.button('Принимать звонок по нажатию на пробел').
+                                                        expectToBeChecked();
+
                                                     tester.maximizednessButton.expectToBeUnmaximized();
                                                     tester.collapsednessToggleButton.expectToBeExpanded();
                                                 });
@@ -481,7 +609,7 @@ tests.addTest(options => {
                                                         });
                                                 });
 
-                                                describe('Нажимаю на клавишу Enter. Звонок принят.', function() {
+                                                describe('Нажимаю на клавишу Space. Звонок принят.', function() {
                                                     beforeEach(function() {
                                                         utils.pressSpace();
 
@@ -654,7 +782,10 @@ tests.addTest(options => {
                                                         tester.messageTemplateListRequest().receiveResponse();
                                                     });
 
-                                                    it('Выбираю чат. Чат открыт.', function() {
+                                                    it(
+                                                        'Выбираю чат. Чат открыт. Сворачиваю софтфон. Разворачивая ' +
+                                                        'софтфон.',
+                                                    function() {
                                                         tester.chatList.input.fill('Сообщение #75');
 
                                                         tester.chatList.input.pressEnter();
@@ -665,6 +796,61 @@ tests.addTest(options => {
                                                         tester.chatListRequest().thirdChat().receiveResponse();
                                                         tester.visitorCardRequest().receiveResponse();
                                                         tester.messageListRequest().receiveResponse();
+                                                        tester.usersRequest().forContacts().receiveResponse();
+
+                                                        tester.maximizednessButton.click();
+
+                                                        getPackage('electron').ipcRenderer.
+                                                            recentlySentMessage().
+                                                            expectToBeSentToChannel('unmaximize');
+
+                                                        tester.maximizednessButton.click();
+
+                                                        getPackage('electron').ipcRenderer.
+                                                            recentlySentMessage().
+                                                            expectToBeSentToChannel('maximize');
+
+                                                        tester.accountRequest().
+                                                            operatorWorkplaceAvailable().
+                                                            forChats().
+                                                            expectToBeSent();
+
+                                                        const requests = ajax.inAnyOrder();
+
+                                                        const accountRequest = tester.accountRequest().
+                                                            operatorWorkplaceAvailable().
+                                                            forChats().
+                                                            expectToBeSent(requests);
+
+                                                        const reportsListRequest = tester.reportsListRequest().
+                                                            expectToBeSent(requests);
+
+                                                        const chatSettingsRequest = tester.chatSettingsRequest().
+                                                            expectToBeSent(requests);
+
+                                                        const chatChannelListRequest = tester.chatChannelListRequest().
+                                                            expectToBeSent(requests);
+
+                                                        const listRequest = tester.listRequest().
+                                                            expectToBeSent(requests);
+
+                                                        const siteListRequest = tester.siteListRequest().
+                                                            expectToBeSent(requests);
+
+                                                        const messageTemplateListRequest =
+                                                            tester.messageTemplateListRequest().
+                                                                expectToBeSent(requests);
+
+                                                        requests.expectToBeSent();
+
+                                                        accountRequest.receiveResponse();
+                                                        reportsListRequest.receiveResponse();
+                                                        chatSettingsRequest.receiveResponse();
+                                                        chatChannelListRequest.receiveResponse();
+                                                        listRequest.receiveResponse();
+                                                        siteListRequest.receiveResponse();
+                                                        messageTemplateListRequest.receiveResponse();
+
                                                         tester.usersRequest().forContacts().receiveResponse();
                                                     });
                                                     it('Сворачиваю софтофон.', function() {
@@ -723,7 +909,9 @@ tests.addTest(options => {
                                                         tester.settingsRequest().callsAreManagedByAnotherDevice().
                                                             receiveResponse();
 
-                                                        tester.registrationRequest().desktopSoftphone().expired().
+                                                        tester.registrationRequest().
+                                                            desktopSoftphone().
+                                                            expired().
                                                             receiveResponse();
                                                         
                                                         spendTime(2000);
@@ -1031,6 +1219,11 @@ tests.addTest(options => {
 
                                                             tester.registrationRequest().
                                                                 desktopSoftphone().
+                                                                receiveUnauthorized();
+
+                                                            tester.registrationRequest().
+                                                                desktopSoftphone().
+                                                                authorization().
                                                                 receiveResponse();
                                                         });
 
@@ -1108,9 +1301,21 @@ tests.addTest(options => {
                                                                 receiveResponse();
 
                                                             tester.button('Создать контакт').click();
-
                                                             tester.contactCreatingRequest().receiveResponse();
-                                                            tester.contactRequest().receiveResponse();
+
+                                                            const requests = ajax.inAnyOrder();
+
+                                                            const contactRequest = tester.contactRequest().
+                                                                expectToBeSent(requests);
+
+                                                            const contactCommunicationsRequest =
+                                                                tester.contactCommunicationsRequest().
+                                                                    expectToBeSent(requests);
+                                                            
+                                                            requests.expectToBeSent();
+
+                                                            contactRequest.receiveResponse();
+                                                            contactCommunicationsRequest.receiveResponse();
                                                         });
 
                                                         describe('Нажимаю на кнопку сворачивания.', function() {
@@ -1123,7 +1328,8 @@ tests.addTest(options => {
                                                             });
 
                                                             it(
-                                                                'Отображено уведомление о том, что контакт создан.',
+                                                                'Нажимаю на кнопку максимизации. Отображено ' +
+                                                                'уведомление о том, что контакт создан.',
                                                             function() {
                                                                 tester.maximizednessButton.click();
 
@@ -1145,11 +1351,20 @@ tests.addTest(options => {
                                                                     differentNames().
                                                                     expectToBeSent(requests);
 
+                                                                const contactRequest = tester.contactRequest().
+                                                                    expectToBeSent(requests);
+
+                                                                const contactCommunicationsRequest =
+                                                                    tester.contactCommunicationsRequest().
+                                                                        expectToBeSent(requests);
+
                                                                 const employeesRequest = tester.employeesRequest().
                                                                     expectToBeSent(requests);
 
                                                                 requests.expectToBeSent();
 
+                                                                contactRequest.receiveResponse();
+                                                                contactCommunicationsRequest.receiveResponse();
                                                                 reportsListRequest.receiveResponse();
                                                                 contactsRequest.receiveResponse();
                                                                 employeesRequest.receiveResponse();
@@ -1274,6 +1489,15 @@ tests.addTest(options => {
 
                                                     tester.maximizednessButton.expectToBeMaximized();
                                                     tester.dialpadButton(1).expectToBeVisible();
+                                                });
+                                                it(
+                                                    'Нажимаю на кнопку открытия каталога с логами. Каталог открыт.',
+                                                function() {
+                                                    tester.button('Логи').click();
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
+                                                        expectToBeSentToChannel('open-logs-dir');
                                                 });
                                                 it(
                                                     'Нажимаю на кнопку аккаунта в меню. Отображена всплывающая панель.',
@@ -1582,6 +1806,11 @@ tests.addTest(options => {
 
                                                     tester.registrationRequest().
                                                         desktopSoftphone().
+                                                        receiveUnauthorized();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        authorization().
                                                         receiveResponse();
 
                                                     tester.employeeRequest().
@@ -1784,6 +2013,11 @@ tests.addTest(options => {
 
                                                     tester.registrationRequest().
                                                         desktopSoftphone().
+                                                        receiveUnauthorized();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        authorization().
                                                         receiveResponse();
 
                                                     tester.employeeRequest().receiveResponse();
@@ -2075,6 +2309,55 @@ tests.addTest(options => {
                                                     tester.dialpadButton(1).expectToBeVisible();
                                                 });
                                             });
+                                            describe(
+                                                'Прошло некоторое время. Не удалось зарегистрировать SIP-аккаунт.',
+                                            function() {
+                                                beforeEach(function() {
+                                                    tester.spendFiveSeconds(12);
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        receiveUnauthorized();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        authorization().
+                                                        receiveUnauthorized();
+                                                });
+
+                                                it('Прошло некоторое время.', function() {
+                                                    tester.spendFiveSeconds();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        receiveUnauthorized();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        authorization().
+                                                        receiveUnauthorized();
+
+                                                    tester.spendFiveSeconds();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        receiveUnauthorized();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        authorization().
+                                                        receiveResponse();
+
+                                                    tester.softphone.expectTextContentNotToHaveSubstring(
+                                                        'Устанавливается соединение...'
+                                                    );
+                                                });
+                                                it('Отображено сообщение об установки соединения.', function() {
+                                                    tester.softphone.expectTextContentToHaveSubstring(
+                                                        'Устанавливается соединение...'
+                                                    );
+                                                });
+                                            });
                                             it(
                                                 'Софтфон открыт в другом окне. Раскрываю список статусов. Нажимаю на ' +
                                                 'кнопку "Выход". Вхожу в софтфон заново. Удалось войти. Софтфон ' +
@@ -2190,7 +2473,15 @@ tests.addTest(options => {
 
                                                 notificationTester.grantPermission();
                                                 tester.allowMediaInput();
-                                                tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                                                tester.registrationRequest().
+                                                    desktopSoftphone().
+                                                    receiveUnauthorized();
+
+                                                tester.registrationRequest().
+                                                    desktopSoftphone().
+                                                    authorization().
+                                                    receiveResponse();
 
                                                 tester.employeeRequest().
                                                     anotherAuthorizationToken().
@@ -2233,6 +2524,40 @@ tests.addTest(options => {
                                                 tester.phoneField.fill('79161234567');
                                                 tester.callStartingButton.expectNotToHaveAttribute('disabled');
                                                 tester.select.expectNotToExist();
+                                            });
+                                            it(
+                                                'Доступ к серверу кол-центра отключен. Произошел выход из аккаунта.',
+                                            function() {
+                                                tester.eventsWebSocket.disconnect(4404);
+
+                                                tester.authLogoutRequest().receiveResponse();
+                                                tester.userLogoutRequest().receiveResponse();
+
+                                                tester.chatsWebSocket.finishDisconnecting();
+                                                tester.employeesWebSocket.finishDisconnecting();
+
+                                                tester.registrationRequest().
+                                                    desktopSoftphone().
+                                                    expired().
+                                                    receiveResponse();
+
+                                                spendTime(2000);
+                                                tester.webrtcWebsocket.finishDisconnecting();
+
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('set-icon').
+                                                    expectToBeSentWithArguments('windows, 0');
+
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('resize').
+                                                    expectToBeSentWithArguments({
+                                                        width: 300,
+                                                        height: 350
+                                                    });
+
+                                                tester.input.withFieldLabel('Логин').expectToBeVisible();
                                             });
                                             it(
                                                 'Сотрудник развернул софтфон. Софтфон открыт в большом размере.',
@@ -2343,6 +2668,9 @@ tests.addTest(options => {
                                                     forChats().
                                                     expectToBeSent(requests);
 
+                                                const reportsListRequest = tester.reportsListRequest().
+                                                    expectToBeSent(requests);
+
                                                 requests.expectToBeSent();
 
                                                 chatSettingsRequest.receiveResponse();
@@ -2352,8 +2680,8 @@ tests.addTest(options => {
                                                 messageTemplateListRequest.receiveResponse();
                                                 secondAccountRequest.receiveResponse();
                                                 thirdAccountRequest.receiveResponse();
+                                                reportsListRequest.receiveResponse();
 
-                                                tester.reportsListRequest().receiveResponse();
                                                 tester.countersRequest().receiveResponse();
                                                 tester.offlineMessageCountersRequest().receiveResponse();
                                                 tester.chatChannelListRequest().receiveResponse();
@@ -2451,6 +2779,16 @@ tests.addTest(options => {
                                             it('Нажимаю на цифру. Поле для ввода номера фокусируется.', function() {
                                                 utils.pressKey('7');
                                                 tester.phoneField.expectToBeFocused();
+                                            });
+                                            it(
+                                                'Вебсокет сотрудников закрылся. Прошло некоторое время. Вебсокет ' +
+                                                'сотрудников открылся.',
+                                            function() {
+                                                tester.employeesWebSocket.disconnectAbnormally(1006);
+                                                spendTime(1000);
+
+                                                tester.employeesWebSocket.connect();
+                                                tester.employeesInitMessage().expectToBeSent();
                                             });
                                             it('Отображен сотфтон.', function() {
                                                 tester.phoneField.expectNotToBeFocused();
@@ -2674,7 +3012,15 @@ tests.addTest(options => {
                                                     tester.connectSIPWebSocket(1);
 
                                                     tester.allowMediaInput();
-                                                    tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        receiveUnauthorized();
+
+                                                    tester.registrationRequest().
+                                                        desktopSoftphone().
+                                                        authorization().
+                                                        receiveResponse();
 
                                                     tester.employeeRequest().receiveResponse();
 
@@ -2935,12 +3281,15 @@ tests.addTest(options => {
                                                     forChats().
                                                     expectToBeSent(requests);
 
+                                                const reportsListRequest = tester.reportsListRequest().
+                                                    expectToBeSent(requests);
+
                                                 requests.expectToBeSent();
 
                                                 statsRequest.receiveResponse();
                                                 accountRequest.receiveResponse();
+                                                reportsListRequest.receiveResponse();
 
-                                                tester.reportsListRequest().receiveResponse();
                                                 tester.countersRequest().receiveResponse();
                                                 tester.offlineMessageCountersRequest().receiveResponse();
                                                 tester.chatChannelListRequest().receiveResponse();
@@ -3543,6 +3892,9 @@ tests.addTest(options => {
                                                     count(0).
                                                     expectToBeSent(requests);
 
+                                                const reportsListRequest = tester.reportsListRequest().
+                                                    expectToBeSent(requests);
+
                                                 requests.expectToBeSent();
 
                                                 chatSettingsRequest.receiveResponse();
@@ -3554,8 +3906,7 @@ tests.addTest(options => {
                                                 secondChatAccountRequest.receiveResponse();
                                                 activeChatListRequest.receiveResponse();
                                                 closedChatListRequest.receiveResponse();
-
-                                                tester.reportsListRequest().receiveResponse();
+                                                reportsListRequest.receiveResponse();
 
                                                 tester.countersRequest().
                                                     noNewChatsWithUnreadMessages().
@@ -3616,6 +3967,53 @@ tests.addTest(options => {
                                                     recentNotification();
                                             });
 
+                                            it(
+                                                'Приходит новое сообщение. Нажимаю на уведомление. Открыт чат с ' +
+                                                'новым сообщением. Открытый чат отмечен.',
+                                            function() {
+                                                tester.newMessage().anotherMessage().receive();
+
+                                                tester.chatListRequest().
+                                                    chat().
+                                                    receiveResponse();
+
+                                                tester.countersRequest().receiveResponse();
+
+                                                notificationTester.
+                                                    grantPermission().
+                                                    recentNotification().
+                                                    click();
+
+                                                getPackage('electron').ipcRenderer.
+                                                    recentlySentMessage().
+                                                    expectToBeSentToChannel('show');
+
+                                                tester.visitorCardRequest().receiveResponse();
+                                                tester.messageListRequest().receiveResponse();
+                                                tester.employeesRequest().receiveResponse();
+
+                                                tester.chatList.item('Привет').expectToBeSelected();
+                                                tester.chatList.item('Здравствуй').expectNotToBeSelected();
+
+                                                notification.expectToBeClosed();
+
+                                                tester.body.expectTextContentToHaveSubstring(
+                                                    '10 февраля 2020 ' +
+                                                    
+                                                    'Привет ' +
+                                                    '12:13 Ответить ' +
+
+                                                    'Здравствуйте ' +
+                                                    '12:12'
+                                                );
+
+                                                tester.body.expectTextContentToHaveSubstring(
+                                                    'Посетитель ' +
+
+                                                    'ФИО ' +
+                                                    'Помакова Бисерка Драгановна'
+                                                );
+                                            });
                                             it(
                                                 'Нажимаю на уведомление. Открыт чат с новым сообщением. Открытый чат ' +
                                                 'отмечен.',
@@ -3729,14 +4127,25 @@ tests.addTest(options => {
 
                                                 tester.visitorCardRequest().receiveResponse();
                                                 tester.messageListRequest().receiveResponse();
-                                                tester.statsRequest().receiveResponse();
 
-                                                tester.accountRequest().
+                                                const requests = ajax.inAnyOrder();
+                                                
+                                                const accountRequest = tester.accountRequest().
                                                     forChats().
                                                     operatorWorkplaceAvailable().
-                                                    receiveResponse();
+                                                    expectToBeSent(requests);
 
-                                                tester.reportsListRequest().receiveResponse();
+                                                const reportsListRequest = tester.reportsListRequest().
+                                                    expectToBeSent(requests);
+
+                                                const statsRequest = tester.statsRequest().
+                                                    expectToBeSent(requests);
+
+                                                requests.expectToBeSent();
+
+                                                accountRequest.receiveResponse();
+                                                reportsListRequest.receiveResponse();
+                                                statsRequest.receiveResponse();
 
                                                 tester.countersRequest().
                                                     noNewChatsWithUnreadMessages().
@@ -3783,63 +4192,50 @@ tests.addTest(options => {
                                                 tester.offlineMessageListRequest().processing().receiveResponse();
                                                 tester.offlineMessageListRequest().processed().receiveResponse();
 
-                                                const requests = ajax.inAnyOrder();
+                                                {
+                                                    const requests = ajax.inAnyOrder();
 
-                                                const accountRequest = tester.accountRequest().
-                                                    forChats().
-                                                    operatorWorkplaceAvailable().
-                                                    expectToBeSent(requests);
+                                                    const accountRequest = tester.accountRequest().
+                                                        forChats().
+                                                        operatorWorkplaceAvailable().
+                                                        expectToBeSent(requests);
 
-                                                const chatSettingsRequest = tester.chatSettingsRequest().
-                                                    expectToBeSent(requests);
+                                                    const chatSettingsRequest = tester.chatSettingsRequest().
+                                                        expectToBeSent(requests);
 
-                                                const chatChannelListRequest = tester.chatChannelListRequest().
-                                                    expectToBeSent(requests);
+                                                    const chatChannelListRequest = tester.chatChannelListRequest().
+                                                        expectToBeSent(requests);
 
-                                                const listRequest = tester.listRequest().
-                                                    expectToBeSent(requests);
+                                                    const listRequest = tester.listRequest().
+                                                        expectToBeSent(requests);
 
-                                                const siteListRequest = tester.siteListRequest().
-                                                    expectToBeSent(requests);
+                                                    const siteListRequest = tester.siteListRequest().
+                                                        expectToBeSent(requests);
 
-                                                const messageTemplateListRequest = tester.
-                                                    messageTemplateListRequest().
-                                                    expectToBeSent(requests);
+                                                    const messageTemplateListRequest = tester.
+                                                        messageTemplateListRequest().
+                                                        expectToBeSent(requests);
 
-                                                const changeMessageStatusRequest = tester.
-                                                    changeMessageStatusRequest().
-                                                    anotherMessage().
-                                                    read().
-                                                    expectToBeSent(requests);
+                                                    const changeMessageStatusRequest = tester.
+                                                        changeMessageStatusRequest().
+                                                        anotherMessage().
+                                                        read().
+                                                        expectToBeSent(requests);
+                                                    const employeesRequest = tester.employeesRequest().
+                                                        expectToBeSent(requests);
 
-                                                const secondChangeMessageStatusRequest = tester.
-                                                    changeMessageStatusRequest().
-                                                    anotherMessage().
-                                                    read().
-                                                    expectToBeSent(requests);
+                                                    requests.expectToBeSent();
 
-                                                const thirdChangeMessageStatusRequest = tester.
-                                                    changeMessageStatusRequest().
-                                                    anotherMessage().
-                                                    read().
-                                                    expectToBeSent(requests);
+                                                    accountRequest.receiveResponse();
 
-                                                const employeesRequest = tester.employeesRequest().
-                                                    expectToBeSent(requests);
-
-                                                requests.expectToBeSent();
-
-                                                accountRequest.receiveResponse();
-
-                                                chatSettingsRequest.receiveResponse();
-                                                chatChannelListRequest.receiveResponse();
-                                                listRequest.receiveResponse();
-                                                siteListRequest.receiveResponse();
-                                                messageTemplateListRequest.receiveResponse();
-                                                changeMessageStatusRequest.receiveResponse();
-                                                secondChangeMessageStatusRequest.receiveResponse();
-                                                thirdChangeMessageStatusRequest.receiveResponse();
-                                                employeesRequest.receiveResponse();
+                                                    chatSettingsRequest.receiveResponse();
+                                                    chatChannelListRequest.receiveResponse();
+                                                    listRequest.receiveResponse();
+                                                    siteListRequest.receiveResponse();
+                                                    messageTemplateListRequest.receiveResponse();
+                                                    changeMessageStatusRequest.receiveResponse();
+                                                    employeesRequest.receiveResponse();
+                                                }
 
                                                 tester.body.expectTextContentToHaveSubstring(
                                                     '10 февраля 2020 ' +
@@ -4301,7 +4697,15 @@ tests.addTest(options => {
                             tester.numberCapacityRequest().receiveResponse();
                             tester.employeeRequest().receiveResponse();
                             tester.authenticatedUserRequest().receiveResponse();
-                            tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                            tester.registrationRequest().
+                                desktopSoftphone().
+                                receiveUnauthorized();
+
+                            tester.registrationRequest().
+                                desktopSoftphone().
+                                authorization().
+                                receiveResponse();
 
                             secondAccountRequest.receiveResponse();
 
@@ -4751,7 +5155,15 @@ tests.addTest(options => {
 
                                     tester.numberCapacityRequest().receiveResponse();
                                     tester.authenticatedUserRequest().receiveResponse();
-                                    tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                                    tester.registrationRequest().
+                                        desktopSoftphone().
+                                        receiveUnauthorized();
+
+                                    tester.registrationRequest().
+                                        desktopSoftphone().
+                                        authorization().
+                                        receiveResponse();
 
                                     tester.chatList.expectNotToExist();
                                 });
@@ -4987,7 +5399,15 @@ tests.addTest(options => {
                             tester.numberCapacityRequest().receiveResponse();
                             tester.employeeRequest().receiveResponse();
                             tester.authenticatedUserRequest().receiveResponse();
-                            tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                            tester.registrationRequest().
+                                desktopSoftphone().
+                                receiveUnauthorized();
+
+                            tester.registrationRequest().
+                                desktopSoftphone().
+                                authorization().
+                                receiveResponse();
 
                             secondAccountRequest.receiveResponse();
 
@@ -5133,7 +5553,15 @@ tests.addTest(options => {
                             tester.numberCapacityRequest().receiveResponse();
                             tester.employeeRequest().receiveResponse();
                             tester.authenticatedUserRequest().receiveResponse();
-                            tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                            tester.registrationRequest().
+                                desktopSoftphone().
+                                receiveUnauthorized();
+
+                            tester.registrationRequest().
+                                desktopSoftphone().
+                                authorization().
+                                receiveResponse();
 
                             secondAccountRequest.receiveResponse();
 
@@ -5272,7 +5700,15 @@ tests.addTest(options => {
                         tester.numberCapacityRequest().receiveResponse();
                         tester.employeeRequest().receiveResponse();
                         tester.authenticatedUserRequest().receiveResponse();
-                        tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                        tester.registrationRequest().
+                            desktopSoftphone().
+                            receiveUnauthorized();
+
+                        tester.registrationRequest().
+                            desktopSoftphone().
+                            authorization().
+                            receiveResponse();
 
                         secondAccountRequest.receiveResponse();
 
@@ -5305,6 +5741,90 @@ tests.addTest(options => {
                         tester.offlineMessageListRequest().processed().receiveResponse();
 
                         tester.callsHistoryButton.expectToBeEnabled();
+                    });
+                    it('Кнопка перехвата должна быть скрыта. Кнопка перехвата скрыта.', function() {
+                        accountRequest.
+                            operatorWorkplaceAvailable().
+                            interceptionDisabled().
+                            receiveResponse();
+
+                        const requests = ajax.inAnyOrder();
+                        const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+
+                        const secondAccountRequest = tester.accountRequest().
+                            operatorWorkplaceAvailable().
+                            interceptionDisabled().
+                            forChats().
+                            expectToBeSent(requests);
+
+                        const thirdAccountRequest = tester.accountRequest().
+                            operatorWorkplaceAvailable().
+                            interceptionDisabled().
+                            expectToBeSent(requests);
+
+                        requests.expectToBeSent();
+                        thirdAccountRequest.receiveResponse();
+                        authCheckRequest.receiveResponse();
+                        tester.talkOptionsRequest().receiveResponse();
+
+                        tester.permissionsRequest().
+                            allowNumberCapacitySelect().
+                            allowNumberCapacityUpdate().
+                            receiveResponse();
+
+                        tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+                        tester.employeeStatusesRequest().receiveResponse();
+
+                        tester.connectEventsWebSocket();
+                        tester.connectSIPWebSocket();
+
+                        notificationTester.grantPermission();
+                        tester.allowMediaInput();
+
+                        tester.numberCapacityRequest().receiveResponse();
+                        tester.employeeRequest().receiveResponse();
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.registrationRequest().
+                            desktopSoftphone().
+                            receiveUnauthorized();
+
+                        tester.registrationRequest().
+                            desktopSoftphone().
+                            authorization().
+                            receiveResponse();
+
+                        secondAccountRequest.receiveResponse();
+
+                        tester.employeesWebSocket.connect();
+                        tester.employeesInitMessage().expectToBeSent();
+
+                        tester.chatsWebSocket.connect();
+                        tester.chatsInitMessage().expectToBeSent();
+
+                        tester.countersRequest().receiveResponse();
+
+                        getPackage('electron').ipcRenderer.
+                            recentlySentMessage().
+                            expectToBeSentToChannel('set-icon').
+                            expectToBeSentWithArguments('windows, 150');
+
+                        tester.offlineMessageCountersRequest().receiveResponse();
+                        tester.chatChannelListRequest().receiveResponse();
+                        tester.siteListRequest().receiveResponse();
+                        tester.markListRequest().receiveResponse();
+
+                        tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                        tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                        tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
+                        tester.chatChannelTypeListRequest().receiveResponse();
+
+                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                        tester.offlineMessageListRequest().processing().receiveResponse();
+                        tester.offlineMessageListRequest().processed().receiveResponse();
+
+                        tester.interceptButton.expectNotToExist();
                     });
                 });
                 it('Отмечаю чекбокс "Чужой компьютер". Нажимаю на кнопку входа. Логин не сохраняется.', function() {
@@ -5361,7 +5881,14 @@ tests.addTest(options => {
                         tester.employeeRequest().receiveResponse();
                         authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
-                        tester.registrationRequest().desktopSoftphone().receiveResponse();
+                        tester.registrationRequest().
+                            desktopSoftphone().
+                            receiveUnauthorized();
+
+                        tester.registrationRequest().
+                            desktopSoftphone().
+                            authorization().
+                            receiveResponse();
 
                         secondAccountRequest.receiveResponse();
                         
@@ -5610,7 +6137,15 @@ tests.addTest(options => {
                 tester.numberCapacityRequest().receiveResponse();
                 tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
-                tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                tester.registrationRequest().
+                    desktopSoftphone().
+                    receiveUnauthorized();
+
+                tester.registrationRequest().
+                    desktopSoftphone().
+                    authorization().
+                    receiveResponse();
 
                 secondAccountRequest.receiveResponse();
 
@@ -5895,6 +6430,8 @@ tests.addTest(options => {
                     incomingCall.expectBusyHereToBeSent();
                 });
                 it('Не одно сообщение не отправлено в бэк электрона.', function() {
+                    utils.pressSpace();
+
                     getPackage('electron').ipcRenderer.
                         recentlySentMessage().
                         expectNotToBeSent();
@@ -5957,9 +6494,21 @@ tests.addTest(options => {
 
                     tester.button('Скрывать после звонка').expectNotToBeChecked();
                 });
+                it(
+                    'Нажимаю на свитчбокс принятия звонка по нажатию на пробел. Новое значение параметра сохранилось.',
+                function() {
+                    tester.button('Принимать звонок по нажатию на пробел').click();
+
+                    if (localStorage.getItem('isSpaceCallAnswer') !== 'true') {
+                        throw new Error('Значение свитчбокса должно быть сохранено.');
+                    }
+
+                    tester.button('Принимать звонок по нажатию на пробел').expectToBeChecked();
+                });
                 it('Свитчбоксы "Открывать во время звонка" и "Скрывать после звонка" отмечены.', function() {
                     tester.button('Открывать во время звонка').expectToBeChecked();
                     tester.button('Скрывать после звонка').expectToBeChecked();
+                    tester.button('Принимать звонок по нажатию на пробел').expectNotToBeChecked();
                 });
             });
         });
@@ -6039,7 +6588,15 @@ tests.addTest(options => {
                 tester.numberCapacityRequest().receiveResponse();
                 tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
-                tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                tester.registrationRequest().
+                    desktopSoftphone().
+                    receiveUnauthorized();
+
+                tester.registrationRequest().
+                    desktopSoftphone().
+                    authorization().
+                    receiveResponse();
 
                 secondAccountRequest.receiveResponse();
 
@@ -6180,7 +6737,15 @@ tests.addTest(options => {
                 tester.numberCapacityRequest().receiveResponse();
                 tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
-                tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                tester.registrationRequest().
+                    desktopSoftphone().
+                    receiveUnauthorized();
+
+                tester.registrationRequest().
+                    desktopSoftphone().
+                    authorization().
+                    receiveResponse();
 
                 secondAccountRequest.receiveResponse();
 
@@ -6423,7 +6988,15 @@ tests.addTest(options => {
                 tester.numberCapacityRequest().receiveResponse();
                 tester.employeeRequest().receiveResponse();
                 tester.authenticatedUserRequest().receiveResponse();
-                tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+                tester.registrationRequest().
+                    desktopSoftphone().
+                    receiveUnauthorized();
+
+                tester.registrationRequest().
+                    desktopSoftphone().
+                    authorization().
+                    receiveResponse();
 
                 secondAccountRequest.receiveResponse();
 
@@ -6506,6 +7079,292 @@ tests.addTest(options => {
 
                 tester.button('Скрывать после звонка').expectToBeChecked();
             });
+        });
+        describe('Я уже аутентифицирован. Пробел должен использоваться для ответа на звонок.', function() {
+            beforeEach(function() {
+                localStorage.setItem('isSpaceCallAnswer', 'true');
+
+                tester = new Tester({
+                    ...options,
+                    isAlreadyAuthenticated: true,
+                    appName: 'softphone'
+                });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('app-ready');
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 212
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('opened');
+
+                tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
+
+                const requests = ajax.inAnyOrder();
+                const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+
+                const secondAccountRequest = tester.accountRequest().
+                    operatorWorkplaceAvailable().
+                    forChats().
+                    expectToBeSent(requests);
+
+                const thirdAccountRequest = tester.accountRequest().
+                    operatorWorkplaceAvailable().
+                    expectToBeSent(requests);
+
+                requests.expectToBeSent();
+                thirdAccountRequest.receiveResponse();
+                authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+
+                tester.permissionsRequest().
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
+
+                tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+
+                tester.connectEventsWebSocket();
+                tester.connectSIPWebSocket();
+
+                notificationTester.grantPermission();
+                tester.allowMediaInput();
+
+                tester.employeeStatusesRequest().receiveResponse();
+                tester.numberCapacityRequest().receiveResponse();
+                tester.employeeRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
+
+                tester.registrationRequest().
+                    desktopSoftphone().
+                    receiveUnauthorized();
+
+                tester.registrationRequest().
+                    desktopSoftphone().
+                    authorization().
+                    receiveResponse();
+
+                secondAccountRequest.receiveResponse();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
+
+                tester.chatsWebSocket.connect();
+                tester.chatsInitMessage().expectToBeSent();
+
+                tester.countersRequest().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('set-icon').
+                    expectToBeSentWithArguments('windows, 150');
+
+                tester.offlineMessageCountersRequest().receiveResponse();
+                tester.chatChannelListRequest().receiveResponse();
+                tester.siteListRequest().receiveResponse();
+                tester.markListRequest().receiveResponse();
+
+                tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
+                tester.chatChannelTypeListRequest().receiveResponse();
+
+                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                tester.offlineMessageListRequest().processing().receiveResponse();
+                tester.offlineMessageListRequest().processed().receiveResponse();
+            });
+
+            describe('Поступает входящий звонок.', function() {
+                let incomingCall;
+
+                beforeEach(function() {
+                    incomingCall = tester.incomingCall().receive();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('call-start').
+                        expectToBeSentWithArguments(true);
+
+                    tester.numaRequest().receiveResponse();
+                    tester.outCallEvent().activeLeads().receive();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 340,
+                            height: 568
+                        });
+                });
+
+                it('Снимаю фокус с приложения. Нажимаю на клавишу Space. Звонок не был принят.', function() {
+                    setFocus(false);
+                    utils.pressSpace();
+                });
+                it('Нажимаю на клавишу Esc.', function() {
+                    utils.pressEscape();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 340,
+                            height: 212
+                        });
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('call-end').
+                        expectToBeSentWithArguments(true);
+
+                    incomingCall.expectBusyHereToBeSent();
+                });
+                it('Нажимаю на клавишу Space. Звонок принят.', function() {
+                    utils.pressSpace();
+
+                    tester.firstConnection.connectWebRTC();
+                    tester.firstConnection.callTrackHandler();
+
+                    tester.allowMediaInput();
+                    tester.firstConnection.addCandidate();
+                    
+                    incomingCall.expectOkToBeSent().receiveResponse();
+                });
+            });
+            it('Плейсхолдер поля для ввода номера локализован.', function() {
+                tester.phoneField.expectToHaveValue('Введите номер');
+            });
+        });
+        it(
+            'Я уже аутентифицирован. Пробел не должен использоваться для ответа на звонок. Нажимаю на пробел, ничего ' +
+            'не происходит.',
+        function() {
+            tester = new Tester({
+                ...options,
+                isAlreadyAuthenticated: true,
+                appName: 'softphone'
+            });
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('app-ready');
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('resize').
+                expectToBeSentWithArguments({
+                    width: 340,
+                    height: 212
+                });
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('opened');
+
+            tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
+
+            const requests = ajax.inAnyOrder();
+            const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+
+            const secondAccountRequest = tester.accountRequest().
+                operatorWorkplaceAvailable().
+                forChats().
+                expectToBeSent(requests);
+
+            const thirdAccountRequest = tester.accountRequest().
+                operatorWorkplaceAvailable().
+                expectToBeSent(requests);
+
+            requests.expectToBeSent();
+            thirdAccountRequest.receiveResponse();
+            authCheckRequest.receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+
+            tester.permissionsRequest().
+                allowNumberCapacitySelect().
+                allowNumberCapacityUpdate().
+                receiveResponse();
+
+            tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+
+            tester.connectEventsWebSocket();
+            tester.connectSIPWebSocket();
+
+            notificationTester.grantPermission();
+            tester.allowMediaInput();
+
+            tester.employeeStatusesRequest().receiveResponse();
+            tester.numberCapacityRequest().receiveResponse();
+            tester.employeeRequest().receiveResponse();
+            tester.authenticatedUserRequest().receiveResponse();
+
+            tester.registrationRequest().
+                desktopSoftphone().
+                receiveUnauthorized();
+
+            tester.registrationRequest().
+                desktopSoftphone().
+                authorization().
+                receiveResponse();
+
+            secondAccountRequest.receiveResponse();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
+
+            tester.chatsWebSocket.connect();
+            tester.chatsInitMessage().expectToBeSent();
+
+            tester.countersRequest().receiveResponse();
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('set-icon').
+                expectToBeSentWithArguments('windows, 150');
+
+            tester.offlineMessageCountersRequest().receiveResponse();
+            tester.chatChannelListRequest().receiveResponse();
+            tester.siteListRequest().receiveResponse();
+            tester.markListRequest().receiveResponse();
+
+            tester.chatListRequest().forCurrentEmployee().receiveResponse();
+            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
+            tester.chatChannelTypeListRequest().receiveResponse();
+
+            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+            tester.offlineMessageListRequest().processing().receiveResponse();
+            tester.offlineMessageListRequest().processed().receiveResponse();
+
+            const incomingCall = tester.incomingCall().receive();
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('call-start').
+                expectToBeSentWithArguments(true);
+
+            tester.numaRequest().receiveResponse();
+            tester.outCallEvent().activeLeads().receive();
+
+            getPackage('electron').ipcRenderer.
+                recentlySentMessage().
+                expectToBeSentToChannel('resize').
+                expectToBeSentWithArguments({
+                    width: 340,
+                    height: 568
+                });
+
+            utils.pressSpace();
         });
         it('Ранее софтфон был большим. Софтфон большой.', function() {
             let authCheckRequest,
@@ -6617,105 +7476,21 @@ tests.addTest(options => {
             tester.connectSIPWebSocket();
 
             tester.authenticatedUserRequest().receiveResponse();
-            tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+            tester.registrationRequest().
+                desktopSoftphone().
+                receiveUnauthorized();
+
+            tester.registrationRequest().
+                desktopSoftphone().
+                authorization().
+                receiveResponse();
+
             notificationTester.grantPermission();
             tester.allowMediaInput();
 
             tester.dialpadButton(1).expectToBeVisible();
             tester.leftMenu.expectToBeVisible();
-        });
-        it('Я уже аутентифицирован. Плейсхолдер поля для ввода номера локализован.', function() {
-            tester = new Tester({
-                ...options,
-                isAlreadyAuthenticated: true,
-                appName: 'softphone'
-            });
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('app-ready');
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('resize').
-                expectToBeSentWithArguments({
-                    width: 340,
-                    height: 212
-                });
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('opened');
-
-            tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
-
-            const requests = ajax.inAnyOrder();
-            const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-
-            const secondAccountRequest = tester.accountRequest().
-                operatorWorkplaceAvailable().
-                forChats().
-                expectToBeSent(requests);
-
-            const thirdAccountRequest = tester.accountRequest().
-                operatorWorkplaceAvailable().
-                expectToBeSent(requests);
-
-            requests.expectToBeSent();
-            thirdAccountRequest.receiveResponse();
-            authCheckRequest.receiveResponse();
-            tester.talkOptionsRequest().receiveResponse();
-
-            tester.permissionsRequest().
-                allowNumberCapacitySelect().
-                allowNumberCapacityUpdate().
-                receiveResponse();
-
-            tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
-
-            tester.connectEventsWebSocket();
-            tester.connectSIPWebSocket();
-
-            notificationTester.grantPermission();
-            tester.allowMediaInput();
-
-            tester.employeeStatusesRequest().receiveResponse();
-            tester.numberCapacityRequest().receiveResponse();
-            tester.employeeRequest().receiveResponse();
-            tester.authenticatedUserRequest().receiveResponse();
-            tester.registrationRequest().desktopSoftphone().receiveResponse();
-
-            secondAccountRequest.receiveResponse();
-
-            tester.employeesWebSocket.connect();
-            tester.employeesInitMessage().expectToBeSent();
-
-            tester.chatsWebSocket.connect();
-            tester.chatsInitMessage().expectToBeSent();
-
-            tester.countersRequest().receiveResponse();
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('set-icon').
-                expectToBeSentWithArguments('windows, 150');
-
-            tester.offlineMessageCountersRequest().receiveResponse();
-            tester.chatChannelListRequest().receiveResponse();
-            tester.siteListRequest().receiveResponse();
-            tester.markListRequest().receiveResponse();
-
-            tester.chatListRequest().forCurrentEmployee().receiveResponse();
-            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
-
-            tester.chatChannelTypeListRequest().receiveResponse();
-
-            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-            tester.offlineMessageListRequest().processing().receiveResponse();
-            tester.offlineMessageListRequest().processed().receiveResponse();
-
-            tester.phoneField.expectToHaveValue('Введите номер');
         });
         it('Ранее софтфон был раскрыт. Открываю софтфон. Он раскрыт.', function() {
             localStorage.setItem('isSoftphoneHigh', 'true');
@@ -6779,7 +7554,15 @@ tests.addTest(options => {
             tester.numberCapacityRequest().receiveResponse();
             tester.employeeRequest().receiveResponse();
             tester.authenticatedUserRequest().receiveResponse();
-            tester.registrationRequest().desktopSoftphone().receiveResponse();
+
+            tester.registrationRequest().
+                desktopSoftphone().
+                receiveUnauthorized();
+
+            tester.registrationRequest().
+                desktopSoftphone().
+                authorization().
+                receiveResponse();
 
             secondAccountRequest.receiveResponse();
 

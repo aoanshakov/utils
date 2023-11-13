@@ -167,7 +167,11 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.authenticatedUserRequest().receiveResponse();
-                        tester.registrationRequest().receiveResponse();
+                        tester.registrationRequest().receiveUnauthorized();
+
+                        tester.registrationRequest().
+                            authorization().
+                            receiveResponse();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -307,7 +311,11 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.authenticatedUserRequest().receiveResponse();
-                tester.registrationRequest().receiveResponse();
+                tester.registrationRequest().receiveUnauthorized();
+
+                tester.registrationRequest().
+                    authorization().
+                    receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -431,7 +439,11 @@ tests.addTest(options => {
                     userDataFetched().
                     expectToBeSent();
 
-                tester.registrationRequest().receiveResponse();
+                tester.registrationRequest().receiveUnauthorized();
+
+                tester.registrationRequest().
+                    authorization().
+                    receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -533,7 +545,11 @@ tests.addTest(options => {
                     userDataFetched().
                     expectToBeSent();
 
-                tester.registrationRequest().receiveResponse();
+                tester.registrationRequest().receiveUnauthorized();
+
+                tester.registrationRequest().
+                    authorization().
+                    receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().

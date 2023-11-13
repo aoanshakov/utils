@@ -433,12 +433,6 @@ tests.addTest(options => {
                                                 describe('Получен другой контакт с таким же номером.', function() {
                                                     beforeEach(function() {
                                                         contactsRequest.oneItem().receiveResponse();
-
-                                                        tester.contactBar.
-                                                            section('Телефоны').
-                                                            expectTextContentToHaveSubstring(
-                                                                'Данный номер телефона уже используется'
-                                                            );
                                                     });
 
                                                     it(
@@ -451,7 +445,10 @@ tests.addTest(options => {
                                                             content.
                                                             expectToHaveTextContent('79162729533');
                                                     });
-                                                    it('Отображено сообщение об ошибке.', function() {
+                                                    it(
+                                                        'Открываю список для выбора основного контакта. Отображен ' +
+                                                        'список контактов.',
+                                                    function() {
                                                         tester.contactBar.
                                                             section('Телефоны').
                                                             select.
@@ -466,6 +463,13 @@ tests.addTest(options => {
                                                             '79162729533 ' +
                                                             '79162722748'
                                                         );
+                                                    });
+                                                    it('Отображено сообщение об ошибке.', function() {
+                                                        tester.contactBar.
+                                                            section('Телефоны').
+                                                            expectTextContentToHaveSubstring(
+                                                                'Данный номер телефона уже используется'
+                                                            );
                                                     });
                                                 });
                                                 it(
@@ -740,7 +744,7 @@ tests.addTest(options => {
                                                 tester.contactBar.
                                                     section('E-Mail').
                                                     expectTextContentToHaveSubstring(
-                                                        'Количество символов, введенных в поле не должно привышать 48'
+                                                        'Количество символов, введенных в поле не должно превышать 48'
                                                     );
                                             });
                                             it(
@@ -968,7 +972,7 @@ tests.addTest(options => {
                                                 tester.contactBar.
                                                     section('ФИО').
                                                     expectTextContentToHaveSubstring(
-                                                        'Количество символов, введенных в поле не должно привышать 32'
+                                                        'Количество символов, введенных в поле не должно превышать 32'
                                                     );
 
                                                 tester.button('Сохранить').click();
@@ -1067,7 +1071,7 @@ tests.addTest(options => {
                                                 tester.contactBar.
                                                     section('Телефоны').
                                                     expectTextContentToHaveSubstring(
-                                                        'Количество символов, введенных в поле не должно привышать 16'
+                                                        'Количество символов, введенных в поле не должно превышать 16'
                                                     );
 
                                                 tester.contactBar.
@@ -2326,6 +2330,28 @@ tests.addTest(options => {
                                                 expectToBeVisible();
                                         });
                                     });
+                                    describe('В данных контакта сохранен некоррекнтое имя контакта.', function() {
+                                        beforeEach(function() {
+                                            contactRequest.longName().receiveResponse();
+                                            tester.contactBar.section('ФИО').svg.click();
+                                        });
+
+                                        it('Исправляю имя контакта, сохраняю контакт. Контакт сохранен.', function() {
+                                            tester.input.withPlaceholder('Отчество').fill('Ервиновна');
+
+                                            tester.button('Сохранить').click();
+
+                                            tester.contactUpdatingRequest().receiveResponse();
+                                            tester.contactRequest().receiveResponse();
+                                        });
+                                        it('Отображено сообщение об ошибке.', function() {
+                                            tester.contactBar.
+                                                section('ФИО').
+                                                expectTextContentToHaveSubstring(
+                                                    'Количество символов, введенных в поле не должно превышать 32'
+                                                );
+                                        });
+                                    });
                                     it(
                                         'В качестве E-Mail используется пустая строка. Поле для ввода почты скрыто.',
                                     function() {
@@ -2333,20 +2359,6 @@ tests.addTest(options => {
 
                                         tester.contactBar.section('E-Mail').input.expectNotToExist(); 
                                         tester.contactBar.section('E-Mail').option('').expectNotToExist();
-                                    });
-                                    it(
-                                        'В данных контакта сохранен некоррекнтое имя контакта. Исправляю имя ' +
-                                        'контакта, сохраняю контакт. Контакт сохранен.',
-                                    function() {
-                                        contactRequest.longName().receiveResponse();
-
-                                        tester.contactBar.section('ФИО').svg.click();
-                                        tester.input.withPlaceholder('Отчество').fill('Ервиновна');
-
-                                        tester.button('Сохранить').click();
-
-                                        tester.contactUpdatingRequest().receiveResponse();
-                                        tester.contactRequest().receiveResponse();
                                     });
                                     it('В цитате отображено имя контакта.', function() {
                                         contactRequest.receiveResponse();
@@ -2474,7 +2486,7 @@ tests.addTest(options => {
 
                                                 tester.input.
                                                     withPlaceholder('Фамилия (Обязательное поле)').
-                                                    expectToHaveValue('Неделчева');
+                                                    expectToHaveValue('Бележкова-Паскалева');
 
                                                 tester.contactBar.
                                                     section('Телефоны').
@@ -2570,6 +2582,21 @@ tests.addTest(options => {
                                                 content.
                                                 expectToHaveTextContent('');
                                         });
+                                    });
+                                    it(
+                                        'Пытаюсь создать контакт. Не удалось создать контакт. В поле фамилии введена ' +
+                                        'фамилия.',
+                                    function() {
+                                        tester.button('Создать контакт').click();
+
+                                        tester.contactCreatingRequest().
+                                            noPhone().
+                                            failed().
+                                            receiveResponse();
+
+                                        tester.input.
+                                            withPlaceholder('Фамилия (Обязательное поле)').
+                                            expectToHaveValue('Неделчева');
                                     });
                                 });
                                 it('Нажимаю на кнопку "Отменить". Панель контакта скрыта. ', function() {
@@ -2840,7 +2867,9 @@ tests.addTest(options => {
                                                 anotherContactId().
                                                 receiveResponse();
 
-                                            tester.contactRequest().
+                                            const requests = ajax.inAnyOrder();
+
+                                            const contactRequest = tester.contactRequest().
                                                 fourthContact().
                                                 noPersonalManager().
                                                 noPhoneNumbers().
@@ -2848,7 +2877,16 @@ tests.addTest(options => {
                                                 noChannels().
                                                 noPatronymic().
                                                 noFirstName().
-                                                receiveResponse();
+                                                expectToBeSent(requests);
+
+                                            const contactCommunicationsRequest = tester.contactCommunicationsRequest().
+                                                fourthContact().
+                                                expectToBeSent(requests);
+
+                                            requests.expectToBeSent();
+
+                                            contactRequest.receiveResponse();
+                                            contactCommunicationsRequest.receiveResponse();
                                         });
 
                                         describe('Закрываю уведомление о создании контакта.', function() {

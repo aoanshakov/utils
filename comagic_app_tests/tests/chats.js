@@ -25,7 +25,6 @@ tests.addTest(options => {
     describe('Открываю страницу чатов.', function() {
         let tester,
             reportGroupsRequest,
-            settingsRequest,
             accountRequest,
             permissionsRequest,
             authenticatedUserRequest,
@@ -99,20 +98,32 @@ tests.addTest(options => {
                 tester.chatsWebSocket.connect();
                 tester.chatsInitMessage().expectToBeSent();
 
-                tester.reportsListRequest().receiveResponse();
+                {
+                    const requests = ajax.inAnyOrder();
 
-                tester.accountRequest().
-                    forChats().
-                    webAccountLoginUnavailable().
-                    softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    receiveResponse();
+                    const accountRequest = tester.accountRequest().
+                        forChats().
+                        webAccountLoginUnavailable().
+                        softphoneFeatureFlagDisabled().
+                        operatorWorkplaceAvailable().
+                        expectToBeSent(requests);
 
-                chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent();
-                tester.chatChannelListRequest().receiveResponse();
-                tester.listRequest().receiveResponse();
-                tester.siteListRequest().receiveResponse();
-                tester.messageTemplateListRequest().receiveResponse();
+                    chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
+                    const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
+                        listRequest = tester.listRequest().expectToBeSent(requests),
+                        siteListRequest = tester.siteListRequest().expectToBeSent(requests),
+                        messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests),
+                        reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    accountRequest.receiveResponse();
+                    chatChannelListRequest.receiveResponse();
+                    listRequest.receiveResponse();
+                    siteListRequest.receiveResponse();
+                    messageTemplateListRequest.receiveResponse();
+                    reportsListRequest.receiveResponse();
+                }
 
                 countersRequest = tester.countersRequest().expectToBeSent();
 
@@ -164,7 +175,7 @@ tests.addTest(options => {
                                     searchResultsRequest = tester.searchResultsRequest().expectToBeSent();
                                 });
 
-                                xdescribe('Контакт не найден. Нажимаю на найденный чат.', function() {
+                                describe('Контакт не найден. Нажимаю на найденный чат.', function() {
                                     beforeEach(function() {
                                         searchResultsRequest.receiveResponse();
 
@@ -207,7 +218,7 @@ tests.addTest(options => {
                                                             click();
                                                     });
 
-                                                    it(
+                                                    describe(
                                                         'Изменяю номер телефона. Отправлен запрос обновления ' +
                                                         'посетителя.',
                                                     function() {
@@ -239,6 +250,12 @@ tests.addTest(options => {
                                                         'обновления посетителя.',
                                                     function() {
                                                         tester.select.option('Удалить').click();
+
+                                                        spendTime(0);
+                                                        spendTime(0);
+                                                        tester.modalWindow.endTransition('transform');
+
+                                                        tester.modalWindow.button('Удалить').click();
                                                         tester.visitorCardUpdatingRequest().noPhone().receiveResponse();
 
                                                         tester.contactBar.
@@ -417,11 +434,70 @@ tests.addTest(options => {
                                                             'Term gde_kupit_igrushki'
                                                         );
                                                 });
+                                                it(
+                                                    'Изменяю имя посетителя. В списке чатов отображено новое имя ' +
+                                                    'посетителя.',
+                                                function() {
+                                                    tester.contactBar.section('ФИО').svg.click();
+
+                                                    tester.input.
+                                                        withPlaceholder('Фамилия (Обязательное поле)').
+                                                        fill('Неделчева');
+
+                                                    tester.input.
+                                                        withPlaceholder('Имя').
+                                                        fill('Роза');
+
+                                                    tester.input.
+                                                        withPlaceholder('Отчество').
+                                                        fill('Ангеловна');
+
+                                                    tester.contactBar.
+                                                        section('Телефоны').
+                                                        option('79164725823').
+                                                        putMouseOver();
+
+                                                    tester.contactBar.
+                                                        section('Телефоны').
+                                                        option('79164725823').
+                                                        toolsIcon.
+                                                        click();
+                                                    tester.select.option('Редактировать').click();
+
+                                                    tester.contactBar.
+                                                        section('Телефоны').
+                                                        input.
+                                                        fill('79162729534');
+
+                                                    tester.contactBar.
+                                                        section('Телефоны').
+                                                        button('Сохранить').
+                                                        click();
+
+                                                    tester.contactsRequest().
+                                                        phoneSearching().
+                                                        noData().
+                                                        receiveResponse();
+
+                                                    tester.visitorCardUpdatingRequest().
+                                                        anotherName().
+                                                        anotherPhone().
+                                                        receiveResponse();
+
+                                                    tester.chatPhoneUpdatingRequest().receiveResponse();
+
+                                                    tester.chatListItem('Сообщение #75').expectToHaveTextContent(
+                                                        'Неделчева Роза Ангеловна ' +
+                                                        '20 янв 2020 ' +
+                                                        'Сообщение #75 1'
+                                                    );
+                                                });
                                                 it('Нажимаю на кнопку "Создать контакт".', function() {
                                                     tester.button('Создать контакт').click();
+
                                                     tester.contactCreatingRequest().fromVisitor().receiveResponse();
-                                                    tester.contactRequest().fifthContact().receiveResponse();
                                                     tester.chatListRequest().thirdChat().expectToBeSent();
+                                                    tester.contactRequest().fifthContact().receiveResponse();
 
                                                     tester.contactBar.title.expectToHaveTextContent('Контакт');
                                                     tester.contactBar.section('Телефоны').svg.expectToBeVisible();
@@ -469,6 +545,36 @@ tests.addTest(options => {
                                                        'Клиент: #16479304 Гость ' +
                                                        'Комментарий: Поговори с ней сама, я уже устала ' +
                                                         'Принять Отказаться'
+                                                    );
+                                                });
+                                                it(
+                                                    'Приходит трансфер без подтверждения от другого сотрудника. ' +
+                                                    'Отображено уведомление.',
+                                                function() {
+                                                    tester.forcedTransferMessage().noLastMessage().receive();
+
+                                                    tester.body.expectTextContentToHaveSubstring(
+                                                       'Перевод обращения ' +
+                                                       'От сотрудника: Чакърова Райна Илковна ' +
+                                                       'Клиент: #16479304 Гость ' +
+                                                       'Комментарий: Поговори с ней сама, я уже устала'
+                                                    );
+
+                                                    tester.body.expectTextContentNotToHaveSubstring(
+                                                        'Принять Отказаться'
+                                                    );
+                                                });
+                                                it(
+                                                    'Приходит трансфер от другого сотрудника. Отображено уведомление.',
+                                                function() {
+                                                    tester.transferCreatingMessage().noLastMessage().receive();
+
+                                                    tester.body.expectTextContentToHaveSubstring(
+                                                       'Перевод обращения ' +
+                                                       'От сотрудника: Чакърова Райна Илковна ' +
+                                                       'Клиент: #16479304 Гость ' +
+                                                       'Комментарий: Поговори с ней сама, я уже устала ' +
+                                                       'Принять Отказаться'
                                                     );
                                                 });
                                                 it('Отображены сообщения чата.', function() {
@@ -683,6 +789,8 @@ tests.addTest(options => {
                                             describe('У посетителя есть два телефона.', function() {
                                                 beforeEach(function() {
                                                     visitorCardRequest.addSecondPhoneNumber().receiveResponse();
+
+                                                    tester.usersRequest().forContacts().receiveResponse();
                                                     tester.usersRequest().forContacts().receiveResponse();
                                                 });
 
@@ -693,9 +801,11 @@ tests.addTest(options => {
 
                                                         tester.chatTransferButton.click();
                                                         tester.transferPanel.select.click();
+
+                                                        tester.chatTransferGroupsRequest().receiveResponse();
                                                     });
 
-                                                    it('Выбераю доступного оператора. Оператор выбран.', function() {
+                                                    it('Выбераю доступного оператора.', function() {
                                                         tester.select.
                                                             option('Чакърова Райна Илковна').
                                                             click();
@@ -722,59 +832,118 @@ tests.addTest(options => {
                                                         tester.acceptChatRequest().receiveResponse();
                                                     });
                                                     
-                                                    describe(
-                                                        'Ввожу сообщение. Нажимаю на кнопку отправки сообщения.',
-                                                    function() {
-                                                        let messageAddingRequest;
-
+                                                    describe('Ввожу сообщение.', function() {
                                                         beforeEach(function() {
                                                             tester.textarea.withPlaceholder('Введите сообщение...').
                                                                 fill('Мне тревожно, успокой меня');
-
-                                                            tester.chatMessageSendingButton.click();
-
-                                                            messageAddingRequest = tester.messageAddingRequest().
-                                                                expectToBeSent();
-
-                                                            tester.changeMessageStatusRequest().
-                                                                anotherChat().
-                                                                anotherMessage().
-                                                                read().
-                                                                receiveResponse();
                                                         });
 
-                                                        describe('Токен авторизации истек.', function() {
-                                                            let refreshRequest;
+                                                        describe('Нажимаю на кнопку отправки сообщения.', function() {
+                                                            beforeEach(function() {
+                                                                tester.chatMessageSendingButton.click();
+
+                                                                messageAddingRequest = tester.messageAddingRequest().
+                                                                    expectToBeSent();
+
+                                                                tester.changeMessageStatusRequest().
+                                                                    anotherChat().
+                                                                    anotherMessage().
+                                                                    read().
+                                                                    receiveResponse();
+                                                            });
+
+                                                            describe('Токен авторизации истек.', function() {
+                                                                let refreshRequest;
+
+                                                                beforeEach(function() {
+                                                                    messageAddingRequest.
+                                                                        accessTokenExpired().
+                                                                        receiveResponse();
+
+                                                                    refreshRequest = tester.refreshRequest().
+                                                                        expectToBeSent();
+                                                                });
+
+                                                                it(
+                                                                    'Не удалось обновить токен авторизации.',
+                                                                function() {
+                                                                    refreshRequest.
+                                                                        refreshTokenExpired().
+                                                                        receiveResponse();
+
+                                                                    tester.userLogoutRequest().receiveResponse();
+
+                                                                    tester.chatsWebSocket.finishDisconnecting();
+                                                                    tester.employeesWebSocket.finishDisconnecting();
+                                                                });
+                                                                it(
+                                                                    'Удалось обновить токен авторизации. Сообщение ' +
+                                                                    'отправлено.',
+                                                                function() {
+                                                                    refreshRequest.receiveResponse();
+                                                                    tester.messageAddingRequest().receiveResponse();
+                                                                });
+                                                            });
+                                                            it('Сообщение отправлено.', function() {
+                                                                messageAddingRequest.receiveResponse();
+                                                            });
+                                                        });
+                                                        describe('Прикладываю файл. Отправляю сообщение.', function() {
+                                                            let messageAddingRequest;
 
                                                             beforeEach(function() {
-                                                                messageAddingRequest.
-                                                                    accessTokenExpired().
+                                                                tester.fileField.upload('some-file.zip');
+                                                                fileReader.accomplishFileLoading('some-file.zip');
+
+                                                                tester.chatMessageSendingButton.click();
+                                                                tester.messageAddingRequest().receiveResponse();
+
+                                                                tester.changeMessageStatusRequest().
+                                                                    anotherChat().
+                                                                    anotherMessage().
+                                                                    read().
                                                                     receiveResponse();
 
-                                                                refreshRequest = tester.refreshRequest().
+                                                                tester.resourceRequest().receiveResponse();
+
+                                                                messageAddingRequest = tester.messageAddingRequest().
+                                                                    resource().
+                                                                    anotherMessage().
                                                                     expectToBeSent();
                                                             });
 
-                                                            it('Не удалось обновить токен авторизации.', function() {
-                                                                refreshRequest.
-                                                                    refreshTokenExpired().
+                                                            it(
+                                                                'Не удалось отправить сообщение. Отправляю следующее ' +
+                                                                'сообщение. Сообщение успешно отправлено.',
+                                                            function() {
+                                                                messageAddingRequest.
+                                                                    failed().
                                                                     receiveResponse();
 
-                                                                tester.userLogoutRequest().receiveResponse();
+                                                                tester.textarea.
+                                                                    withPlaceholder('Введите сообщение...').
+                                                                    fill('Я хочу спать');
 
-                                                                tester.chatsWebSocket.finishDisconnecting();
-                                                                tester.employeesWebSocket.finishDisconnecting();
+                                                                tester.chatMessageSendingButton.click();
+
+                                                                tester.messageAddingRequest().
+                                                                    thirdMessage().
+                                                                    receiveResponse();
                                                             });
-                                                            it(
-                                                                'Удалось обновить токен авторизации. Сообщение ' +
-                                                                'отправлено.',
-                                                            function() {
-                                                                refreshRequest.receiveResponse();
-                                                                tester.messageAddingRequest().receiveResponse();
+                                                            it('Удалось отправить сообщение.', function() {
+                                                                tester.textarea.withPlaceholder('Введите сообщение...').
+                                                                    fill('Я хочу спать');
+
+                                                                tester.chatMessageSendingButton.click();
+
+                                                                messageAddingRequest.
+                                                                    failed().
+                                                                    receiveResponse();
+
+                                                                tester.messageAddingRequest().
+                                                                    thirdMessage().
+                                                                    receiveResponse();
                                                             });
-                                                        });
-                                                        it('Сообщение отправлено.', function() {
-                                                            messageAddingRequest.receiveResponse();
                                                         });
                                                     });
                                                     it(
@@ -826,6 +995,8 @@ tests.addTest(options => {
                                             });
                                             it('У посетителя нет E-Mail.', function() {
                                                 visitorCardRequest.noEmail().receiveResponse();
+
+                                                tester.usersRequest().forContacts().receiveResponse();
                                                 tester.usersRequest().forContacts().receiveResponse();
 
                                                 tester.contactBar.section('Телефоны').svg.expectNotToExist();
@@ -833,6 +1004,8 @@ tests.addTest(options => {
                                             });
                                             it('У посетителя нет телефона.', function() {
                                                 visitorCardRequest.noPhone().receiveResponse();
+
+                                                tester.usersRequest().forContacts().receiveResponse();
                                                 tester.usersRequest().forContacts().receiveResponse();
 
                                                 tester.contactBar.section('Телефоны').svg.expectToBeVisible();
@@ -847,6 +1020,7 @@ tests.addTest(options => {
                                             messageListRequest.reply().receiveResponse();
                                             visitorCardRequest.receiveResponse();
 
+                                            tester.usersRequest().forContacts().receiveResponse();
                                             tester.usersRequest().forContacts().receiveResponse();
 
                                             tester.chatHistory.message.atTime('12:13').expectToHaveTextContent(
@@ -878,8 +1052,8 @@ tests.addTest(options => {
                                                     fromVisitor().
                                                     receiveResponse();
 
-                                                tester.contactRequest().fifthContact().receiveResponse();
                                                 tester.chatListRequest().thirdChat().expectToBeSent();
+                                                tester.contactRequest().fifthContact().receiveResponse();
 
                                                 tester.contactBar.title.expectToHaveTextContent('Контакт');
                                                 tester.contactBar.section('Телефоны').svg.expectToBeVisible();
@@ -958,54 +1132,218 @@ tests.addTest(options => {
                                             expectToBeSent();
                                     });
 
-                                    it('Определен ext_id. Текущий канал связи выделен.', function() {
-                                        chatListRequest.extIdSpecified().receiveResponse();
+                                    describe('Определен ext_id.', function() {
+                                        let contactRequest;
 
-                                        tester.visitorCardRequest().receiveResponse();
-                                        tester.messageListRequest().receiveResponse();
+                                        beforeEach(function() {
+                                            chatListRequest.extIdSpecified().receiveResponse();
 
-                                        tester.usersRequest().forContacts().receiveResponse();
-                                        tester.contactRequest().addTelegram().addFourthTelegram().receiveResponse();
+                                            tester.visitorCardRequest().receiveResponse();
+                                            tester.messageListRequest().receiveResponse();
 
-                                        tester.contactBar.
-                                            section('Каналы связи').
-                                            option('79283810988').
-                                            expectNotToBeSelected();
+                                            tester.usersRequest().forContacts().receiveResponse();
 
-                                        tester.contactBar.
-                                            section('Каналы связи').
-                                            option('79283810928').
-                                            whatsApp.
-                                            expectNotToBeSelected();
+                                            contactRequest = tester.contactRequest().
+                                                addTelegram().
+                                                addFourthTelegram().
+                                                expectToBeSent();
+                                        });
 
-                                        tester.contactBar.
-                                            section('Каналы связи').
-                                            option('79218307632').
-                                            telegram.
-                                            expectNotToBeSelected();
+                                        describe('Получены данные контакта, связанного с чатом. ', function() {
+                                            beforeEach(function() {
+                                                contactRequest.receiveResponse();
+                                            });
 
-                                        tester.contactBar.
-                                            section('Каналы связи').
-                                            option('79283810928').
-                                            telegram.
-                                            expectToBeSelected();
+                                            it(
+                                                'Добавляю номер телефона. Он дублируется. Сливаю контакты. В списке ' +
+                                                'чатов поменялось имя контакта.',
+                                            function() {
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    option('79162729533').
+                                                    putMouseOver();
 
-                                        tester.contactBar.expectTextContentToHaveSubstring(
-                                            'ФИО ' +
-                                            'Бележкова Грета Ервиновна ' +
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    option('79162729533').
+                                                    toolsIcon.
+                                                    click();
 
-                                            'Телефоны ' +
-                                            '79162729533 ' +
-                                            
-                                            'E-Mail ' +
-                                            'endlesssprinп.of@comagic.dev ' +
+                                                tester.select.option('Редактировать').click();
 
-                                            'Каналы связи ' +
-                                            '79283810988 ' +
-                                            '79283810928'
-                                        );
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    input.
+                                                    fill('79162729534');
+
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    button('Сохранить').
+                                                    click();
+
+                                                tester.contactsRequest().
+                                                    phoneSearching().
+                                                    oneItem().
+                                                    receiveResponse();
+
+                                                tester.contactBar.
+                                                    section('Телефоны').
+                                                    select.
+                                                    first.
+                                                    click();
+
+                                                tester.select.option(
+                                                    'Паскалева Бисера Илковна ' +
+                                                    '79162729533 ' +
+                                                    '79162722748'
+                                                ).click();
+                                                
+                                                tester.button('Объединить').click();
+
+                                                tester.contactsMergingRequest().
+                                                    deleteCurrent().
+                                                    changeFirstPhone().
+                                                    addTelegram().
+                                                    addAnotherTelegram().
+                                                    receiveResponse();
+
+                                                tester.usersRequest().forContacts().receiveResponse();
+                                                tester.contactRequest().thirdContact().receiveResponse();
+
+                                                tester.chatListItem('Сообщение #75').expectToHaveTextContent(
+                                                    'Паскалева Бисера Илковна ' +
+                                                    '20 янв 2020 ' +
+                                                    'Сообщение #75 1'
+                                                );
+                                            });
+                                            it(
+                                                'Открываю раздел контактов. Удаляю контакт. Возвращаюсь в раздел ' +
+                                                'чатов. В списке чатов имя контакта поменялось на имя посетителя.',
+                                            function() {
+                                                tester.leftMenu.button('Контакты').click();
+                                                tester.contactsRequest().differentNames().receiveResponse();
+
+                                                tester.contactList.item('Бележкова Грета Ервиновна').click();
+
+                                                const requests = ajax.inAnyOrder();
+
+                                                contactCommunicationsRequest = tester.
+                                                    contactCommunicationsRequest().
+                                                    secondEarlier().
+                                                    expectToBeSent(requests);
+
+                                                contactRequest = tester.contactRequest().expectToBeSent(requests);
+
+                                                const usersRequest = tester.usersRequest().
+                                                    forContacts().
+                                                    expectToBeSent(requests);
+
+                                                requests.expectToBeSent();
+
+                                                usersRequest.receiveResponse();
+                                                contactRequest.receiveResponse();
+                                                contactCommunicationsRequest.receiveResponse();
+
+                                                tester.contactBar.title.deleteButton.click();
+
+                                                tester.modalWindow.button('Удалить').click();
+                                                tester.contactDeletingRequest().receiveResponse();
+
+                                                tester.leftMenu.button('99+ Чаты').click();
+
+                                                tester.accountRequest().
+                                                    forChats().
+                                                    webAccountLoginUnavailable().
+                                                    softphoneFeatureFlagDisabled().
+                                                    operatorWorkplaceAvailable().
+                                                    expectToBeSent();
+
+                                                tester.chatSettingsRequest().receiveResponse();
+                                                tester.chatChannelListRequest().receiveResponse(); 
+                                                tester.listRequest().receiveResponse(); 
+                                                tester.siteListRequest().receiveResponse(); 
+                                                tester.messageTemplateListRequest().receiveResponse(); 
+                                                tester.usersRequest().forContacts().receiveResponse();
+
+                                                tester.chatList.expectTextContentToHaveSubstring(
+                                                    'Помакова Бисерка Драгановна ' +
+                                                    '20 янв 2020 ' +
+                                                    'Сообщение #75 1 ' +
+
+                                                    'Помакова Бисерка Драгановна ' +
+                                                    '21 янв 2022 ' +
+                                                    'Привет 3'
+                                                );
+
+                                                tester.contactBar.expectTextContentToHaveSubstring(
+                                                    'ФИО ' +
+                                                    'Помакова Бисерка Драгановна ' +
+
+                                                    'Телефоны ' +
+                                                    '79164725823 ' +
+                                                    
+                                                    'E-Mail ' +
+                                                    'pomakova@gmail.com ' +
+
+                                                    'Каналы связи ' +
+                                                    'Помакова Бисерка Драгановна'
+                                                );
+                                            });
+                                            it('Текущий канал связи выделен.', function() {
+                                                tester.contactBar.
+                                                    section('Каналы связи').
+                                                    option('79283810988').
+                                                    expectNotToBeSelected();
+
+                                                tester.contactBar.
+                                                    section('Каналы связи').
+                                                    option('79283810928').
+                                                    whatsApp.
+                                                    expectNotToBeSelected();
+
+                                                tester.contactBar.
+                                                    section('Каналы связи').
+                                                    option('79218307632').
+                                                    telegram.
+                                                    expectNotToBeSelected();
+
+                                                tester.contactBar.
+                                                    section('Каналы связи').
+                                                    option('79283810928').
+                                                    telegram.
+                                                    expectToBeSelected();
+
+                                                tester.contactBar.expectTextContentToHaveSubstring(
+                                                    'ФИО ' +
+                                                    'Бележкова Грета Ервиновна ' +
+
+                                                    'Телефоны ' +
+                                                    '79162729533 ' +
+                                                    
+                                                    'E-Mail ' +
+                                                    'endlesssprinп.of@comagic.dev ' +
+
+                                                    'Каналы связи ' +
+                                                    '79283810988 ' +
+                                                    '79283810928'
+                                                );
+                                            });
+                                        });
+                                        it('Данные контакта, связанного с чатом не были получены.', function() {
+                                            contactRequest.notFound().receiveResponse();
+
+                                            tester.chatListRequest().
+                                                thirdChat().
+                                                anotherContactExists().
+                                                receiveResponse();
+
+                                            tester.usersRequest().forContacts().receiveResponse();
+
+                                            tester.contactRequest().
+                                                sixthContact().
+                                                receiveResponse();
+                                        });
                                     });
-                                    eturn;
                                     it('Определен телефон. Текущий канал связи выделен.', function() {
                                         chatListRequest.phoneSpecified().receiveResponse();
 
@@ -1093,7 +1431,6 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
-                                return;
                                 describe('Получен новый чат.', function() {
                                     beforeEach(function() {
                                         searchResultsRequest = searchResultsRequest.newVisitor().whatsApp();
@@ -1206,7 +1543,6 @@ tests.addTest(options => {
                                     });
                                 });
                             });
-                            return;
                             describe('Получена новая заявка.', function() {
                                 let newOfflineMessage;
 
@@ -1225,7 +1561,7 @@ tests.addTest(options => {
                                         let visitorCardRequest;
 
                                         beforeEach(function() {
-                                            tester.leftMenu.button('Заявки').click();
+                                            tester.leftMenu.button('1 Заявки').click();
                                             tester.chatListItem('Томова Денка Райчовна').click();
 
                                             tester.offlineMessageAcceptingRequest().anotherMessage().receiveResponse();
@@ -1288,7 +1624,9 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            it('Помещаю курсор над полем тегов. Отображены выбранные теги.', function() {
+                                            it(
+                                                'Помещаю курсор над полем тегов. Отображены выбранные теги.',
+                                            function() {
                                                 tester.collapsablePanel('Заметки').
                                                     content.
                                                     row('Тэги').
@@ -1296,7 +1634,8 @@ tests.addTest(options => {
                                                     display.
                                                     putMouseOver();
 
-                                                tester.tooltip.expectToHaveTextContent('Продажа, Нереализованная сделка');
+                                                tester.tooltip.
+                                                    expectToHaveTextContent('Продажа, Нереализованная сделка');
                                             });
                                         });
                                         it('Отображена заявка.', function() {
@@ -1319,7 +1658,9 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
-                                it('Имя посетителя неуказано. Оторажено количество непросмотренных заявок.', function() {
+                                it(
+                                    'Имя посетителя неуказано. Оторажено количество непросмотренных заявок.',
+                                function() {
                                     newOfflineMessage.noName().receive();
                                     notificationTester.grantPermission();
                                     tester.offlineMessageCountersRequest().newMessage().receiveResponse();
@@ -1330,7 +1671,7 @@ tests.addTest(options => {
                                         'Заявка с сайта'
                                     );
 
-                                    tester.leftMenu.button('Заявки').expectToBeVisible();
+                                    tester.leftMenu.button('1 Заявки').expectToBeVisible();
                                 });
                             });
                             describe(
@@ -1347,6 +1688,8 @@ tests.addTest(options => {
 
                                     tester.entityChangeEvent().receive();
                                     tester.entityChangeEvent().slavesNotification().expectToBeSent();
+
+                                    tester.chatTransferGroupsRequest().receiveResponse();
                                 });
                                 
                                 it('Нажимаю на элемент списка чатов. Кнопка принятия чата заблокирована.', function() {
@@ -1437,7 +1780,6 @@ tests.addTest(options => {
                                 tester.spin.expectNotToExist();
                             });
                         });
-                        return;
                         it('Не удалось получить данные чатов. Перехожу на вкладку "В работе".', function() {
                             chatListRequest.failed().receiveResponse();
                             secondChatListRequest.failed().receiveResponse();
@@ -1457,7 +1799,6 @@ tests.addTest(options => {
                                 expectToBeSent();
                         });
                     });
-                    return;
                     describe('Мало непрочитанных сообщений.', function() {
                         beforeEach(function() {
                             countersRequest.fewUnreadMessages().receiveResponse();
@@ -1478,44 +1819,15 @@ tests.addTest(options => {
                                 receiveResponse();
                         });
 
-                        it(
-                            'Открываю чат с непрочитанным сообщением. Отображено количество непрочитанных сообщений.',
-                        function() {
-                            tester.chatListItem('Сообщение #5').click();
-
-                            tester.visitorCardRequest().receiveResponse();
-                            tester.messageListRequest().receiveResponse();
-                            tester.usersRequest().forContacts().receiveResponse();
-
-                            tester.changeMessageStatusRequest().
-                                thirdChat().
-                                anotherMessage().
-                                read().
-                                receiveResponse();
-
-                            tester.changeMessageStatusRequest().
-                                thirdChat().
-                                anotherMessage().
-                                read().
-                                receiveResponse();
-                                
-                            tester.changeMessageStatusRequest().
-                                thirdChat().
-                                anotherMessage().
-                                read().
-                                receiveResponse();
-
-                            tester.statusChangedMessage().receive();
-                            tester.countersRequest().readMessage().fewUnreadMessages().receiveResponse();
-                            tester.countersRequest().readMessage().fewUnreadMessages().receiveResponse();
-
-                            tester.leftMenu.item('Чаты').counter.expectToHaveTextContent('7');
-                        });
                         describe('Получено новое сообщение.', function() {
                             beforeEach(function() {
                                 tester.newMessage().receive();
                                 tester.chatListRequest().chat().receiveResponse();
-                                tester.countersRequest().newMessage().fewUnreadMessages().receiveResponse();
+
+                                tester.countersRequest().
+                                    newMessage().
+                                    fewUnreadMessages().
+                                    receiveResponse();
                             });
 
                             it('Нажимаю на кнпоку "Поддержка". ', function() {
@@ -1544,15 +1856,106 @@ tests.addTest(options => {
                                 ));
                             });
                             it('Отображено количество непрочитанных сообщений.', function() {
-                                tester.leftMenu.item('Чаты').counter.expectToHaveTextContent('9');
+                                tester.leftMenu.item('9 Чаты').expectToBeVisible();
                             });
                         });
+                        it(
+                            'Открываю чат с непрочитанным сообщением. Отображено количество непрочитанных сообщений.',
+                        function() {
+                            tester.chatListItem('Сообщение #5').click();
+
+                            tester.visitorCardRequest().receiveResponse();
+                            tester.messageListRequest().receiveResponse();
+                            tester.usersRequest().forContacts().receiveResponse();
+
+                            tester.changeMessageStatusRequest().
+                                thirdChat().
+                                anotherMessage().
+                                read().
+                                receiveResponse();
+
+                            tester.statusChangedMessage().receive();
+                            tester.countersRequest().readMessage().fewUnreadMessages().receiveResponse();
+                            tester.countersRequest().readMessage().fewUnreadMessages().receiveResponse();
+
+                            tester.leftMenu.item('7 Чаты').expectToBeVisible();
+                        });
                         it('Отображено количество непрочитанных сообщений.', function() {
-                            tester.leftMenu.item('Чаты').counter.expectToHaveTextContent('8');
+                            tester.leftMenu.item('8 Чаты').expectToBeVisible();
                         });
                     });
+                    it(
+                        'Пока нет ни одного чата. Получаю много уведомлений о новых чатах. Открываю полный список ' +
+                        'уведомлений. Закрываю уведомление. Список уведомлений видим.',
+                    function() {
+                        countersRequest.noData().receiveResponse();
+                        chatListRequest.noData().receiveResponse();
+                        secondChatListRequest.noData().receiveResponse();
+                        thirdChatListRequest.noData().receiveResponse();
+
+                        tester.newChatCreatingMessage().receive();
+                        tester.newMessage().thirdChat().receive();
+
+                        tester.countersRequest().receiveResponse();
+
+                        notificationTester.grantPermission();
+                        tester.chatListRequest().fifthChat().receiveResponse();
+
+                        tester.newChatCreatingMessage().anotherChat().receive();
+                        tester.newMessage().fourthChat().receive();
+
+                        tester.countersRequest().receiveResponse();
+
+                        notificationTester.grantPermission();
+                        tester.chatListRequest().sixthChat().receiveResponse();
+
+                        tester.newChatCreatingMessage().thirdChat().receive();
+                        tester.newMessage().fifthChat().receive();
+
+                        tester.countersRequest().receiveResponse();
+
+                        notificationTester.grantPermission();
+                        tester.chatListRequest().seventhChat().receiveResponse();
+
+                        tester.newChatCreatingMessage().fourthChat().receive();
+                        tester.newMessage().sixthChat().receive();
+
+                        tester.countersRequest().receiveResponse();
+
+                        notificationTester.grantPermission();
+                        tester.chatListRequest().eighthChat().receiveResponse();
+
+                        tester.newChatCreatingMessage().fifthChat().receive();
+                        tester.newMessage().seventhChat().receive();
+
+                        tester.countersRequest().receiveResponse();
+
+                        notificationTester.grantPermission();
+                        tester.chatListRequest().ninethChat().receiveResponse();
+
+                        tester.newChatCreatingMessage().sixthChat().receive();
+                        tester.newMessage().eighthChat().receive();
+
+                        tester.countersRequest().receiveResponse();
+
+                        notificationTester.grantPermission();
+                        tester.chatListRequest().tenthChat().receiveResponse();
+
+                        tester.button('Посмотреть все').click();
+
+                        tester.notificationsList.
+                            notification.
+                            withVisitorName('#16479305 Гость').
+                            closeButton.
+                            click();
+
+                        tester.notificationsList.
+                            notification.
+                            withVisitorName('#16479306 Гость').
+                            closeButton.
+                            click();
+                    });
                 });
-                return;
                 describe('Завершение чатов и заявок недоступно для текущего статуса.', function() {
                     beforeEach(function() {
                         employeeStatusesRequest.
@@ -1643,6 +2046,8 @@ tests.addTest(options => {
 
                         tester.chatTransferButton.click();
                         tester.transferPanel.select.click();
+
+                        tester.chatTransferGroupsRequest().receiveResponse();
                     });
 
                     it('Получено сообщение об изменении статуса сотрудника.', function() {
@@ -1655,6 +2060,8 @@ tests.addTest(options => {
                             slavesNotification().
                             expectToBeSent();
 
+                        tester.chatTransferGroupsRequest().receiveResponse();
+                        
                         tester.select.
                             option('Костова Марвуда Любенова').
                             click();
@@ -1887,7 +2294,6 @@ tests.addTest(options => {
                     tester.body.expectTextContentToHaveSubstring('Невозможно сделать трансфер чата в текущем статусе');
                 });
             });
-            return;
             describe('Подтверждение принятия чата в работу выключено.', function() {
                 beforeEach(function() {
                     chatSettingsRequest.
@@ -1979,6 +2385,7 @@ tests.addTest(options => {
                         tester.visitorCardRequest().receiveResponse();
                         tester.messageListRequest().receiveResponse();
                         tester.usersRequest().forContacts().receiveResponse();
+                        tester.usersRequest().forContacts().receiveResponse();
                         
                         tester.changeMessageStatusRequest().
                             anotherChat().
@@ -1986,20 +2393,12 @@ tests.addTest(options => {
                             read().
                             receiveResponse();
 
-                        tester.changeMessageStatusRequest().
-                            anotherChat().
-                            anotherMessage().
-                            read().
-                            receiveResponse();
-                            
-                        tester.changeMessageStatusRequest().
-                            anotherChat().
-                            anotherMessage().
-                            read().
-                            receiveResponse();
-
                         tester.statusChangedMessage().receive();
-                        tester.countersRequest().readMessage().fewUnreadMessages().receiveResponse();
+
+                        tester.countersRequest().
+                            readMessage().
+                            fewUnreadMessages().
+                            receiveResponse();
                     });
                     it(
                         'Принятие чата запрещено для текущего статуса. Помещаю курсор мыши над элементом списка ' +
@@ -2017,53 +2416,78 @@ tests.addTest(options => {
                         );
                     });
                 });
-                it(
-                    'Есть только активные чаты. Открываю вкладку "В работе". Нажимаю на чат. Чат открывается.',
+                describe(
+                    'Есть только активные чаты. Открываю вкладку "В работе". Нажимаю на чат.',
                 function() {
-                    countersRequest.
-                        noNewChatsWithUnreadMessages().
-                        noClosedChats().
-                        receiveResponse();
+                    let changeMessageStatusRequest;
 
-                    chatListRequest.noData().receiveResponse();
-                    secondChatListRequest.receiveResponse();
-                    thirdChatListRequest.noData().receiveResponse();
+                    beforeEach(function() {
+                        countersRequest.
+                            noNewChatsWithUnreadMessages().
+                            noClosedChats().
+                            receiveResponse();
 
-                    employeeStatusesRequest.unableToAcceptChat().receiveResponse();
+                        chatListRequest.noData().receiveResponse();
+                        secondChatListRequest.receiveResponse();
+                        thirdChatListRequest.noData().receiveResponse();
 
-                    tester.button('В работе 75').click();
-                    tester.chatListItem('Здравствуй').click();
+                        employeeStatusesRequest.unableToAcceptChat().receiveResponse();
 
-                    tester.visitorCardRequest().receiveResponse();
-                    tester.messageListRequest().receiveResponse();
-                    tester.employeesRequest().receiveResponse();
+                        tester.button('В работе 75').click();
+                        tester.chatListItem('Здравствуй').click();
 
-                    tester.changeMessageStatusRequest().
-                        fourthChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
+                        tester.visitorCardRequest().receiveResponse();
+                        tester.messageListRequest().addVisitorMessage().receiveResponse();
+                        tester.employeesRequest().receiveResponse();
 
-                    tester.changeMessageStatusRequest().
-                        fourthChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
+                        changeMessageStatusRequest = tester.changeMessageStatusRequest().
+                            fourthChat().
+                            anotherMessage().
+                            read().
+                            expectToBeSent();
+                    });
 
-                    tester.changeMessageStatusRequest().
-                        fourthChat().
-                        anotherMessage().
-                        read().
-                        receiveResponse();
+                    it(
+                        'Не удалось отметить все сообщения, как прочитанные. Отправляю сообщение. Отправлен запрос ' +
+                        'отмечания сообщений чата, как прочитанных.',
+                    function() {
+                        changeMessageStatusRequest.failed().receiveResponse();
 
-                    tester.countersRequest().
-                        noNewChatsWithUnreadMessages().
-                        noClosedChats().
-                        receiveResponse();
+                        tester.countersRequest().
+                            noNewChatsWithUnreadMessages().
+                            noClosedChats().
+                            receiveResponse();
+
+                        tester.textarea.withPlaceholder('Введите сообщение...').fill('Мне тревожно, успокой меня');
+                        tester.chatMessageSendingButton.click();
+
+                        tester.messageAddingRequest().anotherChat().expectToBeSent();
+
+                        tester.changeMessageStatusRequest().
+                            fourthChat().
+                            anotherMessage().
+                            read().
+                            expectToBeSent();
+                    });
+                    it(
+                        'Удалось отметить все сообщения, как прочитанные. Чат открыт. Отправляю сообщение. Запрос ' +
+                        'отмечания сообщений чата, как прочитанных не был отправлен.',
+                    function() {
+                        changeMessageStatusRequest.receiveResponse();
+
+                        tester.countersRequest().
+                            noNewChatsWithUnreadMessages().
+                            noClosedChats().
+                            receiveResponse();
+
+                        tester.textarea.withPlaceholder('Введите сообщение...').fill('Мне тревожно, успокой меня');
+                        tester.chatMessageSendingButton.click();
+
+                        tester.messageAddingRequest().anotherChat().expectToBeSent();
+                    });
                 });
             });
         });
-return;
         describe('Телеграм каналы в контактах недоступны.', function() {
             beforeEach(function() {
                 accountRequest.telegramContactChannelFeatureFlagDisabled().receiveResponse();
@@ -2108,11 +2532,12 @@ return;
                 {
                     const requests = ajax.inAnyOrder();
 
-                    const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
-                    const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
-                    const listRequest = tester.listRequest().expectToBeSent(requests);
-                    const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
-                    const messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
+                    const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests),
+                        chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
+                        listRequest = tester.listRequest().expectToBeSent(requests),
+                        siteListRequest = tester.siteListRequest().expectToBeSent(requests),
+                        messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests),
+                        reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
 
                     const accountRequest = tester.accountRequest().
                         forChats().
@@ -2129,6 +2554,7 @@ return;
                     siteListRequest.receiveResponse();
                     messageTemplateListRequest.receiveResponse();
                     accountRequest.receiveResponse();
+                    reportsListRequest.receiveResponse();
                 }
 
                 tester.countersRequest().receiveResponse();
@@ -2179,15 +2605,15 @@ return;
                         legacyChannelList().
                         receiveResponse();
 
-                    tester.contactRequest().
-                        fifthContact().
-                        legacyChannelList().
-                        receiveResponse();
-
                     tester.chatListRequest().
                         thirdChat().
                         noVisitorName().
                         legacyChannel().
+                        receiveResponse();
+
+                    tester.contactRequest().
+                        fifthContact().
+                        legacyChannelList().
                         receiveResponse();
 
                     tester.contactBar.title.expectToHaveTextContent('Контакт');
@@ -2220,8 +2646,8 @@ return;
                         anotherChannelExtId().
                         receiveResponse();
 
-                    tester.contactRequest().fifthContact().receiveResponse();
                     tester.chatListRequest().thirdChat().expectToBeSent();
+                    tester.contactRequest().fifthContact().receiveResponse();
 
                     tester.contactBar.title.expectToHaveTextContent('Контакт');
                     tester.contactBar.section('Телефоны').svg.expectToBeVisible();
@@ -2280,6 +2706,7 @@ return;
                 {
                     const requests = ajax.inAnyOrder();
 
+                    const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
                     const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
                     const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
                     const listRequest = tester.listRequest().expectToBeSent(requests);
@@ -2295,6 +2722,7 @@ return;
 
                     requests.expectToBeSent();
 
+                    reportsListRequest.receiveResponse();
                     chatSettingsRequest.receiveResponse();
                     chatChannelListRequest.receiveResponse();
                     listRequest.receiveResponse();
@@ -2394,7 +2822,7 @@ return;
                 tester.employeesWebSocket.connect();
                 tester.employeesInitMessage().expectToBeSent();
 
-                const requests = ajax.inAnyOrder();
+                let requests = ajax.inAnyOrder();
 
                 const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
@@ -2420,6 +2848,10 @@ return;
                     otherEmployeeChatsAccessAvailable().
                     expectToBeSent();
 
+                requests = ajax.inAnyOrder();
+
+                const secondReportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
+
                 const thirdAccountRequest = tester.accountRequest().
                     forChats().
                     webAccountLoginUnavailable().
@@ -2427,14 +2859,15 @@ return;
                     operatorWorkplaceAvailable().
                     tagsUpdatingUnavailable().
                     otherEmployeeChatsAccessAvailable().
-                    expectToBeSent();
+                    expectToBeSent(requests);
 
-                const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent();
-                const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent();
-                const listRequest = tester.listRequest().expectToBeSent();
-                const siteListRequest = tester.siteListRequest().expectToBeSent();
-                const messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent();
+                const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests),
+                    chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
+                    listRequest = tester.listRequest().expectToBeSent(requests),
+                    siteListRequest = tester.siteListRequest().expectToBeSent(requests),
+                    messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
 
+                requests.expectToBeSent();
                 secondAccountRequest.receiveResponse();
 
                 tester.chatsWebSocket.connect();

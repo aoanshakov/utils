@@ -1410,6 +1410,7 @@ define(function () {
                     data[1].start_time = '2019-06-16T21:09:26.522+03:00';
                     data[2].start_time = '2019-07-14T23:10:27.522+03:00';
                 })), me),
+
                 me.shortPhoneNumber = () => ((processors.push(data => (data[0].number = '56123'))), me)
                 me.chilePhoneNumber = () => ((processors.push(data => (data[0].number = '56123456789'))), me)
                 me.duplicatedCallSessionId = () => (processors.push(data => (data[1].call_session_id = 980925444)), me);
@@ -3857,9 +3858,6 @@ define(function () {
 
                     return this;
                 },
-                receiveForbidden: function () {
-                    this.expectToBeSent().receiveForbidden();
-                },
                 send: function () {
                     this.receiveResponse();
                 },
@@ -3867,9 +3865,48 @@ define(function () {
                     softphoneType = 'Desktop';
                     return this;
                 },
+                authorization: function () {
+                    this.expectToBeSent = () => {
+                        var recentRequest = checkAuthorization(sip.recentRequest().expectToHaveMethod('REGISTER'));
+
+                        return {
+                            receiveForbidden: function () {
+                                recentRequest.
+                                    response().
+                                    setForbidden().
+                                    send();
+
+                                spendTime(0);
+                            },
+                            receiveUnauthorized: function () {
+                                recentRequest.
+                                    response().
+                                    setUnauthorized().
+                                    addHeader('WWW-Authenticate: Digest realm="{server_name}", nonce="{to_tag}"').
+                                    send();
+
+                                spendTime(0);
+                            },
+                            receiveResponse: function () {
+                                doSomething();
+
+                                recentRequest.
+                                    response().
+                                    copyHeader('Contact').
+                                    send();
+
+                                spendTime(0);
+                            }
+                        };
+                    };
+
+                    return this;
+                },
                 expectToBeSent: function () {
+                    const recentRequest = sip.recentRequest();
+
                     checkRegistration(
-                        sip.recentRequest().
+                        recentRequest.
                             expectToHaveMethod('REGISTER').
                             expectToHaveServerName('sip:' + sip_host).
                             expectHeaderToContain('From', '<sip:' + sip_login + '@' + sip_host + '>').
@@ -3878,19 +3915,22 @@ define(function () {
                             expectHeaderToHaveValue(
                                 'User-Agent', 'User-Agent: ' + me.getUserAgent(softphoneType)
                             )
-                    ).
-                        response().
-                        setUnauthorized().
-                        addHeader('WWW-Authenticate: Digest realm="{server_name}", nonce="{to_tag}"').
-                        send();
-
-                    var recentRequest = checkAuthorization(sip.recentRequest().expectToHaveMethod('REGISTER'));
+                    );
 
                     return {
                         receiveForbidden: function () {
                             recentRequest.
                                 response().
                                 setForbidden().
+                                send();
+
+                            spendTime(0);
+                        },
+                        receiveUnauthorized: function () {
+                            recentRequest.
+                                response().
+                                setUnauthorized().
+                                addHeader('WWW-Authenticate: Digest realm="{server_name}", nonce="{to_tag}"').
                                 send();
 
                             spendTime(0);
@@ -3912,6 +3952,9 @@ define(function () {
                 },
                 receiveForbidden: function () {
                     return this.expectToBeSent().receiveForbidden();
+                },
+                receiveUnauthorized: function () {
+                    return this.expectToBeSent().receiveUnauthorized();
                 }
             };
 
@@ -4919,7 +4962,7 @@ define(function () {
             spendTime(0);
         };
 
-        this.spendFiveSeconds = function (times) {
+        this.spendFiveSeconds = function (times = 1) {
             let i = 0;
 
             for (i = 0; i < times; i ++) {

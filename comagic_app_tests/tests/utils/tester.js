@@ -180,6 +180,39 @@ define(() => function ({
     spendTime(0);
     spendTime(0);
 
+    me.notificationsList = (() => {
+        const getDrawerAncestor = domElement => domElement && domElement.closest('.ui-drawer-inner');
+
+        const getDrawer = () => getDrawerAncestor(Array.prototype.find.call(
+            document.querySelectorAll('.cm-chats--chat-notification'),
+            getDrawerAncestor
+        ));
+
+        const tester = testersFactory.createDomElementTester(getDrawer);
+
+        tester.notification = {
+            withVisitorName: expectedName => {
+                const getNotification = () => utils.descendantOf(getDrawer()).
+                    matchesSelector('.cm-chats--visitor-name').
+                    textEquals(expectedName).
+                    find().
+                    closest('.cm-chats--chat-notification');
+
+                const notificationTester = testersFactory.createDomElementTester(getNotification);
+
+                notificationTester.closeButton = testersFactory.createDomElementTester(
+                    () => getNotification().querySelector('.cm-chats--close-button')
+                );
+
+                return notificationTester;
+            },
+        };
+
+        return tester;
+    })();
+
+    me.fileField = testersFactory.createFileFieldTester(() => document.querySelector('input[type=file]'));
+
     me.redirectEmployeeSelectCover = testersFactory.
         createDomElementTester('.cm-chats--redirect-employee-select-cover');
 
@@ -605,6 +638,17 @@ define(() => function ({
 
                     tester.column.withHeader = text => tester.column.atIndex(getHeaderColumnIndex(text))
 
+                    tester.expander = testersFactory.createDomElementTester(() =>
+                        getRow().querySelector('.ui-table-expand-button'));
+
+                    const click = tester.expander.click.bind(tester.expander);
+                    tester.expander.click = () => (click(), spendTime(0), spendTime(0));
+
+                    const expandedClass = 'ui-table-expand-button-expanded';
+
+                    tester.expander.expectToBeCollapsed = () => tester.expander.expectNotToHaveClass(expandedClass);
+                    tester.expander.expectToBeExpanded = () => tester.expander.expectToHaveClass(expandedClass);
+
                     Object.defineProperty(tester.column, 'first', {
                         get: () => tester.column.atIndex(0)
                     });
@@ -948,6 +992,18 @@ define(() => function ({
         ), null) || new JsTester_NoElement())
 
         return me;
+    };
+
+    me.spendFiveSeconds = function (times = 1) {
+        let i = 0;
+
+        for (i = 0; i < times; i ++) {
+            spendTime(5000);
+            me.expectPingToBeSent();
+            me.receivePong();
+            me.employeesPing().expectToBeSent();
+            me.employeesPing().receive();
+        }
     };
 
     me.chatPanelFooterToolbar = (() => {
@@ -1376,7 +1432,7 @@ define(() => function ({
                             size: 925,
                             width: null,
                             height: null,
-                            duration: 42820
+                            duration: 42820,
                         });
 
                         Promise.runAll(false, true);
@@ -1441,20 +1497,21 @@ define(() => function ({
 
         let response = {
             result: {
-                data: true,
+                id: 234252,
             },
         };
 
         let respond = request => request.respondSuccessfullyWith(response);
 
         const addResponseModifiers = me => {
-            me.networkError = () => {
-                respond = request => request.respond({
-                    status: 500,
-                    responseText: JSON.stringify({
-                        message: 'Network Error',
-                    }),
-                });
+            me.anotherMessage = () => {
+                response.result.id = 234253;
+                return me;
+            };
+
+            me.failed = () => {
+                respond = request =>
+                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
 
                 return me;
             };
@@ -1473,6 +1530,40 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            thirdMessage() {
+                response.result.id = 234254;
+                params.message.text = 'Я хочу спать';
+
+                return this;
+            },
+
+            resource() {
+                params.message.text = '';
+
+                params.message.resource = {
+                    id: 5829574,
+                    type: 'document',
+                    mime: 'application/zip',
+                    filename: 'some-file.zip',
+                    size: 925,
+                    width: null,
+                    height: null,
+                    duration: 42820,
+                    payload: null,
+                    thumbs: null,
+                    percentLoaded: null,
+                    status: 'CREATED',
+                    file: null,
+                };
+
+                return this;
+            },
+
+            anotherChat() {
+                params.chat_id = 2718936;
+                return  this;
+            },
+
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
@@ -1676,6 +1767,27 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.addVisitorMessage = () => {
+                data.splice(1, 0, {
+                    id: 582060,
+                    source: 'visitor',
+                    text: 'Как ваши дела?',
+                    date: '2020-02-10 12:12:14',
+                    status: 'delivered',
+                    chat_id: 2718935,
+                    reply_to: null,
+                    resource: null,
+                    reourceName: null,
+                    employee_id: 20816,
+                    employee_name: 'Карадимова Веска Анастасовна',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    front_message_uuid: '228gj24og824jgo9d',
+                    error_mnemonic: null
+                });
+
+                return me;
+            };
+            
             me.link = () => {
                 data[0].text = "Привет. Это ссылка на медузу - https://meduza.io, но здесь она уже кончилась. Это " +
                     "ссылка на гугл - https://google.com\nsdfsfsdflisdjfldjf, она должна была кончиться чуть раньше.";
@@ -2844,7 +2956,22 @@ define(() => function ({
             status: 'delivered'
         };
 
-        return {
+        let respond = request => request.respondSuccessfullyWith({
+            data: true
+        });
+
+        const addResponseModifiers = me => {
+            me.failed = () => {
+                respond = request =>
+                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
             anotherChat() {
                 params.chat_id = 7189362;
                 return this;
@@ -2880,25 +3007,22 @@ define(() => function ({
                     expectPathToContain('$REACT_APP_BASE_URL').
                     expectBodyToContain({
                         method: 'change_message_status',
-                        params
+                        params,
                     });
 
-                return {
+                return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith({
-                            data: true
-                        });
-
+                        respond(request);
                         Promise.runAll(false, true);
                         spendTime(0)
-                    }
-                };
+                    },
+                });
             },
 
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
-            }
-        }
+            },
+        });
     };
 
     me.offlineMessageDeletingRequest = () => {
@@ -3119,6 +3243,12 @@ define(() => function ({
                 finishDisconnecting: () => {
                     getWebSocket().finishDisconnecting();
                 },
+                disconnect: code => {
+                    getWebSocket().disconnect(code);
+                },
+                disconnectAbnormally: code => {
+                    getWebSocket().disconnectAbnormally(code);
+                },
                 connect: () => {
                     lastIndex ++;
                     index = lastIndex;
@@ -3141,9 +3271,21 @@ define(() => function ({
             tester.finishDisconnecting = throwError;
             tester.expectSentMessageToContain = throwError;
             tester.receive = throwError;
+            tester.disconnect = throwError;
+            tester.disconnectAbnormally = throwError;
 
             tester.connect = () => {
                 const value = createWebSocketTester();
+
+                tester.disconnect = () => {
+                    value.disconnect();
+                    applyMethods();
+                };
+
+                tester.disconnectAbnormally = () => {
+                    value.disconnectAbnormally();
+                    applyMethods();
+                };
 
                 tester.finishDisconnecting = () => {
                     value.finishDisconnecting();
@@ -3523,6 +3665,11 @@ define(() => function ({
         };
 
         return {
+            noLastMessage() {
+                params.chat.last_message = null;
+                return this;
+            },
+
             receive: () => {
                 me.chatsWebSocket.receive(JSON.stringify({
                     method: 'forced_transfer',
@@ -3560,6 +3707,11 @@ define(() => function ({
         };
 
         return {
+            noLastMessage() {
+                params.chat.last_message = null;
+                return this;
+            },
+
             receive: () => {
                 me.chatsWebSocket.receive(JSON.stringify({
                     method: 'create_transfer',
@@ -3569,6 +3721,67 @@ define(() => function ({
                 spendTime(0);
             } 
         };
+    };
+
+    me.transferAcceptedMessage = () => {
+        const params = {
+            chat_id: 7189362,
+            to_employee_id: 20817,
+        };
+
+        return {
+            receive: () => {
+                me.chatsWebSocket.receive(JSON.stringify({
+                    method: 'transfer_accepted',
+                    params 
+                }));
+
+                spendTime(0);
+            } 
+        };
+    };
+
+    me.requestTransfer = () => {
+        const bodyParams = {
+            chat_id: 7189362,
+            comment: '',
+            employees: [20817, undefined],
+            is_force: true,
+        };
+
+        const addResponseModifiers = me => {
+            me.notForced = () => {
+                bodyParams.is_force = false;
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHaveMethod('POST').
+                    expectPathToContain('$REACT_APP_BASE_URL/transfer').
+                    expectBodyToContain(bodyParams);
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            data: true,
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
     };
 
     me.newMessage = () => {
@@ -3584,7 +3797,7 @@ define(() => function ({
                 reply_to: null,
                 resource: null,
                 resourceName: null,
-                employee_id: 20816,
+                employee_id: 23422,
                 employee_name: 'Карадимова Веска Анастасовна',
                 visitor_name: 'Помакова Бисерка Драгановна',
                 front_message_uuid: '2go824jglsjgl842d',
@@ -3596,6 +3809,59 @@ define(() => function ({
         };
 
         return {
+            transferAcceptedMessage() {
+                params.chat_id = 7189362;
+                params.message.source = 'system';
+                params.message.text = 'Трансфер принят';
+
+                return this;
+            },
+            anotherMessage() {
+                params.message.id = 256086;
+                params.message.text = 'Ты моё солнышко';
+
+                return this;
+            },
+            eighthChat() {
+                params.chat_id = 2718943;
+                params.message.chat_id = 2718943;
+                params.visitor_id = 16479310;
+                params.message.visitor_name = 'Луканова Мавруда Деяновна';
+
+                return this;
+            },
+            seventhChat() {
+                params.chat_id = 2718942;
+                params.message.chat_id = 2718942;
+                params.visitor_id = 16479309;
+                params.message.visitor_name = 'Главчева Зора Христовна';
+
+                return this;
+            },
+            sixthChat() {
+                params.chat_id = 2718941;
+                params.message.chat_id = 2718941;
+                params.visitor_id = 16479308;
+                params.message.visitor_name = 'Спасова Жарка Йордановна';
+
+                return this;
+            },
+            fifthChat() {
+                params.chat_id = 2718939;
+                params.message.chat_id = 2718939;
+                params.visitor_id = 16479307;
+                params.message.visitor_name = 'Петрова Бойка Крастьовна';
+
+                return this;
+            },
+            fourthChat() {
+                params.chat_id = 2718938;
+                params.message.chat_id = 2718938;
+                params.visitor_id = 16479306;
+                params.message.visitor_name = 'Радулова Дара Обретеновна';
+
+                return this;
+            },
             thirdChat() {
                 params.chat_id = 2718937;
                 params.message.chat_id = 2718937;
@@ -3726,6 +3992,46 @@ define(() => function ({
         };
 
         return {
+            sixthChat() {
+                params.visitor_id = 16479310;
+                params.visitor_name = 'Луканова Мавруда Деяновна';
+                params.chat_id = 2718943;
+
+                return this;
+            },
+            
+            fifthChat() {
+                params.visitor_id = 16479309;
+                params.visitor_name = 'Главчева Зора Христовна';
+                params.chat_id = 2718942;
+
+                return this;
+            },
+            
+            fourthChat() {
+                params.visitor_id = 16479308;
+                params.visitor_name = 'Спасова Жарка Йордановна';
+                params.chat_id = 2718941;
+
+                return this;
+            },
+
+            thirdChat() {
+                params.visitor_id = 16479307;
+                params.visitor_name = 'Петрова Бойка Крастьовна';
+                params.chat_id = 2718939;
+
+                return this;
+            },
+
+            anotherChat() {
+                params.visitor_id = 16479306;
+                params.visitor_name = 'Радулова Дара Обретеновна';
+                params.chat_id = 2718938;
+
+                return this;
+            },
+
             receive: () => me.chatsWebSocket.receive(JSON.stringify({
                 method: 'new_chat',
                 params 
@@ -3763,6 +4069,11 @@ define(() => function ({
         };
 
         return {
+            anotherChat() {
+                params.chat_id = 7189362;
+                return this;
+            },
+
             newChat() {
                 params.chat_id = 2718935;
                 return this;
@@ -5303,6 +5614,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            anotherName() {
+                card.name = 'Неделчева Роза Ангеловна';
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL').
@@ -5725,6 +6041,28 @@ define(() => function ({
                 return me;
             };
 
+            me.anotherContactExists = (index = 0) => {
+                processors.push(data => (data.chats[index].contact = {
+                    first_name: 'Елеонора',
+                    last_name: 'Радкова',
+                    id: 1689587,
+                    email_list: ['endlesssprinп.of@comagic.dev'],
+                    chat_channel_list: [
+                        { type: 'whatsapp', ext_id: '79283810988' },
+                        { type: 'whatsapp', ext_id: '79283810928' },
+                    ],
+                    organization_name: 'UIS',
+                    phone_list: ['79162729533'],
+                    group_list: [],
+                    personal_manager_id: 583783,
+                    patronymic: 'Стефановна',
+                    full_name: 'Радкова Елеонора Стефановна',
+                    is_chat_channel_active: false
+                }));
+
+                return me;
+            };
+
             me.lastMessageFromOperator = () => {
                 initialData[0].last_message.is_operator = true;
                 return me;
@@ -5858,6 +6196,191 @@ define(() => function ({
                 chat(582103);
                 return this;
             },
+            
+            tenthChat() {
+                chat(2718943);
+
+                getData = () => [{
+                    context: {
+                        phone: '79283810928'
+                    },
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 2718943,
+                    employee_id: null,
+                    is_chat_channel_active: false,
+                    last_message: {
+                        message: 'Я люблю тебя',
+                        date: '2021-02-21T12:24:53.000Z',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: null,
+                    name: 'Помакова Бисерка Драгановна',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479310,
+                    visitor_name: 'Луканова Мавруда Деяновна',
+                    visitor_type: 'omni',
+                    account_id: null,
+                    is_phone_auto_filled: false,
+                    unread_message_count: 1
+                }];
+
+                return this;
+            },
+            
+            ninethChat() {
+                chat(2718942);
+
+                getData = () => [{
+                    context: {
+                        phone: '79283810928'
+                    },
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 2718942,
+                    employee_id: null,
+                    is_chat_channel_active: false,
+                    last_message: {
+                        message: 'Я люблю тебя',
+                        date: '2021-02-21T12:24:53.000Z',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: null,
+                    name: 'Помакова Бисерка Драгановна',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479309,
+                    visitor_name: 'Главчева Зора Христовна',
+                    visitor_type: 'omni',
+                    account_id: null,
+                    is_phone_auto_filled: false,
+                    unread_message_count: 1
+                }];
+
+                return this;
+            },
+            
+            eighthChat() {
+                chat(2718941);
+
+                getData = () => [{
+                    context: {
+                        phone: '79283810928'
+                    },
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 2718941,
+                    employee_id: null,
+                    is_chat_channel_active: false,
+                    last_message: {
+                        message: 'Я люблю тебя',
+                        date: '2021-02-21T12:24:53.000Z',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: null,
+                    name: 'Помакова Бисерка Драгановна',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479308,
+                    visitor_name: 'Спасова Жарка Йордановна',
+                    visitor_type: 'omni',
+                    account_id: null,
+                    is_phone_auto_filled: false,
+                    unread_message_count: 1
+                }];
+
+                return this;
+            },
+            
+            seventhChat() {
+                chat(2718939);
+
+                getData = () => [{
+                    context: {
+                        phone: '79283810928'
+                    },
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 2718939,
+                    employee_id: null,
+                    is_chat_channel_active: false,
+                    last_message: {
+                        message: 'Я люблю тебя',
+                        date: '2021-02-21T12:24:53.000Z',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: null,
+                    name: 'Помакова Бисерка Драгановна',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479307,
+                    visitor_name: 'Петрова Бойка Крастьовна',
+                    visitor_type: 'omni',
+                    account_id: null,
+                    is_phone_auto_filled: false,
+                    unread_message_count: 1
+                }];
+
+                return this;
+            },
+
+            sixthChat() {
+                chat(2718938);
+
+                getData = () => [{
+                    context: {
+                        phone: '79283810928'
+                    },
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 2718938,
+                    employee_id: null,
+                    is_chat_channel_active: false,
+                    last_message: {
+                        message: 'Я люблю тебя',
+                        date: '2021-02-21T12:24:53.000Z',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: null,
+                    name: 'Помакова Бисерка Драгановна',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479306,
+                    visitor_name: 'Радулова Дара Обретеновна',
+                    visitor_type: 'omni',
+                    account_id: null,
+                    is_phone_auto_filled: false,
+                    unread_message_count: 1
+                }];
+
+                return this;
+            },
 
             fifthChat() {
                 chat(2718937);
@@ -5929,6 +6452,7 @@ define(() => function ({
                         respond(request, data);
 
                         Promise.runAll(false, true);
+                        spendTime(0)
                         spendTime(0)
 
                         maybeRunSpinWrapperIntersectionCallback(getChatListSpinWrapper());
@@ -6171,6 +6695,28 @@ define(() => function ({
                     });
 
                     Promise.runAll(false, true);
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
+    me.chatTransferGroupsRequest = () => ({
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectPathToContain('$REACT_APP_BASE_URL/chat_transfer_group/list').
+                expectToHaveMethod('GET');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith([]);
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
                     spendTime(0)
                 }
             };
@@ -10898,6 +11444,15 @@ define(() => function ({
             secondProcessors = [];
 
         const addResponseModifiers = me => {
+            me.notFound = () => {
+                respond = request => request.respondSuccessfullyWith({
+                    data: [],
+                    total_count: 0,
+                });
+
+                return me;
+            };
+
             me.longName = () => {
                 processors.push(() => {
                     response.patronymic = response.patronymic + 'aycffbymxgipxtvnrjmhmnmrzymmaxxt';
@@ -11092,6 +11647,11 @@ define(() => function ({
             full_name: 'Бележкова Грета Ервиновна'
         };
 
+        let respond = request => request.respondSuccessfullyWith({
+            data: [response],
+            total_count: 1,
+        });
+
         return addResponseModifiers({
             thirdContact() {
                 id = response.id = 25206823;
@@ -11135,6 +11695,18 @@ define(() => function ({
                 return this;
             },
 
+            sixthContact() {
+                id = response.id = 1689587;
+
+                response.personal_manager_id = null;
+                response.first_name = 'Елеонора';
+                response.last_name = 'Радкова';
+                response.full_name = 'Радкова Елеонора Стефановна';
+                response.patronymic = 'Стефановна';
+
+                return this;
+            },
+
             anotherContact() {
                 id = response.id = 1689290;
 
@@ -11173,10 +11745,7 @@ define(() => function ({
                             name => response[name]
                         ).filter(name => !!name).join(' ');
 
-                        request.respondSuccessfullyWith({
-                            data: [response],
-                            total_count: 1
-                        });
+                        respond(request);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -11624,6 +12193,11 @@ define(() => function ({
                 return this;
             },
 
+            fourthContact() {
+                id = 1789283;
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}/communications`).
@@ -11732,6 +12306,11 @@ define(() => function ({
                 return this;
             },
 
+            changeFirstPhone() {
+                bodyParamsProcessors.push(() => bodyParams.form_data.phone_list[0] = '79162729534');
+                return this;
+            },
+
             addPhone() {
                 bodyParamsProcessors.push(() => bodyParams.form_data.phone_list.push('79162729535'));
                 return this;
@@ -11744,6 +12323,26 @@ define(() => function ({
 
             addThirdPhone() {
                 bodyParamsProcessors.push(() => bodyParams.form_data.phone_list.push('79162729537'));
+                return this;
+            },
+
+            addTelegram() {
+                bodyParamsProcessors.push(() => bodyParams.form_data.chat_channel_list.push({
+                    type: 'telegram',
+                    ext_id: '79218307632',
+                    chat_channel_id: 101,
+                }));
+
+                return this;
+            },
+
+            addAnotherTelegram() {
+                bodyParamsProcessors.push(() => bodyParams.form_data.chat_channel_list.push({
+                    type: 'telegram',
+                    ext_id: '79283810928',
+                    chat_channel_id: 101,
+                }));
+
                 return this;
             },
 
@@ -11763,6 +12362,7 @@ define(() => function ({
                     receiveResponse: () => {
                         const data = {
                             ...bodyParamsCopy.form_data,
+                            last_name: 'Бележкова-Паскалева',
                             full_name: 'Бележкова-Паскалева Грета Ервиновна'
                         };
 
@@ -11773,6 +12373,7 @@ define(() => function ({
                         });
 
                         Promise.runAll(false, true);
+                        spendTime(0)
                         spendTime(0)
                         spendTime(0)
                     }
@@ -12072,12 +12673,31 @@ define(() => function ({
             phone_list: ['74950230625', undefined]
         };
 
+        let respond = request => request.respondSuccessfullyWith(response);
+
         const addResponseModifiers = me => {
             me.anotherContactId = () => ((response.contact_id = 1789283), me);
+
+            me.failed = () => (respond = request => request.respondUnsuccessfullyWith({
+                error: {
+                    code: 400,
+                    message:
+                        'Необходимо заполнить хотя бы один тип контактных данных (телефон, email, мессенджер, соц ' +
+                        'сети)',
+                    mnemonic: 'bad_request',
+                    is_smart: true
+                }
+            }), me);
+
             return me;
         };
 
         return addResponseModifiers({
+            noPhone() {
+                bodyParams.phone_list = [undefined];
+                return this;
+            },
+
             legacyChannelList() {
                 secondProcessors.push(() => (
                     bodyParams.chat_channel_list = bodyParams.chat_channel_list?.map(channel => ({
@@ -12145,9 +12765,10 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse: () => {
-                        request.respondSuccessfullyWith(response);
+                        respond(request);
 
                         Promise.runAll(false, true);
+                        spendTime(0)
                         spendTime(0)
                         spendTime(0)
                     }
@@ -13264,6 +13885,9 @@ define(() => function ({
             
             me.manager = () => ((response.result.data.call_center_role = 'manager'), me);
             me.noCallCenterRole = () => ((response.result.data.call_center_role = null), me);
+
+            me.interceptionDisabled = () =>
+                ((response.result.data.feature_flags.push('interception_disabled')), me);
 
             me.telegramContactChannelFeatureFlagDisabled = () =>
                 ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
@@ -14386,10 +15010,10 @@ define(() => function ({
 
         tester.item = text => {
             const getItemElement = () => utils.descendantOf(getDomElement()).
-                matchesSelector('.cm-chats--chat-menu-item .cm-chats--title').
+                matchesSelector('.cm-chats--chat-menu-item .cm-chats--title, .cm-chats--chats-menu-item > .label').
                 textEquals(text).
                 find().
-                closest('.cm-chats--chat-menu-item');
+                closest('.cm-chats--chat-menu-item, .cm-chats--chats-menu-item > .label');
 
             const tester = testersFactory.createDomElementTester(getItemElement);
 

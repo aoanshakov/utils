@@ -631,10 +631,40 @@ index 32137f8d..1dab5c24 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 8ae6e87b..34dea2ce 100644
+index 8ae6e87b..c7a3cd72 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -101,15 +101,19 @@ const filterPassword = (messages: Array<string>) => {
+@@ -5,6 +5,7 @@ import * as fileSaver from 'file-saver';
+ import { Instance, SnapshotOut, applySnapshot, cast, getSnapshot, types } from 'mobx-state-tree';
+ import moment from 'moment';
+ import React from 'react';
++import { autorun } from 'mobx';
+ 
+ import { AuthStore, getToken } from '@models/auth/AuthStore';
+ import { MenuStore } from '@models/menu/MenuStore';
+@@ -15,7 +16,7 @@ import { getProject } from '@/i18n';
+ import { httpRpc, httpRpcAuth } from '@/rpc';
+ import { HttpRpc } from '@/rpc/httpRpc';
+ import { url as authUrl } from '@/rpc/httpRpcAuth';
+-import { createIconFactory, getWorkplaceAvailability, isSoftphoneAvailable } from '@/utils';
++import { createIconFactory, getWorkplaceAvailability, isSoftphoneAvailable, getIpcRender } from '@/utils';
+ 
+ const loginUrl = `${authUrl}?method=login`;
+ const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
+@@ -36,12 +37,6 @@ type HttpRpcErrorModel = {
+ 
+ type RequestToRefresh = (nextResolve: boolean) => void;
+ 
+-const getIpcRender = () =>
+-    (window.rootConfig?.appName === 'softphone' && (window.require || (() => null))('electron')?.ipcRenderer) || {
+-        on: (): void => null,
+-        send: (): void => null,
+-    };
+-
+ const log = (message: string) =>
+     getIpcRender().send('log', (typeof message === 'object' ? JSON.stringify(message) : `${message}`).trim());
+ 
+@@ -101,15 +96,19 @@ const filterPassword = (messages: Array<string>) => {
      return messages;
  };
  
@@ -659,7 +689,7 @@ index 8ae6e87b..34dea2ce 100644
  
  const Credentials = types.model({
      login: types.optional(types.maybeNull(types.string), null),
-@@ -129,6 +133,7 @@ export const RootStore = types
+@@ -129,6 +128,7 @@ export const RootStore = types
          isGodMode: types.optional(types.boolean, isGodMode()),
          isIpDisallowed: types.optional(types.boolean, false),
          isLogDownloading: types.optional(types.boolean, false),
@@ -667,7 +697,7 @@ index 8ae6e87b..34dea2ce 100644
          authStore: types.optional(AuthStore, {}),
          accountStore: types.optional(AccountStore, {}),
          menuStore: types.optional(MenuStore, {}),
-@@ -160,7 +165,6 @@ export const RootStore = types
+@@ -160,7 +160,6 @@ export const RootStore = types
          const logger = new Logger(loggerStrategy);
  
          logger.filter(filterPassword);
@@ -675,7 +705,7 @@ index 8ae6e87b..34dea2ce 100644
  
          const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
              const auth = getToken();
-@@ -241,7 +245,7 @@ export const RootStore = types
+@@ -241,7 +240,7 @@ export const RootStore = types
                  }
              );
  
@@ -684,7 +714,7 @@ index 8ae6e87b..34dea2ce 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -298,7 +302,7 @@ export const RootStore = types
+@@ -298,7 +297,7 @@ export const RootStore = types
  
                      return Promise.reject(error);
                  }
@@ -693,7 +723,7 @@ index 8ae6e87b..34dea2ce 100644
          };
  
          const collectLogs = (callback: (data: BlobPart) => void) => {
-@@ -314,7 +318,25 @@ export const RootStore = types
+@@ -314,7 +313,25 @@ export const RootStore = types
              callbacks[index]?.(data);
          };
  
@@ -719,7 +749,34 @@ index 8ae6e87b..34dea2ce 100644
              callbacks = [];
              let isMaximizedCurrently = false;
  
-@@ -436,8 +458,14 @@ export const RootStore = types
+@@ -384,6 +401,8 @@ export const RootStore = types
+                 getIpcRender().send('autolauncherchange', value)
+             );
+ 
++            eventBus.subscribe('open-logs-dir', () => getIpcRender().send('open-logs-dir'));
++
+             getIpcRender().on('maximize', () => (self as RootInstance).setMaximized(true));
+             getIpcRender().on('unmaximize', () => (self as RootInstance).setMaximized(false));
+ 
+@@ -408,6 +427,8 @@ export const RootStore = types
+                     eventBus.broadcast('checkstartminimize', data.isStartMinimize)
+                 );
+ 
++                getIpcRender().on('app-version', (event, version) => eventBus.broadcast('app-version', version));
++                getIpcRender().on('update-available', (event, data) => eventBus.broadcast('update-available', data));
+                 getIpcRender().on('update-downloaded', () => (self as RootInstance).setUpdateReceived(true));
+                 getIpcRender().on('maximize', () => eventBus.broadcast('maximize'));
+                 getIpcRender().on('unmaximize', () => eventBus.broadcast('unmaximize'));
+@@ -425,6 +446,8 @@ export const RootStore = types
+ 
+             eventBus.subscribe('get-clicked', (callback: (clicked: boolean) => void) => callback(clicked));
+             eventBus.subscribe('set-not-clicked', () => (clicked = false));
++
++            eventBus.subscribe('download', (url: string) => getIpcRender().send('download', url));
+         };
+ 
+         const resetStore = () => {
+@@ -436,8 +459,14 @@ export const RootStore = types
              });
          };
  
@@ -736,7 +793,7 @@ index 8ae6e87b..34dea2ce 100644
              setUpdateReceived = (value: boolean) => (self.isUpdateReceived = !!value),
              setCredentials = (value: Array<CredentialsSnapshot>) => (self.credentials = cast(value));
  
-@@ -465,6 +493,7 @@ export const RootStore = types
+@@ -465,6 +494,7 @@ export const RootStore = types
              handleLogsCollected,
              toggleSoftphoneVisiblity,
              setSoftphoneVisiblity,
@@ -744,7 +801,7 @@ index 8ae6e87b..34dea2ce 100644
          };
      });
  
-@@ -475,7 +504,8 @@ export type DependencyInjection = {
+@@ -475,7 +505,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -816,13 +873,14 @@ index 05ee942e..bb7ab355 100644
  const prepareName = (name: string) => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
  
 diff --git a/src/utils/index.ts b/src/utils/index.ts
-index 09650fcc..7277dc33 100644
+index 09650fcc..38101362 100644
 --- a/src/utils/index.ts
 +++ b/src/utils/index.ts
-@@ -7,4 +7,5 @@ export { default as setAxiosGlobalInterceptors } from './setAxiosGlobalIntercept
+@@ -7,4 +7,6 @@ export { default as setAxiosGlobalInterceptors } from './setAxiosGlobalIntercept
  export { default as getWorkplaceAvailability } from './getWorkplaceAvailability';
  export { default as isSoftphoneAvailable } from './isSoftphoneAvailable';
  export { default as isManager } from './isManager';
 -export { default as createIconFactory } from './createIcon';
++export { default as getIpcRender } from './getIpcRender';
 +
 +export const createIconFactory = (os = 'windows') => counter => [os, counter].join(', ');
