@@ -6411,7 +6411,31 @@ tests.addTest(options => {
                         expectToBeSentWithArguments(true);
                 });
 
-                it('Звонок завершен. Отправлено сообщение о необходимости закрыть окно софтфона.', function() {
+                it(
+                    'Завершаю звонок, нажав на клавишу Esc. Отправлено сообщение о необходимости закрыть окно ' +
+                    'софтфона.',
+                function() {
+                    utils.pressEscape();
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 340,
+                            height: 212
+                        });
+
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('call-end').
+                        expectToBeSentWithArguments(true);
+
+                    incomingCall.expectBusyHereToBeSent();
+                });
+                it(
+                    'Завершаю звонок, нажав на кнопку завершения звонка. Отправлено сообщение о необходимости ' +
+                    'закрыть окно софтфона.',
+                function() {
                     tester.stopCallButton.click();
 
                     getPackage('electron').ipcRenderer.
@@ -7210,7 +7234,7 @@ tests.addTest(options => {
                     setFocus(false);
                     utils.pressSpace();
                 });
-                it('Нажимаю на клавишу Esc.', function() {
+                it('Нажимаю на клавишу Esc. Звонок звершается.', function() {
                     utils.pressEscape();
 
                     getPackage('electron').ipcRenderer.
@@ -7244,127 +7268,160 @@ tests.addTest(options => {
                 tester.phoneField.expectToHaveValue('Введите номер');
             });
         });
-        it(
-            'Я уже аутентифицирован. Пробел не должен использоваться для ответа на звонок. Нажимаю на пробел, ничего ' +
-            'не происходит.',
-        function() {
-            tester = new Tester({
-                ...options,
-                isAlreadyAuthenticated: true,
-                appName: 'softphone'
+        describe('Я уже аутентифицирован. Пробел не должен использоваться для ответа на звонок.', function() {
+            let incomingCall;
+
+            beforeEach(function() {
+                tester = new Tester({
+                    ...options,
+                    isAlreadyAuthenticated: true,
+                    appName: 'softphone'
+                });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('app-ready');
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 212
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('opened');
+
+                tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
+
+                const requests = ajax.inAnyOrder();
+                const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+
+                const secondAccountRequest = tester.accountRequest().
+                    operatorWorkplaceAvailable().
+                    forChats().
+                    expectToBeSent(requests);
+
+                const thirdAccountRequest = tester.accountRequest().
+                    operatorWorkplaceAvailable().
+                    expectToBeSent(requests);
+
+                requests.expectToBeSent();
+                thirdAccountRequest.receiveResponse();
+                authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+
+                tester.permissionsRequest().
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
+
+                tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+
+                tester.connectEventsWebSocket();
+                tester.connectSIPWebSocket();
+
+                notificationTester.grantPermission();
+                tester.allowMediaInput();
+
+                tester.employeeStatusesRequest().receiveResponse();
+                tester.numberCapacityRequest().receiveResponse();
+                tester.employeeRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
+
+                tester.registrationRequest().
+                    desktopSoftphone().
+                    receiveUnauthorized();
+
+                tester.registrationRequest().
+                    desktopSoftphone().
+                    authorization().
+                    receiveResponse();
+
+                secondAccountRequest.receiveResponse();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
+
+                tester.chatsWebSocket.connect();
+                tester.chatsInitMessage().expectToBeSent();
+
+                tester.countersRequest().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('set-icon').
+                    expectToBeSentWithArguments('windows, 150');
+
+                tester.offlineMessageCountersRequest().receiveResponse();
+                tester.chatChannelListRequest().receiveResponse();
+                tester.siteListRequest().receiveResponse();
+                tester.markListRequest().receiveResponse();
+
+                tester.chatListRequest().forCurrentEmployee().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
+                tester.chatChannelTypeListRequest().receiveResponse();
+
+                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                tester.offlineMessageListRequest().processing().receiveResponse();
+                tester.offlineMessageListRequest().processed().receiveResponse();
+
+                incomingCall = tester.incomingCall().receive();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('call-start').
+                    expectToBeSentWithArguments(true);
+
+                tester.numaRequest().receiveResponse();
+                tester.outCallEvent().activeLeads().receive();
+
+                getPackage('electron').ipcRenderer.
+                    recentlySentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 568
+                    });
             });
 
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('app-ready');
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('resize').
-                expectToBeSentWithArguments({
-                    width: 340,
-                    height: 212
+            describe('Кликаю на софтфон.', function() {
+                beforeEach(function() {
+                    tester.softphone.click();
                 });
 
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('opened');
+                it('Нажимаю на клавишу Esc. Звонок звершается.', function() {
+                    utils.pressEscape();
 
-            tester.accountRequest().operatorWorkplaceAvailable().receiveResponse();
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('resize').
+                        expectToBeSentWithArguments({
+                            width: 340,
+                            height: 212
+                        });
 
-            const requests = ajax.inAnyOrder();
-            const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+                    getPackage('electron').ipcRenderer.
+                        recentlySentMessage().
+                        expectToBeSentToChannel('call-end').
+                        expectToBeSentWithArguments(true);
 
-            const secondAccountRequest = tester.accountRequest().
-                operatorWorkplaceAvailable().
-                forChats().
-                expectToBeSent(requests);
-
-            const thirdAccountRequest = tester.accountRequest().
-                operatorWorkplaceAvailable().
-                expectToBeSent(requests);
-
-            requests.expectToBeSent();
-            thirdAccountRequest.receiveResponse();
-            authCheckRequest.receiveResponse();
-            tester.talkOptionsRequest().receiveResponse();
-
-            tester.permissionsRequest().
-                allowNumberCapacitySelect().
-                allowNumberCapacityUpdate().
-                receiveResponse();
-
-            tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
-
-            tester.connectEventsWebSocket();
-            tester.connectSIPWebSocket();
-
-            notificationTester.grantPermission();
-            tester.allowMediaInput();
-
-            tester.employeeStatusesRequest().receiveResponse();
-            tester.numberCapacityRequest().receiveResponse();
-            tester.employeeRequest().receiveResponse();
-            tester.authenticatedUserRequest().receiveResponse();
-
-            tester.registrationRequest().
-                desktopSoftphone().
-                receiveUnauthorized();
-
-            tester.registrationRequest().
-                desktopSoftphone().
-                authorization().
-                receiveResponse();
-
-            secondAccountRequest.receiveResponse();
-
-            tester.employeesWebSocket.connect();
-            tester.employeesInitMessage().expectToBeSent();
-
-            tester.chatsWebSocket.connect();
-            tester.chatsInitMessage().expectToBeSent();
-
-            tester.countersRequest().receiveResponse();
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('set-icon').
-                expectToBeSentWithArguments('windows, 150');
-
-            tester.offlineMessageCountersRequest().receiveResponse();
-            tester.chatChannelListRequest().receiveResponse();
-            tester.siteListRequest().receiveResponse();
-            tester.markListRequest().receiveResponse();
-
-            tester.chatListRequest().forCurrentEmployee().receiveResponse();
-            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
-
-            tester.chatChannelTypeListRequest().receiveResponse();
-
-            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-            tester.offlineMessageListRequest().processing().receiveResponse();
-            tester.offlineMessageListRequest().processed().receiveResponse();
-
-            const incomingCall = tester.incomingCall().receive();
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('call-start').
-                expectToBeSentWithArguments(true);
-
-            tester.numaRequest().receiveResponse();
-            tester.outCallEvent().activeLeads().receive();
-
-            getPackage('electron').ipcRenderer.
-                recentlySentMessage().
-                expectToBeSentToChannel('resize').
-                expectToBeSentWithArguments({
-                    width: 340,
-                    height: 568
+                    incomingCall.expectBusyHereToBeSent();
                 });
-
-            utils.pressSpace();
+                it('Нажимаю на пробел, ничего не происходит.', function() {
+                    utils.pressSpace();
+                });
+            });
+            it('Нажимаю на Esc, ничего не происходит.', function() {
+                utils.pressEscape();
+            });
+            it('Нажимаю на пробел, ничего не происходит.', function() {
+                utils.pressSpace();
+            });
         });
         it('Ранее софтфон был большим. Софтфон большой.', function() {
             let authCheckRequest,
