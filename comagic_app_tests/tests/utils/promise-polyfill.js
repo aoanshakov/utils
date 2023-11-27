@@ -229,6 +229,17 @@ Promise.all = function(arr) {
   });
 };
 
+Promise.allSettled = Promise.allSettled || ((promises) => Promise.all(promises.map(p => p
+    .then(value => ({
+        status: 'fulfilled',
+        value,
+    }))
+    .catch(reason => ({
+        status: 'rejected',
+        reason,
+    }))
+)));
+
 Promise.resolve = function(value) {
   if (value && typeof value === 'object' && value.constructor === Promise) {
     return value;

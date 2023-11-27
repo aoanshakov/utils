@@ -25,7 +25,7 @@ tests.addTest(options => {
         let tester,
             reportGroupsRequest,
             settingsRequest,
-            accountRequest,
+           accountRequest,
             permissionsRequest;
 
         beforeEach(function() {
@@ -53,29 +53,33 @@ tests.addTest(options => {
                     ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                     authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                    employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 ticketsContactsRequest.receiveResponse();
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
-                secondAccountRequest.receiveResponse();
+                employeeStatusesRequest.receiveResponse();
+                employeeRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().additional().expectToBeSent();
                 tester.slavesNotification().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
                 permissionsRequest = tester.permissionsRequest().expectToBeSent();
-                tester.statusesRequest().receiveResponse();
                 settingsRequest = tester.settingsRequest().expectToBeSent();
             });
 
@@ -120,7 +124,11 @@ tests.addTest(options => {
                         notificationTester.grantPermission();
 
                         authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-                        registrationRequest = tester.registrationRequest().expectToBeSent();
+                        tester.registrationRequest().receiveUnauthorized();
+
+                        registrationRequest = tester.registrationRequest().
+                            authorization().
+                            expectToBeSent();
 
                         tester.allowMediaInput();
 
@@ -193,7 +201,6 @@ tests.addTest(options => {
                                             tester.button('Создать контакт').click();
 
                                             tester.contactCreatingRequest().receiveResponse();
-                                            tester.contactRequest().receiveResponse();
 
                                             tester.callsRequest().
                                                 fromFirstWeekDay().
@@ -202,6 +209,8 @@ tests.addTest(options => {
                                                 receiveResponse();
 
                                             tester.marksRequest().receiveResponse();
+
+                                            tester.contactRequest().receiveResponse();
                                             tester.contactBar.expectToBeVisible();
                                         });
                                         it('Добавляю почту. Запрос сохранения контакта не был отправлен.', function() {
@@ -232,7 +241,10 @@ tests.addTest(options => {
                                         });
                                     });
                                     it('Оторажен номер.', function() {
-                                        tester.table.row.first.column.withHeader('ФИО контакта').link.
+                                        tester.table.
+                                            row.first.
+                                            column.withHeader('ФИО контакта').
+                                            link.
                                             expectToHaveTextContent('+7 (495) 023-06-25');
                                     });
                                 });
@@ -279,9 +291,10 @@ tests.addTest(options => {
                                                         enabled().
                                                         expectToBeSent();
 
+                                                    tester.employeesWebSocket.finishDisconnecting();
                                                     tester.eventsWebSocket.finishDisconnecting();
-                                                    tester.registrationRequest().expired().receiveResponse();
 
+                                                    tester.registrationRequest().expired().receiveResponse();
                                                     tester.authLogoutRequest().receiveResponse();
 
                                                     spendTime(2000);
@@ -300,39 +313,39 @@ tests.addTest(options => {
                                                         anotherAuthorizationToken().
                                                         receiveResponse();
 
-                                                    const requests = ajax.inAnyOrder();
+                                                    tester.employeesWebSocket.connect();
 
-                                                    const secondAccountRequest = tester.accountRequest().
-                                                        anotherAuthorizationToken().expectToBeSent(requests);
-                                                    const ticketsContactsRequest = tester.ticketsContactsRequest().
-                                                        expectToBeSent(requests);
-                                                    const authCheckRequest = tester.authCheckRequest().
-                                                        anotherAuthorizationToken().expectToBeSent(requests);
-
-                                                    requests.expectToBeSent();
-
-                                                    secondAccountRequest.receiveResponse();
-                                                    ticketsContactsRequest.receiveResponse();
-                                                    authCheckRequest.receiveResponse();
-
-                                                    tester.reportGroupsRequest().anotherAuthorizationToken().
-                                                        receiveResponse();
-                                                    tester.reportsListRequest().receiveResponse();
-                                                    tester.reportTypesRequest().receiveResponse();
+                                                    tester.employeesInitMessage().
+                                                        anotherAuthorizationToken().
+                                                        expectToBeSent();
 
                                                     tester.masterInfoMessage().receive();
                                                     tester.slavesNotification().additional().expectToBeSent();
                                                     tester.slavesNotification().expectToBeSent();
                                                     tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
+                                                    tester.employeeStatusesRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
+
+                                                    tester.employeeRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
+
+                                                    tester.authCheckRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
+
+                                                    tester.reportGroupsRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
+
+                                                    tester.reportsListRequest().receiveResponse();
+                                                    tester.reportTypesRequest().receiveResponse();
+
+                                                    tester.ticketsContactsRequest().receiveResponse();
                                                     tester.talkOptionsRequest().receiveResponse();
                                                     permissionsRequest = tester.permissionsRequest().expectToBeSent();
-
-                                                    tester.statusesRequest().
-                                                        createExpectation().
-                                                        anotherAuthorizationToken().
-                                                        checkCompliance().
-                                                        receiveResponse();
 
                                                     tester.settingsRequest().
                                                         anotherAuthorizationToken().
@@ -368,7 +381,11 @@ tests.addTest(options => {
                                                         webRTCServerConnected().
                                                         expectToBeSent();
 
-                                                    tester.registrationRequest().receiveResponse();
+                                                    tester.registrationRequest().receiveUnauthorized();
+
+                                                    tester.registrationRequest().
+                                                        authorization().
+                                                        receiveResponse();
 
                                                     tester.slavesNotification().
                                                         userDataFetched().
@@ -1195,10 +1212,10 @@ tests.addTest(options => {
                                                 anotherName().
                                                 receiveResponse();
 
-                                            tester.contactRequest().receiveResponse();
-
                                             tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                                             tester.marksRequest().receiveResponse();
+
+                                            tester.contactRequest().receiveResponse();
                                         });
                                         it('Нажимаю на иконку с крестиком. Карточка контакта скрыта.', function() {
                                             tester.contactBar.title.closeButton.click();
@@ -1566,44 +1583,86 @@ tests.addTest(options => {
                                             expectNotToHaveClass('ui-direction-icon-failed');
                                     });
                                 });
-                                it(
-                                    'Идентфикатор сессии дублируется. Нажимаю на кнопку второй страницы. Отправлен ' +
-                                    'запрос второй страницы. Отображена вторая страница.',
-                                function() {
-                                    callsRequest.duplicatedCallSessionId().receiveResponse();
+                                describe('Идентфикатор сессии дублируется.', function() {
+                                    beforeEach(function() {
+                                        callsRequest.duplicatedCallSessionId().receiveResponse();
+                                    });
 
-                                    tester.table.pagingPanel.pageButton('2').click();
+                                    it(
+                                        'Нажимаю на кнопку второй страницы. Отправлен запрос второй страницы. ' +
+                                        'Отображена вторая страница.',
+                                    function() {
+                                        tester.table.pagingPanel.pageButton('2').click();
 
-                                    tester.callsRequest().fromFirstWeekDay().secondPage().receiveResponse();
-                                    tester.marksRequest().receiveResponse();
+                                        tester.callsRequest().fromFirstWeekDay().secondPage().receiveResponse();
+                                        tester.marksRequest().receiveResponse();
 
-                                    tester.table.pagingPanel.pageButton('1').expectNotToBePressed();
-                                    tester.table.pagingPanel.pageButton('2').expectToBePressed();
-                                    tester.table.pagingPanel.pageButton('3').expectNotToExist();
+                                        tester.table.pagingPanel.pageButton('1').expectNotToBePressed();
+                                        tester.table.pagingPanel.pageButton('2').expectToBePressed();
+                                        tester.table.pagingPanel.pageButton('3').expectNotToExist();
 
-                                    tester.table.expectTextContentToHaveSubstringsConsideringOrder(
-                                        'Дата / время ' +
-                                        'ФИО контакта ' +
-                                        'Номер абонента ' +
-                                        'Теги ' +
-                                        'Комментарий ' +
-                                        'Длительность ' +
-                                        'Запись ' +
+                                        tester.table.expectTextContentToHaveSubstringsConsideringOrder(
+                                            'Дата / время ' +
+                                            'ФИО контакта ' +
+                                            'Номер абонента ' +
+                                            'Теги ' +
+                                            'Комментарий ' +
+                                            'Длительность ' +
+                                            'Запись ' +
 
-                                        '17 мая 2021 12:02 ' +
-                                        'Сотирова Атанаска ' +
-                                        '+7 (495) 023-06-27 ' +
-                                        '00:00:22',
+                                            '17 мая 2021 12:02 ' +
+                                            'Сотирова Атанаска ' +
+                                            '+7 (495) 023-06-27 ' +
+                                            '00:00:22',
 
-                                        '16 мая 2021 11:41 ' +
-                                        'Сотирова Атанаска ' +
-                                        '+7 (495) 023-06-27 ' +
-                                        '00:00:22'
-                                    );
+                                            '16 мая 2021 11:41 ' +
+                                            'Сотирова Атанаска ' +
+                                            '+7 (495) 023-06-27 ' +
+                                            '00:00:22'
+                                        );
 
-                                    tester.table.pagingPanel.expectToHaveTextContent(
-                                        '1 2 Всего записей 15 Страница 10'
-                                    );
+                                        tester.table.pagingPanel.expectToHaveTextContent(
+                                            '1 2 Всего записей 15 Страница 10'
+                                        );
+                                    });
+                                    it('Раскрываю строку. Дублирующиеся записи видимы.', function() {
+                                        tester.table.row.first.expander.click();
+                                        tester.table.row.first.expander.expectToBeExpanded();
+
+                                        tester.table.expectTextContentToHaveSubstring(
+                                            '19 дек. 2019 08:03 ' +
+                                            'Гяурова Марийка ' +
+                                            '+7 (495) 023-06-25 ' +
+                                            'Отложенный звонок, Нецелевой контакт ' +
+                                            '00:00:20 ' +
+
+                                            '18 дек. 2019 18:08 ' +
+                                            'Манова Тома ' +
+                                            '+7 (495) 023-06-26 ' +
+                                            '00:00:21 ' +
+
+                                            '17 дек. 2019 12:02 ' +
+                                            'Сотирова Атанаска ' +
+                                            '+7 (495) 023-06-27 ' +
+                                            '00:00:22' 
+                                        );
+                                    });
+                                    it('Дублирующиеся записи скрыты.', function() {
+                                        tester.table.row.first.expander.expectToBeCollapsed();
+
+                                        tester.table.expectTextContentToHaveSubstring(
+                                            '19 дек. 2019 08:03 ' +
+                                            'Гяурова Марийка ' +
+                                            '+7 (495) 023-06-25 ' +
+                                            'Отложенный звонок, Нецелевой контакт ' +
+                                            '00:00:20 ' +
+
+                                            '17 дек. 2019 12:02 ' +
+                                            'Сотирова Атанаска ' +
+                                            '+7 (495) 023-06-27 ' +
+                                            '00:00:22' 
+                                        );
+                                    });
                                 });
                                 it(
                                     'Есть неуспешные звонки. Строки с неуспешными звонками внешне отличаются от ' +
@@ -1873,7 +1932,11 @@ tests.addTest(options => {
                                 userDataFetched().
                                 expectToBeSent();
 
-                            tester.registrationRequest().receiveResponse();
+                            tester.registrationRequest().receiveUnauthorized();
+
+                            tester.registrationRequest().
+                                authorization().
+                                receiveResponse();
                             
                             tester.slavesNotification().
                                 twoChannels().
@@ -1951,7 +2014,11 @@ tests.addTest(options => {
                             userDataFetched().
                             expectToBeSent();
 
-                        tester.registrationRequest().receiveResponse();
+                        tester.registrationRequest().receiveUnauthorized();
+
+                        tester.registrationRequest().
+                            authorization().
+                            receiveResponse();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -2008,7 +2075,11 @@ tests.addTest(options => {
                             userDataFetched().
                             expectToBeSent();
 
-                        tester.registrationRequest().receiveResponse();
+                        tester.registrationRequest().receiveUnauthorized();
+
+                        tester.registrationRequest().
+                            authorization().
+                            receiveResponse();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -2078,7 +2149,11 @@ tests.addTest(options => {
                             userDataFetched().
                             expectToBeSent();
 
-                        tester.registrationRequest().receiveResponse();
+                        tester.registrationRequest().receiveUnauthorized();
+
+                        tester.registrationRequest().
+                            authorization().
+                            receiveResponse();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -2137,7 +2212,11 @@ tests.addTest(options => {
                         notificationTester.grantPermission();
 
                         const authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-                        const registrationRequest = tester.registrationRequest().expectToBeSent();
+                        tester.registrationRequest().receiveUnauthorized();
+
+                        const registrationRequest = tester.registrationRequest().
+                            authorization().
+                            expectToBeSent();
 
                         tester.allowMediaInput();
 
@@ -2189,10 +2268,19 @@ tests.addTest(options => {
                     permissionsRequest.disallowSoftphoneAllCallsStatSelect().receiveResponse();
 
                     tester.connectEventsWebSocket();
-                    tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
 
                     tester.connectSIPWebSocket();
-                    tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
                         expectToBeSent();
 
                     notificationTester.grantPermission();
@@ -2216,7 +2304,11 @@ tests.addTest(options => {
                         userDataFetched().
                         expectToBeSent();
 
-                    tester.registrationRequest().receiveResponse();
+                    tester.registrationRequest().receiveUnauthorized();
+
+                    tester.registrationRequest().
+                        authorization().
+                        receiveResponse();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -2274,7 +2366,11 @@ tests.addTest(options => {
                         userDataFetched().
                         expectToBeSent();
 
-                    tester.registrationRequest().receiveResponse();
+                    tester.registrationRequest().receiveUnauthorized();
+
+                    tester.registrationRequest().
+                        authorization().
+                        receiveResponse();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -2330,7 +2426,11 @@ tests.addTest(options => {
                         userDataFetched().
                         expectToBeSent();
 
-                    tester.registrationRequest().receiveResponse();
+                    tester.registrationRequest().receiveUnauthorized();
+
+                    tester.registrationRequest().
+                        authorization().
+                        receiveResponse();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -2385,7 +2485,11 @@ tests.addTest(options => {
                         userDataFetched().
                         expectToBeSent();
 
-                    tester.registrationRequest().receiveResponse();
+                    tester.registrationRequest().receiveUnauthorized();
+
+                    tester.registrationRequest().
+                        authorization().
+                        receiveResponse();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -2417,16 +2521,29 @@ tests.addTest(options => {
                     permissionsRequest.receiveResponse();
 
                     tester.connectEventsWebSocket();
-                    tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
 
                     tester.connectSIPWebSocket();
-                    tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
                         expectToBeSent();
 
                     notificationTester.grantPermission();
 
                     authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-                    registrationRequest = tester.registrationRequest().expectToBeSent();
+                    tester.registrationRequest().receiveUnauthorized();
+
+                    registrationRequest = tester.registrationRequest().
+                        authorization().
+                        expectToBeSent();
 
                     tester.allowMediaInput();
 
@@ -2532,29 +2649,33 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.manager().receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             permissionsRequest = tester.permissionsRequest().expectToBeSent();
-            tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
 
             tester.slavesNotification().
@@ -2582,7 +2703,11 @@ tests.addTest(options => {
             notificationTester.grantPermission();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-            registrationRequest = tester.registrationRequest().expectToBeSent();
+            tester.registrationRequest().receiveUnauthorized();
+
+            registrationRequest = tester.registrationRequest().
+                authorization().
+                expectToBeSent();
 
             tester.allowMediaInput();
 
@@ -2610,7 +2735,15 @@ tests.addTest(options => {
                 available().
                 expectToBeSent();
 
-            tester.button('История звонков').expectToBeVisible();
+            tester.button('История звонков').click();
+
+            tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
+            tester.marksRequest().receiveResponse();
+
+            tester.table.
+                row.first.
+                column.withHeader('Запись').
+                expectToBeVisible();
         });
         it('У пользователя нет роли. Вкладки "Все" и "Необработанные" заблокированы.', function() {
             accountRequest.noCallCenterRole().receiveResponse();
@@ -2622,29 +2755,33 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.noCallCenterRole().receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             permissionsRequest = tester.permissionsRequest().expectToBeSent();
-            tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
 
             tester.slavesNotification().
@@ -2672,7 +2809,11 @@ tests.addTest(options => {
             notificationTester.grantPermission();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-            registrationRequest = tester.registrationRequest().expectToBeSent();
+            tester.registrationRequest().receiveUnauthorized();
+
+            registrationRequest = tester.registrationRequest().
+                authorization().
+                expectToBeSent();
 
             tester.allowMediaInput();
 
@@ -2713,6 +2854,11 @@ tests.addTest(options => {
             tester.radioButton('Все').expectNotToExist();
             tester.radioButton('Необработанные').expectNotToExist();
 
+            tester.table.
+                row.first.
+                column.withHeader('Запись').
+                expectNotToExist();
+
             tester.body.expectTextContentNotToHaveSubstring('Скрыть обработанные другими группами');
         });
         it('История недоступна. Пункт меню скрыт.', function() {
@@ -2725,29 +2871,33 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.callHistoryFeatureFlagDisabled().receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
             tester.settingsRequest().receiveResponse();
 
             tester.slavesNotification().
@@ -2774,7 +2924,11 @@ tests.addTest(options => {
             notificationTester.grantPermission();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-            registrationRequest = tester.registrationRequest().expectToBeSent();
+            tester.registrationRequest().receiveUnauthorized();
+
+            registrationRequest = tester.registrationRequest().
+                authorization().
+                expectToBeSent();
 
             tester.allowMediaInput();
 
@@ -2801,8 +2955,6 @@ tests.addTest(options => {
                 twoChannels().
                 available().
                 expectToBeSent();
-
-            statusesRequest.receiveResponse();
 
             tester.button('История звонков').expectNotToExist();
         });
@@ -2818,29 +2970,33 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.contactsFeatureFlagDisabled().receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
             tester.settingsRequest().receiveResponse();
 
             tester.slavesNotification().
@@ -2849,16 +3005,29 @@ tests.addTest(options => {
                 expectToBeSent();
 
             tester.connectEventsWebSocket();
-            tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
 
             tester.connectSIPWebSocket();
-            tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
                 expectToBeSent();
 
             notificationTester.grantPermission();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-            registrationRequest = tester.registrationRequest().expectToBeSent();
+            tester.registrationRequest().receiveUnauthorized();
+
+            registrationRequest = tester.registrationRequest().
+                authorization().
+                expectToBeSent();
 
             tester.allowMediaInput();
 
@@ -2885,8 +3054,6 @@ tests.addTest(options => {
                 twoChannels().
                 available().
                 expectToBeSent();
-
-            statusesRequest.receiveResponse();
 
             tester.button('История звонков').click();
 
@@ -2919,29 +3086,33 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             permissionsRequest = tester.permissionsRequest().expectToBeSent();
-            tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
 
             tester.slavesNotification().
@@ -2975,7 +3146,11 @@ tests.addTest(options => {
                 softphoneServerConnected().
                 expectToBeSent();
             
-            tester.registrationRequest().receiveResponse();
+            tester.registrationRequest().receiveUnauthorized();
+
+            tester.registrationRequest().
+                authorization().
+                receiveResponse();
 
             tester.slavesNotification().
                 userDataFetched().

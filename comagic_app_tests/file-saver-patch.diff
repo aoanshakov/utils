@@ -1,11 +1,13 @@
 diff --git a/dist/FileSaver.js b/dist/FileSaver.js
-index e07c980..e2e97fe 100644
+index e07c980..79efd5c 100644
 --- a/dist/FileSaver.js
 +++ b/dist/FileSaver.js
-@@ -76,6 +76,8 @@
+@@ -76,6 +76,10 @@
  
  
    function click(node) {
++    node.dataset.role = 'file-saver';
++    document.body.appendChild(node);
 +    return;
 +
      try {

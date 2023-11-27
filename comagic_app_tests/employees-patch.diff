@@ -1,27 +1,22 @@
 diff --git a/package.json b/package.json
-index c187d47..ff266d7 100644
+index ea88569..78156c5 100644
 --- a/package.json
 +++ b/package.json
-@@ -52,7 +52,7 @@
+@@ -59,17 +59,7 @@
+     "webpack-dev-server": "^4.9.3"
    },
    "dependencies": {
-     "@babel/runtime": "^7.13.9",
--    "antd": "^4.13.0",
-+    "antd": "^3.26.7",
-     "axios": "^0.21.1",
-     "classnames": "^2.2.6",
-     "dotenv": "^8.2.0",
-diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 3736462..6f99b4c 100644
---- a/src/models/RootStore.ts
-+++ b/src/models/RootStore.ts
-@@ -75,7 +75,8 @@ export type DependencyInjection = {
- export type RootInstance = Instance<typeof RootStore>;
- export const RootStoreContext = React.createContext<null | RootInstance>(null);
- export const Provider = RootStoreContext.Provider;
--export const rootStore = RootStore.create({}, { httpRpc });
-+export let rootStore;
-+export const createRootStore = () => (rootStore = RootStore.create({}, { httpRpc }));
- 
- if (process.env.NODE_ENV === 'development') {
-     window.rootStore = rootStore;
+-    "@comagic/core": "^0.7.0",
+-    "@comagic/workplace-utils": "^1.0.18",
+-    "axios": "^0.24.0",
+-    "mobx": "^6.6.1",
+-    "mobx-react-lite": "^3.4.0",
+-    "mobx-state-tree": "^5.1.5",
+-    "magic-ui": "0.0.0-int1",
+     "nanoid": "^3.2.0",
+-    "react": "^18.2.0",
+-    "react-dom": "^18.2.0",
+-    "react-intl": "6.3.2",
+     "uuid": "^8.3.2"
+   }
+ }

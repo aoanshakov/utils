@@ -47,7 +47,8 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
@@ -56,7 +57,8 @@ tests.addTest(options => {
             reportGroupsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
         });
 
         afterEach(function() {
@@ -71,15 +73,17 @@ tests.addTest(options => {
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().additional().expectToBeSent();
                 tester.slavesNotification().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
-                tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
 
                 tester.slavesNotification().
@@ -131,10 +135,9 @@ tests.addTest(options => {
                     userDataFetched().
                     expectToBeSent();
 
+                tester.resizeMessage().expectToBeSent();
                 tester.appReadyMessage().expectToBeSent();
                 tester.unmaximizeMessage().expectToBeSent();
-                tester.resizeMessage().expectToBeSent();
-                tester.resizeMessage().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
             });
@@ -281,7 +284,9 @@ tests.addTest(options => {
                                 new Array(6).fill(null).forEach(function () {
                                     spendTime(5000);
                                     tester.expectPingToBeSent();
+                                    tester.employeesPing().expectToBeSent();
                                     tester.receivePong();
+                                    tester.employeesPing().receive();
                                 });
 
                                 incomingCall = tester.incomingCall().receive();
@@ -693,7 +698,6 @@ tests.addTest(options => {
                         tester.authCheckRequest().receiveResponse();
                         tester.talkOptionsRequest().receiveResponse();
                         tester.permissionsRequest().receiveResponse();
-                        tester.statusesRequest().receiveResponse();
                         tester.settingsRequest().receiveResponse();
 
                         tester.slavesNotification().
@@ -837,7 +841,6 @@ tests.addTest(options => {
                     tester.authCheckRequest().receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
-                    tester.statusesRequest().receiveResponse();
                     tester.settingsRequest().receiveResponse();
                     
                     tester.slavesNotification().
@@ -1120,7 +1123,6 @@ tests.addTest(options => {
                     allowNumberCapacityUpdate().
                     receiveResponse();
 
-                tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
 
                 tester.notificationChannel().applyLeader().expectToBeSent();
@@ -1135,10 +1137,9 @@ tests.addTest(options => {
                     available().
                     receive();
 
+                tester.resizeMessage().expectToBeSent();
                 tester.appReadyMessage().expectToBeSent();
                 tester.unmaximizeMessage().expectToBeSent();
-                tester.resizeMessage().expectToBeSent();
-                tester.resizeMessage().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
 
@@ -1180,11 +1181,10 @@ tests.addTest(options => {
                         tester.authCheckRequest().receiveResponse();
                         tester.talkOptionsRequest().receiveResponse();
                         tester.permissionsRequest().receiveResponse();
-                        tester.statusesRequest().receiveResponse();
                         tester.settingsRequest().receiveResponse();
 
-                        tester.notificationChannel().tellIsLeader().expectToBeSent();
                         tester.authenticatedUserRequest().receiveResponse();
+                        tester.notificationChannel().tellIsLeader().expectToBeSent();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -1301,7 +1301,6 @@ tests.addTest(options => {
                     tester.authCheckRequest().receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
-                    tester.statusesRequest().receiveResponse();
                     tester.settingsRequest().receiveResponse();
 
                     tester.notificationChannel().tellIsLeader().expectToBeSent();

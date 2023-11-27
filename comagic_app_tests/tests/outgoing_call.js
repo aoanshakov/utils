@@ -30,7 +30,7 @@ tests.addTest(options => {
             authenticatedUserRequest,
             registrationRequest,
             statsRequest,
-            statusesRequest;
+            employeeStatusesRequest;
 
         beforeEach(function() {
             setNow('2019-12-19T12:10:06');
@@ -52,29 +52,33 @@ tests.addTest(options => {
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.noData().receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
-            statusesRequest = tester.statusesRequest().expectToBeSent();
             tester.settingsRequest().receiveResponse();
 
             notificationTester.grantPermission();
@@ -121,8 +125,6 @@ tests.addTest(options => {
                 microphoneAccessGranted().
                 userDataFetched().
                 expectToBeSent();
-
-            statusesRequest.receiveResponse();
 
             tester.button('Софтфон').click();
 
@@ -379,7 +381,7 @@ tests.addTest(options => {
                                         );
                                     
                                     tester.body.expectTextContentToHaveSubstring(
-                                        'karadimova Не беспокоить'
+                                        'Ганева Стефка Доступен'
                                     );
                                 });
                             });

@@ -138,7 +138,9 @@ function ExtJsTester_TestersFactory (wait, utils, factory) {
     };
     this.createCheckboxTester = function (field, label) {
         return new ExtJsTester_Checkable((
-            field && field.inputEl ? field.inputEl.dom : null
+            field && field.inputEl ?
+                utils.makeDomElementGetter(field.inputEl.dom) :
+                utils.makeDomElementGetter(field)
         ), field && field.el ? field.el.dom : null, wait, utils, this, male, utils.fieldDescription('чекбокс', label),
             utils.fieldDescription('чекбокс', label), utils.fieldDescription('чекбокса', label), factory);
     };
@@ -814,10 +816,16 @@ function ExtJsTester_ComboBox (
 }
 
 function ExtJsTester_Checkable (
-    inputElement, componentElement, wait, utils, testersFactory, gender, nominativeDescription,
+    getInputElement, componentElement, wait, utils, testersFactory, gender, nominativeDescription,
     accusativeDescription, genetiveDescription, factory
 ) {
-    ExtJsTester_DomElement.apply(this, [inputElement].concat(Array.prototype.slice.call(arguments, 2)));
+    getInputElement = utils.makeDomElementGetter(getInputElement);
+    
+    const getComponentElement = componentElement ?
+        utils.makeDomElementGetter(componentElement) :
+        () => getInputElement().closest('.x-field');
+
+    ExtJsTester_DomElement.apply(this, [getInputElement].concat(Array.prototype.slice.call(arguments, 2)));
 
     var componentElementTester = new ExtJsTester_DomElement(componentElement, wait, utils, testersFactory, gender,
         nominativeDescription, accusativeDescription, genetiveDescription);
@@ -831,7 +839,7 @@ function ExtJsTester_Checkable (
     this.expectToBeChecked = function () {
         this.expectToBeVisible();
 
-        if (!Ext.fly(componentElement).hasCls('x-form-cb-checked')) {
+        if (!Ext.fly(getComponentElement()).hasCls('x-form-cb-checked')) {
             throw new Error(
                 Ext.util.Format.capitalize(nominativeDescription) + ' ' + gender.should + ' быть ' +
                 gender.checked + '.'
@@ -841,7 +849,7 @@ function ExtJsTester_Checkable (
     this.expectNotToBeChecked = function () {
         this.expectToBeVisible();
 
-        if (Ext.fly(componentElement).hasCls('x-form-cb-checked')) {
+        if (Ext.fly(getComponentElement()).hasCls('x-form-cb-checked')) {
             throw new Error(
                 Ext.util.Format.capitalize(nominativeDescription) + ' не ' + gender.should + ' быть ' +
                 gender.checked + '.'

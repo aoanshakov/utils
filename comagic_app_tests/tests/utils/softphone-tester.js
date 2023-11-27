@@ -25,8 +25,8 @@ define(function () {
             webRtcUrlForGettingSocket = webRtcUrl,
             registrationTesterExtentor = function () {};
 
-        window.crossTabCommunicatorCache = {};
-        window.softphoneCrossTabCommunicatorCache = {};
+        window.broadcastChannelCache = {};
+        window.softphoneBroadcastChannelCache = {};
 
         var updateWebRtcUrlForGettingSocket = function (index) {
             return {
@@ -183,7 +183,7 @@ define(function () {
                     tester.clear = () => (clear(), spendTime(0), spendTime(0));
                     tester.click = () => (click(), spendTime(0), spendTime(0), tester);
                     tester.fill = value => (clear(), spendTime(0), fill(value), spendTime(0), spendTime(0), tester);
-                    tester.input = value => (input(value), spendTime(0), tester); 
+                    tester.input = value => (input(value), spendTime(0), spendTime(0), tester); 
                     tester.pressEnter = () => (pressEnter(), spendTime(0), tester);
 
                     tester.expectNotToHaveError = () => uiInputTester.expectToHaveNoneOfClasses([
@@ -260,7 +260,9 @@ define(function () {
                 '.cm-chats--title, ' +
                 '.src-components-main-menu-nav-item-styles-module__label, ' +
                 '.src-components-main-menu-settings-styles-module__label, ' +
-                '.src-components-main-menu-menu-link-styles-module__item a';
+                '.src-components-main-menu-menu-link-styles-module__item a, ' + 
+                //'.cm-chats--chats-menu-link-text, ' +
+                '.cm-chats--chats-menu-item > .label';
 
             me.button = (text, logEnabled) => {
                 let domElement = utils.descendantOf(getRootElement()).
@@ -283,7 +285,8 @@ define(function () {
                 });
 
                 const tester = testersFactory.createDomElementTester(domElement),
-                    click = tester.click.bind(tester);
+                    click = tester.click.bind(tester),
+                    putMouseOver = tester.putMouseOver.bind(tester);
 
                 const isSwitch = (() => {
                     try {
@@ -292,6 +295,8 @@ define(function () {
                         return false;
                     }
                 })();
+
+                tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
 
                 tester.click = () => {
                     isSwitch ? fieldTester.click() : click();
@@ -323,6 +328,7 @@ define(function () {
                     'active',
                     'ui-tab-active',
                     'cmgui-tab-active',
+                    'item-hovered',
                 ];
 
 
@@ -331,7 +337,8 @@ define(function () {
                     '.misc-core-src-component-styles-module__item, ' +
                     '.cm-chats--left-menu--item, ' +
                     '.ui-tab, ' +
-                    '.cmgui-tab'
+                    '.cmgui-tab, ' +
+                    '.cm-chats--chats-menu-item'
                 );
 
                 const pressednessTester = testersFactory.createDomElementTester(getPressableElement);
@@ -357,8 +364,14 @@ define(function () {
                 return tester;
             };
 
-            me.button.atIndex = index => testersFactory.createDomElementTester(() =>
-                utils.element(getRootElement()).querySelectorAll(buttonSelector)[index] || new JsTester_NoElement());
+            me.fileField = testersFactory.createFileFieldTester(function () {
+                return getRootElement().querySelector('input[type=file]');
+            });
+
+            me.button.atIndex = index => testersFactory.createDomElementTester(() => {
+                return utils.element(getRootElement()).querySelectorAll(buttonSelector)[index] ||
+                    new JsTester_NoElement();
+            });
 
             me.button.first = me.button.atIndex(0);
 
@@ -710,7 +723,7 @@ define(function () {
             const click = tester.click.bind(tester),
                 selectedClassName = 'cmg-bottom-button-selected';
 
-            tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0), spendTime(0), spendTime(0));
 
             tester.expectToBePressed = () => tester.expectToHaveClass(selectedClassName);
             tester.expectNotToBePressed = () => tester.expectNotToHaveClass(selectedClassName);
@@ -1397,6 +1410,7 @@ define(function () {
                     data[1].start_time = '2019-06-16T21:09:26.522+03:00';
                     data[2].start_time = '2019-07-14T23:10:27.522+03:00';
                 })), me),
+
                 me.shortPhoneNumber = () => ((processors.push(data => (data[0].number = '56123'))), me)
                 me.chilePhoneNumber = () => ((processors.push(data => (data[0].number = '56123456789'))), me)
                 me.duplicatedCallSessionId = () => (processors.push(data => (data[1].call_session_id = 980925444)), me);
@@ -2053,6 +2067,7 @@ define(function () {
                             respond(request);
                             Promise.runAll(false, true);
                             spendTime(0);
+                            spendTime(0);
                             //maybeTriggerScrollRecalculation();
                         }
                     });
@@ -2359,6 +2374,17 @@ define(function () {
             var sipLogin = '077368';
 
             function addMethods (me) {
+                me.addMore = function () {
+                    for (i = 0; i < 2070; i ++) {
+                        data.push({
+                            id: 124835 + i,
+                            numb: 79161238939 + i + '',
+                        });
+                    }
+
+                    return me;
+                };
+
                 me.withComment = function () {
                     data.find(item => item.id == 124824).comment = 'Отдел консалтинга';
                     return me;
@@ -2525,17 +2551,24 @@ define(function () {
                     data.sip_line_number_capacity.is_update = true;
                     return this;
                 },
+                numberCapacityUndefined: function () {
+                    delete(data.sip_line_number_capacity);
+                    return  this;
+                },
                 receiveChangeEvent: function () {
-                    me.eventsWebSocket.receiveMessage({
+                    softphoneTester.eventsWebSocket.receiveMessage({
                         name: 'permissions_changed',
                         type: 'event',
                         params: {
                             data: data
                         } 
                     });
+
+                    spendTime(0);
                 },
                 expectToBeSent: function (requests) {
-                    var request = (requests ? requests.someRequest() : ajax.recentRequest()).expectPathToContain('/sup/api/v1/permissions/me');
+                    var request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                        expectPathToContain('/sup/api/v1/permissions/me');
 
                     var requestSender = {
                         receiveResponse: function () {
@@ -2668,6 +2701,8 @@ define(function () {
         this.connectEventsWebSocket = function (index) {
             this.getEventsWebSocket(index).connect();
             Promise.runAll(false, true);
+            Promise.runAll(false, true);
+            spendTime(0);
         };
 
         this.expectBrowserIdToHaveKnownValue = function (browser_id) {
@@ -3823,9 +3858,6 @@ define(function () {
 
                     return this;
                 },
-                receiveForbidden: function () {
-                    this.expectToBeSent().receiveForbidden();
-                },
                 send: function () {
                     this.receiveResponse();
                 },
@@ -3833,9 +3865,48 @@ define(function () {
                     softphoneType = 'Desktop';
                     return this;
                 },
+                authorization: function () {
+                    this.expectToBeSent = () => {
+                        var recentRequest = checkAuthorization(sip.recentRequest().expectToHaveMethod('REGISTER'));
+
+                        return {
+                            receiveForbidden: function () {
+                                recentRequest.
+                                    response().
+                                    setForbidden().
+                                    send();
+
+                                spendTime(0);
+                            },
+                            receiveUnauthorized: function () {
+                                recentRequest.
+                                    response().
+                                    setUnauthorized().
+                                    addHeader('WWW-Authenticate: Digest realm="{server_name}", nonce="{to_tag}"').
+                                    send();
+
+                                spendTime(0);
+                            },
+                            receiveResponse: function () {
+                                doSomething();
+
+                                recentRequest.
+                                    response().
+                                    copyHeader('Contact').
+                                    send();
+
+                                spendTime(0);
+                            }
+                        };
+                    };
+
+                    return this;
+                },
                 expectToBeSent: function () {
+                    const recentRequest = sip.recentRequest();
+
                     checkRegistration(
-                        sip.recentRequest().
+                        recentRequest.
                             expectToHaveMethod('REGISTER').
                             expectToHaveServerName('sip:' + sip_host).
                             expectHeaderToContain('From', '<sip:' + sip_login + '@' + sip_host + '>').
@@ -3844,13 +3915,7 @@ define(function () {
                             expectHeaderToHaveValue(
                                 'User-Agent', 'User-Agent: ' + me.getUserAgent(softphoneType)
                             )
-                    ).
-                        response().
-                        setUnauthorized().
-                        addHeader('WWW-Authenticate: Digest realm="{server_name}", nonce="{to_tag}"').
-                        send();
-
-                    var recentRequest = checkAuthorization(sip.recentRequest().expectToHaveMethod('REGISTER'));
+                    );
 
                     return {
                         receiveForbidden: function () {
@@ -3858,6 +3923,17 @@ define(function () {
                                 response().
                                 setForbidden().
                                 send();
+
+                            spendTime(0);
+                        },
+                        receiveUnauthorized: function () {
+                            recentRequest.
+                                response().
+                                setUnauthorized().
+                                addHeader('WWW-Authenticate: Digest realm="{server_name}", nonce="{to_tag}"').
+                                send();
+
+                            spendTime(0);
                         },
                         receiveResponse: function () {
                             doSomething();
@@ -3876,6 +3952,9 @@ define(function () {
                 },
                 receiveForbidden: function () {
                     return this.expectToBeSent().receiveForbidden();
+                },
+                receiveUnauthorized: function () {
+                    return this.expectToBeSent().receiveUnauthorized();
                 }
             };
 
@@ -4881,6 +4960,16 @@ define(function () {
             });
 
             spendTime(0);
+        };
+
+        this.spendFiveSeconds = function (times = 1) {
+            let i = 0;
+
+            for (i = 0; i < times; i ++) {
+                spendTime(5000);
+                this.expectPingToBeSent();
+                this.receivePong();
+            }
         };
 
         this.startTryingToPingUnavailableSocket = function () {

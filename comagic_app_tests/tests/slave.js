@@ -50,7 +50,8 @@ tests.addTest(options => {
             const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
@@ -58,7 +59,8 @@ tests.addTest(options => {
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
         });
 
         describe('Вкладка является ведомой. Открываю софтфон.', function() {
@@ -73,8 +75,6 @@ tests.addTest(options => {
                     allowNumberCapacitySelect().
                     allowNumberCapacityUpdate().
                     receiveResponse();
-
-                tester.statusesRequest().receiveResponse();
 
                 tester.settingsRequest().
                     dontTriggerScrollRecalculation().
@@ -111,6 +111,9 @@ tests.addTest(options => {
                 describe('Вкладка становится ведущей. Поднимается webRTC-сокет.', function() {
                     beforeEach(function() {
                         tester.masterInfoMessage().receive();
+
+                        tester.employeesWebSocket.connect();
+                        tester.employeesInitMessage().expectToBeSent();
 
                         tester.slavesNotification().
                             additional().
@@ -164,8 +167,11 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.authenticatedUserRequest().receiveResponse();
+                        tester.registrationRequest().receiveUnauthorized();
 
-                        tester.registrationRequest().receiveResponse();
+                        tester.registrationRequest().
+                            authorization().
+                            receiveResponse();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -254,6 +260,9 @@ tests.addTest(options => {
             function() {
                 tester.masterInfoMessage().receive();
 
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
+
                 tester.slavesNotification().
                     additional().
                     visible().
@@ -302,8 +311,11 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.authenticatedUserRequest().receiveResponse();
+                tester.registrationRequest().receiveUnauthorized();
 
-                tester.registrationRequest().receiveResponse();
+                tester.registrationRequest().
+                    authorization().
+                    receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -368,21 +380,10 @@ tests.addTest(options => {
                 tester.loginRequest().receiveResponse();
                 tester.accountRequest().receiveResponse();
 
+                tester.authCheckRequest().receiveResponse(),
                 tester.reportGroupsRequest().receiveResponse();
                 tester.reportsListRequest().receiveResponse();
                 tester.reportTypesRequest().receiveResponse();
-
-                const requests = ajax.inAnyOrder();
-
-                const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                    ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
-
-                requests.expectToBeSent();
-
-                authCheckRequest.receiveResponse();
-                ticketsContactsRequest.receiveResponse();
-                secondAccountRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().additional().visible().expectToBeSent();
@@ -394,8 +395,8 @@ tests.addTest(options => {
 
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
-                tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
+                tester.employeeStatusesRequest().receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -420,6 +421,15 @@ tests.addTest(options => {
 
                 notificationTester.grantPermission();
 
+                const requests = ajax.inAnyOrder();
+                    ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                    employeeRequest = tester.employeeRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                ticketsContactsRequest.receiveResponse();
+                employeeRequest.receiveResponse();
+
                 tester.authenticatedUserRequest().receiveResponse();
 
                 tester.slavesNotification().
@@ -429,7 +439,11 @@ tests.addTest(options => {
                     userDataFetched().
                     expectToBeSent();
 
-                tester.registrationRequest().receiveResponse();
+                tester.registrationRequest().receiveUnauthorized();
+
+                tester.registrationRequest().
+                    authorization().
+                    receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -472,6 +486,7 @@ tests.addTest(options => {
                 tester.loginRequest().receiveResponse();
                 tester.accountRequest().receiveResponse();
 
+                tester.authCheckRequest().receiveResponse(),
                 tester.reportGroupsRequest().receiveResponse();
                 tester.reportsListRequest().receiveResponse();
                 tester.reportTypesRequest().receiveResponse();
@@ -484,22 +499,10 @@ tests.addTest(options => {
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
-                const requests = ajax.inAnyOrder();
-
-                const authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                    ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
-
-                requests.expectToBeSent();
-
-                authCheckRequest.receiveResponse();
-                ticketsContactsRequest.receiveResponse();
-                secondAccountRequest.receiveResponse();
-
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
-                tester.statusesRequest().receiveResponse();
                 tester.settingsRequest().receiveResponse();
+                tester.employeeStatusesRequest().receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -524,6 +527,15 @@ tests.addTest(options => {
 
                 notificationTester.grantPermission();
 
+                const requests = ajax.inAnyOrder();
+                    ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                    employeeRequest = tester.employeeRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                ticketsContactsRequest.receiveResponse();
+                employeeRequest.receiveResponse();
+
                 tester.authenticatedUserRequest().receiveResponse();
 
                 tester.slavesNotification().
@@ -533,7 +545,11 @@ tests.addTest(options => {
                     userDataFetched().
                     expectToBeSent();
 
-                tester.registrationRequest().receiveResponse();
+                tester.registrationRequest().receiveUnauthorized();
+
+                tester.registrationRequest().
+                    authorization().
+                    receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -586,13 +602,12 @@ tests.addTest(options => {
                 tester.select.expectToHaveTextContent('+7 (916) 123-89-29');
             });
             it('Выбран другой статус. Отображен выбранный статус.', function() {
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
+                tester.entityChangeEvent().
                     anotherStatus().
+                    slavesNotification().
                     receive();
 
-                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+                tester.body.expectTextContentToHaveSubstring('Гонева Стевка Нет на месте');
             });
             it('Окно свернуто. В ведущую вкладку отправлено сообщение о том, что окно свернуто.', function() {
                 setDocumentVisible(false);
@@ -644,7 +659,7 @@ tests.addTest(options => {
                 tester.expectNoWebsocketConnecting();
 
                 tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
-                tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
+                tester.body.expectTextContentToHaveSubstring('Ганева Стефка Доступен');
             });
         });
         describe(
@@ -663,8 +678,6 @@ tests.addTest(options => {
                     allowNumberCapacitySelect().
                     allowNumberCapacityUpdate().
                     receiveResponse();
-
-                tester.statusesRequest().receiveResponse();
 
                 tester.settingsRequest().
                     dontTriggerScrollRecalculation().

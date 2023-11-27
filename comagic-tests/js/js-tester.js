@@ -264,6 +264,19 @@ function JsTester_NoElement () {
     };
 }
 
+function JsTester_Element({ utils, getAscendant }) {
+    getAscendant = utils.makeDomElementGetter(getAscendant);
+
+    this.querySelector = function (selector) {
+        return utils.getVisibleSilently(this.querySelectorAll(selector)) || new JsTester_NoElement();
+    };
+
+    this.querySelectorAll = function (selector) {
+        return (getAscendant() || new JsTester_NoElement()).querySelectorAll(selector)
+;
+    };
+}
+
 function JsTester_Utils (debug) {
     var me = this;
 
@@ -585,6 +598,18 @@ function JsTester_Utils (debug) {
     this.descendantOfBody = function () {
         return this.descendantOf(document.body);
     };
+    this.element = function (getAscendant) {
+        return new JsTester_Element({
+            utils: this,
+            getAscendant: getAscendant,
+        });
+    };
+    this.querySelectorAll = function (selector) {
+        return this.element(document.body).querySelectorAll(selector);
+    };
+    this.querySelector = function (selector) {
+        return this.element(document.body).querySelector(selector);
+    };
     this.findElementByTextContent = function (ascendantElement, desiredTextContent, selector) {
         var results = this.findElementsByTextContent(ascendantElement, desiredTextContent, selector);
 
@@ -648,6 +673,12 @@ function JsTester_Utils (debug) {
     this.getVisible = function (domElements) {
         return getVisible.call(this, domElements, function (count) {
             throw new Error('Найдено ' + count + ' видимых элементов, тогда как видимым должен быть только один.');
+        });
+    };
+    this.expectToInclude = function (expectedSubset) {
+        return new JsTests_ArrayInclusionExpectation({
+            expectedSubset,
+            utils: this,
         });
     };
 }
@@ -1544,6 +1575,8 @@ function JsTester_DomElement (
     this.click = function (x, y) {
         this.mousedown(x, y);
         this.mouseup(x, y);
+
+        return this
     };
     this.mousedown = function (x, y) {
         this.expectToBeVisible();
@@ -1673,7 +1706,10 @@ function JsTests_StringExpectaion () {
     };
 }
 
-function JsTests_SetInclusionExpectation (expectedSubset) {
+function JsTests_ArrayInclusionExpectation ({
+    expectedSubset,
+    utils,
+}) {
     this.maybeThrowError = function (actualValue, keyDescription) {
         if (!Array.isArray(actualValue)) {
             throw new Error(
@@ -1687,6 +1723,23 @@ function JsTests_SetInclusionExpectation (expectedSubset) {
         }
 
         if (expectedSubset.some(function (item) {
+            if (typeof item == 'object') {
+                return !expectedSubset.every(function (item) {
+                    return actualValue.some(function (actualItem) {
+                        var isContained = true;
+
+                        try {
+                            utils.expectToContain(actualItem, item);
+                        } catch (e) {
+                            isContained = false;
+                        }
+
+                        return isContained;
+                    });
+
+                });
+            }
+
             return !actualValue.includes(item);
         })) {
             throw new Error(
@@ -1742,7 +1795,7 @@ function JsTests_UniqueValueExpectationFactory () {
 JsTests_EmptyObjectExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_PrefixExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_StringExpectaion.prototype = JsTests_ParamExpectationPrototype;
-JsTests_SetInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
+JsTests_ArrayInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
 JsTests_UniqueValueExpectation.prototype = JsTests_ParamExpectationPrototype;
 
 function JsTester_ParamsContainingExpectation (actualParams, paramsDescription) {
@@ -2233,9 +2286,9 @@ function JsTester_Tests (factory) {
     };
 }
 
-function JsTester_DescendantFinder (ascendantElement, utils) {
+function JsTester_DescendantFinder (getAscendantElement, utils) {
     var selector = '*';
-    ascendantElement = ascendantElement || new JsTester_NoElement();
+    getAscendantElement = utils.makeDomElementGetter(getAscendantElement);
 
     var isDesiredText = function () {
         throw new Error('Не указаны критерии поиска');
@@ -2283,12 +2336,12 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
     };
 
     this.findAll = function (logEnabled) {
-        if (!ascendantElement.querySelectorAll) {
-            throw new Error(`Объект ${ascendantElement} не является HTML-элементом.`);
+        if (!(getAscendantElement() || new JsTester_NoElement()).querySelectorAll) {
+            throw new Error(`Объект ${getAscendantElement()} не является HTML-элементом.`);
         }
 
         var i,
-            descendants = ascendantElement.querySelectorAll(selector),
+            descendants = (getAscendantElement() || new JsTester_NoElement()).querySelectorAll(selector),
             length = descendants.length,
             descendant,
             text,
@@ -2312,7 +2365,7 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
 
         logEnabled && console.log({
             selector,
-            ascendantElement,
+            ascendantElement: getAscendantElement(),
             comparisons,
             allDescendants,
             desiredDescendants

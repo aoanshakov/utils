@@ -40,28 +40,31 @@ tests.addTest(options => {
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             reportGroupsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
-            tester.statusesRequest().receiveResponse();
-
             tester.settingsRequest().receiveResponse();
 
             tester.slavesNotification().
@@ -87,7 +90,6 @@ tests.addTest(options => {
                 expectToBeSent();
 
             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-
             tester.registrationRequest().receiveResponse();
 
             tester.slavesNotification().
@@ -113,50 +115,488 @@ tests.addTest(options => {
                 twoChannels().
                 available().
                 expectToBeSent();
+
+            tester.button('Софтфон').click();
+
+            tester.slavesNotification().
+                additional().
+                visible().
+                expectToBeSent();
         });
             
-        describe('Получено событие изменения сотрудника. Статус сотрудника изменился.', function() {
-            let employeeChangedEvent;
-
+        describe('Проходит некоторое время. Отправлен пинг.', function() {
             beforeEach(function() {
-                employeeChangedEvent = tester.employeeChangedEvent().secondStatus();
-                ticketsContactsRequest.receiveResponse();
+                tester.spendTime(5000);
+                tester.expectPingToBeSent();
+
+                tester.employeesPing().expectToBeSent();
+                tester.employeesPing().receive();
             });
 
-            it('Структура некорректна. Отображен новый статус сотрудника.', function() {
-                employeeChangedEvent.wrongStructure().receive();
+            describe('Проходит большой промежуток времени. Понг не получен.', function() {
+                beforeEach(function() {
+                    tester.spendTime(2000);
 
-                tester.employeeChangedEvent().
-                    secondStatus().
-                    wrongStructure().
-                    slavesNotification().
-                    expectToBeSent();
+                    tester.slavesNotification().
+                        twoChannels().
+                        microphoneAccessGranted().
+                        webRTCServerConnected().
+                        userDataFetched().
+                        registered().
+                        expectToBeSent();
+                });
 
-                tester.slavesNotification().
-                    userDataFetched().
-                    twoChannels().
-                    available().
-                    anotherStatus().
-                    expectToBeSent();
+                describe('Пинг отправляется еще несколько раз с меньшим интервалом.', function() {
+                    beforeEach(function() {
+                        // 1-ая попытка
+                        spendTime(1000);
+                        Promise.runAll(false, true);
+                        tester.expectPingToBeSent();
 
-                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+                        // 2-ая попытка
+                        spendTime(1001);
+                        Promise.runAll(false, true);
+                        tester.expectPingToBeSent();
+
+                        // 3-ая попытка
+                        spendTime(1003);
+                        Promise.runAll(false, true);
+                        tester.expectPingToBeSent();
+
+                        tester.employeesPing().expectToBeSent();
+                        tester.employeesPing().receive();
+
+                        // 4-ая попытка
+                        spendTime(1009);
+                        Promise.runAll(false, true);
+                        tester.expectPingToBeSent();
+
+                        // 5-ая попытка
+                        spendTime(1026);
+                        Promise.runAll(false, true);
+                        tester.expectPingToBeSent();
+                    });
+
+                    describe('Пинг отправляется еще несколько раз.', function() {
+                        beforeEach(function() {
+                            // 6-ая попытка
+                            spendTime(1073);
+                            Promise.runAll(false, true);
+                            tester.expectPingToBeSent();
+
+                            // 7-ая попытка
+                            spendTime(1199);
+                            Promise.runAll(false, true);
+                            tester.expectPingToBeSent();
+
+                            // 8-ая попытка
+                            spendTime(1541);
+                            Promise.runAll(false, true);
+                            tester.expectPingToBeSent();
+
+                            tester.employeesPing().expectToBeSent();
+                            tester.employeesPing().receive();
+
+                            // 9-ая попытка
+                            spendTime(2000);
+                            spendTime(471);
+                            Promise.runAll(false, true);
+                            tester.expectPingToBeSent();
+                        });
+
+                        describe('Проходит большой промежуток времени. Понг не получен.', function() {
+                            beforeEach(function() {
+                                tester.spendTime(2000);
+                                tester.spendTime(1000);
+
+                                tester.employeesPing().expectToBeSent();
+                                tester.employeesPing().receive();
+                            });
+
+                            describe('Отправлен пинг.', function() {
+                                beforeEach(function() {
+                                    // 10-ая попытка
+                                    tester.spendTime(2000);
+                                    tester.expectPingToBeSent();
+                                });
+
+                                describe(
+                                    'Проходит большой промежуток времени. Понг не получен. ' +
+                                    'Разрывается соединения с веб-сокетом.',
+                                function() {
+                                    beforeEach(function() {
+                                        tester.spendTime(2000);
+                                        tester.eventsWebSocket.finishDisconnecting();
+
+                                        tester.spendTime(1000);
+
+                                        tester.employeesPing().expectToBeSent();
+                                        tester.employeesPing().receive();
+                                    });
+
+                                    it(
+                                        'Вебсокет сервера интеграции подключен повторно. Статус сотрудника изменен. ' +
+                                        'Вкладка является мастером. Отправлен пинг. Понг не получен вовремя. Снова ' +
+                                        'дается несколько попыток получить понг.',
+                                    function() {
+                                        tester.connectEventsWebSocket(1);
+
+                                        tester.slavesNotification().
+                                            twoChannels().
+                                            available().
+                                            expectToBeSent();
+
+                                        tester.authenticatedUserRequest().
+                                            anotherStatus().
+                                            receiveResponse();
+
+                                        tester.slavesNotification().
+                                            twoChannels().
+                                            available().
+                                            anotherStatus().
+                                            expectToBeSent();
+
+                                        tester.spendTime(5000);
+                                        tester.expectPingToBeSent();
+
+                                        tester.employeesPing().expectToBeSent();
+                                        tester.employeesPing().receive();
+
+                                        tester.spendTime(2000);
+
+                                        tester.slavesNotification().
+                                            twoChannels().
+                                            microphoneAccessGranted().
+                                            webRTCServerConnected().
+                                            anotherStatus().
+                                            userDataFetched().
+                                            registered().
+                                            expectToBeSent();
+
+                                        tester.spendTime(1000);
+                                        
+                                        // 1-ая попытка
+                                        spendTime(1000);
+                                        Promise.runAll(false, true);
+                                        tester.expectPingToBeSent();
+
+                                        // 2-ая попытка
+                                        spendTime(1001);
+                                        Promise.runAll(false, true);
+                                        tester.expectPingToBeSent();
+
+                                        tester.employeesPing().expectToBeSent();
+                                        tester.employeesPing().receive();
+
+                                        // 3-ая попытка
+                                        spendTime(1003);
+                                        Promise.runAll(false, true);
+                                        tester.expectPingToBeSent();
+
+                                        // 4-ая попытка
+                                        spendTime(1009);
+                                        Promise.runAll(false, true);
+                                        tester.expectPingToBeSent();
+
+                                        // 5-ая попытка
+                                        spendTime(1026);
+                                        Promise.runAll(false, true);
+                                        tester.expectPingToBeSent();
+                                        
+                                        // 6-ая попытка
+                                        spendTime(1073);
+                                        Promise.runAll(false, true);
+                                        tester.expectPingToBeSent();
+
+                                        // 7-ая попытка
+                                        spendTime(1199);
+                                        Promise.runAll(false, true);
+                                        tester.expectPingToBeSent();
+
+                                        tester.employeesPing().expectToBeSent();
+                                        tester.employeesPing().receive();
+
+                                        // 8-ая попытка
+                                        spendTime(1541);
+                                        Promise.runAll(false, true);
+                                        tester.expectPingToBeSent();
+
+                                        // 9-ая попытка
+                                        spendTime(2000);
+                                        spendTime(471);
+                                        Promise.runAll(false, true);
+                                        tester.expectPingToBeSent();
+
+                                        spendTime(2000);
+                                        spendTime(1000);
+                                        Promise.runAll(false, true);
+
+                                        tester.employeesPing().expectToBeSent();
+                                        tester.employeesPing().receive();
+
+                                        // 10-ая попытка
+                                        spendTime(2000);
+                                        tester.expectPingToBeSent();
+
+                                        tester.spendTime(2000);
+                                        tester.eventsWebSocket.finishDisconnecting();
+
+                                        tester.employeesPing().expectToBeSent();
+                                        tester.employeesPing().receive();
+
+                                        tester.spendTime(1000);
+                                        tester.discconnectEventsWebSocket(2);
+                                    });
+                                    it(
+                                        'Не удалось повторно подключиться к вебсокету. WebRTC-сокет ' +
+                                        'закрывается. Интервал попыток повторного подключения ' +
+                                        'растет, пока не достигнет максимального значения. Наконец ' +
+                                        'удалось подключиться к вебсокету.',
+                                    function() {
+                                        tester.discconnectEventsWebSocket(1);
+
+                                        tester.spendTime(1001);
+                                        tester.discconnectEventsWebSocket(2);
+
+                                        tester.spendTime(1003);
+                                        tester.discconnectEventsWebSocket(3);
+
+                                        tester.spendTime(1009);
+                                        tester.discconnectEventsWebSocket(4);
+
+                                        tester.spendTime(1026);
+                                        tester.discconnectEventsWebSocket(5);
+
+                                        tester.spendTime(1073);
+                                        tester.discconnectEventsWebSocket(6);
+
+                                        tester.employeesPing().expectToBeSent();
+                                        tester.employeesPing().receive();
+
+                                        tester.spendTime(1199);
+                                        tester.discconnectEventsWebSocket(7);
+
+                                        tester.spendTime(1541);
+                                        tester.discconnectEventsWebSocket(8);
+
+                                        tester.spendTime(2471);
+                                        tester.discconnectEventsWebSocket(9);
+
+                                        tester.employeesPing().expectToBeSent();
+                                        tester.employeesPing().receive();
+
+                                        tester.spendTime(5000);
+                                        tester.discconnectEventsWebSocket(10);
+
+                                        tester.employeesPing().expectToBeSent();
+                                        tester.employeesPing().receive();
+
+                                        tester.spendTime(5000);
+                                        tester.connectEventsWebSocket(11);
+
+                                        tester.employeesPing().expectToBeSent();
+                                        tester.employeesPing().receive();
+
+                                        tester.authenticatedUserRequest().receiveResponse();
+
+                                        tester.slavesNotification().
+                                            twoChannels().
+                                            available().
+                                            expectToBeSent();
+
+                                        tester.spendTime(5000);
+                                        tester.expectPingToBeSent();
+
+                                        tester.employeesPing().expectToBeSent();
+                                        tester.employeesPing().receive();
+
+                                        tester.callsHistoryButton.expectNotToHaveClass('cmg-button-disabled');
+                                    });
+                                });
+                                it(
+                                    'Виджет открыт в другом браузере. SIP-сокет закрыт. Попытка ' +
+                                    'повторного подключения не производится.',
+                                function() {
+                                    tester.eventsWebSocket.disconnect(4429);
+
+                                    tester.slavesNotification().
+                                        userDataFetched().
+                                        twoChannels().
+                                        appAlreadyOpened().
+                                        enabled().
+                                        microphoneAccessGranted().
+                                        expectToBeSent();
+
+                                    tester.authLogoutRequest().receiveResponse();
+                                    tester.registrationRequest().expired().receiveResponse();
+
+                                    tester.spendTime(2000);
+                                    tester.webrtcWebsocket.finishDisconnecting();
+
+                                    tester.spendTime(1000);
+
+                                    tester.employeesPing().expectToBeSent();
+                                    tester.employeesPing().receive();
+                                });
+                                it(
+                                    'Проходит небольшой промежуток времени. Понг получен. Сообщение ' +
+                                    'о том, что в данный момент устанавливается соединение с ' +
+                                    'сервером не отображается. Кнопки доступны.',
+                                function() {
+                                    tester.spendTime(1000);
+                                    tester.receivePong();
+
+                                    tester.slavesNotification().
+                                        twoChannels().
+                                        available().
+                                        expectToBeSent();
+
+                                    tester.authenticatedUserRequest().receiveResponse();
+
+                                    tester.callsHistoryButton.
+                                        expectNotToHaveClass('cmg-button-disabled');
+
+                                    tester.softphone.expectTextContentNotToHaveSubstring(
+                                        'Устанавливается соединение...'
+                                    );
+                                });
+                            });
+                            it(
+                                'Отображается сообщение о том, что в данный момент устанавливается ' +
+                                'соединение с сервером.',
+                            function() {
+                                tester.callsHistoryButton.expectToHaveClass('cmg-button-disabled');
+                                tester.softphone.expectToHaveTextContent('Устанавливается соединение...');
+                            });
+                        });
+                        describe(
+                            'Проходит небольшой промежуток времени. Получен понг. Запрошен статус ' +
+                            'сотрудника. Запрошены номера для обзвона. Слейв-вкладки оповещены о ' +
+                            'состоянии мастер-вкладки.',
+                        function() {
+                            beforeEach(function() {
+                                tester.spendTime(1000);
+                                tester.receivePong();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    available().
+                                    expectToBeSent();
+
+                                tester.authenticatedUserRequest().receiveResponse();
+                            });
+
+                            it(
+                                'Отправлен пинг. Понг не получен вовремя. Снова дается несколько попыток получить ' +
+                                'понг.',
+                            function() {
+                                tester.spendTime(5000);
+                                tester.expectPingToBeSent();
+
+                                tester.employeesPing().expectToBeSent();
+                                tester.employeesPing().receive();
+
+                                tester.spendTime(2000);
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    microphoneAccessGranted().
+                                    webRTCServerConnected().
+                                    userDataFetched().
+                                    registered().
+                                    expectToBeSent();
+
+                                tester.spendTime(1000);
+                                tester.spendTime(1000);
+
+                                tester.expectPingToBeSent();
+                            });
+                            it(
+                                'Сообщение о том, что в данный момент устанавливается соединение с ' +
+                                'сервером не отображается.',
+                            function() {
+                                tester.softphone.expectTextContentNotToHaveSubstring(
+                                    'Устанавливается соединение...'
+                                );
+                            });
+                        });
+                        it(
+                            'Отображается сообщение о том, что в данный момент устанавливается ' +
+                            'соединение с сервером.',
+                        function() {
+                            tester.softphone.expectToHaveTextContent('Устанавливается соединение...');
+                        });
+                    });
+                    describe('Получен понг.', function() {
+                        beforeEach(function() {
+                            tester.spendTime(500);
+                            tester.receivePong();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                available().
+                                expectToBeSent();
+
+                            tester.authenticatedUserRequest().receiveResponse();
+                            tester.spendTime(4999);
+
+                            tester.employeesPing().expectToBeSent();
+                            tester.employeesPing().receive();
+                        });
+
+                        it(
+                            'Пинг отправлен со стандарным интервалом. Понг не получен вовремя. Снова ' +
+                            'дается несколько попыток получить понг.',
+                        function() {
+                            tester.spendTime(1);
+                            tester.expectPingToBeSent();
+
+                            tester.spendTime(2000);
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                microphoneAccessGranted().
+                                webRTCServerConnected().
+                                userDataFetched().
+                                registered().
+                                expectToBeSent();
+
+                            tester.spendTime(1000);
+                            tester.spendTime(1000);
+
+                            tester.expectPingToBeSent();
+                        });
+                        it(
+                            'Сообщение о том, что в данный момент устанавливается соединение с ' +
+                            'сервером не отображается.',
+                        function() {
+                            tester.softphone.
+                                expectTextContentNotToHaveSubstring('Устанавливается соединение...');
+                        });
+                    });
+                });
+                it(
+                    'Отображается сообщение о том, что в данный момент устанавливается соединение с ' +
+                    'сервером.',
+                function() {
+                    tester.softphone.expectToHaveTextContent('Устанавливается соединение...');
+                    tester.callsHistoryButton.expectToHaveClass('cmg-button-disabled');
+                });
             });
-            it('Структура корректна. Отображен новый статус сотрудника.', function() {
-                employeeChangedEvent.receive();
+            it(
+                'Проходит небольшой промежуток времени. Получен понг. Сообщение о том, что в данный ' +
+                'момент устанавливается соединение с сервером не отображается.',
+            function() {
+                tester.spendTime(1000);
+                tester.receivePong();
 
-                tester.employeeChangedEvent().
-                    secondStatus().
-                    slavesNotification().
-                    expectToBeSent();
+                tester.spendTime(4000);
+                tester.expectPingToBeSent();
 
-                tester.slavesNotification().
-                    userDataFetched().
-                    twoChannels().
-                    available().
-                    anotherStatus().
-                    expectToBeSent();
+                tester.employeesPing().expectToBeSent();
+                tester.employeesPing().receive();
 
-                tester.body.expectTextContentToHaveSubstring('karadimova Нет на месте');
+                tester.softphone.expectTextContentNotToHaveSubstring('Устанавливается соединение...');
             });
         });
         it('Токен авторизации в инфопине истек.', function() {
@@ -166,7 +606,7 @@ tests.addTest(options => {
             tester.ticketsContactsRequest().receiveResponse();
         });
         it('Отображен статус сотрудника.', function() {
-            tester.body.expectTextContentToHaveSubstring('karadimova Не беспокоить');
+            tester.body.expectTextContentToHaveSubstring('Ганева Стефка Доступен');
         });
     });
     describe('Открываю лк. Ни лидген, ни РМО, ни аналитика не доступны.', function() {
@@ -178,7 +618,7 @@ tests.addTest(options => {
             authenticatedUserRequest,
             registrationRequest,
             statsRequest,
-            statusesRequest;
+            employeeStatusesRequest;
 
         beforeEach(function() {
             setNow('2019-12-19T12:10:06');
@@ -203,29 +643,33 @@ tests.addTest(options => {
                     ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                     authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                    secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                    employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                    employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 ticketsContactsRequest.receiveResponse();
                 reportsListRequest.noData().receiveResponse();
                 reportTypesRequest.receiveResponse();
-                secondAccountRequest.receiveResponse();
+                employeeStatusesRequest.receiveResponse();
+                employeeRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().additional().expectToBeSent();
                 tester.slavesNotification().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
 
                 tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
                 tester.notificationChannel().applyLeader().expectToBeSent();
 
                 authCheckRequest.receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
-                statusesRequest = tester.statusesRequest().expectToBeSent();
                 tester.settingsRequest().receiveResponse();
 
                 notificationTester.grantPermission();
@@ -279,8 +723,6 @@ tests.addTest(options => {
                     twoChannels().
                     available().
                     expectToBeSent();
-
-                statusesRequest.receiveResponse();
             });
 
             it('Кнопка софтфона видима.', function() {
@@ -319,28 +761,32 @@ tests.addTest(options => {
             reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
             reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-            accountRequest = tester.accountRequest().expectToBeSent(requests);
+            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+            employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
         requests.expectToBeSent();
 
         ticketsContactsRequest.receiveResponse();
         reportsListRequest.receiveResponse();
         reportTypesRequest.receiveResponse();
-        accountRequest.receiveResponse();
+        employeeStatusesRequest.receiveResponse();
+        employeeRequest.receiveResponse();
         reportGroupsRequest.receiveResponse();
 
         tester.masterInfoMessage().receive();
         tester.slavesNotification().additional().expectToBeSent();
         tester.slavesNotification().expectToBeSent();
-        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+        tester.employeesWebSocket.connect();
+        tester.employeesInitMessage().expectToBeSent();
 
         tester.notificationChannel().tellIsLeader().expectToBeSent();
+        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
         tester.notificationChannel().applyLeader().expectToBeSent();
 
         authCheckRequest.receiveResponse();
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
-        tester.statusesRequest().receiveResponse();
         
         tester.settingsRequest().
             secondRingtone().
@@ -441,28 +887,32 @@ tests.addTest(options => {
             reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
             reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-            accountRequest = tester.accountRequest().expectToBeSent(requests);
+            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+            employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
         requests.expectToBeSent();
 
         ticketsContactsRequest.receiveResponse();
         reportsListRequest.receiveResponse();
         reportTypesRequest.receiveResponse();
-        accountRequest.receiveResponse();
+        employeeStatusesRequest.receiveResponse();
+        employeeRequest.receiveResponse();
         reportGroupsRequest.receiveResponse();
 
         tester.masterInfoMessage().receive();
         tester.slavesNotification().additional().expectToBeSent();
         tester.slavesNotification().expectToBeSent();
-        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+        tester.employeesWebSocket.connect();
+        tester.employeesInitMessage().expectToBeSent();
 
         tester.notificationChannel().tellIsLeader().expectToBeSent();
+        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
         tester.notificationChannel().applyLeader().expectToBeSent();
 
         authCheckRequest.receiveResponse();
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
-        tester.statusesRequest().receiveResponse();
 
         tester.settingsRequest().
             secondRingtone().
@@ -487,24 +937,54 @@ tests.addTest(options => {
         mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
 
         tester.connectEventsWebSocket();
-        tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
+            softphoneServerConnected().
+            expectToBeSent();
 
         tester.connectSIPWebSocket();
-        tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().expectToBeSent();
+
+        tester.slavesNotification().
+            twoChannels().
+            webRTCServerConnected().
+            softphoneServerConnected().
+            expectToBeSent();
 
         tester.authenticatedUserRequest().receiveResponse();
-        tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+        tester.slavesNotification().
+            userDataFetched().
+            twoChannels().
+            webRTCServerConnected().
+            softphoneServerConnected().
             expectToBeSent();
 
         tester.registrationRequest().receiveResponse();
-        tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().registered().
-            softphoneServerConnected().expectToBeSent();
+
+        tester.slavesNotification().
+            userDataFetched().
+            twoChannels().
+            webRTCServerConnected().
+            registered().
+            softphoneServerConnected().
+            expectToBeSent();
 
         tester.allowMediaInput();
-        tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
+
+        tester.slavesNotification().
+            userDataFetched().
+            twoChannels().
+            available().
+            expectToBeSent();
 
         tester.button('Софтфон').click();
-        tester.slavesNotification().additional().visible().expectToBeSent();
+
+        tester.slavesNotification().
+            additional().
+            visible().
+            expectToBeSent();
 
         tester.softphone.expectToBeCollapsed();
         tester.phoneField.expectToBeVisible();
@@ -533,28 +1013,32 @@ tests.addTest(options => {
             reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
             reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
             authCheckRequest = tester.authCheckRequest().knownWidgetId().expectToBeSent(requests),
-            accountRequest = tester.accountRequest().expectToBeSent(requests);
+            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+            employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
         requests.expectToBeSent();
 
         ticketsContactsRequest.receiveResponse();
         reportsListRequest.receiveResponse();
         reportTypesRequest.receiveResponse();
-        accountRequest.receiveResponse();
+        employeeStatusesRequest.receiveResponse();
+        employeeRequest.receiveResponse();
         reportGroupsRequest.receiveResponse();
 
         tester.masterInfoMessage().receive();
         tester.slavesNotification().additional().expectToBeSent();
         tester.slavesNotification().expectToBeSent();
-        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+        tester.employeesWebSocket.connect();
+        tester.employeesInitMessage().expectToBeSent();
 
         tester.notificationChannel().tellIsLeader().expectToBeSent();
+        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
         tester.notificationChannel().applyLeader().expectToBeSent();
 
         authCheckRequest.receiveResponse();
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
-        tester.statusesRequest().receiveResponse();
 
         tester.settingsRequest().
             secondRingtone().
@@ -579,18 +1063,39 @@ tests.addTest(options => {
         mediaStreamsTester.setIsAbleToPlayThough('data:audio/wav;base64,' + tester.secondRingtone);
 
         tester.connectEventsWebSocket();
-        tester.slavesNotification().twoChannels().enabled().softphoneServerConnected().expectToBeSent();
+
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
+            softphoneServerConnected().
+            expectToBeSent();
 
         tester.connectSIPWebSocket();
-        tester.slavesNotification().twoChannels().webRTCServerConnected().softphoneServerConnected().expectToBeSent();
+
+        tester.slavesNotification().
+            twoChannels().
+            webRTCServerConnected().
+            softphoneServerConnected().
+            expectToBeSent();
 
         tester.authenticatedUserRequest().receiveResponse();
-        tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().softphoneServerConnected().
+
+        tester.slavesNotification().
+            userDataFetched().
+            twoChannels().
+            webRTCServerConnected().
+            softphoneServerConnected().
             expectToBeSent();
 
         tester.registrationRequest().receiveResponse();
-        tester.slavesNotification().userDataFetched().twoChannels().webRTCServerConnected().registered().
-            softphoneServerConnected().expectToBeSent();
+
+        tester.slavesNotification().
+            userDataFetched().
+            twoChannels().
+            webRTCServerConnected().
+            registered().
+            softphoneServerConnected().
+            expectToBeSent();
 
         tester.allowMediaInput();
         tester.slavesNotification().userDataFetched().twoChannels().available().expectToBeSent();
@@ -626,7 +1131,8 @@ tests.addTest(options => {
         const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
             ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
             reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-            secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+            employeeRequest = tester.employeeRequest().expectToBeSent(requests);
         authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
         requests.expectToBeSent();
@@ -634,20 +1140,23 @@ tests.addTest(options => {
         ticketsContactsRequest.receiveResponse();
         reportsListRequest.receiveResponse();
         reportTypesRequest.receiveResponse();
-        secondAccountRequest.receiveResponse();
+        employeeStatusesRequest.receiveResponse();
+        employeeRequest.receiveResponse();
 
         tester.masterInfoMessage().receive();
         tester.slavesNotification().additional().expectToBeSent();
         tester.slavesNotification().expectToBeSent();
-        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+        tester.employeesWebSocket.connect();
+        tester.employeesInitMessage().expectToBeSent();
 
         tester.notificationChannel().tellIsLeader().expectToBeSent();
+        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
         tester.notificationChannel().applyLeader().expectToBeSent();
 
         authCheckRequest.receiveResponse();
         tester.talkOptionsRequest().receiveResponse();
         tester.permissionsRequest().receiveResponse();
-        tester.statusesRequest().receiveResponse(); 
         tester.settingsRequest().receiveResponse();
 
         notificationTester.grantPermission();
@@ -675,6 +1184,7 @@ tests.addTest(options => {
 
         authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
         registrationRequest = tester.registrationRequest().expectToBeSent();
+
         tester.allowMediaInput();
 
         tester.slavesNotification().

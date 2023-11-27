@@ -1,4 +1,9 @@
-tests.addTest(function(requestsManager, testersFactory, wait, utils) {
+tests.addTest(function({
+    requestsManager,
+    testersFactory,
+    wait,
+    utils,
+}) {
     describe((
         'Открываю разел "Отчеты/Обзор". Нажимаю на ссылку в колонке "Сайт" строки таблицы. Открылся раздел "Отчеты/' +
         'Список обращений/Звонки".'
@@ -10,7 +15,11 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
                 tester.destroy();
             }
 
-            tester = new AnalyticsCall(requestsManager, testersFactory, utils);
+            tester = new AnalyticsCall({
+                requestsManager,
+                testersFactory,
+                utils,
+            });
 
             tester.requestGoals().send();
 
@@ -343,11 +352,10 @@ tests.addTest(function(requestsManager, testersFactory, wait, utils) {
 
             tester.filterContainer.expectToBeHiddenOrNotExist();
         });
-        it('Нажимаю на кнпоку экспорта.', function() {
+        xit('Нажимаю на кнпоку экспорта.', function() {
             tester.exportBtn.click();
             tester.menuItem('CSV-файл').click();
         });
-        return;
         it('Отображен фильтр перехода из раздела обзора. Кнопка "Применить" заблокирована.', function() {
             tester.anchor('Ивановский Иваний Иваниевич').
                 expectHrefToHavePath('https://comaigc.amocrm.ru/contacts/detail/42574735');

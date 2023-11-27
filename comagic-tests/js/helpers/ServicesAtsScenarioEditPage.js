@@ -3,7 +3,7 @@ tests.requireClass('Comagic.services.ats.scenario.store.ReturnCodes');
 tests.requireClass('Comagic.services.ats.scenario.store.ActionTypes');
 tests.requireClass('Comagic.services.ats.scenario.store.Record');
 tests.requireClass('Comagic.services.ats.scenario.controller.EditPage');
-tests.requireClass('ULib.ux.data.TreeComboStore');
+//tests.requireClass('ULib.ux.data.TreeComboStore');
 
 tests.requireResponse('action_types_59274');
 tests.requireResponse('batch_reload_59274');
@@ -11,7 +11,7 @@ tests.requireResponse('read_scenario_59274');
 tests.requireResponse('return_codes_59274');
 tests.requireResponse('batch_reload_24913');
 
-function ServicesAtsScenario(args) {
+function ServicesAtsScenarioEditPage(args) {
     var requestsManager = args.requestsManager,
         testersFactory = args.testersFactory,
         utils = args.utils,

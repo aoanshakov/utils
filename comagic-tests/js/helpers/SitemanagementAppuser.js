@@ -3,7 +3,11 @@ tests.requireClass('Comagic.main.controller.West');
 tests.requireClass('Comagic.sitemanagement.appuser.store.Record');
 tests.requireClass('Comagic.sitemanagement.appuser.controller.EditPage');
 
-function SitemanagementAppuser(requestsManager, testersFactory, utils) {
+function SitemanagementAppuser({
+    requestsManager,
+    testersFactory,
+    utils,
+}) {
     var controller = Comagic.getApplication().getController('Comagic.sitemanagement.appuser.controller.EditPage');
     
     SitemanagementAppuser.makeOverrides = function () {
@@ -20,6 +24,28 @@ function SitemanagementAppuser(requestsManager, testersFactory, utils) {
     this.actionIndex = function () {
         controller.init();
         controller.actionIndex.apply(controller, arguments);
+    };
+
+    this.button = function (text) {
+        function getButtonElement () {
+            return utils.descendantOf(document.body).textEquals(text).matchesSelector('.x-btn-inner').find();
+        }
+
+        var tester = testersFactory.createDomElementTester(getButtonElement);
+
+        var wrapperTester = testersFactory.createDomElementTester(function () {
+            return getButtonElement().closest('.x-btn');
+        });
+
+        tester.expectToBeDisabled = function () {
+            wrapperTester.expectToHaveClass('x-item-disabled');
+        };
+
+        tester.expectToBeEnabled = function () {
+            wrapperTester.expectNotToHaveClass('x-item-disabled');
+        };
+
+        return tester;
     };
 
     this.requestSetSipLineChannelsCount = function () {
@@ -139,7 +165,56 @@ function SitemanagementAppuser(requestsManager, testersFactory, utils) {
                     expectToHavePath('/sitemanagement/appuser/permissions/').
                     respondSuccessfullyWith({
                         callapi: false,
-                        children: [],
+                        children: [{
+                            is_allowed: null,
+                            description: 'Управление сайтами и рекламными кампаниями',
+                            client_app_id: null,
+                            site_id: null,
+                            client_app_user_id: null,
+                            partlyChecked: {
+                                is_insert: false,
+                                is_update: false,
+                                is_select: false,
+                                is_delete: false,
+                            },
+                            help_text: null,
+                            number_capacity_ids: null,
+                            is_select: false,
+                            children: [{
+                                permission_unit_id: 'site_new',
+                                parent_id: 'site_ac_management',
+                                description: 'Новые сайты',
+                                site_id: null,
+                                ac_id: null,
+                                group_id: null,
+                                employee_id: null,
+                                client_app_id: null,
+                                client_app_user_id: null,
+                                is_allowed: null,
+                                number_capacity_ids: null,
+                                parent_region_ids: null,
+                                region_prefixes: null,
+                                is_select: false,
+                                is_update: false,
+                                is_insert: false,
+                                is_delete: false,
+                                ordering: 1,
+                                help_text: 'Настройки доступа будут распространяться на все вновь добавляемые сайты.',
+                                leaf: true,
+                            }],
+                            is_update: false,
+                            permission_unit_id: 'site_ac_management',
+                            employee_id: null,
+                            is_insert: false,
+                            is_delete: false,
+                            ordering: 1,
+                            expanded: false,
+                            parent_region_ids: null,
+                            parent_id: null,
+                            group_id: null,
+                            region_prefixes: null,
+                            ac_id: null,
+                        }],
                         leaf: true,
                         dataapi: false,
                         description: "Условие доступа",
@@ -250,6 +325,46 @@ function SitemanagementAppuser(requestsManager, testersFactory, utils) {
         };
     };
 
+    this.batchReloadRequest = function () {
+        function addMethods (me) {
+            return me;
+        }
+
+        return addMethods({
+            expectToBeSent: function () {
+                return addMethods({
+                    receiveResponse: function () {
+                        requestsManager.recentRequest().
+                            expectToHavePath('/directory/batch_reload/').
+                            expectToHaveMethod('POST').
+                            respondSuccessfullyWith({
+                                success: true,
+                                data: {
+                                    'comagic:staff:employee': [{
+                                        aux_id: [208694, 214038, 274799, 368612],
+                                        aux_id2: true,
+                                        aux_id3: '32',
+                                        call_center_role: 'employee',
+                                        has_va: true,
+                                        id: 568711,
+                                        is_active: true,
+                                        is_consultant_call: true,
+                                        is_consultant_chat: true,
+                                        is_consultant_offline_message: false,
+                                        is_manage_allowed: true,
+                                        name: '000011 Привет',
+                                    }],
+                                } 
+                            });
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     this.form = testersFactory.createFormTester(function () {
         return Comagic.getApplication().getViewport();
     });
@@ -279,6 +394,10 @@ function SitemanagementAppuser(requestsManager, testersFactory, utils) {
     this.closeButton = testersFactory.createDomElementTester(function () {
         var win = utils.getFloatingComponent();
         return win && win.el ? win.el.down('.x-tool img', true) : null;
+    });
+
+    this.saveButton = testersFactory.createDomElementTester(function () {
+        body.querySelector
     });
 
     this.destroy = function() {

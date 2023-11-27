@@ -82,6 +82,10 @@
             "helpers/AnalyticsCall.js",
             "tests/analytics.call.js"
         ],
+        "analytics.requests": [
+            "helpers/AnalyticsRequests.js",
+            "tests/analytics.requests.js"
+        ],
         "analytics.review": [
             "helpers/AnalyticsReview.js",
             "tests/analytics.review.js"
@@ -94,6 +98,10 @@
             "helpers/SitemanagementAppuser.js",
             "tests/sitemanagement.appuser.js"
         ],
+        "sitemanagement.appuser.list": [
+            "helpers/SitemanagementAppuserList.js",
+            "tests/sitemanagement.appuser.list.js"
+        ],
         "sitemanagement.sitesettings": [
             "helpers/SitemanagementSitesettings.js",
             "tests/sitemanagement.sitesettings.js"
@@ -105,6 +113,10 @@
         "services.ats.staff": [
             "helpers/ServicesAtsStaff.js",
             "tests/services.ats.staff.js"
+        ],
+        "services.ats.staff.edit": [
+            "helpers/ServicesAtsStaffContactEditPage.js",
+            "tests/services.ats.staff.edit.js"
         ],
         "services.autocalls.autobackcall": [
             "helpers/ServicesAutocallsAutobackcall.js",

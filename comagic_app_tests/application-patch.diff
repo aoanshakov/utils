@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 54d57668..036753a8 100644
+index 0579dd31..a248f669 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -22,11 +22,12 @@ index 54d57668..036753a8 100644
  const publicDir = path.resolve(appDirectory, 'public');
  const buildDir = path.resolve(appDirectory, 'build');
  const dotenv = path.resolve(appDirectory, '.env');
-@@ -25,9 +28,20 @@ const isProductionMode = NODE_ENV !== 'development';
+@@ -25,9 +28,21 @@ const isProductionMode = NODE_ENV !== 'development';
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
 +const subModules = ['chats'];
++const NodePolyfillPlugin = require("node-polyfill-webpack-plugin");
  
  const lessLoader = {
      loader: 'less-loader',
@@ -43,7 +44,7 @@ index 54d57668..036753a8 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -104,10 +118,11 @@ const webpackDefinePlugin = () => {
+@@ -104,10 +119,11 @@ const webpackDefinePlugin = () => {
      return opts;
  };
  
@@ -56,16 +57,18 @@ index 54d57668..036753a8 100644
          },
          {
              loader: 'css-loader',
-@@ -214,7 +229,7 @@ const plugins = () => {
+@@ -214,7 +230,9 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
 -        new ModuleFederationPlugin({
++        new NodePolyfillPlugin(),
++
 +        /*new ModuleFederationPlugin({
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -256,6 +271,11 @@ const plugins = () => {
+@@ -260,6 +278,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -77,7 +80,7 @@ index 54d57668..036753a8 100644
      ];
  
      if (isProductionMode) {
-@@ -279,6 +299,17 @@ const plugins = () => {
+@@ -283,6 +306,17 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -95,10 +98,11 @@ index 54d57668..036753a8 100644
  module.exports = {
      entry: './src/index.tsx',
      target: NODE_ENV == 'softphone' ? 'electron-renderer' : 'web',
-@@ -300,6 +331,21 @@ module.exports = {
+@@ -303,6 +337,21 @@ module.exports = {
+     },
      module: {
          rules: [
-             {
++            {
 +                test: /\.js$/,
 +                exclude: /node_modules(?!\/(uis-softphone|magic-ui)\/)/,
 +                use: [{
@@ -113,11 +117,10 @@ index 54d57668..036753a8 100644
 +                    }
 +                }]
 +            },
-+            {
+             {
                  test: /\.(ts|tsx)$/,
                  use: {
-                     loader: 'ts-loader',
-@@ -307,7 +353,7 @@ module.exports = {
+@@ -311,7 +360,7 @@ module.exports = {
                          transpileOnly: true,
                      },
                  },
@@ -126,10 +129,11 @@ index 54d57668..036753a8 100644
              },
              {
                  test: /\.css$/,
-@@ -318,6 +364,29 @@ module.exports = {
+@@ -321,6 +370,29 @@ module.exports = {
+                 test: /\.less$/,
                  use: cssLoaders(lessLoader),
              },
-             {
++            {
 +                test: /\.(sa|sc|c)ss$/,
 +                include: `${magicUIDirectory}/src`,
 +                use: [
@@ -152,11 +156,10 @@ index 54d57668..036753a8 100644
 +                    },
 +                ],
 +            },
-+            {
+             {
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
-                 options: {
-@@ -327,12 +396,13 @@ module.exports = {
+@@ -331,12 +403,13 @@ module.exports = {
                  },
              },
              {
@@ -171,7 +174,7 @@ index 54d57668..036753a8 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -348,17 +418,152 @@ module.exports = {
+@@ -352,17 +425,160 @@ module.exports = {
                      },
                  ],
              },
@@ -221,10 +224,11 @@ index 54d57668..036753a8 100644
 +            'contacts/Root': `${miscDirectory}/contacts/src/Root.tsx`,
 +            'contacts/ContactBar': `${miscDirectory}/contacts/src/components/contact-bar/ContactBarWrapper.tsx`,
 +            'contacts/ContactSelect':
-+                `${miscDirectory}/contacts/src/components/contact-bar/whatsapp-channel-select/ContactSelectWrapper.tsx`,
++                `${miscDirectory}/contacts/src/components/contact-bar/start-channel-select/ContactSelectWrapper.tsx`,
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
++            'softphone/AccountHeader': 'softphone/src/AccountHeader.tsx',
 +            'softphone/Settings': 'softphone/src/Settings.tsx',
 +            'softphone/CallHistory': 'softphone/src/call_history/index.tsx',
 +            'softphone/CallStats': 'softphone/src/call_stats/index.tsx',
@@ -275,8 +279,10 @@ index 54d57668..036753a8 100644
 +            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`,
 +            'marketplace/Auth': `${miscDirectory}/Stub.js`,
-+            'marketplace/Root': `${miscDirectory}/Stub.js`
-         },
++            'marketplace/Root': `${miscDirectory}/Stub.js`,
++            'employees/getStore': 'employees/src/utils/getStore',
++            'employees/Root': 'employees/src/Root.tsx',
++        },
 +
 +        plugins: [{
 +            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
@@ -297,7 +303,7 @@ index 54d57668..036753a8 100644
 +                    const {
 +                        directory,
 +                        aliases
-+                    } = subModules.concat(['softphone', 'contacts']).map(module => {
++                    } = subModules.concat(['softphone', 'contacts', 'operator-workplace']).map(module => {
 +                        const directory = `${miscDirectory}/${module}`;
 +
 +                        return {
@@ -325,27 +331,43 @@ index 54d57668..036753a8 100644
 +                }, null, resolveContext, callback);
 +            }),
 +        }],
++
++        fallback: {
++            fs: false,
+         },
++
      },
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 16944c78..171a458f 100644
+index 911d3426..c388d714 100644
 --- a/package.json
 +++ b/package.json
-@@ -67,13 +67,18 @@
+@@ -22,7 +22,6 @@
+   "author": "",
+   "license": "ISC",
+   "devDependencies": {
+-    "@sentry/webpack-plugin": "^1.18.5",
+     "@svgr/webpack": "^5.1.0",
+     "@trivago/prettier-plugin-sort-imports": "^3.3.0",
+     "@types/classnames": "^2.2.9",
+@@ -67,37 +66,54 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
 -    "@comagic/core": "1.5.0",
--    "@comagic/logger": "^1.0.4",
--    "@sentry/react": "^6.17.6",
--    "@sentry/tracing": "^6.17.6",
+-    "@comagic/workplace-utils": "^1.0.13",
++    "@comagic/broadcast-channel": "./misc/broadcast-channel",
 +    "@comagic/core": "./misc/core",
-+    "@comagic/softphone-widget": "./misc/softphone/misc/sip_lib",
++    "@comagic/logger": "./misc/logger",
 +    "@comagic/softphone-core": "./misc/softphone/misc/sip_lib/uis_webrtc",
++    "@comagic/softphone-widget": "./misc/softphone/misc/sip_lib",
 +    "@comagic/ui": "./misc/ui",
-+    "@sentry/react": "^6.19.4",
-+    "@sentry/tracing": "^6.19.4",
++    "@comagic/workplace-utils": "./misc/logger",
++    "@sentry/integrations": "5.30.0",
+     "@sentry/react": "^6.17.6",
+     "@sentry/tracing": "^6.17.6",
+     "@types/file-saver": "2.0.5",
 +    "@uiscom/uis_webrtc": "./misc/softphone/misc/sip_lib/uis_webrtc",
      "archiver": "^5.3.0",
      "auto-launch": "^5.0.5",
@@ -353,9 +375,16 @@ index 16944c78..171a458f 100644
 +    "babel-loader": "^8.0.4",
 +    "chats": "./misc/chats",
      "classnames": "^2.2.6",
++    "contacts": "./misc/contacts",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -86,7 +91,7 @@
+     "electron-log": "^4.3.0",
+     "electron-notarize": "1.2.2",
+     "electron-store": "^6.0.1",
+     "electron-updater": "^5.0.3",
++    "employees": "./misc/operator-workplace",
+     "file-saver": "^2.0.5",
+     "form-data": "^4.0.0",
      "formik": "^2.2.9",
      "history": "^5.3.0",
      "lodash.clonedeep": "^4.5.0",
@@ -364,18 +393,22 @@ index 16944c78..171a458f 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -96,6 +101,11 @@
+     "moment": "^2.29.4",
+     "nanoid": "^3.2.0",
++    "node-polyfill-webpack-plugin": "2.0.1",
++    "opus-recorder": "8.0.5",
+     "react": "^18.2.0",
      "react-dom": "^18.2.0",
      "react-intl": "^6.0.5",
      "react-router-dom": "6.9.0",
 +    "simplebar-react": "^2.4.1",
 +    "softphone": "./misc/softphone",
-+    "uis-softphone": "./misc/softphone/misc/sip_lib",
-+    "string-hash": "^1.1.3",
-+    "contacts": "./misc/contacts",
      "stream-buffers": "^3.0.2",
++    "string-hash": "^1.1.3",
++    "uis-softphone": "./misc/softphone/misc/sip_lib",
      "yup": "^0.28.1"
    },
+   "optionalDependencies": {
 diff --git a/public/index.html b/public/index.html
 index a82eebad..98306245 100644
 --- a/public/index.html
@@ -467,10 +500,10 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index abb1f850..9513b53a 100644
+index 32137f8d..1dab5c24 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,13 +1,19 @@
+@@ -1,13 +1,16 @@
 -import { CoreProvider } from '@comagic/core';
 +import { CoreProvider, eventBus } from '@comagic/core';
  import * as Sentry from '@sentry/react';
@@ -486,34 +519,65 @@ index abb1f850..9513b53a 100644
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
-+import { createRootStore as createSoftphoneRootStore } from 'softphone/src/models/RootStore';
-+import { createRootStore as createChatsRootStore } from 'chats/src/models/RootStore';
-+import { createRootStore as createContactsRootStore } from 'contacts/src/models/RootStore';
  
  import history from '@/history';
  
-@@ -79,7 +85,73 @@ const Root: React.FC = observer(props => {
-     );
+@@ -15,7 +18,7 @@ import App, { Props } from './App';
+ import './global';
+ import { getIntlLocale, getIntlMessages, getProject } from './i18n';
+ 
+-const sentryDSN = process.env.SENTRY_DSN;
++const sentryDSN = process.env.REACT_APP_TEST_MODE == 'true' ? '' :  process.env.SENTRY_DSN;
+ 
+ if (sentryDSN) {
+     Sentry.init({
+@@ -80,6 +83,96 @@ const Root: React.FC<Props> = observer(props => {
  });
  
--const container = document.getElementById('root');
+ const container = document.getElementById('root');
 -const root = createRoot(container);
 +const TestBody = ({children}) => <div className="cm-test-body">{children}</div>;
  
--root.render(<Root {...(window.rootConfig || {})}/>);
+-root.render(<Root {...(window.rootConfig || {})} />);
++const platforms = {
++    mac: {
++        height: 88,
++        callback: () => {
++            const img = document.createElement('img');
++
++            img.src = '/tests/img/osx-icon.png'
++            img.className = 'cmg-osx-icon-screenshot';
++
++            document.body.appendChild(img);
++        },
++    },
++    windows: {
++        height: 16,
++        callback: () => {},
++    },
++};
++
 +const Icon = () => {
 +    useEffect(() => {
-+        const os = 'windows',
-+            height = 16;
++        (async function () {
++            const os = 'windows';
 +
-+        const src = createIconFactory(os)(4),
-+            img = document.createElement('img');
++            const {
++                height,
++                callback,
++            } = platforms[os];
 +
-+        img.style.width = img.style.height = `${height}px`;
-+        img.src = src;
-+        img.className = `cmg-app-${os}-icon`;
++            const src = await createIconFactory(os)(4),
++                img = document.createElement('img');
 +
-+        document.body.appendChild(img);
++            callback();
++
++            img.style.width = img.style.height = `${height}px`;
++            img.src = src;
++            img.className = `cmg-app-${os}-icon`;
++
++            document.body.appendChild(img);
++        })();
 +    }, []);
 +    return <></>;
 +};
@@ -540,9 +604,6 @@ index abb1f850..9513b53a 100644
 +            setReactDOM(ReactDOM);
 +            setEventBus(eventBus);
 +            createRootStore();
-+            setChatsRootStore(createChatsRootStore());
-+            createSoftphoneRootStore();
-+            createContactsRootStore();
 +            setHistory(history);
 +            setNotification(notification);
 +            setModal(Modal);
@@ -570,10 +631,73 @@ index abb1f850..9513b53a 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 0519b4be..de631631 100644
+index 8ae6e87b..c7a3cd72 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
-@@ -151,7 +151,6 @@ export const RootStore = types
+@@ -5,6 +5,7 @@ import * as fileSaver from 'file-saver';
+ import { Instance, SnapshotOut, applySnapshot, cast, getSnapshot, types } from 'mobx-state-tree';
+ import moment from 'moment';
+ import React from 'react';
++import { autorun } from 'mobx';
+ 
+ import { AuthStore, getToken } from '@models/auth/AuthStore';
+ import { MenuStore } from '@models/menu/MenuStore';
+@@ -15,7 +16,7 @@ import { getProject } from '@/i18n';
+ import { httpRpc, httpRpcAuth } from '@/rpc';
+ import { HttpRpc } from '@/rpc/httpRpc';
+ import { url as authUrl } from '@/rpc/httpRpcAuth';
+-import { createIconFactory, getWorkplaceAvailability, isSoftphoneAvailable } from '@/utils';
++import { createIconFactory, getWorkplaceAvailability, isSoftphoneAvailable, getIpcRender } from '@/utils';
+ 
+ const loginUrl = `${authUrl}?method=login`;
+ const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
+@@ -36,12 +37,6 @@ type HttpRpcErrorModel = {
+ 
+ type RequestToRefresh = (nextResolve: boolean) => void;
+ 
+-const getIpcRender = () =>
+-    (window.rootConfig?.appName === 'softphone' && (window.require || (() => null))('electron')?.ipcRenderer) || {
+-        on: (): void => null,
+-        send: (): void => null,
+-    };
+-
+ const log = (message: string) =>
+     getIpcRender().send('log', (typeof message === 'object' ? JSON.stringify(message) : `${message}`).trim());
+ 
+@@ -101,15 +96,19 @@ const filterPassword = (messages: Array<string>) => {
+     return messages;
+ };
+ 
+-const addClickListener = (() => {
++const createListenerAssigner = getTarget => {
+     let previousHandler: () => void;
+ 
+-    return (handler: () => void) => {
+-        previousHandler && document.body.removeEventListener('click', handler);
++    return (eventName: string, handler: () => void) => {
++        previousHandler && getTarget().removeEventListener(eventName, handler);
+         previousHandler = handler;
+-        document.body.addEventListener('click', handler);
++        getTarget().addEventListener(eventName, handler);
+     };
+-})();
++};
++
++const addBodyListener = createListenerAssigner(() => document.body),
++    addClickListener = (handler: () => void) => addBodyListener('click', handler),
++    addWindowListener = createListenerAssigner(() => window);
+ 
+ const Credentials = types.model({
+     login: types.optional(types.maybeNull(types.string), null),
+@@ -129,6 +128,7 @@ export const RootStore = types
+         isGodMode: types.optional(types.boolean, isGodMode()),
+         isIpDisallowed: types.optional(types.boolean, false),
+         isLogDownloading: types.optional(types.boolean, false),
++        windowHeight: types.optional(types.number, 0),
+         authStore: types.optional(AuthStore, {}),
+         accountStore: types.optional(AccountStore, {}),
+         menuStore: types.optional(MenuStore, {}),
+@@ -160,7 +160,6 @@ export const RootStore = types
          const logger = new Logger(loggerStrategy);
  
          logger.filter(filterPassword);
@@ -581,7 +705,7 @@ index 0519b4be..de631631 100644
  
          const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
              const auth = getToken();
-@@ -232,7 +231,7 @@ export const RootStore = types
+@@ -241,7 +240,7 @@ export const RootStore = types
                  }
              );
  
@@ -590,7 +714,7 @@ index 0519b4be..de631631 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -289,7 +288,7 @@ export const RootStore = types
+@@ -298,7 +297,7 @@ export const RootStore = types
  
                      return Promise.reject(error);
                  }
@@ -598,19 +722,86 @@ index 0519b4be..de631631 100644
 +            ), logger.applyToAxios(axios)];
          };
  
-         const collectLogs = callback => {
-@@ -306,6 +305,10 @@ export const RootStore = types
+         const collectLogs = (callback: (data: BlobPart) => void) => {
+@@ -314,7 +313,25 @@ export const RootStore = types
+             callbacks[index]?.(data);
          };
  
++        const updateWindowHeight = () => {
++            self.windowHeight = document.documentElement.clientHeight;
++        };
++
++        addWindowListener('resize', () => self.updateWindowHeight());
++
          const afterCreate = () => {
 +            window.axiosInterceptors !== undefined && window.axiosInterceptors.forEach(
 +                interceptor => axios.interceptors.response.eject(interceptor)
 +            );
 +
++            const classList = document?.body?.classList;
++
++            window.rootConfig?.appName === 'softphone' ?
++                classList?.add('cm-body-desktop') :
++                classList?.remove('cm-body-desktop');
++
++            self.updateWindowHeight();
++
+             callbacks = [];
              let isMaximizedCurrently = false;
  
-             const counters = {
-@@ -439,7 +442,8 @@ export type DependencyInjection = {
+@@ -384,6 +401,8 @@ export const RootStore = types
+                 getIpcRender().send('autolauncherchange', value)
+             );
+ 
++            eventBus.subscribe('open-logs-dir', () => getIpcRender().send('open-logs-dir'));
++
+             getIpcRender().on('maximize', () => (self as RootInstance).setMaximized(true));
+             getIpcRender().on('unmaximize', () => (self as RootInstance).setMaximized(false));
+ 
+@@ -408,6 +427,8 @@ export const RootStore = types
+                     eventBus.broadcast('checkstartminimize', data.isStartMinimize)
+                 );
+ 
++                getIpcRender().on('app-version', (event, version) => eventBus.broadcast('app-version', version));
++                getIpcRender().on('update-available', (event, data) => eventBus.broadcast('update-available', data));
+                 getIpcRender().on('update-downloaded', () => (self as RootInstance).setUpdateReceived(true));
+                 getIpcRender().on('maximize', () => eventBus.broadcast('maximize'));
+                 getIpcRender().on('unmaximize', () => eventBus.broadcast('unmaximize'));
+@@ -425,6 +446,8 @@ export const RootStore = types
+ 
+             eventBus.subscribe('get-clicked', (callback: (clicked: boolean) => void) => callback(clicked));
+             eventBus.subscribe('set-not-clicked', () => (clicked = false));
++
++            eventBus.subscribe('download', (url: string) => getIpcRender().send('download', url));
+         };
+ 
+         const resetStore = () => {
+@@ -436,8 +459,14 @@ export const RootStore = types
+             });
+         };
+ 
+-        const setMaximized = (value: boolean) => (self.isMaximized = value),
+-            setAuthError = (value: string) => (self.authError = value),
++        const setMaximized = (value: boolean) => {
++            self.isMaximized = value;
++            const classList = document?.body?.classList;
++
++            value ? classList?.add('cm-body-maximized') : classList?.remove('cm-body-maximized');
++        };
++
++        const setAuthError = (value: string) => (self.authError = value),
+             setUpdateReceived = (value: boolean) => (self.isUpdateReceived = !!value),
+             setCredentials = (value: Array<CredentialsSnapshot>) => (self.credentials = cast(value));
+ 
+@@ -465,6 +494,7 @@ export const RootStore = types
+             handleLogsCollected,
+             toggleSoftphoneVisiblity,
+             setSoftphoneVisiblity,
++            updateWindowHeight,
+         };
+     });
+ 
+@@ -475,7 +505,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -621,7 +812,7 @@ index 0519b4be..de631631 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 36901238..4c43c0ea 100644
+index fa214b30..0fa4adb7 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -93,7 +93,7 @@ const removeToken = (skipLocalStorage = false) => {
@@ -633,7 +824,7 @@ index 36901238..4c43c0ea 100644
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
      })
-@@ -191,6 +191,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -196,6 +196,8 @@ export const AuthStore = Loader.named('AuthStore')
          });
  
          const afterCreate = () => {
@@ -670,19 +861,19 @@ index 8c0a28d7..ce190fe9 100644
  
      try {
 diff --git a/src/utils/cookie.ts b/src/utils/cookie.ts
-index 3442fbf5..41a232d5 100644
+index 05ee942e..bb7ab355 100644
 --- a/src/utils/cookie.ts
 +++ b/src/utils/cookie.ts
-@@ -39,6 +39,7 @@ const resetElectronCookiesManager = () => {
+@@ -40,6 +40,7 @@ const resetElectronCookiesManager = () => {
      return electronCookiesManager;
  };
  
 +window.resetElectronCookiesManager = resetElectronCookiesManager;
  window.getElectronCookiesManager = resetElectronCookiesManager;
- const prepareName = name => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
+ const prepareName = (name: string) => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
  
 diff --git a/src/utils/index.ts b/src/utils/index.ts
-index 09650fcc..a3ffff1d 100644
+index 09650fcc..38101362 100644
 --- a/src/utils/index.ts
 +++ b/src/utils/index.ts
 @@ -7,4 +7,6 @@ export { default as setAxiosGlobalInterceptors } from './setAxiosGlobalIntercept
@@ -690,6 +881,6 @@ index 09650fcc..a3ffff1d 100644
  export { default as isSoftphoneAvailable } from './isSoftphoneAvailable';
  export { default as isManager } from './isManager';
 -export { default as createIconFactory } from './createIcon';
++export { default as getIpcRender } from './getIpcRender';
 +
-+export const createIconFactory = (os = 'windows') => counter =>
-+    new Promise(resolve => resolve([os, counter].join(', ')));
++export const createIconFactory = (os = 'windows') => counter => [os, counter].join(', ');

@@ -52,29 +52,33 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                secondAccountRequest = tester.accountRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.noData().receiveResponse();
             reportTypesRequest.receiveResponse();
-            secondAccountRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
 
             tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
             tester.notificationChannel().applyLeader().expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
-            tester.statusesRequest().receiveResponse();
             settingsRequest = tester.settingsRequest().expectToBeSent();
 
             notificationTester.grantPermission();
@@ -200,9 +204,7 @@ tests.addTest(options => {
                                         usersInGroupsRequest.receiveResponse();
                                     });
 
-                                    describe(
-                                        'Ни один из номеров не включает в себя другой.',
-                                    function() {
+                                    describe('Ни один из номеров не включает в себя другой.', function() {
                                         beforeEach(function() {
                                             usersRequest.receiveResponse();
                                         });
@@ -300,6 +302,75 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
+                                        describe('Нажимаю на строку в таблице сотрудника.', function() {
+                                            beforeEach(function() {
+                                                tester.employeeRow('Господинова Николина').click();
+
+                                                tester.dtmf('#').expectToBeSent();
+                                                spendTime(600);
+                                                tester.dtmf('2').expectToBeSent();
+                                                spendTime(600);
+                                                tester.dtmf('9').expectToBeSent();
+                                                spendTime(600);
+                                                tester.dtmf('5').expectToBeSent();
+                                                spendTime(600);
+
+                                                tester.slavesNotification().
+                                                    additional().
+                                                    visible().
+                                                    transfered().
+                                                    dtmf('#295').
+                                                    outCallEvent().include().
+                                                    expectToBeSent();
+                                            });
+
+                                            describe('Открываю диалпад', function() {
+                                                beforeEach(function() {
+                                                    tester.dialpadVisibilityButton.click();
+                                                });
+
+                                                it(
+                                                    'Нажимаю на звездочку в диалпаде.  Совершен выход из трансфера.',
+                                                function() {
+                                                    tester.dialpadButton('*').click();
+                                                    tester.dtmf('*').expectToBeSent();
+
+                                                    tester.slavesNotification().
+                                                        additional().
+                                                        visible().
+                                                        outCallEvent().include().
+                                                        notTransfered().
+                                                        dtmf('#295*').
+                                                        expectToBeSent();
+                                                });
+                                                it(
+                                                    'Нажимаю на решетку в диалпаде.  Совершен выход из трансфера.',
+                                                function() {
+                                                    tester.dialpadButton('#').click();
+                                                    tester.dtmf('#').expectToBeSent();
+
+                                                    tester.slavesNotification().
+                                                        additional().
+                                                        visible().
+                                                        outCallEvent().include().
+                                                        notTransfered().
+                                                        dtmf('#295#').
+                                                        expectToBeSent();
+                                                });
+                                            });
+                                            it('Нажимаю на кнопку трансфера. Совершен выход из трансфера.', function() {
+                                                tester.transferButton.click();
+                                                tester.dtmf('#').expectToBeSent();
+
+                                                tester.slavesNotification().
+                                                    additional().
+                                                    visible().
+                                                    outCallEvent().include().
+                                                    notTransfered().
+                                                    dtmf('#295#').
+                                                    expectToBeSent();
+                                            });
+                                        });
                                         it(
                                             'Ввожу значение в поле поиска. Ничего не ' +
                                             'найдено. Отображено сообщение о том, что ничего ' +
@@ -311,39 +382,6 @@ tests.addTest(options => {
                                                 'Сотрудники Группы ' +
                                                 'Сотрудник не найден'
                                             );
-                                        });
-                                        it(
-                                            'Нажимаю на строку в таблице сотрудника.',
-                                        function() {
-                                            tester.employeeRow('Господинова Николина').click();
-
-                                            tester.dtmf('#').expectToBeSent();
-                                            spendTime(600);
-                                            tester.dtmf('2').expectToBeSent();
-                                            spendTime(600);
-                                            tester.dtmf('9').expectToBeSent();
-                                            spendTime(600);
-                                            tester.dtmf('5').expectToBeSent();
-                                            spendTime(600);
-
-                                            tester.slavesNotification().
-                                                additional().
-                                                visible().
-                                                transfered().
-                                                dtmf('#295').
-                                                outCallEvent().include().
-                                                expectToBeSent();
-
-                                            tester.transferButton.click();
-                                            tester.dtmf('#').expectToBeSent();
-
-                                            tester.slavesNotification().
-                                                additional().
-                                                visible().
-                                                outCallEvent().include().
-                                                notTransfered().
-                                                dtmf('#295#').
-                                                expectToBeSent();
                                         });
                                         it('Отображена таблица сотрудников.', function() {
                                             tester.softphone.expectToHaveTextContent(
@@ -514,6 +552,71 @@ tests.addTest(options => {
                                     tester.expectNoSoundToPlay();
                                 });
                             });
+                            describe('Открываю диалпад.', function() {
+                                beforeEach(function() {
+                                    tester.dialpadVisibilityButton.click();
+                                });
+
+                                it('Набираю номер для трансфера. Совершен трансфер.', function() {
+                                    tester.dialpadButton('#').click();
+                                    tester.dtmf('#').expectToBeSent();
+
+                                    tester.slavesNotification().
+                                        additional().
+                                        visible().
+                                        outCallEvent().include().
+                                        transfered().
+                                        dtmf('#').
+                                        expectToBeSent();
+
+                                    tester.dialpadButton('2').click();
+                                    spendTime(600);
+                                    tester.dtmf('2').expectToBeSent();
+                                    
+                                    tester.slavesNotification().
+                                        additional().
+                                        visible().
+                                        outCallEvent().include().
+                                        transfered().
+                                        dtmf('#2').
+                                        expectToBeSent();
+
+                                    tester.dialpadButton('9').click();
+                                    spendTime(600);
+                                    tester.dtmf('9').expectToBeSent();
+
+                                    tester.slavesNotification().
+                                        additional().
+                                        visible().
+                                        outCallEvent().include().
+                                        transfered().
+                                        dtmf('#29').
+                                        expectToBeSent();
+
+                                    tester.dialpadButton('5').click();
+                                    spendTime(600);
+                                    tester.dtmf('5').expectToBeSent();
+
+                                    tester.slavesNotification().
+                                        additional().
+                                        visible().
+                                        outCallEvent().include().
+                                        transfered().
+                                        dtmf('#295').
+                                        expectToBeSent();
+                                });
+                                it('Нажимаю на звездочку. Трансфер не был совершен.', function() {
+                                    tester.dialpadButton('*').click();
+                                    tester.dtmf('*').expectToBeSent();
+
+                                    tester.slavesNotification().
+                                        additional().
+                                        visible().
+                                        outCallEvent().include().
+                                        dtmf('*').
+                                        expectToBeSent();
+                                });
+                            });
                             it('Отображено направление и номер.', function() {
                                 tester.microphoneButton.
                                     expectNotToHaveClass('clct-call-option--pressed');
@@ -539,7 +642,9 @@ tests.addTest(options => {
                                 spendTime(32000);
 
                                 tester.expectPingToBeSent();
+                                tester.employeesPing().expectToBeSent();
                                 tester.receivePong();
+                                tester.employeesPing().receive();
 
                                 incomingCall.expectByeToBeSent();
 
