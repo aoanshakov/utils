@@ -6,14 +6,28 @@ module.exports.logOptional = log => (value, args) => log(value || 'None', args);
 module.exports.logBoolean = log => (value, args) => log(value ? 'Yes' : 'No', args);
 
 module.exports.isOneOf = (...variants) => (key, value) => {
-    if (!variants.some(variant => value == variant)) {
-        const lastIndex = variants.length - 1;
-
-        variants = variants.map(variant => JSON.stringify(variant));
-        variants = `${variants.slice(variants, lastIndex).join(', ')} or ${variants[lastIndex]}`;
-
-        throw new Error(`Value for argument "${key}" should be ${variants}`);
+    if (variants.some(variant => value == variant)) {
+        return value;
     }
+
+    const lastIndex = variants.length - 1;
+
+    variants = variants.map(variant => JSON.stringify(variant));
+    variants = `${variants.slice(variants, lastIndex).join(', ')} or ${variants[lastIndex]}`;
+
+    throw new Error(`Value for argument "${key}" should be ${variants}`);
+};
+
+module.exports.isListOf = (...variants) => (key, value) => {
+    if (value === true) {
+        return [];
+    }
+
+    value = value.split(',');
+
+    value.forEach(
+        value => module.exports.isOneOf(...variants)(key, value)
+    );
 
     return value;
 };

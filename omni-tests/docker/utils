@@ -24,7 +24,7 @@ do
     shift
 done
 
-cd /usr/local/src/tests/utils
+cd /usr/local/src/utils
 
 source ~/.bashrc
 nvm use $nodeVersion
