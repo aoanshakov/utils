@@ -34,23 +34,18 @@ do
     if [ "$1" = "--build-image" ]
     then
         buildImage=1
-    elif [ "$1" = "--action" ]
-    then
-        action=$2
-        shift
     elif [ "$1" = "--no-cache" ]
     then
         noCache="--no-cache"
-    elif [ "$1" = "--port" ]
+    elif [ "$1" = "--action" ]
     then
-        if [ -z "$2" ]
+        action=$2
+
+        if [ "$2" = "run" ]
         then
-            echo "Укажите номер порта, который будет соответстовать порту 443 в контейнере."
-            exit 1
+            dockerArguments="$dockerArguments --network=host"
         fi
 
-        dockerArguments="$dockerArguments -p $2:443"
-        action="run-server"
         shift
     elif [ "$1" = "--network=host" ]
     then

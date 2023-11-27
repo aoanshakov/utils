@@ -20,6 +20,8 @@ const modules = [{
     module: 'comagic-app/desktop',
     name: 'desktop',
     envFileName: '.env',
+    script: 'dev',
+    branch: '{stand}'
 }, {
     module: 'chats/frontend',
     name: 'chats',
@@ -38,7 +40,8 @@ const modules = [{
     param: 'REACT_APP_MODULE_EMPLOYEES',
 }];
 
-const submoduleNames = modules.map(({ module, name }) => name).filter(name => name != 'desktop');
+const submoduleNames = modules.map(({ module, name }) => name).filter(name => name != 'desktop'),
+    replaceWithStand = ({ value, params }) => value.split('{stand}').join(params.stand || '');
 
 const envParams = modules.filter(
     ({ param }) => !!param,
@@ -47,13 +50,20 @@ const envParams = modules.filter(
     {},
 );
 
-actions['initialize'] = params => modules.map(({ module, name }) => [module, modulePath(name)]).reduce(
-    (result, [module, path]) => result.concat(
+actions['initialize'] = params => modules.map(({ name, ...module }) => ({
+    path: modulePath(name),
+    ...module, 
+})).reduce(
+    (result, {
+        module,
+        path,
+        branch = 'stand-{stand}',
+    }) => result.concat(
         [`git config --global --add safe.directory ${path}`].
             concat(!fs.existsSync(path) ? [
                 () => mkdir(path),
                 `cd ${path} && git clone${
-                    params.stand ? ` --branch stand-${params.stand}` : ''
+                    params.stand ? ` --branch ${replaceWithStand({ value: branch, params })}` : ''
                 } git@gitlab.uis.dev:${module}.git .`
             ] : []).
             concat(!fs.existsSync(`${path}/node_modules`) ? [
@@ -64,6 +74,13 @@ actions['initialize'] = params => modules.map(({ module, name }) => [module, mod
     ),
     [],
 );
+
+const local = params => 
+    params.local ?
+        params.local.length > 0 ?
+            params.local :
+            submoduleNames :
+        [];
 
 actions['set-env'] = params => [
     () => {
@@ -78,13 +95,7 @@ actions['set-env'] = params => [
             ...(values.common || {}),
             ...(values[key]?.common || {}),
             ...(values[key]?.[name] || {}),
-            ...(
-                params.local ?
-                    params.local.length > 0 ?
-                        params.local :
-                        submoduleNames :
-                    []
-            ).reduce(
+            ...(local(params)).reduce(
                 (result, name) => {
                     const envParam = envParams[name];
 
@@ -94,31 +105,32 @@ actions['set-env'] = params => [
                 {},
             ),
         }).map(
-            ([key, value]) => [key, value.split('{stand}').join(params.stand || '')].join('='),
+            ([key, value]) => [key, replaceWithStand({ value, params })].join('='),
         ).join("\n")));
     }
 ];
 
-actions['remove-node-modules'] = modules.map(({ module, path }) => rmVerbose(`${path}/node_modules`));
-actions['clear'] = modules.map(({ module, path }) => rmVerbose(path));
+actions['remove-node-modules'] = modules.map(({ module, name }) => rmVerbose(`${modulePath(name)}/node_modules`));
+actions['clear'] = modules.map(({ module, name }) => rmVerbose(modulePath(name)));
 actions['bash'] = [];
 
-actions['run-server'] = params => actions['initialize'](params).concat([
-    [
-        'openssl req -x509',
-            '-nodes',
-            '-days 365',
-            '-newkey rsa:2048',
-            '-keyout /etc/ssl/private/nginx-selfsigned.key',
-            '-out /etc/ssl/certs/nginx-selfsigned.crt',
-            '-subj "/C=GB/ST=London/L=London/O=Global Security/OU=IT Department/CN=example.com"'
-    ].join(' '),
+actions['run'] = params =>
+    actions['initialize'](params).
+    concat(actions['set-env'](params)).
+    concat(modules.reduce((result, { name, script = 'start' }) => {
+        const path = modulePath(name),
+            serverLog = `${path}/server.log`;
 
-    'service nginx stop',
-    `cp ${nginxConfig} /etc/nginx/nginx.conf`,
-    'service nginx start',
-    //`cd ${desktop} && npm run dev`
-]);
+        if (name != 'desktop' && !local(params).includes(name)) {
+            return result;
+        }
+
+        return result.concat([
+            rmVerbose(serverLog),
+            `touch ${serverLog}`,
+            `cd ${path} && npm run ${script} > ${serverLog} 2>&1 &`,
+        ]);
+    }, []));
 
 const {action, ...params} = (new Args({
     action: {
