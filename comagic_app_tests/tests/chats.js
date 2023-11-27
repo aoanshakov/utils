@@ -71,6 +71,8 @@ tests.addTest(options => {
                 tester.employeesInitMessage().expectToBeSent();
 
                 requests = ajax.inAnyOrder();
+
+                tester.employeeSettingsRequest().receiveResponse();
                 tester.ticketsContactsRequest().receiveResponse();
 
                 reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
@@ -2952,6 +2954,147 @@ tests.addTest(options => {
                 tester.body.expectTextContentNotToHaveSubstring('Кому передать');
                 tester.body.expectTextContentToHaveSubstring('Невозможно сделать трансфер чата в текущем статусе');
             });
+        });
+        it('Выбираю чат. Раскрываю вкладку "Дополнительная информация". Отображена рекламная кампания.', function() {
+            accountRequest.
+                otherEmployeeChatsAccessAvailable().
+                receiveResponse();
+
+            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.masterInfoMessage().receive();
+            tester.notificationChannel().tellIsLeader().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+            tester.notificationChannel().applyLeader().expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
+
+            let requests = ajax.inAnyOrder();
+
+            const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
+                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests),
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests);
+
+            requests.expectToBeSent();
+
+            ticketsContactsRequest.receiveResponse();
+            reportGroupsRequest.receiveResponse();
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            employeeRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse();
+
+            const secondAccountRequest = tester.accountRequest().
+                forChats().
+                webAccountLoginUnavailable().
+                softphoneFeatureFlagDisabled().
+                operatorWorkplaceAvailable().
+                tagsUpdatingUnavailable().
+                otherEmployeeChatsAccessAvailable().
+                expectToBeSent();
+
+            requests = ajax.inAnyOrder();
+
+            const secondReportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
+
+            const thirdAccountRequest = tester.accountRequest().
+                forChats().
+                webAccountLoginUnavailable().
+                softphoneFeatureFlagDisabled().
+                operatorWorkplaceAvailable().
+                tagsUpdatingUnavailable().
+                otherEmployeeChatsAccessAvailable().
+                expectToBeSent(requests);
+
+            const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests),
+                chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
+                listRequest = tester.listRequest().expectToBeSent(requests),
+                siteListRequest = tester.siteListRequest().expectToBeSent(requests),
+                messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
+
+            requests.expectToBeSent();
+            secondAccountRequest.receiveResponse();
+
+            tester.chatsWebSocket.connect();
+            tester.chatsInitMessage().expectToBeSent();
+
+            thirdAccountRequest.receiveResponse();
+            chatSettingsRequest.receiveResponse();
+            chatChannelListRequest.receiveResponse();
+            listRequest.receiveResponse();
+            siteListRequest.receiveResponse();
+            messageTemplateListRequest.receiveResponse();
+            secondReportsListRequest.receiveResponse();
+
+            tester.countersRequest().receiveResponse();
+
+            tester.offlineMessageCountersRequest().receiveResponse();
+            tester.chatChannelListRequest().receiveResponse();
+            tester.siteListRequest().receiveResponse();
+            tester.markListRequest().receiveResponse();
+
+            tester.chatListRequest().forCurrentEmployee().receiveResponse();
+            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+
+            tester.chatChannelTypeListRequest().receiveResponse();
+
+            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+            tester.offlineMessageListRequest().processing().receiveResponse();
+            tester.offlineMessageListRequest().processed().receiveResponse();
+
+            tester.countersRequest().receiveResponse();
+
+            tester.input.fill('Сообщение #75');
+
+            tester.input.pressEnter();
+            tester.searchResultsRequest().receiveResponse();
+
+            tester.chatListItem('Сообщение #75').click();
+
+            const chatListRequest = tester.chatListRequest().
+                thirdChat().
+                noVisitorName().
+                extIdSpecified().
+                receiveResponse();
+
+            const visitorCardRequest = tester.visitorCardRequest().expectToBeSent();
+            tester.messageListRequest().receiveResponse();
+
+            visitorCardRequest.receiveResponse();
+            tester.usersRequest().forContacts().receiveResponse();
+            tester.usersRequest().forContacts().receiveResponse();
+
+            tester.collapsablePanel('Дополнительная информация').title.click();
+            tester.chatInfoRequest().receiveResponse();
+
+            tester.collapsablePanel('Дополнительная информация').content.expectToHaveTextContent(
+                'Канал ' +
+                'Некое имя канала ' +
+
+                'Страница обращения ' +
+
+                'Источник входа ' +
+                'Некиий источник трафика ' +
+
+                'Рекламная кампания ' +
+                'Некая рекламная кампания ' +
+
+                'UTM метки ' +
+
+                'Source yandex_direct ' +
+                'Medium smm ' +
+                'Concept some_concept ' +
+                'Campaign deyskie_igrushki ' +
+                'Expid 67183125-2 ' +
+                'Referrer example-source.com ' +
+                'Term gde_kupit_igrushki'
+            );
         });
     });
 });

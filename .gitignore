@@ -1,5 +1,6 @@
 .DS_Store
 *.swp
+*.swo
 node_modules
 comagic-tests/html/comagic/*
 !comagic-tests/html/comagic/.keep

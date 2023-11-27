@@ -2,7 +2,11 @@ tests.requireClass('Comagic.analytics.call.store.CallParameters');
 tests.requireClass('Comagic.base.store.Goals');
 tests.requireClass('Comagic.analytics.call.controller.Page');
 
-function AnalyticsCall(requestsManager, testersFactory, utils) {
+function AnalyticsCall({
+    requestsManager,
+    testersFactory,
+    utils,
+}) {
     var controller = Comagic.getApplication().getController('Comagic.analytics.call.controller.Page'),
         params = {};
 
@@ -323,6 +327,18 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
                 direction: 'in',
                 crm_contact_name: 'Петровский Петроний Петрониевич',
                 crm_contact_link: 'https://comaigc.amocrm.ru/contacts/detail/42574736'
+            }, {
+                id: 938203,
+                employee_name: 'Сидоров Сидор Сидорович',
+                ac_name: 'Посетители без рекламной кампании',
+                marks: [],
+                numa: '79451234569',
+                is_auto_sale: true,
+                component: 'Омниканальный виджет',
+                component_id: 'omni_widget',
+                direction: 'in',
+                crm_contact_name: 'Сидоровский Сидорий Сидориевич',
+                crm_contact_link: 'https://comaigc.amocrm.ru/contacts/detail/42574737'
             }],
             metaData: {
                 fields: ['id', 'employee_name', 'ac_name', 'numa', 'is_auto_sale', 'marks'],
@@ -662,8 +678,8 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
     
     this.requestGoals = function () {
         return {
-            send: function () {
-                return requestsManager.recentRequest().
+            receiveResponse: function () {
+                requestsManager.recentRequest().
                     expectToHavePath('/directory_tree/comagic:goals/').
                     respondSuccessfullyWith({
                         success: true,
@@ -674,9 +690,14 @@ function AnalyticsCall(requestsManager, testersFactory, utils) {
                             visible: false
                         }]
                     });
+            },
+            send: function () {
+                this.receiveResponse();
             }
         };
     };
+
+    this.goalsRequest = this.requestGoals;
 
     this.eventTrackingRequest = function () {
         var data = {

@@ -499,7 +499,18 @@ define(() => function ({
 
         (() => {
             const tester = testersFactory.createAnchorTester(() => utils.element(getRootElement()).querySelector('a'));
-            Object.entries(tester).forEach(([methodName, method]) => (me.anchor[methodName] = method.bind(tester)));
+            Object.entries(tester).forEach(([methodName, method]) => {
+                const bindedMethod = method.bind(tester);
+
+                me.anchor[methodName] = methodName == 'click' ? () => {
+                    bindedMethod();
+                    spendTime(0);
+                    spendTime(0);
+                    spendTime(0);
+                    spendTime(0);
+                    spendTime(0);
+                }: bindedMethod;
+            });
         })();
 
         me.link = (() => {
@@ -1906,6 +1917,35 @@ define(() => function ({
         });
     };
 
+    me.employeeSettingsRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHaveMethod('GET').
+                    expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/0/settings');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            is_chat_acceptance_confirmation: true,
+                            is_need_hide_numbers: false,
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.employeeRequest = () => {
         const headers = {
             Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
@@ -3139,7 +3179,7 @@ define(() => function ({
             status: 'not_processed',
             visitor_id: 16479303,
             visitor_name: 'Помакова Бисерка Драгановна',
-            visitor_type: 'comagic'
+            visitor_type: 'comagic',
         };
 
         const bodyParams = {
@@ -3147,7 +3187,33 @@ define(() => function ({
             offset: 0
         };
 
-        return {
+        const addResponseModifiers = me => {
+            me.contactExists = () => {
+                data.contact = {
+                    first_name: 'Грета',
+                    last_name: 'Бележкова',
+                    id: 1689283,
+                    email_list: ['endlesssprinп.of@comagic.dev'],
+                    chat_channel_list: [
+                        { type: 'whatsapp', ext_id: '79283810988' },
+                        { type: 'whatsapp', ext_id: '79283810928' },
+                    ],
+                    organization_name: 'UIS',
+                    phone_list: ['79162729533'],
+                    group_list: [],
+                    personal_manager_id: 583783,
+                    patronymic: 'Ервиновна',
+                    full_name: 'Бележкова Грета Ервиновна',
+                    is_chat_channel_active: false
+                }
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
             singleMessage() {
                 bodyParams.statuses = ['not_processed', 'processed', 'processing'];
                 bodyParams.offline_message_id = 18222538;
@@ -3188,22 +3254,22 @@ define(() => function ({
                     expectPathToContain('$REACT_APP_BASE_URL/offline_message/list').
                     expectBodyToContain(bodyParams);
 
-                return {
+                return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith({
-                            data: [data]
+                            data: [data],
                         });
 
                         Promise.runAll(false, true);
                         spendTime(0)
-                    }
-                };
+                    },
+                });
             },
 
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
             }
-        };
+        });
     };
 
     me.centrifugoWebSocket = (() => {
@@ -4646,7 +4712,7 @@ define(() => function ({
             message: {
                 name: 'out_call_session',
                 type: 'event',
-                params: params 
+                params,
             }
         });
 
@@ -4710,7 +4776,7 @@ define(() => function ({
         const params = {
             calling_phone_number: '79161234567',
             contact_phone_number: '79161234567',
-            virtual_phone_number: '79161234568',
+            virtual_phone_number: '79161234567',
             virtual_number_comment: null,
             call_source: 'va',
             call_session_id: 980925456,
@@ -14398,7 +14464,7 @@ define(() => function ({
         const tester = testersFactory.createDomElementTester('#cmg-contacts-button'),
             click = tester.click.bind(tester);
 
-        tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
+        tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0), spendTime(0));
         tester.expectToBePressed = () => tester.expectToHaveClass('cmg-button-pressed');
         tester.expectNotToBePressed = () => tester.expectNotToHaveClass('cmg-button-pressed');
         tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-button-disabled');

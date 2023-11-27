@@ -82,6 +82,10 @@
             "helpers/AnalyticsCall.js",
             "tests/analytics.call.js"
         ],
+        "analytics.requests": [
+            "helpers/AnalyticsRequests.js",
+            "tests/analytics.requests.js"
+        ],
         "analytics.review": [
             "helpers/AnalyticsReview.js",
             "tests/analytics.review.js"

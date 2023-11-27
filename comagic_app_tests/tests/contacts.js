@@ -1302,6 +1302,7 @@ tests.addTest(options => {
                                                 'Господинова Николина'
                                             );
 
+                                            tester.button('Вернуться к чату').expectNotToExist();
                                             tester.button('Создать контакт').expectNotToExist();
                                         });
                                     });
