@@ -1,13 +1,13 @@
 diff --git a/package.json b/package.json
-index 9b030ae..e993052 100644
+index 1c815e7..e993052 100644
 --- a/package.json
 +++ b/package.json
 @@ -23,8 +23,6 @@
    },
    "homepage": "https://gitlab.uis.dev/web/sip_lib",
    "peerDependencies": {
--    "@comagic/softphone-core": "^2.0.9",
--    "@comagic/workplace-utils": "^1.0.17",
+-    "@comagic/softphone-core": "^2.0.11",
+-    "@comagic/workplace-utils": "^1.0.19",
      "axios": "^0.24.0"
    },
    "dependencies": {

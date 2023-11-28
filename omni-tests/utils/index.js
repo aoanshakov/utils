@@ -231,7 +231,7 @@ const {action, ...params} = (new Args({
     },
     module: {
         validate: isListOf.apply(null, moduleNames),
-    }
+    },
 })).createObjectFromArgsArray(process.argv);
 
 if (!action) {

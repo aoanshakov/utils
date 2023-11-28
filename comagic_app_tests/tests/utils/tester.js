@@ -1921,7 +1921,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/0/settings');
+                    expectToHavePath('$REACT_APP_BASE_URL/api/v1/employees/20816/settings');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -1959,7 +1959,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816').
+                    expectToHavePath('$REACT_APP_BASE_URL/api/v1/employees/20816').
                     expectToHaveHeaders(headers);
 
                 return addResponseModifiers({
@@ -12290,6 +12290,40 @@ define(() => function ({
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
             }
+        });
+    };
+
+    me.contactGroupsRequest = () => {
+        const queryParams = {
+            search: undefined,
+        };
+
+        const response = {
+            data: []
+        };
+
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath('$REACT_APP_BASE_URL/contact-groups').
+                    expectQueryToContain(queryParams).
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0);
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            },
         });
     };
 

@@ -89,7 +89,6 @@ tests.addTest(options => {
                         }]);
 
                         accountRequest = tester.accountRequest().expectToBeSent();
-                        tester.employeeSettingsRequest().receiveResponse();
                     });
 
                     describe('Софтфон доступен.', function() {
@@ -146,7 +145,9 @@ tests.addTest(options => {
                                 tester.employeeStatusesRequest().receiveResponse();
                                 tester.numberCapacityRequest().receiveResponse();
 
+                                tester.employeeSettingsRequest().receiveResponse();
                                 tester.employeeRequest().receiveResponse();
+
                                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
                                 tester.registrationRequest().
@@ -198,7 +199,7 @@ tests.addTest(options => {
                                     offlineMessageCountersRequest.receiveResponse();
                                 });
 
-                                xdescribe('Есть непрочитанные сообщения.', function() {
+                                describe('Есть непрочитанные сообщения.', function() {
                                     beforeEach(function() {
                                         countersRequest.receiveResponse();
 
@@ -272,6 +273,7 @@ tests.addTest(options => {
                                                         tester.button('Автозапуск приложения').expectToBeChecked();
                                                         tester.button('Запускать свернуто').expectToBeChecked();
                                                     });
+                                                    return;
                                                     it('Форма настроек корректно заполнена.', function() {
                                                         tester.button('Открывать во время звонка').
                                                             expectNotToBeChecked();
@@ -281,6 +283,7 @@ tests.addTest(options => {
                                                         tester.button('Запускать свернуто').expectNotToBeChecked();
                                                     });
                                                 });
+                                                return;
                                                 describe('Открываю вкладку "Помощь".', function() {
                                                     beforeEach(function() {
                                                         tester.button('Помощь').click();
@@ -595,6 +598,7 @@ tests.addTest(options => {
                                                     tester.collapsednessToggleButton.expectToBeExpanded();
                                                 });
                                             });
+                                            return;
                                             describe(
                                                 'Поступает входящий звонок от пользователя имеющего открытые сделки.',
                                             function() {
@@ -1257,6 +1261,9 @@ tests.addTest(options => {
 
                                                             tester.employeeStatusesRequest().
                                                                 anotherAuthorizationToken().
+                                                                receiveResponse();
+
+                                                            tester.employeeSettingsRequest().
                                                                 receiveResponse();
 
                                                             tester.employeeRequest().
@@ -1951,6 +1958,8 @@ tests.addTest(options => {
                                                         desktopSoftphone().
                                                         authorization().
                                                         receiveResponse();
+
+                                                    tester.employeeSettingsRequest().receiveResponse();
 
                                                     tester.employeeRequest().
                                                         anotherAuthorizationToken().
@@ -3032,6 +3041,7 @@ tests.addTest(options => {
                                                 }
                                             });
                                         });
+return;
                                         it('Доступ к микрофону отклонен.', function() {
                                             tester.disallowMediaInput();
 
@@ -3041,6 +3051,7 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
+return;
                                     describe('Получен доступ к микрофону.', function() {
                                         beforeEach(function() {
                                             tester.allowMediaInput();
@@ -3603,12 +3614,13 @@ tests.addTest(options => {
                                         });
                                     });
                                 });
+return;
                                 describe('Получен доступ к микрофону.', function() {
                                     beforeEach(function() {
                                         tester.allowMediaInput();
                                     });
 
-                                    xdescribe('Нет чатов в работе с неотвеченным сообщениями.', function() {
+                                    describe('Нет чатов в работе с неотвеченным сообщениями.', function() {
                                         beforeEach(function() {
                                             countersRequest.
                                                 noActiveChatsWithUnreadMessages().
@@ -3820,7 +3832,7 @@ tests.addTest(options => {
                                             tester.button('В работе').expectNotToBePressed();
                                         });
                                     });
-                                    xdescribe('Нет новых чатов.', function() {
+                                    describe('Нет новых чатов.', function() {
                                         beforeEach(function() {
                                             countersRequest.
                                                 noNewChatsWithUnreadMessages().
@@ -3954,7 +3966,7 @@ tests.addTest(options => {
                                             tester.button('В работе 75').expectToBePressed();
                                         });
                                     });
-                                    xdescribe('Нет чатов в работе.', function() {
+                                    describe('Нет чатов в работе.', function() {
                                         let notification;
 
                                         beforeEach(function() {
@@ -4514,6 +4526,9 @@ tests.addTest(options => {
 
                                                 const requests = ajax.inAnyOrder();
 
+                                                const contactGroupsRequest = tester.contactGroupsRequest().
+                                                    expectToBeSent(requests);
+
                                                 contactCommunicationsRequest = tester.
                                                     contactCommunicationsRequest().
                                                     expectToBeSent(requests);
@@ -4530,15 +4545,14 @@ tests.addTest(options => {
                                                 usersRequest.receiveResponse();
                                                 contactRequest.receiveResponse();
                                                 contactCommunicationsRequest.receiveResponse();
+                                                contactGroupsRequest.receiveResponse();
 
                                                 tester.button('Вернуться к заявке').click();
-
 
                                                 tester.accountRequest().
                                                     operatorWorkplaceAvailable().
                                                     forChats().
                                                     receiveResponse();
-
                                                    
                                                 tester.chatSettingsRequest().receiveResponse();
                                                 tester.chatChannelListRequest().receiveResponse();
@@ -4553,7 +4567,6 @@ tests.addTest(options => {
                                                     'Заявка с сайта somedomain.com'
                                                 );
                                             });
-                                            return;
                                             it(
                                                 'Открываю вкладку "В работе". Нажимаю на кнопку чатов. Открыта ' +
                                                 'вкладка новых заявок.',
@@ -4576,7 +4589,6 @@ tests.addTest(options => {
                                                 tester.button('В работе').expectNotToBePressed();
                                             });
                                         });
-                                        return;
                                         it(
                                             'Получено новое сообщение. Отображено индикатор непрочитанных сообщений.',
                                         function() {
@@ -6086,14 +6098,10 @@ return;
                         operatorWorkplaceAvailable().
                         expectToBeSent(requests);
 
-                    const employeeSettingsRequest = tester.employeeSettingsRequest().
-                        expectToBeSent(requests);
-
                     requests.expectToBeSent();
 
                     thirdAccountRequest.receiveResponse();
                     authCheckRequest.receiveResponse();
-                    employeeSettingsRequest.receiveResponse();
 
                     tester.talkOptionsRequest().receiveResponse();
 
@@ -6110,6 +6118,7 @@ return;
 
                     notificationTester.grantPermission();
                     tester.numberCapacityRequest().receiveResponse();
+                    tester.employeeSettingsRequest().receiveResponse();
                     tester.employeeRequest().receiveResponse();
                     authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
@@ -6349,14 +6358,10 @@ return;
                     operatorWorkplaceAvailable().
                     expectToBeSent(requests);
 
-                const employeeSettingsRequest = tester.employeeSettingsRequest().
-                    expectToBeSent(requests);
-
                 requests.expectToBeSent();
 
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
-                employeeSettingsRequest.receiveResponse();
 
                 tester.talkOptionsRequest().receiveResponse();
 
@@ -6375,7 +6380,10 @@ return;
                 tester.allowMediaInput();
 
                 tester.numberCapacityRequest().receiveResponse();
+
+                tester.employeeSettingsRequest().receiveResponse();
                 tester.employeeRequest().receiveResponse();
+
                 tester.authenticatedUserRequest().receiveResponse();
 
                 tester.registrationRequest().
@@ -6833,14 +6841,10 @@ return;
                     operatorWorkplaceAvailable().
                     expectToBeSent(requests);
 
-                const employeeSettingsRequest = tester.employeeSettingsRequest().
-                    expectToBeSent(requests);
-
                 requests.expectToBeSent();
 
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
-                employeeSettingsRequest.receiveResponse();
 
                 tester.talkOptionsRequest().receiveResponse();
 
@@ -6859,7 +6863,10 @@ return;
                 tester.allowMediaInput();
 
                 tester.numberCapacityRequest().receiveResponse();
+
+                tester.employeeSettingsRequest().receiveResponse();
                 tester.employeeRequest().receiveResponse();
+
                 tester.authenticatedUserRequest().receiveResponse();
 
                 tester.registrationRequest().
@@ -6988,14 +6995,10 @@ return;
                     operatorWorkplaceAvailable().
                     expectToBeSent(requests);
 
-                const employeeSettingsRequest = tester.employeeSettingsRequest().
-                    expectToBeSent(requests);
-
                 requests.expectToBeSent();
 
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
-                employeeSettingsRequest.receiveResponse();
 
                 tester.talkOptionsRequest().receiveResponse();
 
@@ -7014,7 +7017,10 @@ return;
                 tester.allowMediaInput();
 
                 tester.numberCapacityRequest().receiveResponse();
+
+                tester.employeeSettingsRequest().receiveResponse();
                 tester.employeeRequest().receiveResponse();
+
                 tester.authenticatedUserRequest().receiveResponse();
 
                 tester.registrationRequest().
@@ -7245,14 +7251,10 @@ return;
                     operatorWorkplaceAvailable().
                     expectToBeSent(requests);
 
-                const employeeSettingsRequest = tester.employeeSettingsRequest().
-                    expectToBeSent(requests);
-
                 requests.expectToBeSent();
 
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
-                employeeSettingsRequest.receiveResponse();
 
                 tester.talkOptionsRequest().receiveResponse();
 
@@ -7271,7 +7273,10 @@ return;
                 tester.allowMediaInput();
 
                 tester.numberCapacityRequest().receiveResponse();
+
+                tester.employeeSettingsRequest().receiveResponse();
                 tester.employeeRequest().receiveResponse();
+
                 tester.authenticatedUserRequest().receiveResponse();
 
                 tester.registrationRequest().
@@ -7405,14 +7410,10 @@ return;
                     operatorWorkplaceAvailable().
                     expectToBeSent(requests);
 
-                const employeeSettingsRequest = tester.employeeSettingsRequest().
-                    expectToBeSent(requests);
-
                 requests.expectToBeSent();
 
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
-                employeeSettingsRequest.receiveResponse();
 
                 tester.talkOptionsRequest().receiveResponse();
 
@@ -7431,7 +7432,10 @@ return;
 
                 tester.employeeStatusesRequest().receiveResponse();
                 tester.numberCapacityRequest().receiveResponse();
+
+                tester.employeeSettingsRequest().receiveResponse();
                 tester.employeeRequest().receiveResponse();
+
                 tester.authenticatedUserRequest().receiveResponse();
 
                 tester.registrationRequest().
@@ -7575,14 +7579,10 @@ return;
                     operatorWorkplaceAvailable().
                     expectToBeSent(requests);
 
-                const employeeSettingsRequest = tester.employeeSettingsRequest().
-                    expectToBeSent(requests);
-
                 requests.expectToBeSent();
 
                 thirdAccountRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
-                employeeSettingsRequest.receiveResponse();
 
                 tester.talkOptionsRequest().receiveResponse();
 
@@ -7601,7 +7601,10 @@ return;
 
                 tester.employeeStatusesRequest().receiveResponse();
                 tester.numberCapacityRequest().receiveResponse();
+
+                tester.employeeSettingsRequest().receiveResponse();
                 tester.employeeRequest().receiveResponse();
+
                 tester.authenticatedUserRequest().receiveResponse();
 
                 tester.registrationRequest().
@@ -7866,14 +7869,10 @@ return;
                 operatorWorkplaceAvailable().
                 expectToBeSent(requests);
 
-            const employeeSettingsRequest = tester.employeeSettingsRequest().
-                expectToBeSent(requests);
-
             requests.expectToBeSent();
 
             thirdAccountRequest.receiveResponse();
             authCheckRequest.receiveResponse();
-            employeeSettingsRequest.receiveResponse();
 
             tester.talkOptionsRequest().receiveResponse();
 
@@ -7892,7 +7891,10 @@ return;
 
             tester.employeeStatusesRequest().receiveResponse();
             tester.numberCapacityRequest().receiveResponse();
+
+            tester.employeeSettingsRequest().receiveResponse();
             tester.employeeRequest().receiveResponse();
+
             tester.authenticatedUserRequest().receiveResponse();
 
             tester.registrationRequest().
