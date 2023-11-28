@@ -51,8 +51,12 @@ define(() => function ({
     window.resetElectronCookiesManager?.();
 
     window.rootConfig = { appName, platform };
-    window.crossTabCommunicatorCache = {};
-    window.softphoneCrossTabCommunicatorCache = {};
+    window.broadcastChannelCache = {};
+    window.employeesStore = null;
+    window.softphoneStore = null;
+    window.chatsStore = null;
+    window.contactStore = null;
+    window.softphoneBroadcastChannelCache = {};
 
     me.getUserAgent = softphoneType => 'UIS Softphone ' + softphoneType;
 
