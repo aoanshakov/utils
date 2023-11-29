@@ -5886,6 +5886,71 @@ define(() => function ({
         });
     };
 
+    me.pinnedChatListRequest = () => {
+        const interval = (1000 * 60 * 60 * 6) + (5 * 1000 * 60) + (12 * 1000) + 231;
+
+        const data = [{
+            chat_channel_id: 101,
+            chat_channel_type: 'telegram',
+            date_time: utils.formatDate(new Date(
+                (new Date('2022-01-19T17:25:22.098210')).getTime() - interval * 6
+            )),
+            id: 2718942,
+            context: null,
+            last_message: {
+                message: `Сообщение #6`,
+                date: '2022-06-24T16:04:26.0003',
+                is_operator: false,
+                resource_type: null,
+                resource_name: null
+            },
+            mark_ids: ['587', '213'],
+            phone: null,
+            site_id: 4663,
+            status: 'active',
+            visitor_id: 16479303,
+            visitor_name: 'Помакова Бисерка Драгановна',
+            visitor_type: 'omni',
+            unread_message_count: 0
+        }];
+
+        const addResponseModifiers = me => {
+            me.noData = () => (data.splice(0, data.length), me);
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                /*
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({ method: 'get_pinned_chat_list' });
+                */
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        /*
+                        request.respondSuccessfullyWith({
+                            result: { data },
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+
+                        maybeRunSpinWrapperIntersectionCallback(getChatListSpinWrapper());
+                        */
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatListRequest = () => {
         let total = 75;
 
