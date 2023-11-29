@@ -273,7 +273,6 @@ tests.addTest(options => {
                                                         tester.button('Автозапуск приложения').expectToBeChecked();
                                                         tester.button('Запускать свернуто').expectToBeChecked();
                                                     });
-                                                    return;
                                                     it('Форма настроек корректно заполнена.', function() {
                                                         tester.button('Открывать во время звонка').
                                                             expectNotToBeChecked();
@@ -283,7 +282,6 @@ tests.addTest(options => {
                                                         tester.button('Запускать свернуто').expectNotToBeChecked();
                                                     });
                                                 });
-                                                return;
                                                 describe('Открываю вкладку "Помощь".', function() {
                                                     beforeEach(function() {
                                                         tester.button('Помощь').click();
@@ -598,7 +596,6 @@ tests.addTest(options => {
                                                     tester.collapsednessToggleButton.expectToBeExpanded();
                                                 });
                                             });
-                                            return;
                                             describe(
                                                 'Поступает входящий звонок от пользователя имеющего открытые сделки.',
                                             function() {
@@ -844,11 +841,16 @@ tests.addTest(options => {
                                                                     forContacts().
                                                                     expectToBeSent(requests);
 
+                                                                const contactGroupsRequest =
+                                                                    tester.contactGroupsRequest().
+                                                                        expectToBeSent(requests);
+
                                                                 requests.expectToBeSent();
 
                                                                 usersRequest.receiveResponse();
                                                                 contactRequest.receiveResponse();
                                                                 contactCommunicationsRequest.receiveResponse();
+                                                                contactGroupsRequest.receiveResponse();
                                                             });
 
                                                             it(
@@ -1100,11 +1102,15 @@ tests.addTest(options => {
                                                             forContacts().
                                                             expectToBeSent(requests);
 
+                                                        const contactGroupsRequest = tester.contactGroupsRequest().
+                                                            expectToBeSent(requests);
+
                                                         requests.expectToBeSent();
 
                                                         usersRequest.receiveResponse();
                                                         contactRequest.receiveResponse();
                                                         contactCommunicationsRequest.receiveResponse();
+                                                        contactGroupsRequest.receiveResponse();
                                                             
                                                         tester.button('Вернуться к чату').expectNotToExist();
                                                     });
@@ -1112,7 +1118,9 @@ tests.addTest(options => {
                                                         'Нажимаю на кнопку "Контакты". Отображен список контактов.',
                                                     function() {
                                                         tester.button('Контакты').click();
+
                                                         tester.contactsRequest().differentNames().receiveResponse();
+                                                        tester.contactGroupsRequest().receiveResponse();
 
                                                         tester.contactList.
                                                             item('Балканска Берислава Силаговна').
@@ -1411,7 +1419,9 @@ tests.addTest(options => {
                                                 describe('Нажимаю на кнопку "Контакты".', function() {
                                                     beforeEach(function() {
                                                         tester.button('Контакты').click();
+
                                                         tester.contactsRequest().differentNames().receiveResponse();
+                                                        tester.contactGroupsRequest().receiveResponse();
                                                     });
 
                                                     describe(
@@ -1419,7 +1429,9 @@ tests.addTest(options => {
                                                         'Нажимаю на кнопку "Создать контакт".',
                                                     function() {
                                                         beforeEach(function() {
-                                                            tester.contactList.plusButton.click();
+                                                            tester.contactList.plusButton.putMouseOver();
+                                                            tester.select.option('Контакт').click();
+
                                                             tester.usersRequest().forContacts().receiveResponse();
 
                                                             tester.input.
@@ -1504,7 +1516,14 @@ tests.addTest(options => {
                                                                     tester.contactCommunicationsRequest().
                                                                         expectToBeSent(requests);
 
+                                                                const contactGroupsRequest =
+                                                                    tester.contactGroupsRequest().
+                                                                        expectToBeSent(requests);
+
                                                                 const employeesRequest = tester.employeesRequest().
+                                                                    expectToBeSent(requests);
+
+                                                                const countersRequest = tester.countersRequest().
                                                                     expectToBeSent(requests);
 
                                                                 requests.expectToBeSent();
@@ -1514,8 +1533,8 @@ tests.addTest(options => {
                                                                 reportsListRequest.receiveResponse();
                                                                 contactsRequest.receiveResponse();
                                                                 employeesRequest.receiveResponse();
-
-                                                                tester.countersRequest().receiveResponse();
+                                                                contactGroupsRequest.receiveResponse();
+                                                                countersRequest.receiveResponse();
 
                                                                 tester.offlineMessageCountersRequest().
                                                                     receiveResponse();
@@ -1732,7 +1751,9 @@ tests.addTest(options => {
                                                         'Показываю софтфон. Отображена кнопка "Показать все статусы".',
                                                     function() {
                                                         tester.button('Контакты').click();
+
                                                         tester.contactsRequest().differentNames().receiveResponse();
+                                                        tester.contactGroupsRequest().receiveResponse();
 
                                                         tester.button('Статистика').click();
                                                         tester.statsRequest().receiveResponse();
@@ -2168,7 +2189,9 @@ tests.addTest(options => {
                                                         authorization().
                                                         receiveResponse();
 
+                                                    tester.employeeSettingsRequest().receiveResponse();
                                                     tester.employeeRequest().receiveResponse();
+
                                                     tester.countersRequest().receiveResponse();
 
                                                     getPackage('electron').ipcRenderer.
@@ -2631,6 +2654,9 @@ tests.addTest(options => {
                                                     authorization().
                                                     receiveResponse();
 
+                                                tester.employeeSettingsRequest().
+                                                    receiveResponse();
+
                                                 tester.employeeRequest().
                                                     anotherAuthorizationToken().
                                                     receiveResponse();
@@ -3041,7 +3067,6 @@ tests.addTest(options => {
                                                 }
                                             });
                                         });
-return;
                                         it('Доступ к микрофону отклонен.', function() {
                                             tester.disallowMediaInput();
 
@@ -3051,7 +3076,6 @@ return;
                                             );
                                         });
                                     });
-return;
                                     describe('Получен доступ к микрофону.', function() {
                                         beforeEach(function() {
                                             tester.allowMediaInput();
@@ -3172,6 +3196,7 @@ return;
                                                         authorization().
                                                         receiveResponse();
 
+                                                    tester.employeeSettingsRequest().receiveResponse();
                                                     tester.employeeRequest().receiveResponse();
 
                                                     tester.countersRequest().
@@ -3614,7 +3639,6 @@ return;
                                         });
                                     });
                                 });
-return;
                                 describe('Получен доступ к микрофону.', function() {
                                     beforeEach(function() {
                                         tester.allowMediaInput();
@@ -3673,6 +3697,9 @@ return;
                                                 forChats().
                                                 expectToBeSent(requests);
 
+                                            const reportsListRequest = tester.reportsListRequest().
+                                                expectToBeSent(requests);
+
                                             requests.expectToBeSent();
 
                                             chatSettingsRequest.receiveResponse();
@@ -3682,8 +3709,7 @@ return;
                                             messageTemplateListRequest.receiveResponse();
                                             accountRequest.receiveResponse();
                                             secondAccountRequest.receiveResponse();
-
-                                            tester.reportsListRequest().receiveResponse();
+                                            reportsListRequest.receiveResponse();
 
                                             tester.countersRequest().
                                                 noActiveChats().
@@ -3768,6 +3794,9 @@ return;
                                                 forChats().
                                                 expectToBeSent(requests);
 
+                                            const contactGroupsRequest = tester.contactGroupsRequest().
+                                                expectToBeSent(requests);
+
                                             const thirdAccountRequest = tester.accountRequest().
                                                 operatorWorkplaceAvailable().
                                                 forChats().
@@ -3782,6 +3811,7 @@ return;
                                             messageTemplateListRequest.receiveResponse();
                                             secondAccountRequest.receiveResponse();
                                             thirdAccountRequest.receiveResponse();
+                                            contactGroupsRequest.receiveResponse();
 
                                             tester.reportsListRequest().receiveResponse();
                                             
@@ -4450,12 +4480,15 @@ return;
                                                     forChats().
                                                     expectToBeSent(requests);
 
+                                                const reportsListRequest = tester.reportsListRequest().
+                                                    expectToBeSent(requests);
+
                                                 requests.expectToBeSent();
 
                                                 statsRequest.receiveResponse();
                                                 accountRequest.receiveResponse();
+                                                reportsListRequest.receiveResponse();
 
-                                                tester.reportsListRequest().receiveResponse();
                                                 tester.countersRequest().noUnreadMessages().receiveResponse();
                                                 tester.offlineMessageCountersRequest().receiveResponse();
                                                 tester.chatChannelListRequest().receiveResponse();
@@ -4526,9 +4559,6 @@ return;
 
                                                 const requests = ajax.inAnyOrder();
 
-                                                const contactGroupsRequest = tester.contactGroupsRequest().
-                                                    expectToBeSent(requests);
-
                                                 contactCommunicationsRequest = tester.
                                                     contactCommunicationsRequest().
                                                     expectToBeSent(requests);
@@ -4538,6 +4568,9 @@ return;
 
                                                 const usersRequest = tester.usersRequest().
                                                     forContacts().
+                                                    expectToBeSent(requests);
+
+                                                const contactGroupsRequest = tester.contactGroupsRequest().
                                                     expectToBeSent(requests);
 
                                                 requests.expectToBeSent();
@@ -4607,7 +4640,6 @@ return;
                                     });
                                 });
                             });
-return;
                             describe('Получены данные сотрудника и доступ к микрофону.', function() {
                                 beforeEach(function() {
                                     tester.allowMediaInput();
@@ -4856,7 +4888,6 @@ return;
                                 });
                             });
                         });
-return;
                         it('Не удалось авторизоваться в софтфоне.', function() {
                             authCheckRequest.invalidToken().receiveResponse();
 
@@ -4882,7 +4913,6 @@ return;
                             tester.button('Войти').expectToBeVisible();
                         });
                     });
-return;
                     describe('Раздел контактов недоступен.', function() {
                         beforeEach(function() {
                             accountRequest.
@@ -4924,7 +4954,10 @@ return;
                             tester.allowMediaInput();
 
                             tester.numberCapacityRequest().receiveResponse();
+
+                            tester.employeeSettingsRequest().receiveResponse();
                             tester.employeeRequest().receiveResponse();
+
                             tester.authenticatedUserRequest().receiveResponse();
 
                             tester.registrationRequest().
@@ -5001,6 +5034,7 @@ return;
                                 tester.employeesInitMessage().expectToBeSent();
 
                                 tester.employeeStatusesRequest().receiveResponse();
+                                tester.employeeSettingsRequest().receiveResponse();
                                 tester.employeeRequest().receiveResponse();
 
                                 tester.accountRequest().
@@ -5110,6 +5144,7 @@ return;
                                         tester.employeesInitMessage().expectToBeSent();
 
                                         tester.employeeStatusesRequest().receiveResponse();
+                                        tester.employeeSettingsRequest().receiveResponse();
                                         tester.employeeRequest().receiveResponse();
 
                                         tester.accountRequest().
@@ -5214,14 +5249,22 @@ return;
                                         secondEarlier().
                                         expectToBeSent(requests);
 
-                                    contactRequest = tester.contactRequest().expectToBeSent(requests);
-                                    const usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+                                    contactRequest = tester.contactRequest().
+                                        expectToBeSent(requests);
+
+                                    const usersRequest = tester.usersRequest().
+                                        forContacts().
+                                        expectToBeSent(requests);
+
+                                    const contactGroupsRequest = tester.contactGroupsRequest().
+                                        expectToBeSent(requests);
 
                                     requests.expectToBeSent();
 
                                     usersRequest.receiveResponse();
                                     contactRequest.receiveResponse();
                                     contactCommunicationsRequest.receiveResponse();
+                                    contactGroupsRequest.receiveResponse();
                                 });
 
                                 it(
@@ -5342,7 +5385,9 @@ return;
                                     tester.chatsWebSocket.connect();
                                     tester.chatsInitMessage().expectToBeSent();
 
+                                    tester.employeeSettingsRequest().receiveResponse();
                                     tester.employeeRequest().receiveResponse();
+
                                     tester.countersRequest().receiveResponse();
 
                                     getPackage('electron').ipcRenderer.
@@ -5500,6 +5545,7 @@ return;
                                     tester.employeesInitMessage().expectToBeSent();
 
                                     tester.employeeStatusesRequest().receiveResponse();
+                                    tester.employeeSettingsRequest().receiveResponse();
                                     tester.employeeRequest().receiveResponse();
 
                                     tester.accountRequest().
@@ -5628,7 +5674,10 @@ return;
                             tester.allowMediaInput();
 
                             tester.numberCapacityRequest().receiveResponse();
+
+                            tester.employeeSettingsRequest().receiveResponse();
                             tester.employeeRequest().receiveResponse();
+
                             tester.authenticatedUserRequest().receiveResponse();
 
                             tester.registrationRequest().
@@ -5784,7 +5833,10 @@ return;
                             tester.allowMediaInput();
 
                             tester.numberCapacityRequest().receiveResponse();
+
+                            tester.employeeSettingsRequest().receiveResponse();
                             tester.employeeRequest().receiveResponse();
+
                             tester.authenticatedUserRequest().receiveResponse();
 
                             tester.registrationRequest().
@@ -5933,7 +5985,10 @@ return;
                         tester.allowMediaInput();
 
                         tester.numberCapacityRequest().receiveResponse();
+
+                        tester.employeeSettingsRequest().receiveResponse();
                         tester.employeeRequest().receiveResponse();
+
                         tester.authenticatedUserRequest().receiveResponse();
 
                         tester.registrationRequest().
@@ -6019,7 +6074,10 @@ return;
                         tester.allowMediaInput();
 
                         tester.numberCapacityRequest().receiveResponse();
+
+                        tester.employeeSettingsRequest().receiveResponse();
                         tester.employeeRequest().receiveResponse();
+
                         tester.authenticatedUserRequest().receiveResponse();
 
                         tester.registrationRequest().
@@ -6064,7 +6122,6 @@ return;
                         tester.interceptButton.expectNotToExist();
                     });
                 });
-return;
                 it('Отмечаю чекбокс "Чужой компьютер". Нажимаю на кнопку входа. Логин не сохраняется.', function() {
                     tester.checkbox.click();
 
@@ -6182,7 +6239,6 @@ return;
                     tester.tooltip.expectToHaveTextContent('Пароль не сохранится в приложении');
                 });
             });
-return;
             describe('Логины и пароли были сохранены. Нажимаю на поле логина. Выбираю логин из списка.', function() {
                 beforeEach(function() {
                     getPackage('electron').ipcRenderer.receiveMessage('credentials', [{
@@ -6303,7 +6359,6 @@ return;
                 });
             });
         });
-return;
         describe(
             'Настройки отображения поверх окон при входящем и скрывания при завершении звонка не сохранены.',
         function() {
@@ -6549,6 +6604,9 @@ return;
                         differentNames().
                         expectToBeSent(requests);
 
+                    const contactGroupsRequest = tester.contactGroupsRequest().
+                        expectToBeSent(requests);
+
                     const accountRequest = tester.accountRequest().
                         operatorWorkplaceAvailable().
                         forChats().
@@ -6562,6 +6620,7 @@ return;
                     accountRequest.receiveResponse();
                     contactsRequest.receiveResponse();
                     reportsListRequest.receiveResponse();
+                    contactGroupsRequest.receiveResponse();
 
                     tester.countersRequest().receiveResponse();
                     tester.offlineMessageCountersRequest().receiveResponse();

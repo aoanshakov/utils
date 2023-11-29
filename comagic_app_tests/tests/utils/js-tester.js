@@ -4833,7 +4833,8 @@ function JsTester_Request (request, utils, callStack) {
         if (!pattern.test(path)) {
             throw new Error(
                 'В данный момент должен быть отправлен запрос по пути, который удовлетворяет регулярному ' +
-                'выражению "' + pattern + '", тем не менее запрос был отправлен по пути "' + path + '".'
+                'выражению "' + pattern + '", тем не менее запрос был отправлен по пути "' + path + '".' +
+                this.getDescription()
             );
         }
 
@@ -4843,7 +4844,7 @@ function JsTester_Request (request, utils, callStack) {
         if (!path.includes(expectedValue)) {
             throw new Error(
                 'В данный момент должен быть отправлен запрос по пути, который содержит подстроку "' + expectedValue +
-                '", тем не менее запрос был отправлен по пути "' + path + '".'
+                '", тем не менее запрос был отправлен по пути "' + path + '".' + this.getDescription()
             );
         }
 
@@ -4853,7 +4854,7 @@ function JsTester_Request (request, utils, callStack) {
         if (path != expectedValue) {
             throw new Error(
                 'В данный момент должен быть отправлен запрос по пути "' + expectedValue + '", тем не менее запрос ' +
-                'был отправлен по пути "' + path + '".'
+                'был отправлен по пути "' + path + '". ' + this.getDescription()
             );
         }
 
