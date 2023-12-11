@@ -174,6 +174,11 @@ tests.addTest(options => {
                                     expectToBeSent();
                                 activeChatListRequest = tester.chatListRequest().forCurrentEmployee().active().
                                     expectToBeSent();
+
+                                tester.pinnedChatListRequest().
+                                    noData().
+                                    receiveResponse();
+
                                 closedChatListRequest = tester.chatListRequest().forCurrentEmployee().closed().
                                     expectToBeSent();
 
@@ -344,6 +349,10 @@ tests.addTest(options => {
                                                                     active().
                                                                     receiveResponse();
 
+                                                                tester.pinnedChatListRequest().
+                                                                    noData().
+                                                                    receiveResponse();
+
                                                                 tester.chatListRequest().
                                                                     forCurrentEmployee().
                                                                     secondPage().
@@ -429,6 +438,10 @@ tests.addTest(options => {
                                                         forCurrentEmployee().
                                                         secondPage().
                                                         active().
+                                                        receiveResponse();
+
+                                                    tester.pinnedChatListRequest().
+                                                        noData().
                                                         receiveResponse();
 
                                                     tester.chatListRequest().
@@ -765,6 +778,10 @@ tests.addTest(options => {
                                                         active().
                                                         receiveResponse();
 
+                                                    tester.pinnedChatListRequest().
+                                                        noData().
+                                                        receiveResponse();
+
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
                                                         secondPage().
@@ -818,6 +835,9 @@ tests.addTest(options => {
                                                                 addTelegram().
                                                                 addFourthTelegram().
                                                                 receiveResponse();
+                                                            
+                                                            tester.groupsContainingContactRequest().receiveResponse();
+                                                            tester.contactGroupsRequest().receiveResponse();
                                                         });
 
                                                         describe('Нажимаю на имя контакта.', function() {
@@ -845,16 +865,27 @@ tests.addTest(options => {
                                                                     tester.contactGroupsRequest().
                                                                         expectToBeSent(requests);
 
+                                                                const secondContactGroupsRequest =
+                                                                    tester.contactGroupsRequest().
+                                                                        expectToBeSent(requests);
+
+                                                                const groupsContainingContactRequest =
+                                                                    tester.groupsContainingContactRequest().
+                                                                        expectToBeSent(requests);
+
                                                                 requests.expectToBeSent();
 
                                                                 usersRequest.receiveResponse();
                                                                 contactRequest.receiveResponse();
                                                                 contactCommunicationsRequest.receiveResponse();
                                                                 contactGroupsRequest.receiveResponse();
+                                                                secondContactGroupsRequest.receiveResponse();
+                                                                groupsContainingContactRequest.receiveResponse();
                                                             });
 
                                                             it(
-                                                                'Выбираю другой контакт. Кнопка "Вернуться к чату".',
+                                                                'Выбираю другой контакт. Кнопка "Вернуться к чату" ' +
+                                                                'скрыта.',
                                                             function() {
                                                                 tester.contactList.
                                                                     item('Белоконска-Вражалска Калиса Еньовна').
@@ -866,6 +897,10 @@ tests.addTest(options => {
 
                                                                 tester.contactRequest().
                                                                     anotherContact().
+                                                                    receiveResponse();
+
+                                                                tester.groupsContainingContactRequest().
+                                                                    fifthContact().
                                                                     receiveResponse();
 
                                                                 tester.button('Вернуться к чату').expectNotToExist();
@@ -886,6 +921,11 @@ tests.addTest(options => {
                                                                 tester.listRequest().receiveResponse();
                                                                 tester.siteListRequest().receiveResponse();
                                                                 tester.messageTemplateListRequest().receiveResponse();
+
+                                                                tester.groupsContainingContactRequest().
+                                                                    receiveResponse();
+
+                                                                tester.contactGroupsRequest().receiveResponse();
                                                                 tester.usersRequest().forContacts().receiveResponse();
                                                                 tester.contactRequest().receiveResponse();
 
@@ -902,6 +942,61 @@ tests.addTest(options => {
 
                                                                 tester.button('Вернуться к чату').expectNotToExist();
                                                             });
+                                                        });
+                                                        it(
+                                                            'Нажимаю на кнопку перехода к контакту. Отображена ' +
+                                                            'кнопка возврата к чату.',
+                                                        function() {
+                                                            tester.contactBar.title.anchor.click();
+
+                                                            tester.contactsRequest().
+                                                                differentNames().
+                                                                receiveResponse();
+
+                                                            const requests = ajax.inAnyOrder();
+
+                                                            contactCommunicationsRequest = tester.
+                                                                contactCommunicationsRequest().
+                                                                expectToBeSent(requests);
+
+                                                            contactRequest = tester.contactRequest().
+                                                                expectToBeSent(requests);
+
+                                                            const usersRequest = tester.usersRequest().
+                                                                forContacts().
+                                                                expectToBeSent(requests);
+
+                                                            const contactGroupsRequest =
+                                                                tester.contactGroupsRequest().
+                                                                    expectToBeSent(requests);
+
+                                                            const secondContactGroupsRequest =
+                                                                tester.contactGroupsRequest().
+                                                                    expectToBeSent(requests);
+
+                                                            const groupsContainingContactRequest =
+                                                                tester.groupsContainingContactRequest().
+                                                                    expectToBeSent(requests);
+
+                                                            requests.expectToBeSent();
+
+                                                            usersRequest.receiveResponse();
+                                                            contactRequest.receiveResponse();
+                                                            contactCommunicationsRequest.receiveResponse();
+                                                            contactGroupsRequest.receiveResponse();
+                                                            secondContactGroupsRequest.receiveResponse();
+                                                            groupsContainingContactRequest.receiveResponse();
+
+                                                            tester.button('Вернуться к чату').expectToBeVisible();
+                                                        });
+                                                        it(
+                                                            'Помещаю курсор над кнопкой перехода к контакту. ' +
+                                                            'Отображена подсказка.',
+                                                        function() {
+                                                            tester.contactBar.title.anchor.putMouseOver();
+
+                                                            tester.tooltip.
+                                                                expectToHaveTextContent('Переход к контакту');
                                                         });
                                                         it('Сворачиваю софтфон. Разворачивая софтфон.', function() {
                                                             tester.maximizednessButton.click();
@@ -957,6 +1052,8 @@ tests.addTest(options => {
                                                             listRequest.receiveResponse();
                                                             siteListRequest.receiveResponse();
                                                             messageTemplateListRequest.receiveResponse();
+                                                            tester.groupsContainingContactRequest().receiveResponse();
+                                                            tester.contactGroupsRequest().receiveResponse();
 
                                                             tester.usersRequest().
                                                                 forContacts().
@@ -1011,47 +1108,95 @@ tests.addTest(options => {
                                                         tester.button('Настройки').click();
                                                     });
 
-                                                    it(
-                                                        'Нажимаю на кнопку "Софтфон или IP-телефон". Отмечена кнопка ' +
-                                                        '"IP-телефон".',
-                                                    function() {
-                                                        tester.button('IP-телефон').click();
+                                                    describe('Нажимаю на кнопку "Софтфон".', function() {
+                                                        beforeEach(function() {
+                                                            tester.popover.button('Софтфон').click();
+                                                        });
 
-                                                        tester.settingsUpdatingRequest().
-                                                            callsAreManagedByAnotherDevice().
-                                                            receiveResponse();
+                                                        it(
+                                                            'Нажимаю на кнопку "Софтфон или IP-телефон". Отмечена ' +
+                                                            'кнопка "IP-телефон".',
+                                                        function() {
+                                                            tester.button('IP-телефон').click();
 
-                                                        tester.settingsRequest().callsAreManagedByAnotherDevice().
-                                                            receiveResponse();
+                                                            tester.settingsUpdatingRequest().
+                                                                callsAreManagedByAnotherDevice().
+                                                                receiveResponse();
 
-                                                        tester.registrationRequest().
-                                                            desktopSoftphone().
-                                                            expired().
-                                                            receiveResponse();
-                                                        
-                                                        spendTime(2000);
-                                                        tester.webrtcWebsocket.finishDisconnecting();
+                                                            tester.settingsRequest().callsAreManagedByAnotherDevice().
+                                                                receiveResponse();
 
-                                                        tester.dialpadButton(1).expectToBeVisible();
+                                                            tester.registrationRequest().
+                                                                desktopSoftphone().
+                                                                expired().
+                                                                receiveResponse();
+                                                            
+                                                            spendTime(2000);
+                                                            tester.webrtcWebsocket.finishDisconnecting();
 
-                                                        tester.button('Текущее устройство').expectNotToBeChecked();
-                                                        tester.button('IP-телефон').expectToBeChecked();
+                                                            tester.dialpadButton(1).expectToBeVisible();
+
+                                                            tester.button('Текущее устройство').expectNotToBeChecked();
+                                                            tester.button('IP-телефон').expectToBeChecked();
+                                                        });
+                                                        it(
+                                                            'Открываю вкладку "Помощь". Отображена форма обратной ' +
+                                                            'связи.',
+                                                        function() {
+                                                            tester.button('Помощь').click();
+                                                            tester.button('Отправить').expectToBeVisible();
+                                                        });
+                                                        it('Открыта страница настроек.', function() {
+                                                            tester.button('Статистика').expectNotToBePressed();
+                                                            tester.button('История звонков').expectNotToBePressed();
+                                                            tester.button('Настройки').expectToBePressed();
+
+                                                            tester.button('Автозапуск приложения').expectToBeVisible();
+
+                                                            tester.button('Текущее устройство').expectToBeChecked();
+                                                            tester.button('IP-телефон').expectNotToBeChecked();
+                                                        });
                                                     });
-                                                    it(
-                                                        'Открываю вкладку "Помощь". Отображена форма обратной связи.',
-                                                    function() {
-                                                        tester.button('Помощь').click();
-                                                        tester.button('Отправить').expectToBeVisible();
-                                                    });
-                                                    it('Открыта страница настроек.', function() {
-                                                        tester.button('Статистика').expectNotToBePressed();
-                                                        tester.button('История звонков').expectNotToBePressed();
-                                                        tester.button('Настройки').expectToBePressed();
+                                                    it('Нажимаю на кнопку "Чаты".', function() {
+                                                        tester.popover.button('Чаты').click();
 
-                                                        tester.button('Автозапуск приложения').expectToBeVisible();
+                                                        const requests = ajax.inAnyOrder();
 
-                                                        tester.button('Текущее устройство').expectToBeChecked();
-                                                        tester.button('IP-телефон').expectNotToBeChecked();
+                                                        const accountRequest = tester.accountRequest().
+                                                            operatorWorkplaceAvailable().
+                                                            forChats().
+                                                            expectToBeSent();
+
+                                                        const chatSettingsRequest = tester.chatSettingsRequest().
+                                                            expectToBeSent();
+
+                                                        const chatChannelListRequest = tester.chatChannelListRequest().
+                                                            expectToBeSent();
+
+                                                        const listRequest = tester.listRequest().
+                                                            expectToBeSent();
+
+                                                        const siteListRequest = tester.siteListRequest().
+                                                            expectToBeSent();
+
+                                                        const messageTemplateListRequest =
+                                                            tester.messageTemplateListRequest().
+                                                                expectToBeSent();
+
+                                                        const offlineMessageDisplayTypesRequest =
+                                                            tester.offlineMessageDisplayTypesRequest().
+                                                                expectToBeSent();
+
+                                                        requests.expectToBeSent();
+
+                                                        accountRequest.receiveResponse();
+                                                        chatChannelListRequest.receiveResponse();
+                                                        listRequest.receiveResponse();
+                                                        siteListRequest.receiveResponse();
+                                                        messageTemplateListRequest.receiveResponse();
+                                                        offlineMessageDisplayTypesRequest.receiveResponse();
+
+                                                        tester.chips('Property Finder').expectToBeVisible();
                                                     });
                                                 });
                                                 describe(
@@ -1078,6 +1223,8 @@ tests.addTest(options => {
 
                                                         tester.usersRequest().forContacts().receiveResponse();
                                                         tester.contactRequest().receiveResponse();
+                                                        tester.groupsContainingContactRequest().receiveResponse();
+                                                        tester.contactGroupsRequest().receiveResponse();
                                                     });
 
                                                     it(
@@ -1105,13 +1252,23 @@ tests.addTest(options => {
                                                         const contactGroupsRequest = tester.contactGroupsRequest().
                                                             expectToBeSent(requests);
 
+                                                        const secondContactGroupsRequest =
+                                                            tester.contactGroupsRequest().
+                                                                expectToBeSent(requests);
+
+                                                        const groupsContainingContactRequest =
+                                                            tester.groupsContainingContactRequest().
+                                                                expectToBeSent(requests);
+
                                                         requests.expectToBeSent();
 
                                                         usersRequest.receiveResponse();
                                                         contactRequest.receiveResponse();
                                                         contactCommunicationsRequest.receiveResponse();
                                                         contactGroupsRequest.receiveResponse();
-                                                            
+                                                        secondContactGroupsRequest.receiveResponse();
+                                                        groupsContainingContactRequest.receiveResponse();
+
                                                         tester.button('Вернуться к чату').expectNotToExist();
                                                     });
                                                     it(
@@ -1336,6 +1493,10 @@ tests.addTest(options => {
                                                                 active().
                                                                 receiveResponse();
 
+                                                            tester.pinnedChatListRequest().
+                                                                noData().
+                                                                receiveResponse();
+
                                                             tester.chatListRequest().
                                                                 forCurrentEmployee().
                                                                 closed().
@@ -1433,6 +1594,7 @@ tests.addTest(options => {
                                                             tester.select.option('Контакт').click();
 
                                                             tester.usersRequest().forContacts().receiveResponse();
+                                                            tester.contactGroupsRequest().receiveResponse();
 
                                                             tester.input.
                                                                 withPlaceholder('Фамилия (Обязательное поле)').
@@ -1460,7 +1622,7 @@ tests.addTest(options => {
 
                                                             tester.button('Создать контакт').click();
                                                             tester.contactCreatingRequest().receiveResponse();
-
+                                                            
                                                             const requests = ajax.inAnyOrder();
 
                                                             const contactRequest = tester.contactRequest().
@@ -1469,11 +1631,16 @@ tests.addTest(options => {
                                                             const contactCommunicationsRequest =
                                                                 tester.contactCommunicationsRequest().
                                                                     expectToBeSent(requests);
-                                                            
+
+                                                            const groupsContainingContactRequest =
+                                                                tester.groupsContainingContactRequest().
+                                                                    expectToBeSent(requests);
+
                                                             requests.expectToBeSent();
 
                                                             contactRequest.receiveResponse();
                                                             contactCommunicationsRequest.receiveResponse();
+                                                            groupsContainingContactRequest.receiveResponse();
                                                         });
 
                                                         describe('Нажимаю на кнопку сворачивания.', function() {
@@ -1520,6 +1687,14 @@ tests.addTest(options => {
                                                                     tester.contactGroupsRequest().
                                                                         expectToBeSent(requests);
 
+                                                                const secondContactGroupsRequest =
+                                                                    tester.contactGroupsRequest().
+                                                                        expectToBeSent(requests);
+
+                                                                const groupsContainingContactRequest =
+                                                                    tester.groupsContainingContactRequest().
+                                                                        expectToBeSent(requests);
+                                                                 
                                                                 const employeesRequest = tester.employeesRequest().
                                                                     expectToBeSent(requests);
 
@@ -1534,7 +1709,9 @@ tests.addTest(options => {
                                                                 contactsRequest.receiveResponse();
                                                                 employeesRequest.receiveResponse();
                                                                 contactGroupsRequest.receiveResponse();
+                                                                secondContactGroupsRequest.receiveResponse();
                                                                 countersRequest.receiveResponse();
+                                                                groupsContainingContactRequest.receiveResponse();
 
                                                                 tester.offlineMessageCountersRequest().
                                                                     receiveResponse();
@@ -1552,6 +1729,10 @@ tests.addTest(options => {
                                                                     forCurrentEmployee().
                                                                     thirdPage().
                                                                     active().
+                                                                    receiveResponse();
+
+                                                                tester.pinnedChatListRequest().
+                                                                    noData().
                                                                     receiveResponse();
 
                                                                 tester.chatListRequest().
@@ -1726,6 +1907,10 @@ tests.addTest(options => {
                                                         forCurrentEmployee().
                                                         secondPage().
                                                         active().
+                                                        receiveResponse();
+
+                                                    tester.pinnedChatListRequest().
+                                                        noData().
                                                         receiveResponse();
 
                                                     tester.chatListRequest().
@@ -2007,6 +2192,10 @@ tests.addTest(options => {
                                                         active().
                                                         receiveResponse();
 
+                                                    tester.pinnedChatListRequest().
+                                                        noData().
+                                                        receiveResponse();
+
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
                                                         closed().
@@ -2213,6 +2402,10 @@ tests.addTest(options => {
                                                         active().
                                                         receiveResponse();
 
+                                                    tester.pinnedChatListRequest().
+                                                        noData().
+                                                        receiveResponse();
+
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
                                                         closed().
@@ -2345,6 +2538,10 @@ tests.addTest(options => {
                                                         forCurrentEmployee().
                                                         secondPage().
                                                         active().
+                                                        receiveResponse();
+
+                                                    tester.pinnedChatListRequest().
+                                                        noData().
                                                         receiveResponse();
 
                                                     tester.chatListRequest().
@@ -2682,6 +2879,10 @@ tests.addTest(options => {
                                                     active().
                                                     receiveResponse();
 
+                                                tester.pinnedChatListRequest().
+                                                    noData().
+                                                    receiveResponse();
+
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
                                                     closed().
@@ -2783,6 +2984,10 @@ tests.addTest(options => {
                                                     active().
                                                     receiveResponse();
 
+                                                tester.pinnedChatListRequest().
+                                                    noData().
+                                                    receiveResponse();
+
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
                                                     secondPage().
@@ -2871,6 +3076,10 @@ tests.addTest(options => {
                                                     forCurrentEmployee().
                                                     secondPage().
                                                     active().
+                                                    receiveResponse();
+
+                                                tester.pinnedChatListRequest().
+                                                    noData().
                                                     receiveResponse();
 
                                                 tester.chatListRequest().
@@ -3223,6 +3432,10 @@ tests.addTest(options => {
                                                         active().
                                                         receiveResponse();
 
+                                                    tester.pinnedChatListRequest().
+                                                        noData().
+                                                        receiveResponse();
+
                                                     tester.chatListRequest().
                                                         forCurrentEmployee().
                                                         count(0).
@@ -3481,6 +3694,10 @@ tests.addTest(options => {
                                                     secondPage().
                                                     active().
                                                     receiveResponse();
+                                                
+                                                tester.pinnedChatListRequest().
+                                                    noData().
+                                                    receiveResponse();
 
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
@@ -3607,6 +3824,10 @@ tests.addTest(options => {
                                                     forCurrentEmployee().
                                                     anyScrollFromDate().
                                                     active().
+                                                    receiveResponse();
+
+                                                tester.pinnedChatListRequest().
+                                                    noData().
                                                     receiveResponse();
 
                                                 tester.chatListRequest().
@@ -3738,6 +3959,10 @@ tests.addTest(options => {
                                                 count(0).
                                                 receiveResponse();
 
+                                            tester.pinnedChatListRequest().
+                                                noData().
+                                                receiveResponse();
+
                                             tester.chatListRequest().
                                                 forCurrentEmployee().
                                                 anyScrollFromDate().
@@ -3840,6 +4065,10 @@ tests.addTest(options => {
                                                 anyScrollFromDate().
                                                 active().
                                                 count(0).
+                                                receiveResponse();
+
+                                            tester.pinnedChatListRequest().
+                                                noData().
                                                 receiveResponse();
 
                                             tester.chatListRequest().
@@ -3962,6 +4191,10 @@ tests.addTest(options => {
                                                 active().
                                                 receiveResponse();
 
+                                            tester.pinnedChatListRequest().
+                                                noData().
+                                                receiveResponse();
+
                                             tester.chatListRequest().
                                                 forCurrentEmployee().
                                                 anyScrollFromDate().
@@ -4066,6 +4299,10 @@ tests.addTest(options => {
                                                     count(0).
                                                     expectToBeSent(requests);
 
+                                                const pinnedChatListRequest = tester.pinnedChatListRequest().
+                                                    noData().
+                                                    expectToBeSent(requests);
+
                                                 const closedChatListRequest = tester.chatListRequest().
                                                     forCurrentEmployee().
                                                     anyScrollFromDate().
@@ -4086,6 +4323,7 @@ tests.addTest(options => {
                                                 chatAccountRequest.receiveResponse();
                                                 secondChatAccountRequest.receiveResponse();
                                                 activeChatListRequest.receiveResponse();
+                                                pinnedChatListRequest.receiveResponse();
                                                 closedChatListRequest.receiveResponse();
                                                 reportsListRequest.receiveResponse();
 
@@ -4114,6 +4352,10 @@ tests.addTest(options => {
                                                     anyScrollFromDate().
                                                     active().
                                                     count(0).
+                                                    receiveResponse();
+                                                
+                                                tester.pinnedChatListRequest().
+                                                    noData().
                                                     receiveResponse();
 
                                                 tester.chatListRequest().
@@ -4172,6 +4414,7 @@ tests.addTest(options => {
                                                 tester.visitorCardRequest().receiveResponse();
                                                 tester.messageListRequest().receiveResponse();
                                                 tester.employeesRequest().receiveResponse();
+                                                tester.contactGroupsRequest().receiveResponse();
 
                                                 tester.chatList.item('Привет').expectToBeSelected();
                                                 tester.chatList.item('Здравствуй').expectNotToBeSelected();
@@ -4208,6 +4451,7 @@ tests.addTest(options => {
                                                 tester.visitorCardRequest().receiveResponse();
                                                 tester.messageListRequest().receiveResponse();
                                                 tester.employeesRequest().receiveResponse();
+                                                tester.contactGroupsRequest().receiveResponse();
 
                                                 tester.chatList.item('Привет').expectToBeSelected();
                                                 tester.chatList.item('Здравствуй').expectNotToBeSelected();
@@ -4355,6 +4599,10 @@ tests.addTest(options => {
                                                     count(0).
                                                     receiveResponse();
 
+                                                tester.pinnedChatListRequest().
+                                                    noData().
+                                                    receiveResponse();
+
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
                                                     anyScrollFromDate().
@@ -4402,7 +4650,11 @@ tests.addTest(options => {
                                                         anotherMessage().
                                                         read().
                                                         expectToBeSent(requests);
+
                                                     const employeesRequest = tester.employeesRequest().
+                                                        expectToBeSent(requests);
+
+                                                    const contactGroupsRequest = tester.contactGroupsRequest().
                                                         expectToBeSent(requests);
 
                                                     requests.expectToBeSent();
@@ -4416,6 +4668,7 @@ tests.addTest(options => {
                                                     messageTemplateListRequest.receiveResponse();
                                                     changeMessageStatusRequest.receiveResponse();
                                                     employeesRequest.receiveResponse();
+                                                    contactGroupsRequest.receiveResponse();
                                                 }
 
                                                 tester.body.expectTextContentToHaveSubstring(
@@ -4506,6 +4759,10 @@ tests.addTest(options => {
                                                     active().
                                                     receiveResponse();
 
+                                                tester.pinnedChatListRequest().
+                                                    noData().
+                                                    receiveResponse();
+
                                                 tester.chatListRequest().
                                                     forCurrentEmployee().
                                                     anyScrollFromDate().
@@ -4550,13 +4807,15 @@ tests.addTest(options => {
                                                 tester.visitorCardRequest().receiveResponse();
                                                 tester.usersRequest().forContacts().receiveResponse();
                                                 tester.contactRequest().receiveResponse();
+                                                tester.groupsContainingContactRequest().receiveResponse();
+                                                tester.contactGroupsRequest().receiveResponse();
 
                                                 tester.contactBar.section('ФИО').anchor.click();
 
                                                 tester.contactsRequest().
                                                     differentNames().
                                                     receiveResponse();
-
+                                                
                                                 const requests = ajax.inAnyOrder();
 
                                                 contactCommunicationsRequest = tester.
@@ -4573,12 +4832,20 @@ tests.addTest(options => {
                                                 const contactGroupsRequest = tester.contactGroupsRequest().
                                                     expectToBeSent(requests);
 
+                                                const secondContactGroupsRequest = tester.contactGroupsRequest().
+                                                    expectToBeSent(requests);
+
+                                                const groupsContainingContactRequest =
+                                                    tester.groupsContainingContactRequest().expectToBeSent(requests);
+
                                                 requests.expectToBeSent();
 
                                                 usersRequest.receiveResponse();
                                                 contactRequest.receiveResponse();
                                                 contactCommunicationsRequest.receiveResponse();
                                                 contactGroupsRequest.receiveResponse();
+                                                secondContactGroupsRequest.receiveResponse();
+                                                groupsContainingContactRequest.receiveResponse();
 
                                                 tester.button('Вернуться к заявке').click();
 
@@ -4592,6 +4859,8 @@ tests.addTest(options => {
                                                 tester.listRequest().receiveResponse();
                                                 tester.siteListRequest().receiveResponse();
                                                 tester.messageTemplateListRequest().receiveResponse();
+                                                tester.groupsContainingContactRequest().receiveResponse();
+                                                tester.contactGroupsRequest().receiveResponse();
                                                 tester.usersRequest().forContacts().receiveResponse();
                                                 tester.contactRequest().receiveResponse();
 
@@ -4701,6 +4970,10 @@ tests.addTest(options => {
                                             active().
                                             receiveResponse();
 
+                                        tester.pinnedChatListRequest().
+                                            noData().
+                                            receiveResponse();
+
                                         tester.chatListRequest().
                                             forCurrentEmployee().
                                             anyScrollFromDate().
@@ -4781,6 +5054,10 @@ tests.addTest(options => {
                                             forCurrentEmployee().
                                             anyScrollFromDate().
                                             active().
+                                            receiveResponse();
+
+                                        tester.pinnedChatListRequest().
+                                            noData().
                                             receiveResponse();
 
                                         tester.chatListRequest().
@@ -4991,6 +5268,7 @@ tests.addTest(options => {
 
                             tester.chatListRequest().forCurrentEmployee().receiveResponse();
                             tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                            tester.pinnedChatListRequest().noData().receiveResponse();
                             tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                             tester.chatChannelTypeListRequest().receiveResponse();
@@ -5075,6 +5353,7 @@ tests.addTest(options => {
 
                                 tester.chatListRequest().forCurrentEmployee().receiveResponse();
                                 tester.chatListRequest().forCurrentEmployee().count(0).active().receiveResponse();
+                                tester.pinnedChatListRequest().noData().receiveResponse();
                                 tester.chatListRequest().forCurrentEmployee().count(0).closed().receiveResponse();
 
                                 tester.chatChannelTypeListRequest().receiveResponse();
@@ -5190,6 +5469,10 @@ tests.addTest(options => {
                                             active().
                                             receiveResponse();
 
+                                        tester.pinnedChatListRequest().
+                                            noData().
+                                            receiveResponse();
+
                                         tester.chatListRequest().
                                             forCurrentEmployee().
                                             count(0).
@@ -5265,6 +5548,9 @@ tests.addTest(options => {
                                     contactRequest.receiveResponse();
                                     contactCommunicationsRequest.receiveResponse();
                                     contactGroupsRequest.receiveResponse();
+
+                                    tester.groupsContainingContactRequest().receiveResponse();
+                                    tester.contactGroupsRequest().receiveResponse();
                                 });
 
                                 it(
@@ -5279,7 +5565,7 @@ tests.addTest(options => {
                                 function() {
                                     setFocus(false);
                                     tester.newMessage().receive();
-
+                                    
                                     tester.chatListRequest().
                                         chat().
                                         receiveResponse();
@@ -5402,6 +5688,7 @@ tests.addTest(options => {
 
                                     tester.chatListRequest().forCurrentEmployee().receiveResponse();
                                     tester.chatListRequest().forCurrentEmployee().count(0).active().receiveResponse();
+                                    tester.pinnedChatListRequest().noData().receiveResponse();
                                     tester.chatListRequest().forCurrentEmployee().count(0).closed().receiveResponse();
 
                                     tester.chatChannelTypeListRequest().receiveResponse();
@@ -5472,8 +5759,13 @@ tests.addTest(options => {
                                 getPackage('electron').ipcRenderer.receiveMessage('update-downloaded');
                                 tester.alert.expectTextContentToHaveSubstring('Получено обновление');
                             });
+                            it('Нажимаю на кнопку "Настройки".', function() {
+                                tester.button('Настройки').click();
+                                tester.offlineMessageDisplayTypesRequest().receiveResponse();
+
+                                tester.chips('Property Finder').expectToBeVisible();
+                            });
                             it('Отображен раздел чатов.', function() {
-                                tester.button('Настройки').expectNotToExist();
                                 tester.chatList.expectToBeVisible();
                             });
                         });
@@ -5583,6 +5875,7 @@ tests.addTest(options => {
 
                                     tester.chatListRequest().forCurrentEmployee().receiveResponse();
                                     tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                                    tester.pinnedChatListRequest().noData().receiveResponse();
                                     tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                                     tester.chatChannelTypeListRequest().receiveResponse();
@@ -5711,6 +6004,7 @@ tests.addTest(options => {
 
                             tester.chatListRequest().forCurrentEmployee().receiveResponse();
                             tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                            tester.pinnedChatListRequest().noData().receiveResponse();
                             tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                             tester.chatChannelTypeListRequest().receiveResponse();
@@ -5720,71 +6014,131 @@ tests.addTest(options => {
                             tester.offlineMessageListRequest().processed().receiveResponse();
                         });
 
-                        it('Разворачиваю приложение. Открываю список статусов.', function() {
-                            tester.maximizednessButton.click();
+                        describe('Разворачиваю приложение.', function() {
+                            beforeEach(function() {
+                                tester.maximizednessButton.click();
 
-                            getPackage('electron').ipcRenderer.
-                                recentlySentMessage().
-                                expectToBeSentToChannel('resize').
-                                expectToBeSentWithArguments({
-                                    width: 340,
-                                    height: 568
-                                });
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('resize').
+                                    expectToBeSentWithArguments({
+                                        width: 340,
+                                        height: 568
+                                    });
 
-                            getPackage('electron').ipcRenderer.
-                                recentlySentMessage().
-                                expectToBeSentToChannel('maximize');
-                            
-                            const requests = ajax.inAnyOrder();
+                                getPackage('electron').ipcRenderer.
+                                    recentlySentMessage().
+                                    expectToBeSentToChannel('maximize');
+                                
+                                const requests = ajax.inAnyOrder();
 
-                            const statsRequest = tester.statsRequest().
-                                expectToBeSent(requests);
+                                const statsRequest = tester.statsRequest().
+                                    expectToBeSent(requests);
 
-                            const accountRequest = tester.accountRequest().
-                                operatorWorkplaceAvailable().
-                                en().
-                                forChats().
-                                expectToBeSent(requests);
+                                const accountRequest = tester.accountRequest().
+                                    operatorWorkplaceAvailable().
+                                    en().
+                                    forChats().
+                                    expectToBeSent(requests);
 
-                            requests.expectToBeSent();
+                                requests.expectToBeSent();
 
-                            statsRequest.receiveResponse();
-                            accountRequest.receiveResponse();
+                                statsRequest.receiveResponse();
+                                accountRequest.receiveResponse();
 
-                            tester.reportsListRequest().receiveResponse();
-                            tester.countersRequest().receiveResponse();
-                            tester.offlineMessageCountersRequest().receiveResponse();
-                            tester.chatChannelListRequest().receiveResponse();
-                            tester.siteListRequest().receiveResponse();
-                            tester.markListRequest().receiveResponse();
+                                tester.reportsListRequest().receiveResponse();
+                                tester.countersRequest().receiveResponse();
+                                tester.offlineMessageCountersRequest().receiveResponse();
+                                tester.chatChannelListRequest().receiveResponse();
+                                tester.siteListRequest().receiveResponse();
+                                tester.markListRequest().receiveResponse();
 
-                            tester.chatListRequest().
-                                forCurrentEmployee().
-                                secondPage().
-                                receiveResponse();
+                                tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    secondPage().
+                                    receiveResponse();
 
-                            tester.chatListRequest().
-                                forCurrentEmployee().
-                                secondPage().
-                                active().
-                                receiveResponse();
+                                tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    secondPage().
+                                    active().
+                                    receiveResponse();
 
-                            tester.chatListRequest().
-                                forCurrentEmployee().
-                                secondPage().
-                                closed().
-                                receiveResponse();
+                                tester.pinnedChatListRequest().noData().receiveResponse();
 
-                            tester.chatChannelTypeListRequest().receiveResponse();
+                                tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    secondPage().
+                                    closed().
+                                    receiveResponse();
 
-                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                            tester.offlineMessageListRequest().processing().receiveResponse();
-                            tester.offlineMessageListRequest().processed().receiveResponse();
+                                tester.chatChannelTypeListRequest().receiveResponse();
 
-                            tester.leftMenu.userName.click();
+                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                tester.offlineMessageListRequest().processing().receiveResponse();
+                                tester.offlineMessageListRequest().processed().receiveResponse();
+                            });
 
-                            tester.statusesList.item('Выход').expectNotToExist();
-                            tester.statusesList.item('Log out').expectToBeVisible();
+                            it('Открываю раздел контактов.', function() {
+                                tester.button('99+ Chats').click();
+
+                                tester.accountRequest().
+                                    operatorWorkplaceAvailable().
+                                    forChats().
+                                    receiveResponse();
+
+                                tester.chatSettingsRequest().receiveResponse();
+                                tester.chatChannelListRequest().receiveResponse();
+                                tester.listRequest().receiveResponse();
+                                tester.siteListRequest().receiveResponse();
+                                tester.messageTemplateListRequest().receiveResponse();
+
+                                tester.chatList.input.fill('Сообщение #75');
+                                tester.chatList.input.pressEnter();
+
+                                tester.searchResultsRequest().
+                                    contactExists().
+                                    receiveResponse();
+
+                                tester.chatList.item('Сообщение #75').click();
+
+                                tester.chatListRequest().
+                                    contactExists().
+                                    thirdChat().
+                                    receiveResponse();
+
+                                tester.visitorCardRequest().receiveResponse();
+                                tester.messageListRequest().receiveResponse();
+                                tester.usersRequest().forContacts().receiveResponse();
+
+                                tester.contactRequest().
+                                    addTelegram().
+                                    addFourthTelegram().
+                                    receiveResponse();
+
+                                tester.groupsContainingContactRequest().receiveResponse();
+                                tester.contactGroupsRequest().receiveResponse();
+
+                                tester.collapsablePanel('Notes').
+                                    title.
+                                    click();
+
+                                tester.collapsablePanel('Notes').
+                                    content.
+                                    row('Tags').
+                                    tagField.
+                                    button.
+                                    click();
+
+                                tester.button('По алфавиту').expectNotToExist();
+                                tester.button('Alphabetically').expectToBeVisible();
+                            });
+                            it('Открываю список статусов. Кнопка выхода локализована.', function() {
+                                tester.leftMenu.userName.click();
+
+                                tester.statusesList.item('Выход').expectNotToExist();
+                                tester.statusesList.item('Log out').expectToBeVisible();
+                            });
                         });
                         it('Открываю список номеров. Плейсхолдер поля поиска локализован.', function() {
                             tester.select.arrow.click();
@@ -5870,6 +6224,7 @@ tests.addTest(options => {
 
                             tester.chatListRequest().forCurrentEmployee().receiveResponse();
                             tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                            tester.pinnedChatListRequest().noData().receiveResponse();
                             tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                             tester.chatChannelTypeListRequest().receiveResponse();
@@ -5918,6 +6273,10 @@ tests.addTest(options => {
                                 forCurrentEmployee().
                                 secondPage().
                                 active().
+                                receiveResponse();
+
+                            tester.pinnedChatListRequest().
+                                noData().
                                 receiveResponse();
 
                             tester.chatListRequest().
@@ -6022,6 +6381,7 @@ tests.addTest(options => {
 
                         tester.chatListRequest().forCurrentEmployee().receiveResponse();
                         tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                        tester.pinnedChatListRequest().noData().receiveResponse();
                         tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                         tester.chatChannelTypeListRequest().receiveResponse();
@@ -6111,6 +6471,7 @@ tests.addTest(options => {
 
                         tester.chatListRequest().forCurrentEmployee().receiveResponse();
                         tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                        tester.pinnedChatListRequest().noData().receiveResponse();
                         tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                         tester.chatChannelTypeListRequest().receiveResponse();
@@ -6203,11 +6564,22 @@ tests.addTest(options => {
                     tester.siteListRequest().receiveResponse();
                     tester.markListRequest().receiveResponse();
 
-                    newChatListRequest = tester.chatListRequest().forCurrentEmployee().
+                    newChatListRequest = tester.chatListRequest().
+                        forCurrentEmployee().
                         expectToBeSent();
-                    activeChatListRequest = tester.chatListRequest().forCurrentEmployee().active().
+
+                    activeChatListRequest = tester.chatListRequest().
+                        forCurrentEmployee().
+                        active().
                         expectToBeSent();
-                    closedChatListRequest = tester.chatListRequest().forCurrentEmployee().closed().
+
+                    tester.pinnedChatListRequest().
+                        noData().
+                        receiveResponse();
+
+                    closedChatListRequest = tester.chatListRequest().
+                        forCurrentEmployee().
+                        closed().
                         expectToBeSent();
 
                     tester.chatChannelTypeListRequest().receiveResponse();
@@ -6472,6 +6844,7 @@ tests.addTest(options => {
 
                 tester.chatListRequest().forCurrentEmployee().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.pinnedChatListRequest().noData().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                 tester.chatChannelTypeListRequest().receiveResponse();
@@ -6528,6 +6901,10 @@ tests.addTest(options => {
                         forCurrentEmployee().
                         secondPage().
                         active().
+                        receiveResponse();
+
+                    tester.pinnedChatListRequest().
+                        noData().
                         receiveResponse();
 
                     tester.chatListRequest().
@@ -6639,6 +7016,10 @@ tests.addTest(options => {
                         active().
                         receiveResponse();
 
+                    tester.pinnedChatListRequest().
+                        noData().
+                        receiveResponse();
+
                     tester.chatListRequest().
                         forCurrentEmployee().
                         secondPage().
@@ -6663,7 +7044,8 @@ tests.addTest(options => {
                     const contactCommunicationsRequest = tester.contactCommunicationsRequest().
                         expectToBeSent(requests);
 
-                    const usersRequest = tester.usersRequest().forContacts().
+                    const usersRequest = tester.usersRequest().
+                        forContacts().
                         expectToBeSent(requests);
 
                     requests.expectToBeSent();
@@ -6671,6 +7053,9 @@ tests.addTest(options => {
                     usersRequest.receiveResponse();
                     contactRequest.receiveResponse();
                     contactCommunicationsRequest.receiveResponse();
+
+                    tester.groupsContainingContactRequest().receiveResponse();
+                    tester.contactGroupsRequest().receiveResponse();
 
                     tester.contactBar.
                         section('Телефоны').
@@ -6959,6 +7344,7 @@ tests.addTest(options => {
 
                 tester.chatListRequest().forCurrentEmployee().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.pinnedChatListRequest().noData().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                 tester.chatChannelTypeListRequest().receiveResponse();
@@ -7113,6 +7499,7 @@ tests.addTest(options => {
 
                 tester.chatListRequest().forCurrentEmployee().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.pinnedChatListRequest().noData().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                 tester.chatChannelTypeListRequest().receiveResponse();
@@ -7168,6 +7555,10 @@ tests.addTest(options => {
                     forCurrentEmployee().
                     secondPage().
                     active().
+                    receiveResponse();
+
+                tester.pinnedChatListRequest().
+                    noData().
                     receiveResponse();
 
                 tester.chatListRequest().
@@ -7369,6 +7760,7 @@ tests.addTest(options => {
 
                 tester.chatListRequest().forCurrentEmployee().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.pinnedChatListRequest().noData().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                 tester.chatChannelTypeListRequest().receiveResponse();
@@ -7528,6 +7920,7 @@ tests.addTest(options => {
 
                 tester.chatListRequest().forCurrentEmployee().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.pinnedChatListRequest().noData().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                 tester.chatChannelTypeListRequest().receiveResponse();
@@ -7697,6 +8090,7 @@ tests.addTest(options => {
 
                 tester.chatListRequest().forCurrentEmployee().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+                tester.pinnedChatListRequest().noData().receiveResponse();
                 tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
                 tester.chatChannelTypeListRequest().receiveResponse();
@@ -7855,6 +8249,7 @@ tests.addTest(options => {
 
             tester.chatListRequest().forCurrentEmployee().receiveResponse();
             tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+            tester.pinnedChatListRequest().noData().receiveResponse();
             tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
             tester.chatChannelTypeListRequest().receiveResponse();
@@ -7987,6 +8382,7 @@ tests.addTest(options => {
 
             tester.chatListRequest().forCurrentEmployee().receiveResponse();
             tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
+            tester.pinnedChatListRequest().noData().receiveResponse();
             tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
 
             tester.chatChannelTypeListRequest().receiveResponse();

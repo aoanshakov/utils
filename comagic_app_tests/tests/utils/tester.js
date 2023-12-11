@@ -157,6 +157,11 @@ define(() => function ({
 
     me.history = (() => {
         return {
+            push: path => {
+                history?.push(path);
+                spendTime(0);
+                spendTime(0);
+            },
             expectToHavePathName(expectedPathName) {
                 const actualPathName = history.location.pathname;
 
@@ -292,6 +297,29 @@ define(() => function ({
 
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
+
+        me.chips = text => {
+            const tester = testersFactory.createDomElementTester(
+                () =>
+                    utils.descendantOf(getRootElement()).
+                        matchesSelector('.ui-chips').
+                        textEquals(text).
+                        find()
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0), spendTime(0));
+
+            const putMouseOver = tester.putMouseOver.bind(tester);
+            tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+            const selectedClass = 'ui-chips-selected';
+
+            tester.expectToBeSelected = () => tester.expectToHaveClass(selectedClass);
+            tester.expectNotToBeSelected = () => tester.expectNotToHaveClass(selectedClass);
+
+            return tester;
+        };
 
         me.labelHelp = (() => {
             const tester = testersFactory.createDomElementTester(
@@ -510,7 +538,11 @@ define(() => function ({
                     spendTime(0);
                     spendTime(0);
                     spendTime(0);
-                }: bindedMethod;
+                }: (methodName == 'putMouseOver' ? () => {
+                    bindedMethod();
+                    spendTime(100);
+                    spendTime(0);
+                } : bindedMethod);
             });
         })();
 
@@ -1331,7 +1363,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectToHavePath('$REACT_APP_BASE_URL/chat/phone').
+                    expectToHavePath('$REACT_APP_BASE_URL/operator/chat/phone').
                     expectBodyToContain({
                         phone: '79162729534',
                         chat_id: 7189362
@@ -1361,7 +1393,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectToHavePath('$REACT_APP_BASE_URL/offline_message/mark').
+                    expectToHavePath('$REACT_APP_BASE_URL/operator/offline_message/mark').
                     expectBodyToContain({
                         id: 18222538,
                         mark_ids: [587, undefined]
@@ -1393,7 +1425,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectToHavePath('$REACT_APP_BASE_URL/chat/mark').
+                    expectToHavePath('$REACT_APP_BASE_URL/operator/chat/mark').
                     expectBodyToContain({
                         id: 7189362,
                         mark_ids: [587, undefined]
@@ -1425,7 +1457,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectPathToContain('$REACT_APP_BASE_URL/resource').
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/resource').
                     expectBodyToContain({
                         file: {
                             name: 'some-file.zip',
@@ -3076,7 +3108,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/offline_message').
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/offline_message').
                     expectToHaveMethod('DELETE').
                     expectBodyToContain(bodyParams);
 
@@ -3113,7 +3145,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/offline_message').
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/offline_message').
                     expectToHaveMethod('POST').
                     expectBodyToContain(bodyParams);
 
@@ -3147,7 +3179,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/offline_message/counters');
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/offline_message/counters');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -3166,6 +3198,8 @@ define(() => function ({
     };
 
     me.offlineMessageListRequest = () => {
+        const processors = [];
+
         const data = {
             date_time: '2020-02-10 12:10:16',
             email: 'msjdasj@mail.com',
@@ -3189,6 +3223,27 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.anotherInquiry = () => {
+                processors.push(() => (data.id = 178077));
+                data.name = 'Добрый день';
+                return me;
+            };
+
+            me.noName = () => {
+                data.name = null;
+                return me;
+            };
+
+            me.noEmployee = () => {
+                data.employee_id = null; 
+                return me;
+            };
+
+            me.noVisitorName = () => {
+                data.visitor_name = null;
+                return me;
+            };
+
             me.contactExists = () => {
                 data.contact = {
                     first_name: 'Грета',
@@ -3252,13 +3307,188 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/offline_message/list').
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/offline_message/list').
                     expectBodyToContain(bodyParams);
 
                 return addResponseModifiers({
                     receiveResponse() {
+                        processors.forEach(process => process());
+
                         request.respondSuccessfullyWith({
                             data: [data],
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    },
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.offlineMessageDisplayTypesRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath('$REACT_APP_BASE_URL/settings/offline_message/display_types');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith([{
+                            type: 'form_on_site',
+                            name: 'Встроенные формы на сайте',
+                            is_selected: false,
+                        }, {
+                            type: 'jsapi',
+                            name: 'JS API',
+                            is_selected: false,
+                        }, {
+                            type: 'standard',
+                            name: 'Стандартная',
+                            is_selected: false,
+                        }, {
+                            type: 'taxi',
+                            name: 'Такси',
+                            is_selected: false,
+                        }, {
+                            type: 'smartis',
+                            name: 'Smartis',
+                            is_selected: false,
+                        }, {
+                            type: 'dataapi',
+                            name: 'DataAPI',
+                            is_selected: false,
+                        }, {
+                            type: 'facebook',
+                            name: 'Facebook Ads',
+                            is_selected: true,
+                        }, {
+                            type: 'custom',
+                            name: 'Пользовательская',
+                            is_selected: false,
+                        }, {
+                            type: 'mytarget',
+                            name: 'myTarget Ads',
+                            is_selected: false,
+                        }, {
+                            type: 'vk_new',
+                            name: 'VK Реклама',
+                            is_selected: false,
+                        }, {
+                            type: 'propertyfinder',
+                            name: 'Property Finder',
+                            is_selected: true,
+                        }, {
+                            type: 'vk',
+                            name: 'VK Ads',
+                            is_selected: false,
+                        }, {
+                            type: 'inquiry_type_13',
+                            name: 'Inquiry 13',
+                            is_selected: false,
+                        }, {
+                            type: 'inquiry_type_14',
+                            name: 'Inquiry 14',
+                            is_selected: false,
+                        }]);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    },
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.offlineMessageDisplayTypesSavingRequest = () => {
+        const addResponseModifiers = me => me,
+            processors = [];
+
+        const data = [{
+            type: 'form_on_site',
+            name: 'Встроенные формы на сайте',
+            is_selected: false,
+        }, {
+            type: 'jsapi',
+            name: 'JS API',
+            is_selected: false,
+        }, {
+            type: 'standard',
+            name: 'Стандартная',
+            is_selected: false,
+        }, {
+            type: 'taxi',
+            name: 'Такси',
+            is_selected: false,
+        }, {
+            type: 'smartis',
+            name: 'Smartis',
+            is_selected: false,
+        }, {
+            type: 'dataapi',
+            name: 'DataAPI',
+            is_selected: false,
+        }, {
+            type: 'facebook',
+            name: 'Facebook Ads',
+            is_selected: true,
+        }, {
+            type: 'custom',
+            name: 'Пользовательская',
+            is_selected: false,
+        }, {
+            type: 'mytarget',
+            name: 'myTarget Ads',
+            is_selected: false,
+        }, {
+            type: 'vk_new',
+            name: 'VK Реклама',
+            is_selected: false,
+        }, {
+            type: 'propertyfinder',
+            name: 'Property Finder',
+            is_selected: false,
+        }, {
+            type: 'vk',
+            name: 'VK Ads',
+            is_selected: true,
+        }, {
+            type: 'inquiry_type_13',
+            name: 'Inquiry 13',
+            is_selected: false,
+        }, {
+            type: 'inquiry_type_14',
+            name: 'Inquiry 14',
+            is_selected: false,
+        }, undefined];
+
+        return addResponseModifiers({
+            allSelected() {
+                data.forEach(item => item && (item.is_selected = true));
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                processors.forEach(process => process());
+
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath('$REACT_APP_BASE_URL/settings/offline_message/display_types').
+                    expectBodyToContain(data);
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            data: true,
                         });
 
                         Promise.runAll(false, true);
@@ -3848,6 +4078,71 @@ define(() => function ({
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
             }
+        });
+    };
+
+    me.forceTransferRequest = () => {
+        const params = {
+            transfers: [{
+                chat_id: 2718935,
+                from_operator_id: null,
+                to_operator_id: 20818,
+            }, {
+                chat_id: 2718935,
+                from_operator_id: null,
+                to_operator_id: 20818,
+            }, {
+                chat_id: 2718935,
+                from_operator_id: null,
+                to_operator_id: 20818,
+            }, undefined],
+        };
+
+        let respond = request => request.respondSuccessfullyWith({
+            result: {
+                data: {
+                    results: [{
+                        chat_id: 2718935,
+                        error: null,
+                        success: true,
+                    }],
+                    succeeded_count: 1,
+                },
+            },
+        });
+
+        const addResponseModifiers = me => {
+            me.failed = () => {
+                respond = request =>
+                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectBodyToContain({
+                        method: 'force_transfer',
+                        params,
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        respond(request);
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    },
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            },
         });
     };
 
@@ -5408,7 +5703,7 @@ define(() => function ({
     me.chatChannelTypeListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/chat/channel_type/list').
+                expectPathToContain('$REACT_APP_BASE_URL/operator/chat/channel_type/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -5431,7 +5726,7 @@ define(() => function ({
     me.markListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/mark/list').
+                expectPathToContain('$REACT_APP_BASE_URL/operator/mark/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -5454,7 +5749,7 @@ define(() => function ({
     me.chatSettingsRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/settings').
+                expectPathToContain('$REACT_APP_BASE_URL/operator/settings').
                 expectToHaveMethod('GET');
 
             const response = {
@@ -5485,7 +5780,7 @@ define(() => function ({
     me.chatChannelListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/chat/channel/list').
+                expectPathToContain('$REACT_APP_BASE_URL/operator/chat/channel/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -5851,7 +6146,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/chat/info').
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/chat/info').
                     expectToHaveMethod('GET').
                     expectQueryToContain({
                         chat_id: '7189362'
@@ -5886,68 +6181,75 @@ define(() => function ({
         });
     };
 
-    me.pinnedChatListRequest = () => {
-        const interval = (1000 * 60 * 60 * 6) + (5 * 1000 * 60) + (12 * 1000) + 231;
-
-        const data = [{
-            chat_channel_id: 101,
-            chat_channel_type: 'telegram',
-            date_time: utils.formatDate(new Date(
-                (new Date('2022-01-19T17:25:22.098210')).getTime() - interval * 6
-            )),
-            id: 2718942,
-            context: null,
-            last_message: {
-                message: `Сообщение #6`,
-                date: '2022-06-24T16:04:26.0003',
-                is_operator: false,
-                resource_type: null,
-                resource_name: null
-            },
-            mark_ids: ['587', '213'],
-            phone: null,
-            site_id: 4663,
-            status: 'active',
-            visitor_id: 16479303,
-            visitor_name: 'Помакова Бисерка Драгановна',
-            visitor_type: 'omni',
-            unread_message_count: 0
-        }];
-
-        const addResponseModifiers = me => {
-            me.noData = () => (data.splice(0, data.length), me);
-            return me;
+    me.chatPinningRequest = () => {
+        const params = {
+            chat_id: 2718942
         };
+
+        let respond = request => request.respondSuccessfullyWith({
+            result: {
+                data: true,
+            },
+        });
+
+        const addResponseModifiers = me => me;
 
         return addResponseModifiers({
             expectToBeSent(requests) {
-                /*
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL').
-                    expectToHaveMethod('POST').
-                    expectBodyToContain({ method: 'get_pinned_chat_list' });
-                */
+                    expectToHavePath('$REACT_APP_BASE_URL/operator/chat/pin').
+                    expectBodyToContain(params);
+
+                spendTime(0)
 
                 return addResponseModifiers({
                     receiveResponse() {
-                        /*
-                        request.respondSuccessfullyWith({
-                            result: { data },
-                        });
-
+                        respond(request);
                         Promise.runAll(false, true);
                         spendTime(0)
                         spendTime(0)
-
-                        maybeRunSpinWrapperIntersectionCallback(getChatListSpinWrapper());
-                        */
-                    }
+                    },
                 });
             },
 
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
-            }
+            },
+        });
+    };
+
+    me.chatUnpinningRequest = () => {
+        const params = {
+            chat_id: 2718942
+        };
+
+        let respond = request => request.respondSuccessfullyWith({
+            result: {
+                data: true,
+            },
+        });
+
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath('$REACT_APP_BASE_URL/operator/chat/unpin').
+                    expectBodyToContain(params);
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        respond(request);
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    },
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            },
         });
     };
 
@@ -5965,7 +6267,8 @@ define(() => function ({
             });
         };
 
-        const processors = [];
+        const processors = [],
+            paramsProcessors = [];
 
         const params = {
             app_id: null,
@@ -5975,7 +6278,8 @@ define(() => function ({
             offset: 0,
             scroll_from_date: null,
             scroll_direction: 'down',
-            is_other_employees_appeals: undefined
+            is_other_employees_appeals: undefined,
+            is_show_pinned_chats: undefined,
         };
 
         const initialData = [{
@@ -6068,6 +6372,20 @@ define(() => function ({
         }));
         
         function addResponseModifiers (me) {
+            me.pinnedChatsExist = () => (processors.push(
+                data => {
+                    const isPinnedChat = chat => chat.id == 2718942;
+
+                    data.chats = data.chats.
+                        filter(isPinnedChat).
+                        map(chat => ({
+                            ...chat,
+                            is_pinned: true,
+                        })).
+                        concat(data.chats.filter(chat => !isPinnedChat(chat)));
+                }
+            ), me);
+
             me.shortMarks = () => (processors.push(data => {
                 data.chats[0].mark_ids = ['89', '86'];
             }), me);
@@ -6229,6 +6547,7 @@ define(() => function ({
 
             isOtherEmployeesAppeals() {
                 params.is_other_employees_appeals = true;
+                paramsProcessors.push(() => (params.is_show_pinned_chats = undefined));
                 return this;
             },
 
@@ -6274,6 +6593,7 @@ define(() => function ({
 
             active() {
                 params.statuses = ['active', undefined];
+                params.is_show_pinned_chats = true;
                 return this;
             },
 
@@ -6563,6 +6883,8 @@ define(() => function ({
             },
 
             expectToBeSent(requests) {
+                paramsProcessors.forEach(process => process());
+
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL').
                     expectToHaveMethod('POST').
@@ -6581,9 +6903,17 @@ define(() => function ({
                         };
 
                         processors.forEach(process => process(data));
+
+                        data.chats.forEach(
+                            chat => params.statuses?.[0] &&
+                                params.statuses[1] === undefined &&
+                                (chat.status = params.statuses[0])
+                        );
+
                         respond(request, data);
 
                         Promise.runAll(false, true);
+                        spendTime(0)
                         spendTime(0)
                         spendTime(0)
 
@@ -6660,7 +6990,7 @@ define(() => function ({
     me.messageTemplateCreationRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/message_template/list').
+                expectPathToContain('$REACT_APP_BASE_URL/operator/message_template/list').
                 expectBodyToContain({
                     title: 'Шаблон 1',
                     text: '',
@@ -6690,7 +7020,7 @@ define(() => function ({
     me.messageTemplateListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/message_template/list').
+                expectPathToContain('$REACT_APP_BASE_URL/operator/message_template/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -6814,7 +7144,7 @@ define(() => function ({
     me.siteListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/site/list').
+                expectPathToContain('$REACT_APP_BASE_URL/operator/site/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -6840,7 +7170,7 @@ define(() => function ({
     me.chatTransferGroupsRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/chat_transfer_group/list').
+                expectPathToContain('$REACT_APP_BASE_URL/operator/chat_transfer_group/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -6862,7 +7192,7 @@ define(() => function ({
     me.listRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/list').
+                expectPathToContain('$REACT_APP_BASE_URL/operator/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -12362,6 +12692,44 @@ define(() => function ({
         });
     };
 
+    me.groupsContainingContactRequest = () => {
+        let id = 1689283;
+
+        const response = {
+            data: []
+        };
+
+        const addResponseModifiers = me => {
+            me.anotherContact = () => (id = 2968308, me);
+            me.thirdContact = () => (id = 1689587, me);
+            me.fourthContact = () => (id = 25206823, me);
+            me.fifthContact = () => (id = 1689290, me);
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}/contact-groups`).
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0);
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            },
+        });
+    };
+
     me.contactGroupsRequest = () => {
         const queryParams = {
             search: undefined,
@@ -13842,7 +14210,8 @@ define(() => function ({
                         'contact_deleting',
                         'outgoing_chat',
                         'contact_channel_creating',
-                        'telegram_contact_channel'
+                        'telegram_contact_channel',
+                        'chat_pinning',
                     ],
                     call_center_role: 'employee',
                     components: [
@@ -13977,6 +14346,13 @@ define(() => function ({
                             'is_insert': true,
                             'is_select': true,
                             'is_update': true,
+                        },
+                        {
+                            'unit_id': 'offline_messages_management',
+                            'is_delete': true,
+                            'is_insert': true,
+                            'is_select': true,
+                            'is_update': true,
                         }
                     ],
                     is_agent_app: false
@@ -13992,6 +14368,22 @@ define(() => function ({
 
             me.en = () => {
                 response.result.data.lang = 'en';
+                return me;
+            };
+
+            me.offlineMessagesManagementUpdatingUnavailable = () => {
+                (response.result.data.permissions.find(
+                    ({ unit_id }) => unit_id == 'offline_messages_management'
+                ) || {}).is_update = false;
+
+                return me;
+            };
+
+            me.offlineMessagesManagementUnavailable = () => {
+                (response.result.data.permissions.find(
+                    ({ unit_id }) => unit_id == 'offline_messages_management'
+                ) || {}).is_select = false;
+
                 return me;
             };
 
@@ -14054,6 +14446,10 @@ define(() => function ({
 
             me.interceptionDisabled = () =>
                 ((response.result.data.feature_flags.push('interception_disabled')), me);
+
+            me.chatPinningDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'chat_pinning')), me);
 
             me.telegramContactChannelFeatureFlagDisabled = () =>
                 ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
@@ -14813,7 +15209,7 @@ define(() => function ({
 
         tester.title = (() => {
             const getTitleElement = () => getContactBar().querySelector('.cm-contacts-contact-bar-title'),
-                tester = testersFactory.createDomElementTester(getTitleElement);
+                tester = addTesters(testersFactory.createDomElementTester(getTitleElement), getTitleElement);
 
             tester.deleteButton = (() => {
                 const tester = testersFactory.createDomElementTester(
@@ -15041,8 +15437,25 @@ define(() => function ({
         return tester;
     };
 
-    me.chatListItem = text => {
-        const domElement = utils.descendantOfBody().
+    const hoverClass = (() => {
+        let domElement;
+        const remove = () => domElement?.classList?.remove('hover');
+
+        return {
+            remove: () => {
+                remove();
+                domElement = null;
+            },
+            add: value => {
+                remove();
+                domElement = value;
+                domElement.classList.add('hover');
+            }
+        };
+    })();
+
+    me.chatListItem = (text, getRootElement = () => document.body) => {
+        const domElement = utils.descendantOf(getRootElement()).
             matchesSelector('.cm-chats--chats-list-item').
             textContains(text).
             find();
@@ -15063,11 +15476,18 @@ define(() => function ({
             scrollIntoView = tester.scrollIntoView.bind(tester),
             putMouseOver = tester.putMouseOver.bind(tester);
 
-        tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+        tester.putMouseOver = () => {
+            putMouseOver();
+            spendTime(100);
+            spendTime(0);
+            
+            hoverClass.add(domElement);
+        };
+
         tester.expectToBeSelected = () => tester.expectToHaveClass('cm-chats--chats-list-item__selected');
         tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-chats--chats-list-item__selected');
 
-        tester.click = click;
+        tester.click = () => (click(), spendTime(0));
 
         tester.scrollIntoView = () => {
             scrollIntoView();
@@ -15075,15 +15495,43 @@ define(() => function ({
             spendTime(0);
         };
 
+        {
+            tester.pin = testersFactory.createDomElementTester(() => utils.element(domElement).querySelector(
+                '.cm-chats--chat-pinned, ' +
+                '.cm-chats--chat-not-pinned'
+            ));
+
+            const click = tester.pin.click.bind(tester.pin);
+
+            tester.pin.click = () => {
+                click();
+                hoverClass.remove();
+            };
+        }
+
         return tester;
     };
 
     me.chatList = (() => {
-        const getDomElement = () => utils.querySelector('.cm-chats--chats-list-panel'),
-            tester = testersFactory.createDomElementTester(getDomElement);
+        const createTester = index => {
+            const getDomElement = () => (
+                index === undefined ?
+                utils.querySelector('.cm-chats--chats-list-panel') :
+                document.querySelectorAll('.cm-chats--chats-list')?.[index]
+            );
 
-        tester.item = text => me.chatListItem(text);
-        return addTesters(tester, getDomElement);
+            const tester = testersFactory.createDomElementTester(getDomElement);
+
+            tester.item = text => me.chatListItem(text, getDomElement);
+            return addTesters(tester, getDomElement);
+        };
+
+        const tester = createTester();
+
+        tester.atIndex = index => createTester(index);
+        tester.first = createTester(0);
+
+        return tester;
     })();
 
     me.contactList = (() => {

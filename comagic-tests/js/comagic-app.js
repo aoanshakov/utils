@@ -158,6 +158,9 @@ Ext.application({
             }
 
             Comagic.Permission = this.Permission = {
+                isTptv20: function () {
+                    return true; 
+                },
                 isSipUriAllowed: function () {
                     return true;
                 },
@@ -199,6 +202,9 @@ Ext.application({
                     return permission.convertControllerNameToMnemonic.apply(
                         permission, arguments);
                 },
+                isAppDissolved: function() {
+                    return false;
+                },
                 isAppBlocked: function() {
                     return false;
                 },
@@ -217,6 +223,9 @@ Ext.application({
                 isSalesEnabled: function () {
                     return true;
                 },
+                hasSiteUsualV2DtModel: function () {
+                    return true;
+                },
                 hasSiteAddPermission: function () {
                     return true;
                 },
@@ -230,6 +239,9 @@ Ext.application({
                     return false;
                 },
                 checkCreatePermission: function () {
+                    return true;
+                },
+                checkSitePermission: function () {
                     return true;
                 },
                 isAppActivated: function () {

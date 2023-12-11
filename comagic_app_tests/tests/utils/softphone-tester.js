@@ -512,6 +512,12 @@ define(function () {
                 const click = tester.click.bind(tester);
                 tester.click = () => (click(), spendTime(0));
 
+                const putMouseOver = tester.putMouseOver.bind(tester);
+                tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+                
+                tester.expectToBeChecked = () => tester.expectToHaveClass('ui-checkbox-checked');
+                tester.expectNotToBeChecked = () => tester.expectNotToHaveClass('ui-checkbox-checked');
+
                 return tester;
 
             })() ;

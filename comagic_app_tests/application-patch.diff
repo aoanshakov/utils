@@ -873,11 +873,14 @@ index 05ee942e..bb7ab355 100644
  const prepareName = (name: string) => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
  
 diff --git a/src/utils/index.ts b/src/utils/index.ts
-index 09650fcc..38101362 100644
+index 09650fcc..19e5cbaf 100644
 --- a/src/utils/index.ts
 +++ b/src/utils/index.ts
-@@ -7,4 +7,6 @@ export { default as setAxiosGlobalInterceptors } from './setAxiosGlobalIntercept
+@@ -5,6 +5,9 @@ export { default as getComagicWebUrl } from './getComagicWebUrl';
+ export { default as loadTheme } from './loadTheme';
+ export { default as setAxiosGlobalInterceptors } from './setAxiosGlobalInterceptors';
  export { default as getWorkplaceAvailability } from './getWorkplaceAvailability';
++export { default as getChatSettingsAvailability } from './getChatSettingsAvailability';
  export { default as isSoftphoneAvailable } from './isSoftphoneAvailable';
  export { default as isManager } from './isManager';
 -export { default as createIconFactory } from './createIcon';

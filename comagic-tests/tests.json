@@ -34,6 +34,10 @@
             "helpers/AccountInvoices.js",
             "tests/account.invoices.js"
         ],
+        "account.policy": [
+            "helpers/AccountPolicy.js",
+            "tests/account.policy.js"
+        ],
         "account.integration.infoclinica": [
             "helpers/AccountIntegrationInfoclinica.js",
             "tests/account.integration.infoclinica.js"
@@ -105,6 +109,10 @@
         "sitemanagement.sitesettings": [
             "helpers/SitemanagementSitesettings.js",
             "tests/sitemanagement.sitesettings.js"
+        ],
+        "sitemanagement.event": [
+            "helpers/SitemanagementEvent.js",
+            "tests/sitemanagement.event.js"
         ],
         "services.ats.callblocking": [
             "helpers/ServicesAtsCallblocking.js",

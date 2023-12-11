@@ -686,10 +686,13 @@ function JsTester_Utils (debug) {
 function JsTester_OpenedWindow (path, query) {
     this.expectToHavePath = function (expectedValue) {
         if (path != expectedValue) {
-            throw new Error('Должно быть открыто окно, URL которого имеет путь "' + expectedValue + '", тогда как ' +
-                'URL имеет путь "' + path + '".');
+            throw new Error(
+                'Должно быть открыто окно, URL которого имеет путь "' + expectedValue + '", тогда как ' +
+                'URL имеет путь "' + path + '".'
+            );
         }
     };
+
     this.expectQueryToContain = function (params) {
         query.expectToContain(params);
     };
@@ -841,10 +844,20 @@ function JsTester_WindowOpener (utils) {
         actualWindow.expectToHavePath(expectedValue);
         return this;
     };
+
     this.expectQueryToContain = function (params) {
         actualWindow.expectQueryToContain(params);
         return this;
     };
+
+    this.expectNoWindowToBeOpened = function () {
+        if (!(actualWindow instanceof JsTester_NoWindowOpened)) {
+            throw new Error('Ни одно окно не должно быть открыто.');
+        }
+
+        return this;
+    };
+
     this.replaceByFake = function () {
         actualWindow = new JsTester_NoWindowOpened();
 
@@ -853,6 +866,7 @@ function JsTester_WindowOpener (utils) {
             actualWindow = new JsTester_OpenedWindow(results.path, results.query);
         };
     };
+
     this.restoreReal = function () {
         actualWindow = new JsTester_NoWindowOpened();
         window.open = open;
@@ -957,7 +971,15 @@ function JsTester_Request (request, utils) {
 
         return this;
     };
-    this.respondForbidden = function (responseObject) {
+    this.respondUnsuccessfullyWith = function (responseText) {
+        request.respondWith({
+            status: 500,
+            responseText,
+        });
+
+        return this;
+    };
+    this.respondForbidden = function () {
         request.respondWith({
             status: 403,
             responseText: '<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 3.2 Final//EN">' +
