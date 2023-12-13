@@ -4221,7 +4221,7 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
             return false;
         }
 
-        return !!(domElement.offsetWidth || domElement.offsetHeight || domElement.getClientRects().length);
+        return !!(domElement.offsetWidth || domElement.offsetHeight || domElement.getClientRects?.()?.length);
     };
     this.getVariablePresentation = function (object) {
         return "\n \n" + debug.getVariablePresentation(object) + "\n \n";
@@ -6024,9 +6024,7 @@ function JsTester_DomElement (
         console.log(getDomElement());
     };
     this.endTransition = function (propertyName) {
-        this.expectToExist();
-
-        getDomElement().dispatchEvent(new TransitionEvent('transitionend', {
+        getDomElement()?.dispatchEvent(new TransitionEvent('transitionend', {
             bubbles: true,
             propertyName
         }));

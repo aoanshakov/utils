@@ -5,7 +5,7 @@ const { Args, isOneOf, isListOf, isString } = require('./arguments'),
     write = require('./write');
     JSON3 = require('json3'),
     readJson = path => JSON.parse(fs.readFileSync(path)),
-    encodeJson = content => JSON3.stringify(content, null, 4);
+    encodeJson = content => JSON3.stringify(content, null, 2);
 
 const {
     src,
@@ -93,7 +93,54 @@ actions['initialize'] = params => modules.reduce(
                 path,
                 repository,
             })).concat(cloneLinkedModules({ linkedModules, path }));
-        }, [])
+        }, []);
+
+        const eachLinkedModuleHost = ({
+            onBeforeModulesTraverse = () => null,
+            onAfterModulesTraverse = () => null,
+            handleModule = () => null,
+        }) => {
+            const handleLinkedModuleHost = ({ path, linkedModules }) => {
+                if (!linkedModules?.length) {
+                    return;
+                }
+                
+                const packageJsonPath = `${path}/package.json`,
+                    backupPath = `${path}/package-backup.json`,
+                    packageJson = readJson(packageJsonPath);
+
+                const params = {
+                    path,
+                    backupPath,
+                    packageJson,
+                    packageJsonPath,
+                };
+
+                onBeforeModulesTraverse(params);
+
+                linkedModules.forEach(item => {
+                    const {
+                        directory,
+                        linkedModules,
+                    } = item;
+
+                    handleModule({
+                        ...item,
+                        path,
+                        packageJson,
+                    });
+
+                    handleLinkedModuleHost({
+                        path: linkedModulePath({ path, directory }),
+                        linkedModules,
+                    });
+                });
+
+                onAfterModulesTraverse(params);
+            };
+
+            handleLinkedModuleHost({ path, linkedModules });
+        };
 
         return result.concat(
             [`git config --global --add safe.directory ${path}`].
@@ -103,55 +150,58 @@ actions['initialize'] = params => modules.reduce(
                 ].concat(cloneLinkedModules({ path, linkedModules })).concat((linkedModules?.length ? [() => {
                     const packageJsons = [];
 
-                    const modifyPackageJson = ({ path, linkedModules }) => {
-                        if (!linkedModules) {
-                            return;
-                        }
-                        
-                        const packageJsonPath = `${path}/package.json`,
-                            backupPath = `${path}/package-backup.json`,
-                            packageJson = readJson(packageJsonPath);
-
-                        !fs.existsSync(backupPath) && write(backupPath, packageJson);
-
-                        packageJsons.push({
-                            path,
+                    eachLinkedModuleHost({
+                        onBeforeModulesTraverse: ({
+                            packageJsonPath,
                             packageJson,
-                        });
+                            backupPath,
+                            path,
+                        }) => {
+                            !fs.existsSync(backupPath) && write(backupPath, fs.readFileSync(packageJsonPath));
 
-                        linkedModules.forEach(({
+                            packageJsons.push({
+                                path,
+                                packageJson,
+                            });
+                        },
+
+                        handleModule: ({
+                            path,
                             module,
                             directory,
-                            linkedModules,
-                        }) => {
-                            packageJsons.forEach(
-                                ({ packageJson, path: basePath }) => {
-                                    [
-                                        'dependencies',
-                                        'peerDependencies',
-                                    ].forEach(key => module in (packageJson[key] || {}) && (
-                                        packageJson[key][module] = linkedModulePath({
-                                            path: `.${path.substr(basePath.length)}`,
-                                            directory,
-                                        })
-                                    ));
-                                } 
-                            );
+                            packageJson,
+                        }) => packageJsons.forEach(
+                            ({ packageJson, path: basePath }) => [
+                                'dependencies',
+                                'peerDependencies',
+                            ].forEach(key => module in (packageJson[key] || {}) && (
+                                packageJson[key][module] = linkedModulePath({
+                                    path: `.${path.substr(basePath.length)}`,
+                                    directory,
+                                })
+                            )) 
+                        ),
 
-                            modifyPackageJson({
-                                path: linkedModulePath({ path, directory }),
-                                linkedModules,
-                            });
-                        });
-
-                        write(packageJsonPath, encodeJson(packageJson));
-                    };
-
-                    modifyPackageJson({ path, linkedModules });
-                }] : [])/*.concat([
+                        onAfterModulesTraverse: ({
+                            packageJsonPath,
+                            packageJson,
+                        }) => write(packageJsonPath, encodeJson(packageJson)),
+                    });
+                }] : []).concat([
                     `cd ${path} && npm install --verbose`
-                ])*/.
-                concat(actions['fix-permissions'])) : []),
+                ]).concat([() => eachLinkedModuleHost({
+                    onAfterModulesTraverse: ({
+                        packageJsonPath,
+                        backupPath,
+                    }) => {
+                        if (!fs.existsSync(backupPath)) {
+                            return;
+                        }
+
+                        write(packageJsonPath, fs.readFileSync(backupPath));
+                        fs.unlinkSync(backupPath);
+                    },
+                })]).concat(actions['fix-permissions'])) : []),
         );
     },
     [],

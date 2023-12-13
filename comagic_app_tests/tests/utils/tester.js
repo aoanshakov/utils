@@ -1145,12 +1145,10 @@ define(() => function ({
             const tester = button(text),
                 click = tester.click.bind(tester);
 
-            text == 'Отменить' && (tester.click = () => {
+            tester.click = () => {
                 click();
-                spendTime(0);
-                windowTester.endTransition('transform');
-                spendTime(0);
-            });
+                windowTester.finishHiding();
+            };
 
             return tester;
         };
@@ -4178,12 +4176,26 @@ define(() => function ({
 
                 return this;
             },
+
             anotherMessage() {
                 params.message.id = 256086;
                 params.message.text = 'Ты моё солнышко';
 
                 return this;
             },
+
+            tenthChat() {
+                params.chat_id = 7189362;
+                params.message.chat_id = 7189362;
+                return this;
+            },
+
+            ninthChat() {
+                params.chat_id = 2718936;
+                params.message.chat_id = 2718936;
+                return this;
+            },
+
             eighthChat() {
                 params.chat_id = 2718943;
                 params.message.chat_id = 2718943;
@@ -4192,6 +4204,7 @@ define(() => function ({
 
                 return this;
             },
+
             seventhChat() {
                 params.chat_id = 2718942;
                 params.message.chat_id = 2718942;
@@ -4200,6 +4213,7 @@ define(() => function ({
 
                 return this;
             },
+
             sixthChat() {
                 params.chat_id = 2718941;
                 params.message.chat_id = 2718941;
@@ -4208,6 +4222,7 @@ define(() => function ({
 
                 return this;
             },
+
             fifthChat() {
                 params.chat_id = 2718939;
                 params.message.chat_id = 2718939;
@@ -4216,6 +4231,7 @@ define(() => function ({
 
                 return this;
             },
+            
             fourthChat() {
                 params.chat_id = 2718938;
                 params.message.chat_id = 2718938;
@@ -4224,6 +4240,7 @@ define(() => function ({
 
                 return this;
             },
+
             thirdChat() {
                 params.chat_id = 2718937;
                 params.message.chat_id = 2718937;
@@ -6192,7 +6209,34 @@ define(() => function ({
             },
         });
 
-        const addResponseModifiers = me => me;
+        const addResponseModifiers = me => {
+            me.fatal = () => {
+                respond = request =>
+                    request.respondUnsuccessfullyWith('403: Максимальное количество закрепленных чатов - 5');
+
+                return me;
+            };
+
+            me.limitExceeded = () => {
+                respond = request => request.respondUnsuccessfullyWith({
+                    mnemonic: 'max_number_pinned_chats',
+                    message: 'Максимальное количество закрепленных чатов - 5'
+                });
+
+                return me;
+            };
+
+            me.failed = () => {
+                respond = request => request.respondUnsuccessfullyWith({
+                    mnemonic: 'some_error',
+                    message: 'Максимальное количество закрепленных чатов - 5'
+                });
+
+                return me;
+            };
+
+            return me;
+        };
 
         return addResponseModifiers({
             expectToBeSent(requests) {
@@ -6208,6 +6252,7 @@ define(() => function ({
                         Promise.runAll(false, true);
                         spendTime(0)
                         spendTime(0)
+                        mainTester.modalWindow.endTransition('transform');
                     },
                 });
             },
@@ -6410,13 +6455,13 @@ define(() => function ({
 
             me.failed = () => {
                 respond = request => request.respondSuccessfullyWith({
-                    "result": null,
-                    "error": {
-                        "code": 500,
-                        "message": [{
-                            "loc": ["__root__"],
-                            "msg": "Server got itself in trouble",
-                            "type": "value_error.exception"
+                    result: null,
+                    error: {
+                        code: 500,
+                        message: [{
+                            loc: ['__root__'],
+                            msg: 'Server got itself in trouble',
+                            type: 'value_error.exception'
                         }]
                     }
                 });
@@ -6530,6 +6575,7 @@ define(() => function ({
         }
 
         const chat = chat_id => {
+            paramsProcessors.push(() => (params.is_show_pinned_chats = undefined));
             params.scroll_direction = undefined;
             params.scroll_from_date = undefined;
             params.statuses = undefined;
@@ -6537,6 +6583,11 @@ define(() => function ({
             params.employee_id = undefined;
             params.chat_id = chat_id;
             params.limit = 1;
+        };
+
+        const setStatus = status => {
+            params.statuses = [status, undefined];
+            processors.push(data => data.chats.forEach(chat => (chat.status = status)));
         };
 
         return addResponseModifiers({
@@ -6592,13 +6643,13 @@ define(() => function ({
             },
 
             active() {
-                params.statuses = ['active', undefined];
                 params.is_show_pinned_chats = true;
+                setStatus('active');
                 return this;
             },
 
             closed() {
-                params.statuses = ['closed', undefined];
+                setStatus('closed');
                 return this;
             },
 
@@ -7052,6 +7103,11 @@ define(() => function ({
             me.singlePage = () => (Object.keys(data).forEach(name => (data[name] = 30)), me);
             me.newMessage = () => (processors.push(() => (data.active_with_unread_count ++)), me);
             me.readMessage = () => (processors.push(() => (data.active_with_unread_count --)), me);
+
+            me.noNewChats = () => {
+                data.new_chat_count = 0;
+                return me;
+            };
 
             me.noData = () => {
                 data.new_chat_count = 0;
