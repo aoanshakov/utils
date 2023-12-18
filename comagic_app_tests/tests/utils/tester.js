@@ -3217,7 +3217,8 @@ define(() => function ({
 
         const bodyParams = {
             limit: 30,
-            offset: 0
+            offset: 0,
+            scroll_from_date: null,
         };
 
         const addResponseModifiers = me => {
@@ -3269,6 +3270,7 @@ define(() => function ({
 
         return addResponseModifiers({
             singleMessage() {
+                bodyParams.scroll_from_date = undefined;
                 bodyParams.statuses = ['not_processed', 'processed', 'processing'];
                 bodyParams.offline_message_id = 18222538;
                 bodyParams.limit = 1;
@@ -3605,6 +3607,17 @@ define(() => function ({
     me.chatsWebSocket = createWebSocketTesterCreator();
     me.employeesWebSocket = createWebSocketTesterCreator();
 
+    me.offlineMessagesSettingsChangedMessage = () => ({
+        receive: () => {
+            me.chatsWebSocket.receive(JSON.stringify({
+                method: 'offline_messages_settings_changed',
+                params: {},
+            }));
+
+            spendTime(0);
+        },
+    });
+
     me.chatsEmployeeChangeMessage = () => ({
         receive: () => me.chatsWebSocket.receive(JSON.stringify({
             method: 'employee_update',
@@ -3771,6 +3784,24 @@ define(() => function ({
                 return this;
             },
 
+            thirdEmployee() {
+                params.data = {
+                    id: 583783,
+                    status_id: 2,
+                };
+
+                return this;
+            },
+
+            fourthEmployee() {
+                params.data = {
+                    id: 79582,
+                    status_id: 1,
+                };
+
+                return this;
+            },
+
             anotherStatus() {
                 params.data.status_id = 4;
                 return this;
@@ -3788,6 +3819,7 @@ define(() => function ({
 
             receive: () => {
                 me.employeesWebSocket.receive(createMessage());
+                spendTime(0);
                 spendTime(0);
             }
         }
@@ -5089,7 +5121,7 @@ define(() => function ({
         const params = {
             calling_phone_number: '79161234567',
             contact_phone_number: '79161234567',
-            virtual_phone_number: '79161234567',
+            virtual_phone_number: '79161234568',
             virtual_number_comment: null,
             call_source: 'va',
             call_session_id: 980925456,
@@ -5122,6 +5154,11 @@ define(() => function ({
         });
 
         return {
+            contactNameWithWithDigits: function () {
+                params.contact_full_name = 'Мой номер +7 (916) 234-56-78';
+                return this;
+            },
+
             knownContact: function () {
                 params.contact_id = 1689283;
                 params.crm_contact_link = null;
@@ -5150,8 +5187,13 @@ define(() => function ({
                 return this;
             },
 
-            anotherPerson: function () {
+            anotherPhone: function () {
                 params.calling_phone_number = params.contact_phone_number = '79161234510';
+                return this;
+            },
+
+            anotherPerson: function () {
+                this.anotherPhone();
                 params.contact_full_name = 'Гигова Петранка';
                 return this;
             },
@@ -13007,7 +13049,6 @@ define(() => function ({
                     }],
                     organization_name: 'UIS',
                     phone_list: ['79162729533', undefined],
-                    group_list: [undefined],
                     personal_manager_id: 583783,
                     patronymic: 'Ервиновна',
                 };
@@ -14499,6 +14540,9 @@ define(() => function ({
             
             me.manager = () => ((response.result.data.call_center_role = 'manager'), me);
             me.noCallCenterRole = () => ((response.result.data.call_center_role = null), me);
+
+            me.shouldHideNumbersInContactName = () =>
+                ((response.result.data.feature_flags.push('should_hide_numbers_in_contact_name')), me);
 
             me.interceptionDisabled = () =>
                 ((response.result.data.feature_flags.push('interception_disabled')), me);

@@ -102,6 +102,8 @@ exec "Snippet cons console.log(".st.et.");"
 exec "Snippet lo console.log(".st.et.");"
 exec "Snippet tr console.trace(".st.et.");"
 
+exec "Snippet es expectToBeSent()".st.et
+exec "Snippet rr receiveResponse()".st.et
 exec "Snippet it it('".st.et."', function() {<cr>".st.et."<cr>});"
 exec "Snippet tt tt('".st.et."', function(t) {<cr>".st.et."<cr>});"
 exec "Snippet de describe('".st.et."', function() {<cr>".st.et."<cr>});"

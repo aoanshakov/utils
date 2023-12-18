@@ -56,6 +56,7 @@ tests.addTest(options => {
                 const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                     employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                     employeeRequest = tester.employeeRequest().expectToBeSent(requests);
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
@@ -66,6 +67,7 @@ tests.addTest(options => {
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
                 employeeStatusesRequest.receiveResponse();
+                employeeSettingsRequest.receiveResponse(),
                 employeeRequest.receiveResponse();
             });
 
@@ -285,7 +287,9 @@ tests.addTest(options => {
                                                             });
                                                         });
                                                         it('Нажимаю на иконку звонка.', function() {
-                                                            tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.
+                                                            tester.callsHistoryRow.
+                                                                withText('Гяурова Марийка').
+                                                                callIcon.
                                                                 click();
 
                                                             tester.firstConnection.connectWebRTC();
@@ -295,7 +299,8 @@ tests.addTest(options => {
                                                             tester.numaRequest().anotherNumber().receiveResponse();
 
                                                             const outgoingCall = tester.outgoingCall().
-                                                                setNumberFromCallsGrid().expectToBeSent();
+                                                                setNumberFromCallsGrid().
+                                                                expectToBeSent();
 
                                                             tester.slavesNotification().
                                                                 available().
@@ -338,14 +343,29 @@ tests.addTest(options => {
                                                                 differentNames().
                                                                 receiveResponse();
 
-                                                            tester.usersRequest().
+                                                            tester.contactGroupsRequest().receiveResponse();
+
+                                                            const requests = ajax.inAnyOrder();
+
+                                                            const usersRequest = tester.usersRequest().
                                                                 forContacts().
-                                                                receiveResponse();
+                                                                expectToBeSent(requests);
 
-                                                            tester.contactRequest().receiveResponse();
+                                                            const contactRequest = tester.contactRequest().
+                                                                expectToBeSent(requests);
 
-                                                            tester.contactCommunicationsRequest().
-                                                                receiveResponse();
+                                                            const contactCommunicationsRequest =
+                                                                tester.contactCommunicationsRequest().
+                                                                    expectToBeSent(requests);
+
+                                                            requests.expectToBeSent();
+
+                                                            usersRequest.receiveResponse();
+                                                            contactRequest.receiveResponse();
+                                                            contactCommunicationsRequest.receiveResponse();
+
+                                                            tester.groupsContainingContactRequest().receiveResponse();
+                                                            tester.contactGroupsRequest().receiveResponse();
                                                         });
                                                         it(
                                                             'Нажимаю на кнопку сворачивания софтфона. Отображено ' +
@@ -440,9 +460,13 @@ tests.addTest(options => {
                                                             differentNames().
                                                             receiveResponse();
 
+                                                        tester.contactGroupsRequest().receiveResponse();
+
                                                         tester.usersRequest().
                                                             forContacts().
                                                             receiveResponse();
+
+                                                        tester.contactGroupsRequest().receiveResponse();
 
                                                         tester.contactBar.expectTextContentToHaveSubstring(
                                                             'Телефоны ' +
@@ -595,6 +619,8 @@ tests.addTest(options => {
                                                             softphoneServerConnected().
                                                             webRTCServerConnected().
                                                             expectToBeSent();
+
+                                                        tester.employeeSettingsRequest().receiveResponse();
 
                                                         tester.employeeRequest().
                                                             anotherAuthorizationToken().
@@ -1035,6 +1061,7 @@ tests.addTest(options => {
                                                                 softphoneServerConnected().
                                                                 expectToBeSent();
 
+                                                            tester.employeeSettingsRequest().receiveResponse();
                                                             tester.employeeRequest().receiveResponse();
                                                             tester.ticketsContactsRequest().receiveResponse();
                                                             tester.authenticatedUserRequest().receiveResponse();
@@ -1708,6 +1735,8 @@ tests.addTest(options => {
                                                         softphoneServerConnected().
                                                         expectToBeSent();
 
+                                                    tester.employeeSettingsRequest().receiveResponse();
+
                                                     tester.employeeRequest().
                                                         anotherAuthorizationToken().
                                                         receiveResponse();
@@ -2230,9 +2259,93 @@ tests.addTest(options => {
                                     expectToBeSent();
                             });
 
+                            describe('Поступает входящий звонок. Поступает входящий звонок.', function() {
+                                let numaRequest;
+
+                                beforeEach(function() {
+                                    tester.incomingCall().receive();
+
+                                    tester.slavesNotification().
+                                        available().
+                                        twoChannels().
+                                        incoming().
+                                        progress().
+                                        expectToBeSent();
+
+                                    numaRequest = tester.numaRequest().expectToBeSent();
+                                });
+
+                                describe('Позвонивший не является сотрудником.', function() {
+                                    beforeEach(function() {
+                                        numaRequest.receiveResponse();
+                                    });
+
+                                    it(
+                                        'Контакт не найден. Вместо номера звонка отображен идентификатор сессии.',
+                                    function() {
+                                        tester.outCallEvent().
+                                            noName().
+                                            noCrmContactLink().
+                                            receive();
+
+                                        tester.outCallEvent().
+                                            noName().
+                                            noCrmContactLink().
+                                            slavesNotification().
+                                            expectToBeSent();
+
+                                        tester.softphone.expectTextContentToHaveSubstring(
+                                            '980925456 ' +
+                                            'Неизвестный номер'
+                                        );
+                                    });
+                                    it('Получена информация о звонке.', function() {
+                                        tester.outCallEvent().
+                                            contactNameWithWithDigits().
+                                            receive();
+
+                                        tester.outCallEvent().
+                                            contactNameWithWithDigits().
+                                            slavesNotification().
+                                            expectToBeSent();
+
+                                        tester.softphone.expectTextContentToHaveSubstring(
+                                            'Мой номер +7 (916) 234-56-78 ' +
+                                            'Неизвестный номер'
+                                        );
+                                    });
+                                    it('Номер скрыт.', function() {
+                                        tester.softphone.expectTextContentToHaveSubstring(
+                                            'Неизвестный номер ' +
+                                            'Поиск контакта...'
+                                        );
+                                    });
+                                });
+                                it(
+                                    'Позвонивший является сотрудником и его имя было получено. Отображено имя ' +
+                                    'сотрудника.',
+                                function() {
+                                    numaRequest.employeeNameFound().receiveResponse();
+
+                                    tester.slavesNotification().
+                                        additional().
+                                        visible().
+                                        name().
+                                        expectToBeSent();
+
+                                    tester.softphone.expectTextContentToHaveSubstring(
+                                        'Шалева Дора ' +
+                                        'Неизвестный номер'
+                                    );
+                                });
+                            });
                             it('Открываю историю звонков.', function() {
                                 tester.button('Софтфон').click();
-                                tester.slavesNotification().additional().visible().expectToBeSent();
+
+                                tester.slavesNotification().
+                                    additional().
+                                    visible().
+                                    expectToBeSent();
 
                                 tester.callsHistoryButton.click();
                                 tester.callsRequest().noContactName().receiveResponse();
@@ -2243,22 +2356,6 @@ tests.addTest(options => {
 
                                     'Вчера ' +
                                     'Манова Тома 18:08'
-                                );
-                            });
-                            it('Поступает входящий звонок. Поступает входящий звонок.', function() {
-                                tester.incomingCall().receive();
-
-                                tester.slavesNotification().
-                                    available().
-                                    twoChannels().
-                                    incoming().
-                                    progress().
-                                    expectToBeSent();
-
-                                tester.numaRequest().receiveResponse();
-
-                                tester.softphone.expectTextContentToHaveSubstring(
-                                    'Неизвестный номер Поиск контакта...'
                                 );
                             });
                         });
@@ -3144,6 +3241,7 @@ tests.addTest(options => {
                                         differentNames().
                                         receiveResponse();
 
+                                    tester.contactGroupsRequest().receiveResponse();
                                     tester.dialpadButton(1).expectNotToExist();
                                 });
                                 it('Открываю список сотрудников.', function() {
@@ -3880,6 +3978,7 @@ tests.addTest(options => {
 
                     notificationTester.grantPermission();
 
+                    tester.employeeSettingsRequest().receiveResponse();
                     tester.employeeRequest().receiveResponse();
                     tester.ticketsContactsRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
@@ -3979,6 +4078,7 @@ tests.addTest(options => {
                     notificationTester.grantPermission();
 
                     tester.employeeStatusesRequest().receiveResponse();
+                    tester.employeeSettingsRequest().receiveResponse();
                     tester.employeeRequest().receiveResponse();
                     tester.ticketsContactsRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
@@ -4159,6 +4259,7 @@ tests.addTest(options => {
                     reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                     authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                     employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                     employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -4170,6 +4271,7 @@ tests.addTest(options => {
                 reportGroupsRequest.receiveResponse();
                 authCheckRequest.receiveResponse();
                 employeeStatusesRequest.receiveResponse();
+                employeeSettingsRequest.receiveResponse();
                 employeeRequest.receiveResponse();
 
                 tester.talkOptionsRequest().receiveResponse();
@@ -4241,6 +4343,7 @@ tests.addTest(options => {
                     reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                     authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                     employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                     employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -4251,6 +4354,7 @@ tests.addTest(options => {
                 reportTypesRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
                 employeeStatusesRequest.receiveResponse();
+                employeeSettingsRequest.receiveResponse();
                 employeeRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
@@ -4347,6 +4451,7 @@ tests.addTest(options => {
                     reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                     authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                     employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                     employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -4357,6 +4462,7 @@ tests.addTest(options => {
                 reportTypesRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
                 employeeStatusesRequest.receiveResponse();
+                employeeSettingsRequest.receiveResponse();
                 employeeRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
@@ -4500,6 +4606,7 @@ tests.addTest(options => {
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
                 employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests);
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                 employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
@@ -4509,6 +4616,7 @@ tests.addTest(options => {
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
                 employeeStatusesRequest.receiveResponse();
+                employeeSettingsRequest.receiveResponse();
                 employeeRequest.receiveResponse();
 
                 tester.talkOptionsRequest().receiveResponse();
@@ -4717,6 +4825,251 @@ tests.addTest(options => {
                     setAnotherSession().
                     setHelper().
                     receive();
+            });
+        });
+        describe('Цифры в имени контакта должны быть скрыты при скрытии номеров.', function() {
+            let settingsRequest;
+
+            beforeEach(function() {
+                accountRequest.shouldHideNumbersInContactName().receiveResponse();
+
+                const requests = ajax.inAnyOrder();
+
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                    reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
+                    employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                    employeeRequest = tester.employeeRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                ticketsContactsRequest.receiveResponse();
+                reportsListRequest.receiveResponse();
+                reportTypesRequest.receiveResponse();
+                reportGroupsRequest.receiveResponse();
+                employeeStatusesRequest.receiveResponse();
+                employeeSettingsRequest.receiveResponse();
+                employeeRequest.receiveResponse();
+
+                tester.masterInfoMessage().receive();
+                tester.slavesNotification().additional().expectToBeSent();
+                tester.slavesNotification().expectToBeSent();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
+
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
+                authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+                settingsRequest = tester.settingsRequest().expectToBeSent();
+            });
+
+            describe('Номера телефонов не должны быть скрыты. Поступил входящий звонок.', function() {
+                beforeEach(function() {
+                    settingsRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
+
+                    tester.connectEventsWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.connectSIPWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    notificationTester.grantPermission();
+
+                    authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                    registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        expectToBeSent();
+
+                    authenticatedUserRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    registrationRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
+
+                    tester.incomingCall().receive();
+
+                    tester.slavesNotification().
+                        available().
+                        twoChannels().
+                        incoming().
+                        progress().
+                        expectToBeSent();
+
+                    tester.numaRequest().receiveResponse();
+
+                    tester.outCallEvent().
+                        contactNameWithWithDigits().
+                        receive();
+
+                    tester.outCallEvent().
+                        contactNameWithWithDigits().
+                        slavesNotification().
+                        expectToBeSent();
+                });
+
+                it('Включено скрытие номеров. Цифры в имени контакта скрыты.', function() {
+                    tester.employeeChangedEvent().
+                        isNeedHideNumbers().
+                        receive();
+
+                    tester.employeeChangedEvent().
+                        isNeedHideNumbers().
+                        slavesNotification().
+                        expectToBeSent();
+
+                    tester.softphone.expectTextContentToHaveSubstring(
+                        'Мой номер ... ' +
+                        'Неизвестный номер'
+                    );
+                });
+                it('Цифры в имени контакта видимы.', function() {
+                    tester.softphone.expectTextContentToHaveSubstring(
+                        'Мой номер +7 (916) 234-56-78 ' +
+                        '+7 (916) 123-45-67'
+                    );
+                });
+            });
+            describe('Номера телефонов должны быть скрыты.', function() {
+                beforeEach(function() {
+                    settingsRequest.shouldHideNumbers().receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
+
+                    tester.connectEventsWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.connectSIPWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    notificationTester.grantPermission();
+
+                    authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                    registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        expectToBeSent();
+
+                    authenticatedUserRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    registrationRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
+                });
+
+                it('Открываю историю звонков. Цифры в имени контакта скрыты.', function() {
+                    tester.button('Софтфон').click();
+
+                    tester.slavesNotification().
+                        additional().
+                        visible().
+                        expectToBeSent();
+
+                    tester.callsHistoryButton.click();
+
+                    tester.callsRequest().
+                        contactNameWithWithDigits().
+                        receiveResponse();
+
+                    tester.softphone.expectTextContentToHaveSubstring('Мой номер ... 08:03');
+                });
+                it('Поступил входящий звонок. Цифры в имени контакта скрыты.', function() {
+                    tester.incomingCall().receive();
+
+                    tester.slavesNotification().
+                        available().
+                        twoChannels().
+                        incoming().
+                        progress().
+                        expectToBeSent();
+
+                    tester.numaRequest().receiveResponse();
+
+                    tester.outCallEvent().
+                        contactNameWithWithDigits().
+                        receive();
+
+                    tester.outCallEvent().
+                        contactNameWithWithDigits().
+                        slavesNotification().
+                        expectToBeSent();
+
+                    tester.softphone.expectTextContentToHaveSubstring(
+                        'Мой номер ... ' +
+                        'Неизвестный номер'
+                    );
+                });
             });
         });
         it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {

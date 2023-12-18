@@ -53,6 +53,7 @@ tests.addTest(options => {
                     ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                     authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                     employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                     employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -62,6 +63,7 @@ tests.addTest(options => {
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
                 employeeStatusesRequest.receiveResponse();
+                employeeSettingsRequest.receiveResponse();
                 employeeRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
@@ -184,8 +186,16 @@ tests.addTest(options => {
 
                                     describe('Нажимаю на номер телефона.', function() {
                                         beforeEach(function() {
-                                            tester.table.row.first.column.withHeader('ФИО контакта').link.click();
-                                            tester.usersRequest().forContacts().receiveResponse();
+                                            tester.table.row.first.
+                                                column.withHeader('ФИО контакта').
+                                                link.
+                                                click();
+
+                                            tester.usersRequest().
+                                                forContacts().
+                                                receiveResponse();
+
+                                            tester.contactGroupsRequest().receiveResponse();
                                         });
 
                                         it(
@@ -201,6 +211,7 @@ tests.addTest(options => {
                                             tester.button('Создать контакт').click();
 
                                             tester.contactCreatingRequest().receiveResponse();
+                                            tester.groupsContainingContactRequest().receiveResponse();
 
                                             tester.callsRequest().
                                                 fromFirstWeekDay().
@@ -226,26 +237,31 @@ tests.addTest(options => {
                                             'Нажимаю на иконку с плюсом спарва от надписи "Персональный менеджер". В ' +
                                             'выпадающем списке выбрана опция "Не выбрано".',
                                         function() {
-                                            tester.contactBar.section('Персональный менеджер').header.svg.click();
-                                            tester.contactBar.section('Персональный менеджер').select.
+                                            tester.contactBar.
+                                                section('Персональный менеджер').
+                                                header.svg.click();
+
+                                            tester.contactBar.
+                                                section('Персональный менеджер').
+                                                select.
                                                 expectToHaveTextContent('Не выбрано');
                                         });
                                         it('Открывается форма создания контакта.', function() {
                                             tester.contactBar.expectTextContentToHaveSubstring(
                                                 'ФИО ' +
-                                                '74950230625 ' +
+                                                '980925444 ' +
 
                                                 'Телефоны ' +
                                                 '74950230625 '
                                             );
                                         });
                                     });
-                                    it('Оторажен номер.', function() {
+                                    it('Оторажен ID сессии.', function() {
                                         tester.table.
                                             row.first.
                                             column.withHeader('ФИО контакта').
                                             link.
-                                            expectToHaveTextContent('+7 (495) 023-06-25');
+                                            expectToHaveTextContent('980925444');
                                     });
                                 });
                                 describe('Все звонки успешны.', function() {
@@ -327,6 +343,8 @@ tests.addTest(options => {
                                                     tester.employeeStatusesRequest().
                                                         anotherAuthorizationToken().
                                                         receiveResponse();
+
+                                                    tester.employeeSettingsRequest().receiveResponse();
 
                                                     tester.employeeRequest().
                                                         anotherAuthorizationToken().
@@ -560,11 +578,13 @@ tests.addTest(options => {
                                             });
                                         });
                                         it('Нет имени. Отображен номер вместо имени.', function() {
-                                            notProcessedCallsRequest.noContactName().receiveResponse();
+                                            notProcessedCallsRequest.
+                                                noContactName().
+                                                receiveResponse();
 
                                             tester.table.expectTextContentToHaveSubstring(
                                                 '19 дек. 2019 10:13 ' +
-                                                '+7 (495) 023-06-26 ' +
+                                                '980925445 ' +
                                                 '+7 (495) 023-06-26 ' +
                                                 '00:00:24'
                                             );
@@ -1193,6 +1213,8 @@ tests.addTest(options => {
 
                                             tester.usersRequest().forContacts().receiveResponse();
                                             tester.contactRequest().receiveResponse();
+                                            tester.groupsContainingContactRequest().receiveResponse();
+                                            tester.contactGroupsRequest().receiveResponse();
                                         });
                                         
                                         it('Изменяю имя. Отправлен запрос обновления контакта.', function() {
@@ -1212,9 +1234,9 @@ tests.addTest(options => {
                                                 anotherName().
                                                 receiveResponse();
 
+                                            tester.groupsContainingContactRequest().receiveResponse();
                                             tester.callsRequest().fromFirstWeekDay().firstPage().receiveResponse();
                                             tester.marksRequest().receiveResponse();
-
                                             tester.contactRequest().receiveResponse();
                                         });
                                         it('Нажимаю на иконку с крестиком. Карточка контакта скрыта.', function() {
@@ -2626,7 +2648,7 @@ tests.addTest(options => {
                         tester.table.
                             row.first.
                             column.withHeader('ФИО контакта').
-                            expectToHaveTextContent('');
+                            expectToHaveTextContent('980925444');
                     });
                     it('Номер скрыт.', function() {
                         callsRequest.receiveResponse();
@@ -2634,9 +2656,226 @@ tests.addTest(options => {
                         tester.table.
                             row.first.
                             column.withHeader('ФИО контакта').
-                            expectToHaveTextContent('Неизвестный номер');
+                            expectToHaveTextContent('980925444');
                     });
                 });
+            });
+        });
+        describe('Цифры в имени контакта должны быть скрыты при скрытии номеров.', function() {
+            let settingsRequest;
+
+            beforeEach(function() {
+                accountRequest.shouldHideNumbersInContactName().receiveResponse();
+
+                const requests = ajax.inAnyOrder();
+
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
+                    employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                    employeeRequest = tester.employeeRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                ticketsContactsRequest.receiveResponse();
+                reportsListRequest.receiveResponse();
+                reportTypesRequest.receiveResponse();
+                employeeSettingsRequest.receiveResponse();
+                employeeStatusesRequest.receiveResponse();
+                employeeRequest.receiveResponse();
+                reportGroupsRequest.receiveResponse();
+
+                tester.masterInfoMessage().receive();
+                tester.slavesNotification().additional().expectToBeSent();
+                tester.slavesNotification().expectToBeSent();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
+
+                tester.notificationChannel().tellIsLeader().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
+                authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+
+                settingsRequest = tester.settingsRequest().expectToBeSent();
+            });
+
+            describe('Скрытие номеров выключено. Открываю историю звонков.', function() {
+                beforeEach(function() {
+                    settingsRequest.
+                        receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
+
+                    tester.connectEventsWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.connectSIPWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    notificationTester.grantPermission();
+
+                    authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                    tester.registrationRequest().receiveUnauthorized();
+
+                    registrationRequest = tester.registrationRequest().
+                        authorization().
+                        expectToBeSent();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        expectToBeSent();
+
+                    authenticatedUserRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    registrationRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
+
+                    tester.button('История звонков').click();
+
+                    tester.callsRequest().
+                        fromFirstWeekDay().
+                        firstPage().
+                        contactNameWithWithDigits().
+                        receiveResponse();
+
+                    tester.marksRequest().receiveResponse();
+                });
+
+                it('Включено скрытие номеров. Цифры в имени контакта скрыты.', function() {
+                    tester.employeeChangedEvent().
+                        isNeedHideNumbers().
+                        receive();
+
+                    tester.employeeChangedEvent().
+                        isNeedHideNumbers().
+                        slavesNotification().
+                        expectToBeSent();
+
+                    tester.table.
+                        row.first.
+                        column.withHeader('ФИО контакта').
+                        expectToHaveTextContent('Мой номер ...');
+                });
+                it('Цифры в имени контакта видимы.', function() {
+                    tester.table.
+                        row.first.
+                        column.withHeader('ФИО контакта').
+                        expectToHaveTextContent('Мой номер +7 (916) 234-56-78');
+                });
+            });
+            it('Включено скрытие номеров. Открываю историю звонков. Цифры в имени контакта скрыты.', function() {
+                settingsRequest.
+                    shouldHideNumbers().
+                    receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    expectToBeSent();
+
+                tester.connectEventsWebSocket();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    softphoneServerConnected().
+                    expectToBeSent();
+
+                tester.connectSIPWebSocket();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    webRTCServerConnected().
+                    softphoneServerConnected().
+                    expectToBeSent();
+
+                notificationTester.grantPermission();
+
+                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                tester.registrationRequest().receiveUnauthorized();
+
+                registrationRequest = tester.registrationRequest().
+                    authorization().
+                    expectToBeSent();
+
+                tester.allowMediaInput();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    expectToBeSent();
+
+                authenticatedUserRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    userDataFetched().
+                    expectToBeSent();
+
+                registrationRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    expectToBeSent();
+
+                tester.button('История звонков').click();
+
+                tester.callsRequest().
+                    fromFirstWeekDay().
+                    firstPage().
+                    contactNameWithWithDigits().
+                    receiveResponse();
+
+                tester.marksRequest().receiveResponse();
+
+                tester.table.
+                    row.first.
+                    column.withHeader('ФИО контакта').
+                    expectToHaveTextContent('Мой номер ...');
             });
         });
         it('Пользователь является менеджером. Пункт меню видим.', function() {
@@ -2649,6 +2888,7 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                 employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                 employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -2658,6 +2898,7 @@ tests.addTest(options => {
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
             employeeStatusesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse();
             employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
@@ -2755,6 +2996,7 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                 employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                 employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -2764,6 +3006,7 @@ tests.addTest(options => {
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
             employeeStatusesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse();
             employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
@@ -2871,6 +3114,7 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                 employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                 employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -2880,6 +3124,7 @@ tests.addTest(options => {
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
             employeeStatusesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse();
             employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
@@ -2970,6 +3215,7 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                 employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                 employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -2979,6 +3225,7 @@ tests.addTest(options => {
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
             employeeStatusesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse();
             employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 
@@ -3086,6 +3333,7 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                 employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                 employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -3095,6 +3343,7 @@ tests.addTest(options => {
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
             employeeStatusesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse();
             employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 

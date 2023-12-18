@@ -52,6 +52,7 @@ tests.addTest(options => {
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                 employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                 employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -61,6 +62,7 @@ tests.addTest(options => {
             reportsListRequest.noData().receiveResponse();
             reportTypesRequest.receiveResponse();
             employeeStatusesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse();
             employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
 

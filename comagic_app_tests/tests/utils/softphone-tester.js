@@ -55,6 +55,20 @@ define(function () {
             tester.expectToBeDisabled = () => tester.expectToHaveClass('cmg-disabled');
             tester.expectToBeEnabled = () => tester.expectNotToHaveClass('cmg-disabled');
 
+            tester.statusIcon = (() => {
+                const tester = testersFactory.createDomElementTester(domElement.querySelector(
+                    '.cmg-employee-status svg'
+                ));
+
+                tester.expectToBe = status => tester.expectToHaveClass(
+                    `${status}_svg__uis-webrtc-${status}-status-icon`
+                );
+
+                tester.expectToBeInCall = () => tester.expectToHaveClass('in_call_svg__cmg-in-call-icon');
+
+                return tester;
+            })();
+
             tester.transferIcon = testersFactory.createDomElementTester(domElement.querySelector(
                 '.transfer_employee_svg__cmg-employee-transfer-icon'
             ));
@@ -1424,6 +1438,10 @@ define(function () {
                 me.noContactName = () => (processors.push(data => (data[0].contact_name = null)), me);
                 me.noCrmContactLink = () => (processors.push(data => (data[0].crm_contact_link = null)), me);
 
+                me.contactNameWithWithDigits = () => (processors.push(
+                    data => (data[0].contact_name = 'Мой номер +7 (916) 234-56-78')
+                ), me);
+
                 me.noContact = () => (processors.push(data => {
                     data[1].contact_id = null;
                     data[1].contact_name = null;
@@ -1566,62 +1584,12 @@ define(function () {
 
         this.numaRequest = () => {
             let numa = 79161234567;
+            const processors = [];
 
             let respond = request => request.
                 respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
 
             function addResponseModifiers (me) {
-                me.anotherShortPhone = function () {
-                    numa = 295;
-                    return me;
-                };
-
-                me.shortPhone = function () {
-                    numa = 79161;
-                    return me;
-                };
-
-                me.intercept = function () {
-                    numa = 88;
-                    return me;
-                };
-
-                me.fifthPhoneNumber = function() {
-                    numa = 79161234569; 
-                    return me;
-                };
-
-                me.fifthPhone = function() {
-                    return me.fifthPhoneNumber();
-                };
-
-                me.fourthPhoneNumber = function() {
-                    numa = 79162729533; 
-                    return me;
-                };
-
-                me.thirdNumber = function () {
-                    numa = 79161234510;
-                    return me;
-                };
-
-                me.anotherNumber = () => {
-                    numa = 74950230625;
-                    return me;
-                };
-
-                me.sixthPhone = function () {
-                    numa = 74999951240;
-                    return me;
-                };
-
-                me.seventhPhone = function () {
-                    numa = '79161234567g';
-                    return me;
-                };
-
-                me.anotherPhoneNumber = me.anotherPhone = me.anotherNumber;
-
                 me.longName = function () {
                     respond = request => request.respondSuccessfullyWith({
                         data: 'ООО "КОБЫЛА И ТРУПОГЛАЗЫЕ ЖАБЫ ИСКАЛИ ЦЕЗИЮ НАШЛИ ПОЗДНО УТРОМ СВИСТЯЩЕГО ХНА"'
@@ -1659,7 +1627,66 @@ define(function () {
             }
 
             return addResponseModifiers({
+                anotherShortPhone: function () {
+                    numa = 295;
+                    return this;
+                },
+
+                shortPhone: function () {
+                    numa = 79161;
+                    return this;
+                },
+
+                intercept: function () {
+                    numa = 88;
+                    return this;
+                },
+
+                fifthPhoneNumber: function() {
+                    numa = 79161234569; 
+                    return this;
+                },
+
+                fifthPhone: function() {
+                    return this.fifthPhoneNumber();
+                },
+
+                fourthPhoneNumber: function() {
+                    numa = 79162729533; 
+                    return this;
+                },
+
+                thirdNumber: function () {
+                    numa = 79161234510;
+                    return this;
+                },
+
+                anotherNumber() {
+                    numa = 74950230625;
+                    return this;
+                },
+
+                sixthPhone: function () {
+                    numa = 74999951240;
+                    return this;
+                },
+
+                seventhPhone: function () {
+                    numa = '79161234567g';
+                    return this;
+                },
+
+                anotherPhone: function () {
+                    return this.anotherNumber();
+                },
+
+                anotherPhoneNumber: function () {
+                    return this.anotherNumber();
+                },
+
                 expectToBeSent() {
+                    processors.forEach(process => process());
+
                     const request = ajax.recentRequest().
                         expectPathToContain(`/sup/api/v1/numa/${numa}`).
                         expectToHaveMethod('GET');
@@ -2011,7 +2038,7 @@ define(function () {
                 me.addMoreUsers = me.addMore = me.many = function () {
                     var i;
 
-                    for (i = 0; i < 100; i ++) {
+                    for (i = 0; i < 3300; i ++) {
                         additionalUsers.push({
                             first_name: 'Иван',
                             id: 583784 + i,
@@ -2133,7 +2160,7 @@ define(function () {
                 me.addMore = function () {
                     var i;
 
-                    for (i = 0; i < 100; i ++) {
+                    for (i = 0; i < 3300; i ++) {
                         additionalUsersInGroups.push({
                             id: 293037 + i,
                             employee_id: 20816,
@@ -2209,11 +2236,11 @@ define(function () {
                 addMore: function () {
                     var i;
 
-                    for (i = 0; i < 100; i ++) {
+                    for (i = 0; i < 3300; i ++) {
                         additionalGroups.push({
                             id: 89204 + i,
                             name: 'Отдел № ' + (i + 1),
-                            short_phone: 100 + i
+                            short_phone: 100 + i + '',
                         });
                     }
 

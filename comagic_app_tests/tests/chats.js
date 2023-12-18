@@ -2179,25 +2179,50 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    it('Открываю раздел заявок.', function() {
-                                        tester.leftMenu.button('Заявки').click();
-                                        tester.chatListItem('Заявка с сайта').click();
+                                    describe('Открываю раздел заявок.', function() {
+                                        beforeEach(function() {
+                                            tester.leftMenu.button('Заявки').click();
+                                        });
 
-                                        tester.offlineMessageAcceptingRequest().receiveResponse();
-                                        tester.visitorCardRequest().receiveResponse();
-                                        tester.usersRequest().forContacts().receiveResponse();
-                                        tester.contactGroupsRequest().receiveResponse();
+                                        it('Настройки заявок изменились. Список заявок обновлен.', function() {
+                                            tester.offlineMessagesSettingsChangedMessage().receive();
+                                            tester.offlineMessageCountersRequest().receiveResponse();
 
-                                        tester.chatHistory.message.atTime('12:10').expectToHaveTextContent(
-                                            'Заявка ' +
+                                            tester.offlineMessageListRequest().
+                                                anotherInquiry().
+                                                notProcessed().
+                                                receiveResponse();
 
-                                            'Имя клиента: Помакова Бисерка Драгановна ' +
-                                            'Телефон: 79161212122 ' +
-                                            'Email: msjdasj@mail.com ' +
-                                            'Комментарий клиента: Я хочу о чем-то заявить. ' +
+                                            tester.offlineMessageListRequest().
+                                                processing().
+                                                receiveResponse();
 
-                                            '12:10'
-                                        );
+                                            tester.offlineMessageListRequest().
+                                                processed().
+                                                receiveResponse();
+
+                                            tester.chatListItem('Добрый день').expectToBeVisible();
+                                            tester.chatListItem('прива').expectNotToExist();
+                                        });
+                                        it('Выбираю заявку. Отображена заявка.', function() {
+                                            tester.chatListItem('Заявка с сайта').click();
+
+                                            tester.offlineMessageAcceptingRequest().receiveResponse();
+                                            tester.visitorCardRequest().receiveResponse();
+                                            tester.usersRequest().forContacts().receiveResponse();
+                                            tester.contactGroupsRequest().receiveResponse();
+
+                                            tester.chatHistory.message.atTime('12:10').expectToHaveTextContent(
+                                                'Заявка ' +
+
+                                                'Имя клиента: Помакова Бисерка Драгановна ' +
+                                                'Телефон: 79161212122 ' +
+                                                'Email: msjdasj@mail.com ' +
+                                                'Комментарий клиента: Я хочу о чем-то заявить. ' +
+
+                                                '12:10'
+                                            );
+                                        });
                                     });
                                     it(
                                         'Открываю раздел контактов. Соединение с вебсокетом чатов не разрывается.',
