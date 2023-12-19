@@ -576,6 +576,16 @@ tests.addTest(options => {
                                                     expectToBeEnabled();
                                             });
                                             it(
+                                                'Вожу фамилию сотрудника в поле поиска. Таблица отфильтрована.',
+                                            function() {
+                                                tester.softphone.input.fill('Божилова');
+
+                                                tester.softphone.expectToHaveTextContent(
+                                                    'Сотрудники Группы ' +
+                                                    'Божилова Йовка 296'
+                                                );
+                                            });
+                                            it(
                                                 'Ввожу значение в поле поиска. Ничего не ' +
                                                 'найдено. Отображено сообщение о том, что ничего ' +
                                                 'не найдено.',
