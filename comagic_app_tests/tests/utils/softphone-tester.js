@@ -1983,6 +1983,39 @@ define(function () {
                 maybeTriggerScrollRecalculation = triggerScrollRecalculation;
 
             function addResponseModifiers (me) {
+                me.withoutEmployee = () => {
+                    processors.push(function (data) {
+                        data.splice(3, 1);
+                    });
+
+                    return me;
+                };
+
+                me.anotherEmployee = () => {
+                    processors.push(function (data) {
+                        data[3] = {
+                            id: 234234,
+                            first_name: 'Теодора',
+                            last_name: 'Велева',
+                            is_in_call: false,
+                            position_id: null,
+                            short_phone: '297',
+                            status_id: 1,
+                            is_sip_online: true,
+                        };
+                    });
+
+                    return me;
+                };
+
+                me.anotherStatus = () => {
+                    processors.push(function (data) {
+                        data[3].status_id = 1;
+                    });
+
+                    return me;
+                };
+
                 me.empty = function () {
                     processors.push(function (data) {
                         data.splice(0, data.length);
@@ -2182,6 +2215,7 @@ define(function () {
                         receiveResponse: function () {
                             respond(request);
                             spendTime(0);
+                            spendTime(0);
                         }
                     });
                 },
@@ -2216,6 +2250,20 @@ define(function () {
             });
 
             function addResponseModifiers (me) {
+                me.addMore = function () {
+                    var i;
+
+                    for (i = 0; i < 3300; i ++) {
+                        additionalGroups.push({
+                            id: 89204 + i,
+                            name: 'Отдел № ' + (i + 1),
+                            short_phone: 100 + i + '',
+                        });
+                    }
+
+                    return me;
+                };
+                
                 me.accessTokenExpired = function () {
                     respond = request => request.respondUnauthorizedWith({
                         error: {
@@ -2233,19 +2281,6 @@ define(function () {
             }
 
             return addResponseModifiers({
-                addMore: function () {
-                    var i;
-
-                    for (i = 0; i < 3300; i ++) {
-                        additionalGroups.push({
-                            id: 89204 + i,
-                            name: 'Отдел № ' + (i + 1),
-                            short_phone: 100 + i + '',
-                        });
-                    }
-
-                    return this;
-                },
                 receiveResponse: function () {
                     this.send();
                 },
@@ -2256,6 +2291,7 @@ define(function () {
                         receiveResponse: function () {
                             respond(request);
                             Promise.runAll();
+                            spendTime(0);
                         }
                     });
                 },

@@ -3672,11 +3672,17 @@ define(() => function ({
             },
         };
 
-        let createMessage = () => ({
-            type: 'event',
-            name: 'entity_changed',
-            params
-        });
+        const processors = [];
+
+        let createMessage = () => {
+            processors.forEach(process => process());
+            
+            return {
+                type: 'event',
+                name: 'entity_changed',
+                params,
+            };
+        };
 
         const setStatus = () => (params = {
             name: 'status',
@@ -3799,6 +3805,11 @@ define(() => function ({
                     status_id: 1,
                 };
 
+                return this;
+            },
+
+            thirdStatus() {
+                processors.push(() => (params.data.status_id = 2));
                 return this;
             },
 

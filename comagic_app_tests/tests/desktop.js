@@ -2357,7 +2357,6 @@ tests.addTest(options => {
                                                 });
                                                 it('Токен обновлен. Запросы переотправлены.', function() {
                                                     refreshRequest.receiveResponse();
-
                                                     tester.groupsRequest().receiveResponse();
 
                                                     tester.softphone.expectToHaveTextContent(

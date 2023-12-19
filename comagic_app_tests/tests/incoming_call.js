@@ -195,7 +195,8 @@ tests.addTest(options => {
 
                                 describe('Нажимаю на кнопку трансфера.', function() {
                                     let usersRequest,
-                                        usersInGroupsRequest;
+                                        usersInGroupsRequest,
+                                        groupsRequest;
 
                                     beforeEach(function() {
                                         tester.transferButton.click();
@@ -203,11 +204,12 @@ tests.addTest(options => {
                                         usersRequest = tester.usersRequest().expectToBeSent();
                                         usersInGroupsRequest = tester.usersInGroupsRequest().
                                             expectToBeSent();
-                                        tester.groupsRequest().receiveResponse();
+                                        groupsRequest = tester.groupsRequest().expectToBeSent();
                                     });
 
                                     describe('Сотрдников мало.', function() {
                                         beforeEach(function() {
+                                            groupsRequest.receiveResponse();
                                             usersInGroupsRequest.receiveResponse();
                                         });
 
@@ -216,7 +218,7 @@ tests.addTest(options => {
                                                 usersRequest.receiveResponse();
                                             });
 
-                                            xdescribe('Нажимаю на строку в таблице сотрудника.', function() {
+                                            describe('Нажимаю на строку в таблице сотрудника.', function() {
                                                 beforeEach(function() {
                                                     tester.employeeRow('Господинова Николина').click();
 
@@ -288,7 +290,7 @@ tests.addTest(options => {
                                                         expectToBeSent();
                                                 });
                                             });
-                                            xdescribe('Открываю вкладку групп.', function() {
+                                            describe('Открываю вкладку групп.', function() {
                                                 beforeEach(function() {
                                                     tester.button('Группы').click();
                                                 });
@@ -312,6 +314,38 @@ tests.addTest(options => {
                                                     tester.employeeRow('Отдел дистрибуции').
                                                         expectToBeDisabled();
                                                 });
+                                                it(
+                                                    'Изменияется статус сотрудника. Изменения отображено в списке ' +
+                                                    'групп.',
+                                                function() {
+                                                    tester.entityChangeEvent().
+                                                        fourthEmployee().
+                                                        receive();
+
+                                                    tester.entityChangeEvent().
+                                                        fourthEmployee().
+                                                        slavesNotification().
+                                                        expectToBeSent();
+
+                                                    tester.employeeRow('Отдел дистрибуции').
+                                                        expectToBeEnabled();
+
+                                                    tester.employeeRow('Отдел по работе с ключевыми клиентами').
+                                                        expectToBeEnabled();
+
+                                                    tester.softphone.expectToHaveTextContent(
+                                                        'Сотрудники Группы ' +
+
+                                                        'Отдел дистрибуции ' +
+                                                        '298 1 /1 ' +
+
+                                                        'Отдел по работе с ключевыми клиентами ' +
+                                                        '726 1 /1 ' +
+
+                                                        'Отдел региональных продаж ' +
+                                                        '828 2 /2'
+                                                    );
+                                                });
                                                 it('Отображена таблица групп.', function() {
                                                     tester.employeeRow('Отдел дистрибуции').
                                                         expectToBeEnabled();
@@ -322,14 +356,133 @@ tests.addTest(options => {
                                                     tester.softphone.expectToHaveTextContent(
                                                         'Сотрудники Группы ' +
 
-                                                        'Отдел дистрибуции 298 1 /1 ' +
+                                                        'Отдел дистрибуции ' +
+                                                        '298 1 /1 ' +
+
                                                         'Отдел по работе с ключевыми клиентами ' +
-                                                            '726 0 ' +
-                                                        '/1 Отдел региональных продаж 828 2 /2'
+                                                        '726 0 /1 ' +
+
+                                                        'Отдел региональных продаж ' +
+                                                        '828 2 /2'
                                                     );
                                                 });
                                             });
-                                            xdescribe('Ввожу значение в поле поиска.', function() {
+                                            describe('Закрываю таблицу сотрудников и открываю её снова.', function() {
+                                                let usersRequest;
+
+                                                beforeEach(function() {
+                                                    tester.transferButton.click();
+                                                    tester.transferButton.click();
+
+                                                    usersRequest = tester.usersRequest().
+                                                        expectToBeSent();
+                                                });
+
+                                                it('Сотрудник удален.', function() {
+                                                    usersRequest.
+                                                        withoutEmployee().
+                                                        receiveResponse();
+
+                                                    tester.usersInGroupsRequest().receiveResponse();
+                                                    tester.groupsRequest().receiveResponse();
+
+                                                    tester.softphone.expectToHaveTextContent(
+                                                        'Сотрудники Группы ' +
+
+                                                        'Господинова Николина 295 ' +
+                                                        'Шалева Дора 8258'
+                                                    );
+
+                                                    tester.employeeRow('Господинова Николина').
+                                                        statusIcon.
+                                                        expectToBe('tick');
+
+                                                    tester.employeeRow('Шалева Дора').
+                                                        statusIcon.
+                                                        expectToBeInCall();
+
+                                                    tester.employeeRow('Господинова Николина').
+                                                        expectToBeEnabled();
+
+                                                    tester.employeeRow('Шалева Дора').
+                                                        expectToBeEnabled();
+                                                });
+                                                it('Сотрудник заменен.', function() {
+                                                    usersRequest.
+                                                        anotherEmployee().
+                                                        receiveResponse();
+
+                                                    tester.usersInGroupsRequest().receiveResponse();
+                                                    tester.groupsRequest().receiveResponse();
+
+                                                    tester.softphone.expectToHaveTextContent(
+                                                        'Сотрудники Группы ' +
+
+                                                        'Велева Теодора 297 ' +
+                                                        'Господинова Николина 295 ' +
+                                                        'Шалева Дора 8258'
+                                                    );
+
+                                                    tester.employeeRow('Велева Теодора').
+                                                        statusIcon.
+                                                        expectToBe('tick');
+
+                                                    tester.employeeRow('Господинова Николина').
+                                                        statusIcon.
+                                                        expectToBe('tick');
+
+                                                    tester.employeeRow('Шалева Дора').
+                                                        statusIcon.
+                                                        expectToBeInCall();
+
+                                                    tester.employeeRow('Велева Теодора').
+                                                        expectToBeEnabled();
+
+                                                    tester.employeeRow('Господинова Николина').
+                                                        expectToBeEnabled();
+
+                                                    tester.employeeRow('Шалева Дора').
+                                                        expectToBeEnabled();
+                                                });
+                                                it('Статусы сотрудников обновлены.', function() {
+                                                    usersRequest.
+                                                        anotherStatus().
+                                                        receiveResponse();
+
+                                                    tester.usersInGroupsRequest().receiveResponse();
+                                                    tester.groupsRequest().receiveResponse();
+
+                                                    tester.softphone.expectToHaveTextContent(
+                                                        'Сотрудники Группы ' +
+
+                                                        'Божилова Йовка 296 ' +
+                                                        'Господинова Николина 295 ' +
+                                                        'Шалева Дора 8258'
+                                                    );
+
+                                                    tester.employeeRow('Божилова Йовка').
+                                                        statusIcon.
+                                                        expectToBe('tick');
+
+                                                    tester.employeeRow('Господинова Николина').
+                                                        statusIcon.
+                                                        expectToBe('tick');
+
+                                                    tester.employeeRow('Шалева Дора').
+                                                        statusIcon.
+                                                        expectToBeInCall();
+
+                                                    tester.employeeRow('Божилова Йовка').
+                                                        expectToBeEnabled();
+
+                                                    tester.employeeRow('Господинова Николина').
+                                                        expectToBeEnabled();
+
+                                                    tester.employeeRow('Шалева Дора').
+                                                        expectToBeEnabled();
+                                                });
+                                            });
+                                            describe('Ввожу значение в поле поиска.', function() {
                                                 beforeEach(function() {
                                                     tester.softphone.input.fill('ова');
                                                 });
@@ -359,7 +512,7 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            xdescribe('Ввожу номер в поле поиска.', function() {
+                                            describe('Ввожу номер в поле поиска.', function() {
                                                 beforeEach(function() {
                                                     tester.softphone.input.fill('29');
                                                 });
@@ -384,19 +537,7 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            xit(
-                                                'Ввожу значение в поле поиска. Ничего не ' +
-                                                'найдено. Отображено сообщение о том, что ничего ' +
-                                                'не найдено.',
-                                            function() {
-                                                tester.softphone.input.fill('йцукен');
-
-                                                tester.softphone.expectToHaveTextContent(
-                                                    'Сотрудники Группы ' +
-                                                    'Сотрудник не найден'
-                                                );
-                                            });
-                                            xit(
+                                            it(
                                                 'Изменились статусы сотрудников. Отображены новые статусы сотрудников.',
                                             function() {
                                                 tester.entityChangeEvent().
@@ -434,7 +575,19 @@ tests.addTest(options => {
                                                 tester.employeeRow('Шалева Дора').
                                                     expectToBeEnabled();
                                             });
-                                            xit(
+                                            it(
+                                                'Ввожу значение в поле поиска. Ничего не ' +
+                                                'найдено. Отображено сообщение о том, что ничего ' +
+                                                'не найдено.',
+                                            function() {
+                                                tester.softphone.input.fill('йцукен');
+
+                                                tester.softphone.expectToHaveTextContent(
+                                                    'Сотрудники Группы ' +
+                                                    'Сотрудник не найден'
+                                                );
+                                            });
+                                            it(
                                                 'Нажимаю на заблокированного сотрудника. Трансфер не совершается.',
                                             function() {
                                                 tester.employeeRow('Божилова Йовка').click();
@@ -470,7 +623,6 @@ tests.addTest(options => {
                                                     expectToBeEnabled();
                                             });
                                         });
-                                        return;
                                         it(
                                             'Один из номеров включает в себя другой. Ввожу один ' +
                                             'из номеров в поле поиска.',
@@ -487,13 +639,88 @@ tests.addTest(options => {
                                             );
                                         });
                                     });
-                                    return;
-                                    it('Сотрудников много.', function() {
+                                    /*
+                                    it('', function() {
+                                        groupsRequest.addMore().receiveResponse();
                                         usersRequest.addMore().receiveResponse();
                                         usersInGroupsRequest.addMore().receiveResponse();
+
+                                        const time = (new Date()).getTime();
+
+                                        for (let i = 0; i < 20; i ++) {
+                                            const time = (new Date()).getTime();
+
+                                            tester.entityChangeEvent().
+                                                fourthEmployee().
+                                                receive();
+
+                                            tester.entityChangeEvent().
+                                                fourthEmployee().
+                                                slavesNotification().
+                                                expectToBeSent();
+
+                                            tester.entityChangeEvent().
+                                                fourthEmployee().
+                                                thirdStatus().
+                                                receive();
+
+                                            tester.entityChangeEvent().
+                                                fourthEmployee().
+                                                thirdStatus().
+                                                slavesNotification().
+                                                expectToBeSent();
+
+                                            console.log('ITERATION', (new Date()).getTime() - time);
+                                        }
+
+                                        console.log('DONE', (new Date()).getTime() - time);
+                                    });
+                                    it('', function() {
+                                        groupsRequest.addMore().receiveResponse();
+                                        usersRequest.addMore().receiveResponse();
+                                        usersInGroupsRequest.addMore().receiveResponse();
+
+                                        const time = (new Date()).getTime();
+
+                                        for (let i = 0; i < 10; i ++) {
+                                            {
+                                                const time = (new Date()).getTime();
+
+                                                tester.transferButton.click();
+                                                tester.transferButton.click();
+
+                                                tester.usersRequest().addMore().anotherStatus().receiveResponse();
+                                                tester.usersInGroupsRequest().addMore().receiveResponse();
+                                                tester.groupsRequest().addMore().receiveResponse();
+
+                                                console.log('ITERATION', (new Date()).getTime() - time);
+                                            }
+
+                                            {
+                                                const time = (new Date()).getTime();
+
+                                                tester.transferButton.click();
+                                                tester.transferButton.click();
+
+                                                tester.usersRequest().addMore().receiveResponse();
+                                                tester.usersInGroupsRequest().addMore().receiveResponse();
+                                                tester.groupsRequest().addMore().receiveResponse();
+
+                                                console.log('ITERATION', (new Date()).getTime() - time);
+                                            }
+                                        }
+
+                                        console.log('DONE', (new Date()).getTime() - time);
+                                    });
+                                    */
+                                    it('Сотрудников много.', function() {
+                                        groupsRequest.addMore().receiveResponse();
+                                        usersRequest.addMore().receiveResponse();
+                                        usersInGroupsRequest.addMore().receiveResponse();
+
+                                        tester.triggerScrollRecalculation();
                                     });
                                 });
-                                return;
                                 describe('Нажимаю на кнопку выключения микрофона.', function() {
                                     beforeEach(function() {
                                         tester.microphoneButton.click();
@@ -704,7 +931,6 @@ tests.addTest(options => {
                                     );
                                 });
                             });
-                            return;
                             describe('Сервер отклонил принятие звонка.', function() {
                                 beforeEach(function() {
                                     incomingCall = incomingCall.
@@ -733,7 +959,6 @@ tests.addTest(options => {
                                 });
                             });
                         });
-                        return;
                         describe(
                             'Сворачиваю софтфон. Звонок отменен. Разворачиваю софтфон. ' +
                             'Поступает входящий звонок.',
@@ -859,7 +1084,6 @@ tests.addTest(options => {
                             tester.softphone.expectToBeExpanded();
                         });
                     });
-                    return;
                     describe('Звонок переведен от другого сотрудника.', function() {
                         let outCallEvent;
 
@@ -1138,7 +1362,6 @@ tests.addTest(options => {
                         );
                     });
                 });
-                return;
                 it('Возвращён нормализованный номер. Отображено сообщение о поиске контакта.', function() {
                     numaRequest.
                         normalizedNumber().
@@ -1167,7 +1390,6 @@ tests.addTest(options => {
                     );
                 });
             });
-            return;
             describe('Браузер скрыт.', function() {
                 beforeEach(function() {
                     setDocumentVisible(false);
@@ -1382,7 +1604,6 @@ tests.addTest(options => {
                 );
             });
         });
-        return;
         describe('Софтофон должен скрываться при завершении звонка.', function() {
             let incomingCall;
 
