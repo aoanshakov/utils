@@ -37,6 +37,9 @@ comagic_app_tests/publisher/node_modules
 comagic_app_tests/tests-server-log.log
 comagic_app_tests/tests-server.pid
 
+softphone-plugin/tests-server-log.log
+softphone-plugin/tests-server.pid
+
 electron-updater/assets/
 electron-updater/sails_pg_session/
 electron-updater/updater.log
