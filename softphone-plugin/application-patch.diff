@@ -1,0 +1,20 @@
+diff --git a/package.json b/package.json
+index c8cd038..4f09d02 100644
+--- a/package.json
++++ b/package.json
+@@ -45,11 +45,13 @@
+     "webpack": "^5.74.0"
+   },
+   "dependencies": {
+-    "@comagic/softphone-widget": "^2.0.24",
++    "@comagic/softphone-widget": "./misc/sip_lib",
++    "@comagic/softphone-core": "./misc/sip_lib/uis_webrtc",
++    "@comagic/workplace-utils": "./misc/logger",
+     "classnames": "^2.2.6",
+     "dotenv": "^8.2.0",
+     "dotenv-expand": "^5.1.0",
+-    "magic-ui": "2.39.0",
++    "magic-ui": "./misc/magic_ui",
+     "mobx": "^6.6.1",
+     "mobx-react-lite": "^3.4.0",
+     "mobx-state-tree": "^5.1.6",

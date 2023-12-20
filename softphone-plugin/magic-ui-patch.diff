@@ -1,0 +1,44 @@
+diff --git a/package.json b/package.json
+index c9179ba1..5b4111e3 100644
+--- a/package.json
++++ b/package.json
+@@ -11,9 +11,9 @@
+     "type": "git",
+     "url": "git+https://gitlab.uis.dev/web/magic_ui.git"
+   },
+-  "main": "lib/index.js",
++  "main": "src/index.js",
+   "files": [
+-    "lib"
++    "src"
+   ],
+   "engines": {
+     "node": ">=12.14.0",
+@@ -32,7 +32,6 @@
+     "test": ""
+   },
+   "dependencies": {
+-    "classnames": "2.3.2",
+     "moment": "2.29.1",
+     "react-animate-height": "2.0.23",
+     "react-dnd": "16.0.1",
+@@ -41,10 +40,6 @@
+     "react-resizable": "3.0.4",
+     "react-window": "1.8.7"
+   },
+-  "peerDependencies": {
+-    "react": ">= 17.0.0",
+-    "react-dom": ">= 17.0.0"
+-  },
+   "devDependencies": {
+     "@storybook/addon-actions": "6.5.16",
+     "@storybook/addon-essentials": "6.5.16",
+@@ -83,8 +78,6 @@
+     "less-loader": "11.0.0",
+     "mini-css-extract-plugin": "2.6.1",
+     "prettier": "2.2.1",
+-    "react": "18.2.0",
+-    "react-dom": "18.2.0",
+     "storybook-addon-themes": "^6.1.0",
+     "style-loader": "3.3.1",
+     "ts-loader": "9.3.1",
