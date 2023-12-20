@@ -650,83 +650,203 @@ tests.addTest(options => {
                                         });
                                     });
                                     /*
-                                    it('', function() {
-                                        groupsRequest.addMore().receiveResponse();
-                                        usersRequest.addMore().receiveResponse();
-                                        usersInGroupsRequest.addMore().receiveResponse();
+                                    describe('', function() {
+                                        beforeEach(function() {
+                                            groupsRequest.
+                                                addMore().
+                                                receiveResponse();
 
-                                        const time = (new Date()).getTime();
+                                            usersRequest.
+                                                addMore().
+                                                receiveResponse();
 
-                                        for (let i = 0; i < 20; i ++) {
+                                            usersInGroupsRequest.
+                                                addMore().
+                                                receiveResponse();
+                                        });
+
+                                        describe('', function() {
+                                            beforeEach(function() {
+                                                tester.button('Группы').click();
+                                            });
+
+                                            it('', function() {
+                                                const time = (new Date()).getTime();
+
+                                                for (let i = 0; i < 20; i ++) {
+                                                    const time = (new Date()).getTime();
+
+                                                    tester.entityChangeEvent().
+                                                        fourthEmployee().
+                                                        receive();
+
+                                                    tester.entityChangeEvent().
+                                                        fourthEmployee().
+                                                        slavesNotification().
+                                                        expectToBeSent();
+
+                                                    tester.entityChangeEvent().
+                                                        fourthEmployee().
+                                                        thirdStatus().
+                                                        receive();
+
+                                                    tester.entityChangeEvent().
+                                                        fourthEmployee().
+                                                        thirdStatus().
+                                                        slavesNotification().
+                                                        expectToBeSent();
+
+                                                    console.log('ITERATION', (new Date()).getTime() - time);
+                                                }
+
+                                                console.log('DONE', (new Date()).getTime() - time);
+                                            });
+                                            it('', function() {
+                                                const time = (new Date()).getTime();
+
+                                                for (let i = 0; i < 10; i ++) {
+                                                    {
+                                                        const time = (new Date()).getTime();
+
+                                                        tester.transferButton.click();
+                                                        tester.transferButton.click();
+
+                                                        tester.usersRequest().
+                                                            addMore().
+                                                            anotherStatus().
+                                                            receiveResponse();
+
+                                                        tester.usersInGroupsRequest().
+                                                            addMore().
+                                                            receiveResponse();
+
+                                                        tester.groupsRequest().
+                                                            addMore().
+                                                            receiveResponse();
+
+                                                        console.log('ITERATION', (new Date()).getTime() - time);
+                                                    }
+
+                                                    {
+                                                        const time = (new Date()).getTime();
+
+                                                        tester.transferButton.click();
+                                                        tester.transferButton.click();
+
+                                                        tester.usersRequest().
+                                                            addMore().
+                                                            receiveResponse();
+
+                                                        tester.usersInGroupsRequest().
+                                                            addMore().
+                                                            receiveResponse();
+
+                                                        tester.groupsRequest().
+                                                            addMore().
+                                                            receiveResponse();
+
+                                                        console.log('ITERATION', (new Date()).getTime() - time);
+                                                    }
+                                                }
+
+                                                console.log('DONE', (new Date()).getTime() - time);
+                                            });
+                                        });
+                                        it('', function() {
                                             const time = (new Date()).getTime();
 
-                                            tester.entityChangeEvent().
-                                                fourthEmployee().
-                                                receive();
-
-                                            tester.entityChangeEvent().
-                                                fourthEmployee().
-                                                slavesNotification().
-                                                expectToBeSent();
-
-                                            tester.entityChangeEvent().
-                                                fourthEmployee().
-                                                thirdStatus().
-                                                receive();
-
-                                            tester.entityChangeEvent().
-                                                fourthEmployee().
-                                                thirdStatus().
-                                                slavesNotification().
-                                                expectToBeSent();
-
-                                            console.log('ITERATION', (new Date()).getTime() - time);
-                                        }
-
-                                        console.log('DONE', (new Date()).getTime() - time);
-                                    });
-                                    it('', function() {
-                                        groupsRequest.addMore().receiveResponse();
-                                        usersRequest.addMore().receiveResponse();
-                                        usersInGroupsRequest.addMore().receiveResponse();
-
-                                        const time = (new Date()).getTime();
-
-                                        for (let i = 0; i < 10; i ++) {
-                                            {
+                                            for (let i = 0; i < 20; i ++) {
                                                 const time = (new Date()).getTime();
 
-                                                tester.transferButton.click();
-                                                tester.transferButton.click();
+                                                tester.entityChangeEvent().
+                                                    fourthEmployee().
+                                                    receive();
 
-                                                tester.usersRequest().addMore().anotherStatus().receiveResponse();
-                                                tester.usersInGroupsRequest().addMore().receiveResponse();
-                                                tester.groupsRequest().addMore().receiveResponse();
+                                                tester.entityChangeEvent().
+                                                    fourthEmployee().
+                                                    slavesNotification().
+                                                    expectToBeSent();
+
+                                                tester.entityChangeEvent().
+                                                    fourthEmployee().
+                                                    thirdStatus().
+                                                    receive();
+
+                                                tester.entityChangeEvent().
+                                                    fourthEmployee().
+                                                    thirdStatus().
+                                                    slavesNotification().
+                                                    expectToBeSent();
 
                                                 console.log('ITERATION', (new Date()).getTime() - time);
                                             }
 
-                                            {
-                                                const time = (new Date()).getTime();
+                                            console.log('DONE', (new Date()).getTime() - time);
+                                        });
+                                        it('', function() {
+                                            const time = (new Date()).getTime();
 
-                                                tester.transferButton.click();
-                                                tester.transferButton.click();
+                                            for (let i = 0; i < 10; i ++) {
+                                                {
+                                                    const time = (new Date()).getTime();
 
-                                                tester.usersRequest().addMore().receiveResponse();
-                                                tester.usersInGroupsRequest().addMore().receiveResponse();
-                                                tester.groupsRequest().addMore().receiveResponse();
+                                                    tester.transferButton.click();
+                                                    tester.transferButton.click();
 
-                                                console.log('ITERATION', (new Date()).getTime() - time);
+                                                    tester.usersRequest().
+                                                        addMore().
+                                                        anotherStatus().
+                                                        receiveResponse();
+
+                                                    tester.usersInGroupsRequest().
+                                                        addMore().
+                                                        receiveResponse();
+
+                                                    tester.groupsRequest().
+                                                        addMore().
+                                                        receiveResponse();
+
+                                                    console.log('ITERATION', (new Date()).getTime() - time);
+                                                }
+
+                                                {
+                                                    const time = (new Date()).getTime();
+
+                                                    tester.transferButton.click();
+                                                    tester.transferButton.click();
+
+                                                    tester.usersRequest().
+                                                        addMore().
+                                                        receiveResponse();
+
+                                                    tester.usersInGroupsRequest().
+                                                        addMore().
+                                                        receiveResponse();
+
+                                                    tester.groupsRequest().
+                                                        addMore().
+                                                        receiveResponse();
+
+                                                    console.log('ITERATION', (new Date()).getTime() - time);
+                                                }
                                             }
-                                        }
 
-                                        console.log('DONE', (new Date()).getTime() - time);
+                                            console.log('DONE', (new Date()).getTime() - time);
+                                        });
                                     });
                                     */
                                     it('Сотрудников много.', function() {
-                                        groupsRequest.addMore().receiveResponse();
-                                        usersRequest.addMore().receiveResponse();
-                                        usersInGroupsRequest.addMore().receiveResponse();
+                                        groupsRequest.
+                                            addMore().
+                                            receiveResponse();
+
+                                        usersRequest.
+                                            addMore().
+                                            receiveResponse();
+
+                                        usersInGroupsRequest.
+                                            addMore().
+                                            receiveResponse();
 
                                         tester.triggerScrollRecalculation();
                                     });
