@@ -20,50 +20,15 @@ tests.addTest(options => {
             tester.input.fill('XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0');
             tester.button('Войти').click();
 
-            spendTime(0);
-            spendTime(0);
-            spendTime(0);
-            spendTime(0);
-            spendTime(0);
-            return;
-            tester.button('Софтфон').click();
-            return;
-
-            tester.accountRequest().receiveResponse();
-            tester.notificationChannel().applyLeader().expectToBeSent();
-
-            const requests = ajax.inAnyOrder();
-
-            ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests);
-            const reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests),
-                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
-                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
-
-            requests.expectToBeSent();
-
-            reportGroupsRequest.receiveResponse();
-            reportsListRequest.receiveResponse();
-            reportTypesRequest.receiveResponse();
-            employeeStatusesRequest.receiveResponse();
-            employeeRequest.receiveResponse();
-
             tester.masterInfoMessage().receive();
             tester.slavesNotification().additional().expectToBeSent();
             tester.slavesNotification().expectToBeSent();
-
-            tester.employeesWebSocket.connect();
-            tester.employeesInitMessage().expectToBeSent();
-
-            tester.notificationChannel().tellIsLeader().expectToBeSent();
             tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
 
-            authCheckRequest.receiveResponse();
+            tester.authCheckRequest().receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
             tester.permissionsRequest().receiveResponse();
+            tester.statusesRequest().receiveResponse();
             tester.settingsRequest().receiveResponse();
 
             tester.slavesNotification().
