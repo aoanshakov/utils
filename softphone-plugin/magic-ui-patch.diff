@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index c9179ba1..bfdb31e2 100644
+index c9179ba1..e574703f 100644
 --- a/package.json
 +++ b/package.json
 @@ -11,9 +11,9 @@
@@ -7,7 +7,7 @@ index c9179ba1..bfdb31e2 100644
      "url": "git+https://gitlab.uis.dev/web/magic_ui.git"
    },
 -  "main": "lib/index.js",
-+  "main": "src/index.js",
++  "main": "src/index.ts",
    "files": [
 -    "lib"
 +    "src"

@@ -20,6 +20,7 @@ const {
     sipLib,
     sipLibPatch,
     uisWebRTC,
+    uisWebRTCPatch,
     stub,
     stubCss,
     fileSaver,
@@ -40,14 +41,6 @@ const {
 const cda = `cd ${application} &&`,
     actions = {},
     packageJson = 'package.json';
-
-const overridenFiles = [
-    'package.json',
-    'src/models/RootStore.ts',
-    'src/models/auth/AuthStore.ts',
-    'src/rpc/httpRpc.ts',
-    'src/utils/index.ts',
-].join(' ');
 
 const rmVerbose = target => `if [ -e ${target} ]; then rm -rvf ${target}; fi`;
 
@@ -70,6 +63,10 @@ const overriding = [{
     application: sipLib,
     overridenFiles: packageJson,
     applicationPatch: sipLibPatch,
+}, {
+    application: uisWebRTC,
+    overridenFiles: packageJson,
+    applicationPatch: uisWebRTCPatch,
 }];
 
 const getOverriding = () => overriding.map(overriding => ({

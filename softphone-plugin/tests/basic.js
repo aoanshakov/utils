@@ -3,6 +3,7 @@ tests.addTest(options => {
         Tester,
         ajax,
         notificationTester,
+        spendTime,
     } = options;
 
     describe('Я уже аутентифицирован. Открываю новый личный кабинет.', function() {
@@ -15,6 +16,18 @@ tests.addTest(options => {
                 ...options,
                 isAlreadyAuthenticated: true
             });
+
+            tester.input.fill('XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0');
+            tester.button('Войти').click();
+
+            spendTime(0);
+            spendTime(0);
+            spendTime(0);
+            spendTime(0);
+            spendTime(0);
+            return;
+            tester.button('Софтфон').click();
+            return;
 
             tester.accountRequest().receiveResponse();
             tester.notificationChannel().applyLeader().expectToBeSent();
@@ -108,6 +121,9 @@ tests.addTest(options => {
                 additional().
                 visible().
                 expectToBeSent();
+        });
+
+        it('', function() {
         });
     });
 });

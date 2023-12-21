@@ -30,10 +30,12 @@ module.exports = {
     magicUiPatch: `${tests}/magic-ui-patch.diff`,
     loggerPatch: `${tests}/logger-patch.diff`,
     sipLibPatch: `${tests}/sip-lib-patch.diff`,
+    uisWebRTCPatch: `${tests}/uis-webrtc-patch.diff`,
     misc,
     magicUi: `${misc}/magic_ui`,
     logger: `${misc}/logger`,
     sipLib,
     uisWebRTC: `${sipLib}/uis_webrtc`,
     sipLibMagiUi: `${sipLib}/magic_ui`,
+    testsScriptsDir: `${tests}/tests`,
 };

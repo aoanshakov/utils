@@ -34,113 +34,30 @@ define(() => function ({
         refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
     };
 
-    !window.process && (window.process = {});
-    !window.process.versions && (window.process.versions = {});
-    !window.process.versions.electron && (window.process.versions.electron = appName ? '1.0.0' : null);
-
-    isAlreadyAuthenticated && (appName ? localStorage.setItem('electronCookies', JSON.stringify({
-        '$REACT_APP_AUTH_COOKIE': JSON.stringify(jwtToken)
-    })) : (
+    isAlreadyAuthenticated && (
         document.cookie =
         '%5C%24REACT_APP_AUTH_COOKIE=%7B%22' +
         'jwt%22%3A%22XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0%22%2C%22' +
         'refresh%22%3A%222982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2%22%7D; ' +
         'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
-    ));
+    );
 
     window.resetElectronCookiesManager?.();
 
-    window.rootConfig = { appName, platform };
-    window.broadcastChannelCache = {};
     window.employeesStore = null;
     window.softphoneStore = null;
     window.chatsStore = null;
     window.contactStore = null;
     window.softphoneBroadcastChannelCache = {};
 
-    me.getUserAgent = softphoneType => 'UIS Softphone ' + softphoneType;
+    me.getUserAgent = softphoneType => 'Softphone Chrome Plugin';
 
     me.ReactDOM = {
         flushSync: () => null
     };
 
-    window.application.run({
-        setReactDOM: value => (me.ReactDOM = value),
-        setEventBus: eventBus => {
-            const events = {},
-                ignoredEvents = {};
-
-            eventBus.subscribe = (eventName, callback) => {
-                const callbacks = events[eventName] || (events[eventName] = new Set());
-                callbacks.add(callback);
-
-                return () => callbacks.delete(callback);
-            };
-
-            const broadcast = (eventName, ...args) =>
-                (events[eventName] || new Set()).forEach(callback => callback(...args));
-
-            const stack = new JsTester_Stack({
-                expectNotToExist: () => null,
-                expectToHaveArguments: (...expectedArguments) => {
-                    throw new Error(
-                        `Событие должно быть вызывано с такими аргументами ${JSON.stringify(expectedArguments)}, ` +
-                        'тогда как никакое событие не было вызвано.'
-                    );
-                },
-                expectEventNameToEqual: expectedEventName => {
-                    throw new Error(
-                        `Должно быть вызывано событие "${expectedEventName}", тогда как никакое событие не было ` +
-                        `вызвано.`
-                    );
-                }
-            });
-
-            eventBus.broadcast = (actualEventName, ...args) => {
-                const callStack = debug.getCallStack();
-
-                const event = {
-                    expectToHaveArguments: (...expectedArguments) =>
-                        (utils.expectObjectToContain(args, expectedArguments), event),
-                    expectNotToExist: () => {
-                        throw new Error(
-                            `Никакое событие не должно быть вызвано, тогда как было вызвано событие ` +
-                            `"${actualEventName}" с аргументами ${JSON.stringify(args)}\n\n${callStack}`
-                        );
-                    },
-                    expectEventNameToEqual: expectedEventName => {
-                        if (expectedEventName != actualEventName) {
-                            throw new Error(
-                                `Должно быть вызывано событие "${expectedEventName}", тогда как было вызвано событие ` +
-                                `"${actualEventName}".\n\n${callStack}`
-                            );
-                        }
-
-                        return event;
-                    }
-                };
-
-                !ignoredEvents[actualEventName] && stack.add(event);
-                broadcast(actualEventName, ...args);
-            };
-
-            me.eventBus = {
-                broadcast,
-                nextEvent: () => stack.pop(),
-                ignoreEvent: eventName => (ignoredEvents[eventName] = true),
-                assumeSomeMessageMayBeSent: () => stack.removeAll()
-            };
-
-            me.eventBus.ignoreEvent('log');
-            me.eventBus.ignoreEvent('set_chats_and_offline_messages_count');
-            me.eventBus.ignoreEvent('set_lost_call_count');
-        },
-        setHistory: value => (history = value),
-        setChatsRootStore: value => (chatsRootStore = value),
-        setNotification: value => (notification = value),
-        setModal: value => (Modal = value),
-        appName
-    });
+    process.env.REACT_APP_LOCALE = 'ru';
+    window.application.run();
 
     notification?.destroyAll();
     Modal?.destroyAll();
@@ -155,34 +72,12 @@ define(() => function ({
         domElement => domElement.getAttribute('data-role') == 'file-saver' && domElement.remove()
     );
 
-    me.history = (() => {
-        return {
-            push: path => {
-                history?.push(path);
-                spendTime(0);
-                spendTime(0);
-            },
-            expectToHavePathName(expectedPathName) {
-                const actualPathName = history.location.pathname;
-
-                if (expectedPathName != actualPathName) {
-                    throw new Error(
-                        `В адресной строке должен быть путь "${expectedPathName}", а не "${actualPathName}".`
-                    );
-                }
-            }
-        };
-    })();
-
-    history?.replace(path);
-
     Promise.runAll(false, true);
     spendTime(0);
     Promise.runAll(false, true);
     spendTime(0);
     Promise.runAll(false, true);
 
-    me.ReactDOM.flushSync();
     spendTime(0);
     spendTime(0);
 

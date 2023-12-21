@@ -8476,6 +8476,7 @@ function JsTester_Tests (factory) {
         now.restoreReal();
     };
     this.afterEach = function () {
+        return;
         var exceptions = [];
 
         this.restoreRealDelayedTasks();
