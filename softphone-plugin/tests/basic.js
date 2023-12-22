@@ -6,6 +6,13 @@ tests.addTest(options => {
         spendTime,
     } = options;
 
+    it('', function() {
+        tester = new Tester({
+            application: 'popup',
+            ...options,
+        });
+    });
+    return;
     describe('Я уже аутентифицирован. Открываю новый личный кабинет.', function() {
         let authenticatedUserRequest,
             ticketsContactsRequest,

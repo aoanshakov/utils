@@ -8,7 +8,7 @@ define(() => function ({
     spendTime,
     softphoneTester: me,
     isAlreadyAuthenticated = false,
-    appName = '',
+    application = 'softphone',
     platform = 'windows',
     webSockets,
     path = '/',
@@ -44,10 +44,7 @@ define(() => function ({
 
     window.resetElectronCookiesManager?.();
 
-    window.employeesStore = null;
-    window.softphoneStore = null;
-    window.chatsStore = null;
-    window.contactStore = null;
+    window.stores = null;
     window.softphoneBroadcastChannelCache = {};
 
     me.getUserAgent = softphoneType => 'Softphone Chrome Plugin';
@@ -57,7 +54,7 @@ define(() => function ({
     };
 
     process.env.REACT_APP_LOCALE = 'ru';
-    window.application.run();
+    window.application.run(application);
 
     notification?.destroyAll();
     Modal?.destroyAll();
