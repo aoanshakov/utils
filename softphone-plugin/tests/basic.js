@@ -16,13 +16,7 @@ tests.addTest(options => {
                 ...options,
             });
 
-            stateRequest = tester.chrome.
-                tabs.
-                current.
-                nextMessage().
-                expectToContain({
-                    method: 'get_state',
-                });
+            stateRequest = tester.stateRequest().expectToBeSent();
         });
 
         afterEach(function() {
@@ -33,85 +27,74 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
+        describe('Софтфон скрыт.', function() {
+            beforeEach(function() {
+                stateRequest.receiveResponse();
+            });
+
+            it('Нажимаю на кнопку "Авторизоваться". Производится авторизация.', function() {
+                tester.button('Авторизоваться').click();
+
+                tester.chrome.
+                    identity.
+                    nextLaunching().
+                    expectDetailsToContain({
+                        url: 'https://uc-sso-prod-api.uiscom.ru',
+                        interactive: true,
+                    }).
+                    receiveResponse('https://somedomain.com');
+            });
+            it('Нажимаю на кнопку "Показать софтфон". Отображена кнопка "Скрыть софтфон".', function() {
+                tester.button('Показать софтфон').click();
+
+                tester.toggleWidgetVisibilityRequest().
+                    visible().
+                    receiveResponse();
+
+                tester.button('Скрыть софтфон').expectToBeVisible();
+            });
+        });
         describe('Проходит некоторое время. Запрос состояния отправлен ещё раз.', function() {
             beforeEach(function() {
                 spendTime(1000);
-
-                stateRequest = tester.chrome.
-                    tabs.
-                    current.
-                    nextMessage().
-                    expectToContain({
-                        method: 'get_state',
-                    });
+                stateRequest = tester.stateRequest().expectToBeSent();
             });
 
             it('Проходит некоторое время. Запрос состояния отправлен ещё раз.', function() {
                 spendTime(1000);
-
-                tester.chrome.
-                    tabs.
-                    current.
-                    nextMessage().
-                    expectToContain({
-                        method: 'get_state',
-                    });
+                tester.stateRequest().expectToBeSent();
             });
             it('Получен ответ. Состояние страницы изменилось.', function() {
-                stateRequest.receiveResponse({
-                    visible: true,
-                });
+                stateRequest.
+                    visible().
+                    receiveResponse();
 
                 tester.button('Скрыть софтфон').expectToBeVisible();
                 spendTime(1000);
             });
         });
         it('Софтфон видим. Нажимаю на кнопку "Скрыть софтфон". Отображена кнопка "Показать софтфон".', function() {
-            stateRequest.receiveResponse({
-                visible: true,
-            });
+            stateRequest.
+                visible().
+                receiveResponse();
 
             tester.button('Скрыть софтфон').click();
-
-            tester.chrome.
-                tabs.
-                current.
-                nextMessage().
-                expectToContain({
-                    method: 'toggle_widget_visibility',
-                }).
-                receiveResponse({
-                    visible: false,
-                });
+            tester.toggleWidgetVisibilityRequest().receiveResponse();
 
             tester.button('Показать софтфон').expectToBeVisible();
             spendTime(1000);
         });
-        it('Софтфон скрыт. Нажимаю на кнопку "Показать софтфон". Отображена кнопка "Скрыть софтфон".', function() {
-            stateRequest.receiveResponse({
-                visible: false,
-            });
+        it('Софтфон авторизован. Кнопка авторизации скрыта.', function() {
+            stateRequest.
+                authorized().
+                receiveResponse();
 
-            tester.button('Показать софтфон').click();
-
-            tester.chrome.
-                tabs.
-                current.
-                nextMessage().
-                expectToContain({
-                    method: 'toggle_widget_visibility',
-                }).
-                receiveResponse({
-                    visible: true,
-                });
-
-            tester.button('Скрыть софтфон').expectToBeVisible();
+            tester.button('Авторизоваться').expectNotToExist();
         });
         it('Отображен спиннер.', function() {
             tester.body.expectToHaveTextContent('Загрузка...');
         });
     });
-    return;
     describe('Открываю вкладку.', function() {
         let authenticatedUserRequest,
             ticketsContactsRequest,
@@ -123,7 +106,8 @@ tests.addTest(options => {
             });
         });
 
-        xdescribe('', function() {
+        /*
+        describe('', function() {
             beforeEach(function() {
                 tester.input.fill('XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0');
                 tester.button('Войти').click();
@@ -199,48 +183,21 @@ tests.addTest(options => {
             it('', function() {
             });
         });
-        describe('Получен запрос изменения видимости виджета.', function() {
-            beforeEach(function() {
-                tester.chrome.
-                    runtime.
-                    receiveMessage({
-                        method: 'toggle_widget_visibility'
-                    }).
-                    expectResponseToContain({
-                        visible: true,
-                    });
-            });
+        */
+        it(
+            'Получен запрос изменения видимости виджета. Отображено сообщение о том, что софтофон не авторизован.',
+        function() {
+            tester.toggleWidgetVisibilityRequest().
+                visible().
+                expectResponseToBeSent();
 
-            it('Нажимаю на кнопку авторизации. Производится авторизация.', function() {
-                tester.anchor('ссылку').click();
-
-                tester.chrome.
-                    identity.
-                    nextLaunching().
-                    expectDetailsToContain({
-                        url: 'https://uc-sso-prod-api.uiscom.ru',
-                        interactive: true,
-                    }).
-                    receiveResponse('https://somedomain.com');
-            });
-            return;
-            it('Отображено сообщение о том, что софтофон не авторизован.', function() {
-                tester.softphone.expectToHaveTextContent(
-                    'Не авторизован ' +
-                    'Нажмите на ссылку , чтобы авторизоваться'
-                );
-            });
+            tester.softphone.expectToHaveTextContent(
+                'Не авторизован ' +
+                'Для использования софтфона необходимо авторизоваться'
+            );
         });
-        return;
         it('Получен запрос состояния. В ответ на запрос было отправлено текущее состояние.', function() {
-            tester.chrome.
-                runtime.
-                receiveMessage({
-                    method: 'get_state'
-                }).
-                expectResponseToContain({
-                    visible: false,
-                });
+            tester.stateRequest().expectResponseToBeSent();
         });
     });
 });

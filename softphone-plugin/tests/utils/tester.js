@@ -316,6 +316,50 @@ define(() => function ({
         });
     }
 
+    {
+        const createRequest = method => () => {
+            const response = {
+                hidden: true,
+                isAuthorized: false,
+            };
+
+            addResponseModifiers = me => {
+                me.authorized = () => (response.isAuthorized = true, me);
+                me.visible = () => (response.hidden = false, me);
+
+                return me;
+            };
+
+            return addResponseModifiers({
+                expectResponseToBeSent() {
+                    me.chrome.
+                        runtime.
+                        receiveMessage({ method }).
+                        expectResponseToContain(response);
+                },
+                expectToBeSent() {
+                    const request = me.chrome.
+                        tabs.
+                        current.
+                        nextMessage().
+                        expectToContain({ method });
+
+                    return addResponseModifiers({
+                        receiveResponse: () => {
+                            request.receiveResponse(response);
+                        },
+                    });
+                },
+                receiveResponse() {
+                    this.expectToBeSent().receiveResponse();
+                },
+            });
+        };
+
+        me.stateRequest = createRequest('get_state');
+        me.toggleWidgetVisibilityRequest = createRequest('toggle_widget_visibility');
+    }
+
     me.getUserAgent = softphoneType => 'Softphone Chrome Plugin';
 
     me.ReactDOM = {
