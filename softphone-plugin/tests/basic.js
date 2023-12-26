@@ -174,9 +174,8 @@ tests.addTest(options => {
             tester.body.expectToHaveTextContent('Загрузка...');
         });
     });
-    describe('Открываю вкладку.', function() {
+    describe('Токен авторизации не был сохранен.', function() {
         let authenticatedUserRequest,
-            ticketsContactsRequest,
             tester;
 
         beforeEach(function() {
@@ -274,6 +273,7 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.phoneField.expectToBeVisible();
+                tester.authToken.expectToBeSaved();
             });
             it('Получен запрос состояния. Отправлено текущее состояние.', function() {
                 tester.stateRequest().
@@ -296,5 +296,87 @@ tests.addTest(options => {
         it('Получен запрос состояния. В ответ на запрос было отправлено текущее состояние.', function() {
             tester.stateRequest().expectResponseToBeSent();
         });
+    });
+    it(
+        'Токен авторизации был сохранен. Производится инициализация софтфона. Получен запрос состояния. ' +
+        'Отправлено текущее состояние. Получено сообщение о необходимости показать виджет. Виджет видим.',
+    function() {
+        const tester = new Tester({
+            softphoneHost: 'my.uiscom.ru',
+            isAuthorized: true,
+            ...options,
+        });
+
+        tester.masterInfoMessage().receive();
+        tester.slavesNotification().additional().expectToBeSent();
+        tester.slavesNotification().expectToBeSent();
+        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+        tester.authCheckRequest().receiveResponse();
+        tester.talkOptionsRequest().receiveResponse();
+        tester.permissionsRequest().receiveResponse();
+        tester.statusesRequest().receiveResponse();
+        tester.settingsRequest().receiveResponse();
+
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
+            expectToBeSent();
+
+        notificationTester.grantPermission();
+        tester.connectEventsWebSocket();
+
+        tester.slavesNotification().
+            twoChannels().
+            enabled().
+            softphoneServerConnected().
+            expectToBeSent();
+
+        tester.connectSIPWebSocket();
+
+        tester.slavesNotification().
+            twoChannels().
+            softphoneServerConnected().
+            webRTCServerConnected().
+            expectToBeSent();
+
+        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+        tester.registrationRequest().receiveResponse();
+
+        tester.slavesNotification().
+            twoChannels().
+            softphoneServerConnected().
+            webRTCServerConnected().
+            registered().
+            expectToBeSent();
+
+        tester.allowMediaInput();
+
+        tester.slavesNotification().
+            twoChannels().
+            softphoneServerConnected().
+            webRTCServerConnected().
+            registered().
+            microphoneAccessGranted().
+            expectToBeSent();
+
+        authenticatedUserRequest.receiveResponse();
+
+        tester.slavesNotification().
+            twoChannels().
+            available().
+            expectToBeSent();
+
+        tester.toggleWidgetVisibilityRequest().
+            visible().
+            authorized().
+            expectResponseToBeSent();
+
+        tester.slavesNotification().
+            additional().
+            visible().
+            expectToBeSent();
+
+        tester.phoneField.expectToBeVisible();
     });
 });

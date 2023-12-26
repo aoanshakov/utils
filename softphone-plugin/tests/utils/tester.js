@@ -7,7 +7,7 @@ define(() => function ({
     fetch,
     spendTime,
     softphoneTester: me,
-    isAlreadyAuthenticated = false,
+    isAuthorized = false,
     application = 'softphone',
     platform = 'windows',
     webSockets,
@@ -34,14 +34,7 @@ define(() => function ({
         refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
     };
 
-    isAlreadyAuthenticated && (
-        document.cookie =
-        '%5C%24REACT_APP_AUTH_COOKIE=%7B%22' +
-        'jwt%22%3A%22XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0%22%2C%22' +
-        'refresh%22%3A%222982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2%22%7D; ' +
-        'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
-    );
-
+    isAuthorized && localStorage.setItem('softphoneAuthToken', jwtToken.jwt);
     window.resetElectronCookiesManager?.();
 
     window.stores = null;
@@ -471,6 +464,14 @@ define(() => function ({
 
         return tester;
     })();
+
+    me.authToken = {
+        expectToBeSaved: () => {
+            if (localStorage.getItem('softphoneAuthToken') != jwtToken.jwt) {
+                throw new Error('Авторизационный токен не был сохранен.');
+            }
+        },
+    };
 
     me.fileField = testersFactory.createFileFieldTester(() => document.querySelector('input[type=file]'));
 
