@@ -47,6 +47,275 @@ define(() => function ({
     window.stores = null;
     window.softphoneBroadcastChannelCache = {};
 
+    function AuthFlowLaunching ({
+        respond,
+        details,
+    }) {
+        this.expectNotToExist = () => {
+            throw new Error(
+                'Авторизация не должна быть запущена, однако была запущена авторизация с такими параметрами ' + 
+                `${JSON.stringify(details)}.`
+            );
+        };
+
+        this.expectDetailsToContain = function (expectedContent) {
+            utils.expectObjectToContain(details, expectedContent);
+            return this;
+        };
+
+        this.receiveResponse = function (response) {
+            respond(response);
+            spendTime(0);
+            spendTime(0);
+            return this;
+        };
+    }
+
+    function NoAuthFlowLaunching () {
+        this.expectNotToExist = () => {};
+
+        this.expectDetailsToContain = expectedContent => {
+            throw new Error(
+                `Должна быть запущена авторизация с такими параметрами ${JSON.stringify(expectedContent)}, тогда как ` +
+                `авторизация не была запущена.`
+            );
+        };
+
+        this.receiveResponse = responseUrl => {
+            throw new Error(
+                `Авторизация должна быть завершена получением URL ${responseUrl}, однако авторизация не была запущена.`
+            );
+        };
+    }
+
+    function ChromeTester ({
+        tabs,
+        messageListeners,
+        authFlowLaunchings,
+    }) {
+        function Tab (messages) {
+            this.nextMessage = () => messages.pop();
+        }
+
+        function Tabs (tabs) {
+            this.current = new Tab(tabs.getCurrentTabMessages());
+        }
+
+        function Runtime (messageListeners) {
+            this.receiveMessage = message => new ReceivedMessage({
+                message,
+                messageListeners,
+            });
+        }
+
+        function Identity (authFlowLaunchings) {
+            this.nextLaunching = () => authFlowLaunchings.pop();
+        }
+
+        function ReceivedMessage ({
+            message,
+            messageListeners,
+        }) {
+            const responses = [];
+            messageListeners.handleMessage(message, response => responses.push(response));
+            spendTime(0);
+            spendTime(0);
+            spendTime(0);
+
+            this.expectResponseToContain = expectedContent => {
+                if (!responses.length) {
+                    throw new Error(
+                        `На сообщение ${JSON.stringify(message)} должен прийти ответ ` +
+                        `${JSON.stringify(expectedContent)}, однако ответ не пришел.`
+                    );
+                }
+
+                if (responses.length > 1) {
+                    throw new Error(
+                        'Ожидался только один ответ, однако были получены такие ответы: ' +
+                        responses.map(response => JSON.stringify(response)).join(', ')
+                    );
+                }
+
+                utils.expectObjectToContain(responses[0], expectedContent);
+            };
+        }
+
+        this.tabs = new Tabs(tabs);
+        this.runtime = new Runtime(messageListeners);
+        this.identity = new Identity(authFlowLaunchings);
+    }
+
+    function ChromeTabs () {
+        function Tab () {
+            this.id = utils.getRandomString();
+        }
+
+        function Message ({
+            tabId,
+            message,
+            respond,
+        }) {
+            this.expectNotToExist = () => {
+                throw new Error(
+                    `Во вкладку ${tabId} не должно быть отправлено сообщение, однако было отправлено ` + 
+                    `сообщение ${JSON.stringify(message)}`
+                );
+            };
+
+            this.expectToContain = function (expectedContent) {
+                utils.expectObjectToContain(message, expectedContent);
+                return this;
+            };
+
+            this.receiveResponse = function (response) {
+                respond(response);
+                spendTime(0);
+                spendTime(0);
+                return this;
+            };
+        }
+
+        function NoMessage (tabId) {
+            this.expectNotToExist = () => {};
+
+            this.expectToContain = expectedContent => {
+                throw new Error(
+                    `Во вкладку ${tabId} не было передано ни одно сообщение, тогда как должно было быть ` +
+                    `передано сообщение ${JSON.stringify(expectedContent)}`
+                );
+            };
+
+            this.receiveResponse = response => {
+                throw new Error(
+                    `Во вкладку ${tabId} не было передано ни одно сообщение, тогда как на сообщение должен быть ` +
+                    `отправлен ответ ${JSON.stringify(response)}`
+                );
+            };
+        }
+
+        const tabs = {};
+
+        const addTab = (tab, queryOptions) => {
+            if (tabs[tab.id]) {
+                return;
+            }
+
+            const item = {
+                tab,
+                queryOptions,
+                messages: new JsTester_Stack(new NoMessage(tab.id)),
+            };
+
+            tabs[tab.id] = item;
+            return item;
+        };
+
+        const currentTab = addTab(new Tab(), {
+            active: true,
+            lastFocusedWindow: true,
+        });
+
+        this.getCurrentTabMessages = () => currentTab.messages;
+
+        this.sendMessage = (tabId, message) => {
+            const item = tabs[tabId];
+
+            if (!item) {
+                throw new Error(
+                    `Не найдена вкладка с идентификатором ${tabId}. Существуют вкладки с идентификаторами ` +
+                    Object.keys(tabs).join(', ')
+                );
+            }
+
+            return new Promise(resolve => item.messages.add(new Message({
+                tabId,
+                message,
+                respond: resolve,
+            })));
+        };
+
+        this.query = queryOptions => Object.values(tabs).
+            filter(
+                item =>
+                    !Object.keys(queryOptions).
+                    some(name => item.queryOptions[name] !== queryOptions[name])
+            );
+    }
+
+    function ChromeMessageListeners () {
+        const listeners = new Set();
+
+        this.addListener = handler => listeners.add(handler);
+
+        this.handleMessage = (message, sendResponse) => {
+            listeners.forEach(handle => handle(message, {
+                documentId: '2f82jg9248' ,
+            }, sendResponse));
+        };
+    }
+
+    function FakeChrome ({
+        tabs,
+        messageListeners,
+        authFlowLaunchings,
+    }) {
+        function Tabs (tabs) {
+            this.sendMessage = (tabId, message) => tabs.sendMessage(tabId, message);
+            this.query = queryOptions => Promise.resolve(tabs.query(queryOptions).map(item => item.tab));
+        }
+
+        function MessageListeners (messageListeners) {
+            this.addListener = handler => messageListeners.addListener(handler);
+        }
+
+        function Runtime (messageListeners) {
+            this.onMessage = new MessageListeners(messageListeners);
+        }
+
+        function Storage () {
+            function Storage () {
+                this.set = (key, value) => null;
+                this.get = key => null;
+            }
+
+            this.local = new Storage();
+        }
+
+        function Identity (authFlowLaunchings) {
+            this.launchWebAuthFlow = details => new Promise(
+                resolve => authFlowLaunchings.add(new AuthFlowLaunching({
+                    details,
+                    respond: resolve,
+                }))
+            );
+        }
+
+        this.tabs = new Tabs(tabs);
+        this.runtime = new Runtime(messageListeners);
+        this.storage = new Storage();
+        this.identity = new Identity(authFlowLaunchings);
+
+    }
+
+    {
+        const tabs = new ChromeTabs(),
+            messageListeners = new ChromeMessageListeners(),
+            authFlowLaunchings = new JsTester_Stack(new NoAuthFlowLaunching());
+
+        window.fakeChrome = new FakeChrome({
+            tabs,
+            messageListeners,
+            authFlowLaunchings,
+        });
+
+        me.chrome = new ChromeTester({
+            tabs,
+            messageListeners,
+            authFlowLaunchings,
+        });
+    }
+
     me.getUserAgent = softphoneType => 'Softphone Chrome Plugin';
 
     me.ReactDOM = {

@@ -4572,6 +4572,18 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
         );
     };
 
+    this.getRandomString = function (length = 10) {
+       var result = '',
+           characters = 'abcdefghijklmnopqrstuvwxyz0123456789',
+           charactersCount = characters.length;
+
+       for (var i = 0; i < length; i++) {
+          result += characters.charAt(Math.floor(Math.random() * charactersCount));
+       }
+
+       return result;
+    };
+
     this.enableScrollingIntoView();
 }
 

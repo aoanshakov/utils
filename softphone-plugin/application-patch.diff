@@ -1,19 +1,21 @@
 diff --git a/package.json b/package.json
-index b83d757..25aceb3 100644
+index 489f985..25aceb3 100644
 --- a/package.json
 +++ b/package.json
-@@ -46,11 +46,13 @@
+@@ -46,13 +46,13 @@
      "webpack": "^5.74.0"
    },
    "dependencies": {
--    "@comagic/softphone-widget": "^2.0.24",
+-    "@comagic/softphone-widget": "0.0.0-int0",
+-    "@comagic/softphone-core": "^2.0.13",
+-    "@comagic/workplace-utils": "^1.0.21",
 +    "@comagic/softphone-widget": "./misc/sip_lib",
 +    "@comagic/softphone-core": "./misc/sip_lib/uis_webrtc",
 +    "@comagic/workplace-utils": "./misc/logger",
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
--    "magic-ui": "2.39.0",
+-    "magic-ui": "0.0.0-int1",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",

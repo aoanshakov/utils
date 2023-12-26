@@ -1,12 +1,19 @@
 import React, { useCallback, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
-import Root from '@/Root';
+import Softphone from '@/Root';
+import Popup from '@/popup/Root';
 let root;
 
+const applications = {
+    softphone: Softphone,
+    popup: Popup
+};
+
 window.application = {
-    run() {
+    run(application = 'softphone') {
         let rootStore;
+        const Root = applications[application] || Softphone;
 
         this.exit();
 
