@@ -108,8 +108,12 @@ define(() => function ({
             });
         }
 
-        function Identity (authFlowLaunchings) {
+        function AuthFlow (authFlowLaunchings) {
             this.nextLaunching = () => authFlowLaunchings.pop();
+        }
+
+        function Identity (authFlowLaunchings) {
+            this.authFlow = new AuthFlow(authFlowLaunchings);
         }
 
         function ReceivedMessage ({
@@ -283,6 +287,8 @@ define(() => function ({
         }
 
         function Identity (authFlowLaunchings) {
+            this.getRedirectURL = () => 'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/';
+
             this.launchWebAuthFlow = details => new Promise(
                 resolve => authFlowLaunchings.add(new AuthFlowLaunching({
                     details,
@@ -317,13 +323,17 @@ define(() => function ({
     }
 
     {
-        const createRequest = method => () => {
+        const createRequest = (method, params) => () => {
             const response = {
                 hidden: true,
                 isAuthorized: false,
+                isAuthorizing: false,
             };
 
+            const message = { method, params };
+
             addResponseModifiers = me => {
+                me.authorizing = () => (response.isAuthorizing = true, me);
                 me.authorized = () => (response.isAuthorized = true, me);
                 me.visible = () => (response.hidden = false, me);
 
@@ -334,7 +344,7 @@ define(() => function ({
                 expectResponseToBeSent() {
                     me.chrome.
                         runtime.
-                        receiveMessage({ method }).
+                        receiveMessage(message).
                         expectResponseToContain(response);
                 },
                 expectToBeSent() {
@@ -342,7 +352,7 @@ define(() => function ({
                         tabs.
                         current.
                         nextMessage().
-                        expectToContain({ method });
+                        expectToContain(message);
 
                     return addResponseModifiers({
                         receiveResponse: () => {
@@ -356,9 +366,49 @@ define(() => function ({
             });
         };
 
+        me.authorizationRequest = createRequest('authorize', {
+            code: '28gjs8o24rfsd42',
+            redirect_uri: 'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/',
+            client_id: 'faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org',
+        });
+
         me.stateRequest = createRequest('get_state');
         me.toggleWidgetVisibilityRequest = createRequest('toggle_widget_visibility');
     }
+
+    me.oauthRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHaveMethod('POST').
+                    expectToHavePath('https://uc-sso-prod-api.uiscom.ru/oauth2/authorize').
+                    expectBodyToContain({
+                        grant_type: 'authorization_code',
+                        code: '28gjs8o24rfsd42',
+                        redirect_uri: 'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/',
+                        client_id: 'faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org',
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            data: {
+                                token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                            },
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     me.getUserAgent = softphoneType => 'Softphone Chrome Plugin';
 

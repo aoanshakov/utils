@@ -25,6 +25,12 @@ tests.addTest(options => {
                 current.
                 nextMessage().
                 expectNotToExist();
+
+            tester.chrome.
+                identity.
+                authFlow.
+                nextLaunching().
+                expectNotToExist();
         });
 
         describe('Софтфон скрыт.', function() {
@@ -32,17 +38,90 @@ tests.addTest(options => {
                 stateRequest.receiveResponse();
             });
 
-            it('Нажимаю на кнопку "Авторизоваться". Производится авторизация.', function() {
-                tester.button('Авторизоваться').click();
+            describe('Нажимаю на кнопку "Авторизоваться". Отправлен запрос получения кода авторизации.', function() {
+                let authorizationRequest,
+                    authFlowLaunching;
 
-                tester.chrome.
-                    identity.
-                    nextLaunching().
-                    expectDetailsToContain({
-                        url: 'https://uc-sso-prod-api.uiscom.ru',
-                        interactive: true,
-                    }).
-                    receiveResponse('https://somedomain.com');
+                beforeEach(function() {
+                    tester.button('Авторизоваться').click();
+
+                    authFlowLaunching = tester.chrome.
+                        identity.
+                        authFlow.
+                        nextLaunching().
+                        expectDetailsToContain({
+                            interactive: true,
+                            url: 'https://uc-sso-prod-api.uiscom.ru' +
+                                '/oauth2/authorize?' + 
+                                'response_type=code&' +
+                                'client_id=faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org&' +
+                                'redirect_uri=https%3A%2F%2Ffaaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org%2F',
+                        });
+                });
+
+                describe('Получен код авторизации. Отправлен запрос авторизации.', function() {
+                    beforeEach(function() {
+                        authFlowLaunching.
+                            receiveResponse(
+                                'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/?code=28gjs8o24rfsd42',
+                            );
+
+                        authorizationRequest = tester.authorizationRequest().expectToBeSent();
+                    });
+
+                    describe('Получено уведомление о том, что производится авторизация.', function() {
+                        beforeEach(function() {
+                            authorizationRequest.
+                                authorizing().
+                                receiveResponse();
+                        });
+
+                        describe('Прошло некоторое время. Отправлен запрос сосотяния.', function() {
+                            beforeEach(function() {
+                                spendTime(1000);
+                                stateRequest = tester.stateRequest().expectToBeSent();
+                            });
+
+                            it(
+                                'Авторизация продолжает производиться. Прошло некоторое время. Отправлен запрос ' +
+                                'сосотяния.',
+                            function() {
+                                stateRequest.
+                                    authorizing().
+                                    receiveResponse();
+
+                                spendTime(1000);
+                                spendTime(0);
+
+                                tester.stateRequest().expectToBeSent();
+                            });
+                            it('Авторизация завершена. Кнопка "Авторизоваться" скрыта.', function() {
+                                stateRequest.
+                                    authorized().
+                                    receiveResponse();
+
+                                tester.button('Авторизоваться').expectNotToExist();
+                                spendTime(1000);
+                            });
+                        });
+                        it('Кнопка "Авторизоваться" заблокирована.', function() {
+                            tester.button('Авторизоваться').expectToBeDisabled();
+                        });
+                    });
+                    it(
+                        'Получено уведомление о том, что авторизация не производится. Кнопка "Авторизоваться" ' +
+                        'доступна.',
+                    function() {
+                        authorizationRequest.receiveResponse();
+
+                        tester.button('Авторизоваться').expectToBeEnabled();
+                        spendTime(1000);
+                    });
+                });
+                it('Кнопка "Авторизоваться" заблокирована.', function() {
+                    tester.button('Авторизоваться').expectToBeDisabled();
+                    spendTime(1000);
+                });
             });
             it('Нажимаю на кнопку "Показать софтфон". Отображена кнопка "Скрыть софтфон".', function() {
                 tester.button('Показать софтфон').click();
@@ -102,15 +181,27 @@ tests.addTest(options => {
 
         beforeEach(function() {
             tester = new Tester({
+                softphoneHost: 'my.uiscom.ru',
                 ...options,
             });
         });
 
-        /*
-        describe('', function() {
+        describe('Получен код авторизации. Отправлен запрос авторизации.', function() {
+            let oauthRequest;
+
             beforeEach(function() {
-                tester.input.fill('XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0');
-                tester.button('Войти').click();
+                tester.authorizationRequest().
+                    authorizing().
+                    expectResponseToBeSent();
+
+                oauthRequest = tester.oauthRequest().expectToBeSent();
+            });
+
+            it(
+                'Получен токен авторизации. Производится инициализация софтфона. Получен запрос состояния. ' +
+                'Отправлено текущее состояние. Получено сообщение о необходимости показать виджет. Виджет видим.',
+            function() {
+                oauthRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
                 tester.slavesNotification().additional().expectToBeSent();
@@ -172,18 +263,24 @@ tests.addTest(options => {
                     available().
                     expectToBeSent();
 
-                tester.button('Софтфон').click();
+                tester.toggleWidgetVisibilityRequest().
+                    visible().
+                    authorized().
+                    expectResponseToBeSent();
 
                 tester.slavesNotification().
                     additional().
                     visible().
                     expectToBeSent();
-            });
 
-            it('', function() {
+                tester.phoneField.expectToBeVisible();
+            });
+            it('Получен запрос состояния. Отправлено текущее состояние.', function() {
+                tester.stateRequest().
+                    authorizing().
+                    expectResponseToBeSent();
             });
         });
-        */
         it(
             'Получен запрос изменения видимости виджета. Отображено сообщение о том, что софтофон не авторизован.',
         function() {
