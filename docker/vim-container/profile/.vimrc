@@ -195,6 +195,7 @@ function! SetUpEslint()
         let isTest = isTest || stridx(path, '/uis_webrtc/tests/') != -1
         let isTest = isTest || stridx(path, '/comagic_app_tests/tests/') != -1
         let isTest = isTest || stridx(path, '/bitrix-digital-pipeline/tests/') != -1
+        let isTest = isTest || stridx(path, '/softphone-plugin/tests/') != -1
 
         if isTest == 1
             noremap ;aa k^f)%Ix<esc>^zz

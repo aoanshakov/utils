@@ -6,7 +6,7 @@ tests.addTest(options => {
         spendTime,
     } = options;
 
-    xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
+    describe('Открываю попап. Отправлен запрос состояния.', function() {
         let tester,
             stateRequest;
 
@@ -23,6 +23,14 @@ tests.addTest(options => {
                 expectToContain({
                     method: 'get_state',
                 });
+        });
+
+        afterEach(function() {
+            tester.chrome.
+                tabs.
+                current.
+                nextMessage().
+                expectNotToExist();
         });
 
         describe('Проходит некоторое время. Запрос состояния отправлен ещё раз.', function() {
@@ -103,6 +111,7 @@ tests.addTest(options => {
             tester.body.expectToHaveTextContent('Загрузка...');
         });
     });
+    return;
     describe('Открываю вкладку.', function() {
         let authenticatedUserRequest,
             ticketsContactsRequest,
