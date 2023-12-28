@@ -164,6 +164,7 @@ define(() => function ({
         description,
         message,
         respond,
+        fail,
     }) {
         this.expectNotToExist = () => {
             throw new Error(
@@ -176,6 +177,8 @@ define(() => function ({
             utils.expectObjectToContain(message, expectedContent);
             return this;
         };
+
+        this.fail = () => fail(new Error('Error occured'));
 
         this.receiveResponse = function (response) {
             respond(response);
@@ -210,10 +213,11 @@ define(() => function ({
             this.nextMessage = () => messages.pop();
         }
 
-        this.sendMessage = message => new Promise(resolve => messages.add(new ChromeMessage({
+        this.sendMessage = message => new Promise((resolve, reject) => messages.add(new ChromeMessage({
             description,
             message,
             respond: resolve,
+            fail: reject,
         })));
 
         this.createMessagesTester = () => new MessagesTester(messages);
@@ -563,10 +567,17 @@ define(() => function ({
                         expectToContain(message);
 
                     return addResponseModifiers({
-                        receiveResponse: () => {
-                            request.receiveResponse(response);
+                        receiveResponse: () => request.receiveResponse(response),
+                        fail: () => {
+                            request.fail();
+
+                            spendTime(0);
+                            spendTime(0);
                         },
                     });
+                },
+                fail() {
+                    this.expectToBeSent().fail();
                 },
                 receiveResponse() {
                     this.expectToBeSent().receiveResponse();

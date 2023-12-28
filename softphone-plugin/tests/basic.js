@@ -1,10 +1,8 @@
 tests.addTest(options => {
     const {
         Tester,
-        ajax,
         notificationTester,
         spendTime,
-        utils,
     } = options;
 
     describe('Включено расширение Chrome.', function() {
@@ -89,25 +87,6 @@ tests.addTest(options => {
                     tester.button('Войти').expectNotToExist();
                 });
             });
-            describe('Проходит некоторое время. Запрос состояния отправлен ещё раз.', function() {
-                beforeEach(function() {
-                    spendTime(1000);
-                    stateRequest = tester.stateRequest().expectToBeSent();
-                });
-
-                it('Получен ответ. Состояние страницы изменилось.', function() {
-                    stateRequest.
-                        visible().
-                        receiveResponse();
-
-                    tester.button('Скрыть софтфон').expectToBeVisible();
-                    spendTime(1000);
-                });
-                it('Проходит некоторое время. Запрос состояния отправлен ещё раз.', function() {
-                    spendTime(1000);
-                    tester.stateRequest().expectToBeSent();
-                });
-            });
             it('Софтфон видим. Нажимаю на кнопку "Скрыть софтфон". Отображена кнопка "Показать софтфон".', function() {
                 stateRequest.
                     visible().
@@ -117,7 +96,10 @@ tests.addTest(options => {
                 tester.toggleWidgetVisibilityRequest().receiveResponse();
 
                 tester.button('Показать софтфон').expectToBeVisible();
-                spendTime(1000);
+            });
+            it('Не удалось отправить сообщение. Отображено сообщение об ошибке.', function() {
+                stateRequest.fail();
+                tester.body.expectTextContentToHaveSubstring('Произошла ошибка');
             });
             it('Отображен спиннер.', function() {
                 tester.body.expectToHaveTextContent('Загрузка...');
