@@ -260,14 +260,11 @@ tests.addTest(options => {
                 tester.stateRequest().expectResponseToBeSent();
             });
         });
-        describe('Открываю background-скрипт. Прав на хост авторизации есть.', function() {
+        describe('Открываю background-скрипт.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'background',
                     ...options,
-                    permissions: {
-                        origins: ['https://uc-sso-prod-api.uiscom.ru/*'],
-                    },
                 });
             });
             
@@ -294,17 +291,6 @@ tests.addTest(options => {
             it('Приходит запрос, не являющийся запросом авторизации. Ответ не был отправлен.', function() {
                 tester.toggleWidgetVisibilityRequest().expectNoResponseToBeSent();
             });
-        });
-        it(
-            'Открываю background-скрипт. Нет прав на хост авторизации. Приходит запрос авторизации. Форма ' +
-            'авторизации не была открыта .',
-        function() {
-            tester = new Tester({
-                application: 'background',
-                ...options,
-            });
-
-            tester.authorizationRequest().expectResponseToBeSent();
         });
         it('Открываю попап. Токен сохранен в хранилище. Кнопка "Войти" скрыта.', function() {
             tester = new Tester({
