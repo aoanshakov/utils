@@ -16,6 +16,7 @@ define(() => function ({
     image,
     softphoneHost,
     storage = {},
+    permissions: initialPermissions,
 }) {
     let history,
         eventBus,
@@ -35,7 +36,6 @@ define(() => function ({
         refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
     };
 
-    isAuthorized && localStorage.setItem('softphoneAuthToken', jwtToken.jwt);
     window.resetElectronCookiesManager?.();
 
     window.stores = null;
@@ -88,6 +88,7 @@ define(() => function ({
         authFlowLaunchings,
         runtimeMessageSender,
         localStorage,
+        permissions,
     }) {
         function Tabs (tabs) {
             this.current = tabs.getCurrentTabMessagesTester();
@@ -156,6 +157,7 @@ define(() => function ({
         this.runtime = new Runtime(messageListeners);
         this.identity = new Identity(authFlowLaunchings);
         this.storage = new Storage();
+        this.permissions = permissions.createRequestsTester();
     }
 
     function ChromeMessage ({
@@ -294,12 +296,16 @@ define(() => function ({
                     return;
                 }
 
+                const change = key in items ? {
+                    oldValue: items[key],
+                } : {};
+
                 items[key] = value;
-                changes[key] = value;
+                change.newValue = value;
+                changes[key] = change;
             });
 
             listeners.forEach(handle => handle(changes));
-            return changes;
         };
 
         this.get = keys => keys.reduce((result, key) => (result[key] = items[key], result), {});
@@ -319,12 +325,109 @@ define(() => function ({
         this.createTester = () => new Tester(this);
     }
 
+    function ChromePermissions (initialPermissions) {
+        function Requests (requests) {
+            this.nextRequest = () => requests.pop();
+        }
+
+        function Request ({
+            params,
+            permissions,
+            requestedPermissions,
+            callback,
+        }) {
+            this.grant = function () {
+                params.forEach(
+                    name => requestedPermissions[name] && requestedPermissions[name].forEach(
+                        item => permissions[name].add(requestedPermissions[name])
+                    ) 
+                );
+
+                callback(true);
+                spendTime(0);
+
+                return this;
+            };
+
+            this.deny = function () {
+                callback(false);
+                spendTime(0);
+
+                return this;
+            };
+
+            this.expectPermissionToBeRequested = permission => {
+                if (!(requestedPermissions.permissions || []).includes(permission)) {
+                    throw new Error(
+                        `Должно быть запрошено право "${permission}, однако были запрошены только эти права - ` +
+                        `"${(requestedPermissions.permissions || []).join('", "')}".`
+                    );
+                }
+
+                return this;
+            };
+
+            this.expectHostPermissionToBeRequested = origin => {
+                if (!(requestedPermissions.origins || []).includes(origin)) {
+                    throw new Error(
+                        `Должно быть запрошено право "${origin}, однако были запрошены только эти права - ` +
+                        `"${(requestedPermissions.origins || []).join('", "')}".`
+                    );
+                }
+
+                return this;
+            };
+        }
+
+        function NoRequest () {
+            const throwError = () => {
+                throw new Error('Права не были запрошены.');
+            };
+
+            this.grant = () => throwError;
+            this.deny = () => throwError;
+
+            this.expectPermissionToBeRequested = permission => {
+                throw new Error(`Должно быть запрошено право "${permission}, однако никакие права не были запрошены.`);
+            };
+
+            this.expectHostPermissionToBeRequested = origin => {
+                throw new Error(`Должно быть запрошено право "${origin}, однако никакие права не были запрошены.`);
+            };
+        }
+
+        const params = ['permissions', 'origins'],
+            requests = new JsTester_Stack(new NoRequest());
+
+        const permissions = params.reduce(
+            (permissions, name) =>
+                (permissions[name] = new Set(initialPermissions?.[name] || []), permissions),
+            {}
+        );
+
+        this.contains = desiredContent => !params.some(
+            key => desiredContent[key] ?
+                desiredContent[key].some(item => !permissions[key].has(item)) :
+                false
+        );
+
+        this.request = requestedPermissions => new Promise(callback => requests.add(new Request({
+            params,
+            permissions,
+            requestedPermissions,
+            callback,
+        })));
+
+        this.createRequestsTester = () => new Requests(requests);
+    }
+
     function FakeChrome ({
         tabs,
         messageListeners,
         authFlowLaunchings,
         runtimeMessageSender,
         localStorage,
+        permissions,
     }) {
         function Tabs (tabs) {
             this.sendMessage = (tabId, message) => tabs.sendMessage(tabId, message);
@@ -357,11 +460,7 @@ define(() => function ({
                 }
 
                 this.onChanged = new ChangeListeners();
-
-                this.set = value => Promise.resolve().then(() => {
-                    storage.set(value);
-                });
-
+                this.set = value => Promise.resolve().then(() => storage.set(value));
                 this.get = keys => Promise.resolve(storage.get(typeof keys == 'string' ? [keys] : keys));
             }
 
@@ -380,11 +479,16 @@ define(() => function ({
             );
         }
 
+        function Permissions (permissions) {
+            this.contains = desiredContent => Promise.resolve(permissions.contains(desiredContent));
+            this.request = desiredContent => permissions.request(desiredContent);
+        }
+
         this.tabs = new Tabs(tabs);
         this.runtime = new Runtime(messageListeners);
         this.storage = new Storage();
         this.identity = new Identity(authFlowLaunchings);
-
+        this.permissions = new Permissions(permissions);
     }
 
     {
@@ -392,7 +496,8 @@ define(() => function ({
             messageListeners = new ChromeMessageListeners(),
             authFlowLaunchings = new JsTester_Stack(new NoAuthFlowLaunching()),
             runtimeMessageSender = new ChromeMessageSender('В background-скрипт'),
-            localStorage = new ChromeStorage(storage);
+            localStorage = new ChromeStorage(storage),
+            permissions = new ChromePermissions(initialPermissions);
 
         window.fakeChrome = new FakeChrome({
             tabs,
@@ -400,6 +505,7 @@ define(() => function ({
             authFlowLaunchings,
             runtimeMessageSender,
             localStorage,
+            permissions,
         });
 
         me.chrome = new ChromeTester({
@@ -408,22 +514,27 @@ define(() => function ({
             authFlowLaunchings,
             runtimeMessageSender,
             localStorage,
+            permissions,
         });
     }
+
+    isAuthorized && me.chrome.
+        storage.
+        local.
+        set({
+            access_token: jwtToken.jwt,
+        });
 
     {
         const createRequest = (method, params) => () => {
             const response = {
                 hidden: true,
-                isAuthorized: false,
             };
 
             const message = { method, params };
 
             addResponseModifiers = me => {
-                me.authorized = () => (response.isAuthorized = true, me);
                 me.visible = () => (response.hidden = false, me);
-
                 return me;
             };
 
@@ -463,25 +574,14 @@ define(() => function ({
             });
         };
 
-        me.tokenSettingRequest = createRequest('set_token', {
-            token: jwtToken.jwt,
-        });
-
-        me.logoutRequest = createRequest('logout');
         me.stateRequest = createRequest('get_state');
         me.toggleWidgetVisibilityRequest = createRequest('toggle_widget_visibility');
     }
 
     {
         const createRequest = method => () => {
-            const response = {};
-
-            const message = {
-                method,
-                params: {
-                    tabId: 5829373782,
-                },
-            };
+            const response = {},
+                message = { method };
 
             const addResponseModifiers = me => {
                 return me;

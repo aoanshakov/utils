@@ -7,7 +7,7 @@ import initialize from '@/background/initialize';
 let root;
 
 const Background = () => {
-    useEffect(initialize, []);
+    useEffect(() => void initialize(), []);
     return <></>;
 };
 

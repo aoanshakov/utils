@@ -5241,6 +5241,8 @@ function JsTester_FetchRequest (args) {
     body = utils.maybeDecodeArrayBuffer(body);
 
     if (body) {
+        body instanceof FormData && (body = new URLSearchParams(body).toString());
+
         if (typeof body == 'object') {
             data = body;
         } else {
