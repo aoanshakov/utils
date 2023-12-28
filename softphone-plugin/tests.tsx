@@ -1,13 +1,20 @@
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import Softphone from '@/Root';
 import Popup from '@/popup/Root';
+import initialize from '@/background/initialize';
 let root;
+
+const Background = () => {
+    useEffect(initialize, []);
+    return <></>;
+};
 
 const applications = {
     softphone: Softphone,
-    popup: Popup
+    popup: Popup,
+    background: Background,
 };
 
 window.application = {

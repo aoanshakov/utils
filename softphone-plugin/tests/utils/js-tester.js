@@ -4054,7 +4054,7 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
             }
         });
     };
-    
+
     this.createParamExpectation = function (expectation) {
         var Constructor = function () {
             this.maybeThrowError = expectation;
@@ -4414,24 +4414,30 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
         return (new JsTester_DescendantFinder(ascendantElement, this)).matchesSelector(selector || '*').
             textEquals(desiredTextContent).find();
     };
-    this.expectJSONObjectToContain = function (object, expectedContent) {
-        if (!object) {
-            throw new Error('Строка, которую необходимо разобрать как JSON не должна быть пустой.');
+    this.expectJSONObjectToContain = function () {
+        const { object, expectedContent } = (args => {
+            if (args.length == 1) {
+                return {
+                    object: null,
+                    expectedContent: args[0],
+                };
+            }
+
+            return {
+                object: args[0],
+                expectedContent: args[1],
+            };
+        })(arguments);
+
+        const expectation = new JsTests_JSONContentExpectation(expectedContent);
+
+        if (arguments.length == 1) {
+            return expectation;
         }
 
-        if (typeof object != 'string') {
-            throw new Error('Значение переданное для разбора в качестве JSON должно быть строковым.');
-        }
-
-        try {
-            object = JSON.parse(object);
-        } catch (e) {
-            throw new Error('Не удалось разобрать JSON.');
-        }
-
-
-        this.expectObjectToContain(object, expectedContent);
+        expectation.checkCompliance(object);
     };
+    this.expectJSONToContain = this.expectJSONObjectToContain;
     this.expectObjectToContain = function (object, expectedContent) {
         if (typeof expectedContent != 'object') {
             if (typeof object == 'object') {
@@ -5199,6 +5205,11 @@ function JsTester_FetchMock (args) {
             body = options.body,
             resolver = new JsTester_FunctionVariable(function () {});
 
+        const requestHeaders = options.headers ?
+            Array.from(options.headers.entries()).
+                reduce((result, [key, value]) => (result[key] = value, result), {}) :
+            null;
+
         var promise = new Promise(function (resolve) {
             resolver.setValue(function (response) {
                 resolve(response);
@@ -5210,6 +5221,7 @@ function JsTester_FetchMock (args) {
             method: method,
             body: method == 'GET' ? null : body,
             utils: utils,
+            requestHeaders,
             resolve: resolver.createValueCaller()
         }));
         
@@ -5219,6 +5231,7 @@ function JsTester_FetchMock (args) {
 
 function JsTester_FetchRequest (args) {
     var url = args.url,
+        requestHeaders = args.requestHeaders,
         method = args.method,
         body = args.body,
         utils = args.utils,
@@ -5242,6 +5255,12 @@ function JsTester_FetchRequest (args) {
             }
         }
     }
+
+    Object.defineProperty(this, 'requestHeaders', {
+        get: function () {
+            return requestHeaders;
+        }
+    });
 
     Object.defineProperty(this, 'url', {
         get: function () {
@@ -5276,7 +5295,7 @@ function JsTester_FetchResponse (args) {
     }
 
     this.json = function () {
-        return json;
+        return Promise.resolve(json);
     };
 
     this.text = function () {
@@ -6706,6 +6725,35 @@ function JsTests_FileContentSubstringExpectaion (expectedValue) {
     };
 }
 
+function JsTests_JSONContentExpectation (expectedContent) {
+    this.checkCompliance = (actualValue, description) => {
+        description = 'Значение ' + description;
+
+        if (!actualValue) {
+            throw new Error(description + ',которое необходимо разобрать как JSON не должна быть пустой.');
+        }
+
+        if (typeof actualValue != 'string') {
+            throw new Error(
+                `${description},переданное для разбора в качестве JSON должно быть строковым, однако значение ` +
+                `таково - ${JSON.stringify(actualValue)}.`
+            );
+        }
+
+        try {
+            actualValue = JSON.parse(actualValue);
+        } catch (e) {
+            throw new Error(description + 'не удалось разобрать.');
+        }
+
+        (new JsTester_ParamsContainingExpectation(actualValue, description))(expectedContent);
+    };
+
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        this.checkCompliance(actualValue, 'параметра ' + keyDescription);
+    };
+}
+
 JsTests_FileContentSubstringExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_BlobExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_NonStrictExpectaion.prototype = JsTests_ParamExpectationPrototype;
@@ -6715,6 +6763,7 @@ JsTests_StringExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_SetInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
 JsTests_NotEmptyExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_LengthExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_JSONContentExpectation.prototype = JsTests_ParamExpectationPrototype
 
 function JsTester_ParamsContainingExpectation (actualParams, paramsDescription) {
     paramsDescription = paramsDescription || '';

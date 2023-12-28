@@ -4,6 +4,7 @@ tests.addTest(options => {
         ajax,
         notificationTester,
         spendTime,
+        utils,
     } = options;
 
     describe('Открываю попап. Отправлен запрос состояния.', function() {
@@ -27,6 +28,12 @@ tests.addTest(options => {
                 expectNotToExist();
 
             tester.chrome.
+                runtime.
+                background.
+                nextMessage().
+                expectNotToExist();
+
+            tester.chrome.
                 identity.
                 authFlow.
                 nextLaunching().
@@ -38,89 +45,42 @@ tests.addTest(options => {
                 stateRequest.receiveResponse();
             });
 
-            describe('Нажимаю на кнопку "Авторизоваться". Отправлен запрос получения кода авторизации.', function() {
-                let authorizationRequest,
-                    authFlowLaunching;
-
+            describe('Нажимаю на кнопку "Войти". Отправлен запрос получения кода авторизации.', function() {
                 beforeEach(function() {
-                    tester.button('Авторизоваться').click();
-
-                    authFlowLaunching = tester.chrome.
-                        identity.
-                        authFlow.
-                        nextLaunching().
-                        expectDetailsToContain({
-                            interactive: true,
-                            url: 'https://uc-sso-prod-api.uiscom.ru' +
-                                '/oauth2/authorize?' + 
-                                'response_type=code&' +
-                                'client_id=faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org&' +
-                                'redirect_uri=https%3A%2F%2Ffaaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org%2F',
-                        });
+                    tester.button('Войти').click();
+                    tester.authorizationRequest().receiveResponse();
                 });
 
-                describe('Получен код авторизации. Отправлен запрос авторизации.', function() {
+                describe('Авторизация завершена.', function() {
+                    let stateRequest;
+
                     beforeEach(function() {
-                        authFlowLaunching.
-                            receiveResponse(
-                                'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/?code=28gjs8o24rfsd42',
-                            );
+                        tester.chrome.
+                            storage.
+                            local.
+                            set({
+                                '5829373782': JSON.stringify({
+                                    isAuthorizing: false,
+                                }),
+                            })
 
-                        authorizationRequest = tester.authorizationRequest().expectToBeSent();
+                        stateRequest = tester.stateRequest().expectToBeSent();
                     });
 
-                    describe('Получено уведомление о том, что производится авторизация.', function() {
-                        beforeEach(function() {
-                            authorizationRequest.
-                                authorizing().
-                                receiveResponse();
-                        });
+                    it('Софтфон авторизован. Кнопка "Войти" скрыта.', function() {
+                        stateRequest.
+                            authorized().
+                            receiveResponse();
 
-                        describe('Прошло некоторое время. Отправлен запрос сосотяния.', function() {
-                            beforeEach(function() {
-                                spendTime(1000);
-                                stateRequest = tester.stateRequest().expectToBeSent();
-                            });
-
-                            it(
-                                'Авторизация продолжает производиться. Прошло некоторое время. Отправлен запрос ' +
-                                'сосотяния.',
-                            function() {
-                                stateRequest.
-                                    authorizing().
-                                    receiveResponse();
-
-                                spendTime(1000);
-                                spendTime(0);
-
-                                tester.stateRequest().expectToBeSent();
-                            });
-                            it('Авторизация завершена. Кнопка "Авторизоваться" скрыта.', function() {
-                                stateRequest.
-                                    authorized().
-                                    receiveResponse();
-
-                                tester.button('Авторизоваться').expectNotToExist();
-                                spendTime(1000);
-                            });
-                        });
-                        it('Кнопка "Авторизоваться" заблокирована.', function() {
-                            tester.button('Авторизоваться').expectToBeDisabled();
-                        });
+                        tester.button('Войти').expectNotToExist();
                     });
-                    it(
-                        'Получено уведомление о том, что авторизация не производится. Кнопка "Авторизоваться" ' +
-                        'доступна.',
-                    function() {
-                        authorizationRequest.receiveResponse();
-
-                        tester.button('Авторизоваться').expectToBeEnabled();
-                        spendTime(1000);
+                    it('Софтон не авторизован. Кнопка "Войти" доступна.', function() {
+                        stateRequest.receiveResponse();
+                        tester.button('Войти').expectToBeEnabled();
                     });
                 });
-                it('Кнопка "Авторизоваться" заблокирована.', function() {
-                    tester.button('Авторизоваться').expectToBeDisabled();
-                    spendTime(1000);
+                it('Кнопка "Войти" заблокирована.', function() {
+                    tester.button('Войти').expectToBeDisabled();
                 });
             });
             it('Нажимаю на кнопку "Показать софтфон". Отображена кнопка "Скрыть софтфон".', function() {
@@ -152,6 +112,13 @@ tests.addTest(options => {
                 spendTime(1000);
             });
         });
+        it('Софтфон авторизован. Кнопка авторизации скрыта.', function() {
+            stateRequest.
+                authorized().
+                receiveResponse();
+
+            tester.button('Войти').expectNotToExist();
+        });
         it('Софтфон видим. Нажимаю на кнопку "Скрыть софтфон". Отображена кнопка "Показать софтфон".', function() {
             stateRequest.
                 visible().
@@ -162,13 +129,6 @@ tests.addTest(options => {
 
             tester.button('Показать софтфон').expectToBeVisible();
             spendTime(1000);
-        });
-        it('Софтфон авторизован. Кнопка авторизации скрыта.', function() {
-            stateRequest.
-                authorized().
-                receiveResponse();
-
-            tester.button('Авторизоваться').expectNotToExist();
         });
         it('Отображен спиннер.', function() {
             tester.body.expectToHaveTextContent('Загрузка...');
@@ -185,101 +145,86 @@ tests.addTest(options => {
             });
         });
 
-        describe('Получен код авторизации. Отправлен запрос авторизации.', function() {
-            let oauthRequest;
+        it(
+            'Получен токен авторизации. Производится инициализация софтфона. Получен запрос состояния. Отправлено ' +
+            'текущее состояние. Получено сообщение о необходимости показать виджет. Виджет видим.',
+        function() {
+            tester.tokenSettingRequest().
+                authorized().
+                expectResponseToBeSent();
 
-            beforeEach(function() {
-                tester.authorizationRequest().
-                    authorizing().
-                    expectResponseToBeSent();
+            tester.masterInfoMessage().receive();
+            tester.slavesNotification().additional().expectToBeSent();
+            tester.slavesNotification().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-                oauthRequest = tester.oauthRequest().expectToBeSent();
-            });
+            tester.authCheckRequest().receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+            tester.statusesRequest().receiveResponse();
+            tester.settingsRequest().receiveResponse();
 
-            it(
-                'Получен токен авторизации. Производится инициализация софтфона. Получен запрос состояния. ' +
-                'Отправлено текущее состояние. Получено сообщение о необходимости показать виджет. Виджет видим.',
-            function() {
-                oauthRequest.receiveResponse();
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                expectToBeSent();
 
-                tester.masterInfoMessage().receive();
-                tester.slavesNotification().additional().expectToBeSent();
-                tester.slavesNotification().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+            notificationTester.grantPermission();
+            tester.connectEventsWebSocket();
 
-                tester.authCheckRequest().receiveResponse();
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
-                tester.statusesRequest().receiveResponse();
-                tester.settingsRequest().receiveResponse();
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
 
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
-                    expectToBeSent();
+            tester.connectSIPWebSocket();
 
-                notificationTester.grantPermission();
-                tester.connectEventsWebSocket();
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                expectToBeSent();
 
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
-                    softphoneServerConnected().
-                    expectToBeSent();
+            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+            tester.registrationRequest().receiveResponse();
 
-                tester.connectSIPWebSocket();
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                registered().
+                expectToBeSent();
 
-                tester.slavesNotification().
-                    twoChannels().
-                    softphoneServerConnected().
-                    webRTCServerConnected().
-                    expectToBeSent();
+            tester.allowMediaInput();
 
-                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-                tester.registrationRequest().receiveResponse();
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                registered().
+                microphoneAccessGranted().
+                expectToBeSent();
 
-                tester.slavesNotification().
-                    twoChannels().
-                    softphoneServerConnected().
-                    webRTCServerConnected().
-                    registered().
-                    expectToBeSent();
+            authenticatedUserRequest.receiveResponse();
 
-                tester.allowMediaInput();
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
 
-                tester.slavesNotification().
-                    twoChannels().
-                    softphoneServerConnected().
-                    webRTCServerConnected().
-                    registered().
-                    microphoneAccessGranted().
-                    expectToBeSent();
+            tester.toggleWidgetVisibilityRequest().
+                visible().
+                authorized().
+                expectResponseToBeSent();
 
-                authenticatedUserRequest.receiveResponse();
+            tester.slavesNotification().
+                additional().
+                visible().
+                expectToBeSent();
 
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
-                    expectToBeSent();
-
-                tester.toggleWidgetVisibilityRequest().
-                    visible().
-                    authorized().
-                    expectResponseToBeSent();
-
-                tester.slavesNotification().
-                    additional().
-                    visible().
-                    expectToBeSent();
-
-                tester.phoneField.expectToBeVisible();
-                tester.authToken.expectToBeSaved();
-            });
-            it('Получен запрос состояния. Отправлено текущее состояние.', function() {
-                tester.stateRequest().
-                    authorizing().
-                    expectResponseToBeSent();
-            });
+            tester.phoneField.expectToBeVisible();
+            tester.authToken.expectToBeSaved();
         });
         it(
             'Получен запрос изменения видимости виджета. Отображено сообщение о том, что софтофон не авторизован.',
@@ -295,6 +240,93 @@ tests.addTest(options => {
         });
         it('Получен запрос состояния. В ответ на запрос было отправлено текущее состояние.', function() {
             tester.stateRequest().expectResponseToBeSent();
+        });
+    });
+    describe('Открываю background-скрипт.', function() {
+        let tester;
+
+        beforeEach(function() {
+            tester = new Tester({
+                application: 'background',
+                ...options,
+            });
+        });
+        
+        describe('Приходит запрос авторизации. Открыта форма авторизации.', function() {
+            let authFlow;
+
+            beforeEach(function() {
+                tester.authorizationRequest().expectResponseToBeSent();
+                authFlow = tester.authFlow().expectToBeLaunched();
+            });
+
+            describe('Получен код авторизации.', function() {
+                let oauthRequest;
+
+                beforeEach(function() {
+                    authFlow.receiveResponse();
+                    oauthRequest = tester.oauthRequest().expectToBeSent();
+                });
+
+                describe('Получен авторизационный токен.', function() {
+                    let tokenSettingRequest;
+
+                    beforeEach(function() {
+                        oauthRequest.receiveResponse();
+                        tokenSettingRequest = tester.tokenSettingRequest().expectToBeSent();
+                    });
+
+                    it(
+                        'В текущей вкладке установлен авторизационный токен. В хранилище сохранено состояние вкладки.',
+                    function() {
+                        tokenSettingRequest.
+                            authorized().
+                            receiveResponse();
+
+                        tester.chrome.
+                            storage.
+                            local.
+                            expectToContain({
+                                '5829373782': utils.expectJSONToContain({
+                                    isAuthorizing: false,
+                                }),
+                            });
+                    });
+                    it('В хранилище сохранено состояние вкладки.', function() {
+                        tester.chrome.
+                            storage.
+                            local.
+                            expectToContain({
+                                '5829373782': utils.expectJSONToContain({
+                                    isAuthorizing: true,
+                                }),
+                            });
+                    });
+                });
+                it('В хранилище сохранено состояние вкладки.', function() {
+                    tester.chrome.
+                        storage.
+                        local.
+                        expectToContain({
+                            '5829373782': utils.expectJSONToContain({
+                                isAuthorizing: true,
+                            }),
+                        });
+                });
+            });
+            it('В хранилище сохранено состояние вкладки.', function() {
+                tester.chrome.
+                    storage.
+                    local.
+                    expectToContain({
+                        '5829373782': utils.expectJSONToContain({
+                            isAuthorizing: true,
+                        }),
+                    });
+            });
+        });
+        it('Приходит запрос, не являющийся запросом авторизации. Ответ не был отправлен.', function() {
+            tester.tokenSettingRequest().expectNoResponseToBeSent();
         });
     });
     it(
@@ -378,5 +410,47 @@ tests.addTest(options => {
             expectToBeSent();
 
         tester.phoneField.expectToBeVisible();
+    });
+    describe('Открываю попап. Происходит авторизация.', function() {
+        let tester,
+            stateRequest;
+
+        beforeEach(function() {
+            tester = new Tester({
+                application: 'popup',
+                ...options,
+                storage: {
+                    '5829373782': JSON.stringify({
+                        isAuthorizing: true,
+                    }),
+                },
+            });
+
+            tester.stateRequest().receiveResponse();
+        });
+
+        afterEach(function() {
+            tester.chrome.
+                tabs.
+                current.
+                nextMessage().
+                expectNotToExist();
+
+            tester.chrome.
+                runtime.
+                background.
+                nextMessage().
+                expectNotToExist();
+
+            tester.chrome.
+                identity.
+                authFlow.
+                nextLaunching().
+                expectNotToExist();
+        });
+
+        it('Кнопка "Войти" заблокирована.', function() {
+            tester.button('Войти').expectToBeDisabled();
+        });
     });
 });

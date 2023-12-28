@@ -15,6 +15,7 @@ define(() => function ({
     intersectionObservable,
     image,
     softphoneHost,
+    storage = {},
 }) {
     let history,
         eventBus,
@@ -85,16 +86,16 @@ define(() => function ({
         tabs,
         messageListeners,
         authFlowLaunchings,
+        runtimeMessageSender,
+        localStorage,
     }) {
-        function Tab (messages) {
-            this.nextMessage = () => messages.pop();
-        }
-
         function Tabs (tabs) {
-            this.current = new Tab(tabs.getCurrentTabMessages());
+            this.current = tabs.getCurrentTabMessagesTester();
         }
 
         function Runtime (messageListeners) {
+            this.background = runtimeMessageSender.createMessagesTester();
+
             this.receiveMessage = message => new ReceivedMessage({
                 message,
                 messageListeners,
@@ -109,6 +110,10 @@ define(() => function ({
             this.authFlow = new AuthFlow(authFlowLaunchings);
         }
 
+        function Storage () {
+            this.local = localStorage.createTester();
+        }
+
         function ReceivedMessage ({
             message,
             messageListeners,
@@ -118,6 +123,15 @@ define(() => function ({
             spendTime(0);
             spendTime(0);
             spendTime(0);
+
+            this.expectNoResponseToBeSent = () => {
+                if (responses.length) {
+                    throw new Error(
+                        `На сообщение ${JSON.stringify(message)} не должен был прийти ответ, однако пришел такие ` +
+                        `ответы ${responses.map(response => JSON.stringify(response)).join(', ')}.`
+                    );
+                }
+            };
 
             this.expectResponseToContain = expectedContent => {
                 if (!responses.length) {
@@ -141,67 +155,87 @@ define(() => function ({
         this.tabs = new Tabs(tabs);
         this.runtime = new Runtime(messageListeners);
         this.identity = new Identity(authFlowLaunchings);
+        this.storage = new Storage();
     }
+
+    function ChromeMessage ({
+        description,
+        message,
+        respond,
+    }) {
+        this.expectNotToExist = () => {
+            throw new Error(
+                `${description} не должно быть отправлено сообщение, однако было отправлено ` + 
+                `сообщение ${JSON.stringify(message)}`
+            );
+        };
+
+        this.expectToContain = function (expectedContent) {
+            utils.expectObjectToContain(message, expectedContent);
+            return this;
+        };
+
+        this.receiveResponse = function (response) {
+            respond(response);
+            spendTime(0);
+            spendTime(0);
+            return this;
+        };
+    }
+
+    function ChromeNoMessage (description) {
+        this.expectNotToExist = () => {};
+
+        this.expectToContain = expectedContent => {
+            throw new Error(
+                `${description} не было передано ни одно сообщение, тогда как должно было быть ` +
+                `передано сообщение ${JSON.stringify(expectedContent)}`
+            );
+        };
+
+        this.receiveResponse = response => {
+            throw new Error(
+                `Во вкладку ${tabId} не было передано ни одно сообщение, тогда как на сообщение должен быть ` +
+                `отправлен ответ ${JSON.stringify(response)}`
+            );
+        };
+    }
+
+    function ChromeMessageSender (description) {
+        const messages = new JsTester_Stack(new ChromeNoMessage(description));
+        
+        function MessagesTester (messages) {
+            this.nextMessage = () => messages.pop();
+        }
+
+        this.sendMessage = message => new Promise(resolve => messages.add(new ChromeMessage({
+            description,
+            message,
+            respond: resolve,
+        })));
+
+        this.createMessagesTester = () => new MessagesTester(messages);
+    };
 
     function ChromeTabs () {
         function Tab () {
-            this.id = utils.getRandomString();
+            this.id = 5829373782;
         }
 
-        function Message ({
-            tabId,
-            message,
-            respond,
-        }) {
-            this.expectNotToExist = () => {
-                throw new Error(
-                    `Во вкладку ${tabId} не должно быть отправлено сообщение, однако было отправлено ` + 
-                    `сообщение ${JSON.stringify(message)}`
-                );
-            };
-
-            this.expectToContain = function (expectedContent) {
-                utils.expectObjectToContain(message, expectedContent);
-                return this;
-            };
-
-            this.receiveResponse = function (response) {
-                respond(response);
-                spendTime(0);
-                spendTime(0);
-                return this;
-            };
-        }
-
-        function NoMessage (tabId) {
-            this.expectNotToExist = () => {};
-
-            this.expectToContain = expectedContent => {
-                throw new Error(
-                    `Во вкладку ${tabId} не было передано ни одно сообщение, тогда как должно было быть ` +
-                    `передано сообщение ${JSON.stringify(expectedContent)}`
-                );
-            };
-
-            this.receiveResponse = response => {
-                throw new Error(
-                    `Во вкладку ${tabId} не было передано ни одно сообщение, тогда как на сообщение должен быть ` +
-                    `отправлен ответ ${JSON.stringify(response)}`
-                );
-            };
-        }
-
-        const tabs = {};
+        const tabs = {},
+            getTabDescription = tabId => `Во вкладку ${tabId}`;
 
         const addTab = (tab, queryOptions) => {
-            if (tabs[tab.id]) {
+            const tabId = tab.id;
+
+            if (tabs[tabId]) {
                 return;
             }
 
             const item = {
                 tab,
                 queryOptions,
-                messages: new JsTester_Stack(new NoMessage(tab.id)),
+                messageSender: new ChromeMessageSender(getTabDescription(tabId)),
             };
 
             tabs[tab.id] = item;
@@ -213,7 +247,7 @@ define(() => function ({
             lastFocusedWindow: true,
         });
 
-        this.getCurrentTabMessages = () => currentTab.messages;
+        this.getCurrentTabMessagesTester = () => currentTab.messageSender.createMessagesTester();
 
         this.sendMessage = (tabId, message) => {
             const item = tabs[tabId];
@@ -225,11 +259,7 @@ define(() => function ({
                 );
             }
 
-            return new Promise(resolve => item.messages.add(new Message({
-                tabId,
-                message,
-                respond: resolve,
-            })));
+            return item.messageSender.sendMessage(message);
         };
 
         this.query = queryOptions => Object.values(tabs).
@@ -252,10 +282,49 @@ define(() => function ({
         };
     }
 
+    function ChromeStorage (storage) {
+        const items = {...storage},
+            listeners = [];
+
+        this.set = value => {
+            const changes = {};
+            
+            Object.entries(value).forEach(([key, value]) => {
+                if (value === items[key]) {
+                    return;
+                }
+
+                items[key] = value;
+                changes[key] = value;
+            });
+
+            listeners.forEach(handle => handle(changes));
+            return changes;
+        };
+
+        this.get = keys => keys.reduce((result, key) => (result[key] = items[key], result), {});
+        this.addListener = listener => listeners.push(listener);
+
+        function Tester (storage) {
+            this.expectToContain = expectedContent => utils.expectObjectToContain(items, expectedContent);
+
+            this.set = value => {
+                storage.set(value);
+
+                spendTime(0);
+                spendTime(0);
+            };
+        }
+
+        this.createTester = () => new Tester(this);
+    }
+
     function FakeChrome ({
         tabs,
         messageListeners,
         authFlowLaunchings,
+        runtimeMessageSender,
+        localStorage,
     }) {
         function Tabs (tabs) {
             this.sendMessage = (tabId, message) => tabs.sendMessage(tabId, message);
@@ -268,18 +337,39 @@ define(() => function ({
 
         function Runtime (messageListeners) {
             this.onMessage = new MessageListeners(messageListeners);
+
+            this.sendMessage = (extensionId, message) => {
+                if (extensionId != 'faaeopllmpfoeobihkiojkbhnlfkleik') {
+                    throw new Error(
+                        `Передан некорренктный идентификатор расширения ${extensionId} при попытке отправить ` +
+                        `сообщение ${JSON.stringify(message)} в background-скрипт`
+                    );
+                }
+
+                return runtimeMessageSender.sendMessage(message);
+            };
         }
 
         function Storage () {
-            function Storage () {
-                this.set = (key, value) => null;
-                this.get = key => null;
+            function Storage (storage) {
+                function ChangeListeners () {
+                    this.addListener = listener => storage.addListener(listener);
+                }
+
+                this.onChanged = new ChangeListeners();
+
+                this.set = value => Promise.resolve().then(() => {
+                    storage.set(value);
+                });
+
+                this.get = keys => Promise.resolve(storage.get(typeof keys == 'string' ? [keys] : keys));
             }
 
-            this.local = new Storage();
+            this.local = new Storage(localStorage);
         }
 
         function Identity (authFlowLaunchings) {
+            this.id = 'faaeopllmpfoeobihkiojkbhnlfkleik';
             this.getRedirectURL = () => 'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/';
 
             this.launchWebAuthFlow = details => new Promise(
@@ -300,18 +390,24 @@ define(() => function ({
     {
         const tabs = new ChromeTabs(),
             messageListeners = new ChromeMessageListeners(),
-            authFlowLaunchings = new JsTester_Stack(new NoAuthFlowLaunching());
+            authFlowLaunchings = new JsTester_Stack(new NoAuthFlowLaunching()),
+            runtimeMessageSender = new ChromeMessageSender('В background-скрипт'),
+            localStorage = new ChromeStorage(storage);
 
         window.fakeChrome = new FakeChrome({
             tabs,
             messageListeners,
             authFlowLaunchings,
+            runtimeMessageSender,
+            localStorage,
         });
 
         me.chrome = new ChromeTester({
             tabs,
             messageListeners,
             authFlowLaunchings,
+            runtimeMessageSender,
+            localStorage,
         });
     }
 
@@ -320,13 +416,11 @@ define(() => function ({
             const response = {
                 hidden: true,
                 isAuthorized: false,
-                isAuthorizing: false,
             };
 
             const message = { method, params };
 
             addResponseModifiers = me => {
-                me.authorizing = () => (response.isAuthorizing = true, me);
                 me.authorized = () => (response.isAuthorized = true, me);
                 me.visible = () => (response.hidden = false, me);
 
@@ -334,11 +428,21 @@ define(() => function ({
             };
 
             return addResponseModifiers({
-                expectResponseToBeSent() {
-                    me.chrome.
+                receive: () => {
+                    const request = me.chrome.
                         runtime.
-                        receiveMessage(message).
-                        expectResponseToContain(response);
+                        receiveMessage(message);
+
+                    return {
+                        expectNoResponseToBeSent: () => request.expectNoResponseToBeSent(),
+                        expectResponseToBeSent: () => request.expectResponseToContain(response),
+                    };
+                },
+                expectResponseToBeSent() {
+                    this.receive().expectResponseToBeSent();
+                },
+                expectNoResponseToBeSent() {
+                    this.receive().expectNoResponseToBeSent();
                 },
                 expectToBeSent() {
                     const request = me.chrome.
@@ -359,37 +463,115 @@ define(() => function ({
             });
         };
 
-        me.authorizationRequest = createRequest('authorize', {
-            code: '28gjs8o24rfsd42',
-            redirect_uri: 'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/',
-            client_id: 'faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org',
+        me.tokenSettingRequest = createRequest('set_token', {
+            token: jwtToken.jwt,
         });
 
+        me.logoutRequest = createRequest('logout');
         me.stateRequest = createRequest('get_state');
         me.toggleWidgetVisibilityRequest = createRequest('toggle_widget_visibility');
     }
+
+    {
+        const createRequest = method => () => {
+            const response = {};
+
+            const message = {
+                method,
+                params: {
+                    tabId: 5829373782,
+                },
+            };
+
+            const addResponseModifiers = me => {
+                return me;
+            };
+
+            return addResponseModifiers({
+                expectResponseToBeSent() {
+                    me.chrome.
+                        runtime.
+                        receiveMessage(message).
+                        expectResponseToContain(response);
+                },
+                expectToBeSent: () => {
+                    const request = me.chrome.
+                        runtime.
+                        background.
+                        nextMessage().
+                        expectToContain(message);
+
+                    return addResponseModifiers({
+                        receiveResponse: () => {
+                            request.receiveResponse(response);
+                        },
+                    });
+                },
+                receiveResponse() {
+                    this.expectToBeSent().receiveResponse();
+                }
+            });
+        };
+
+        me.authorizationRequest = createRequest('authorize');
+    }
+
+    me.authFlow = () => {
+        return {
+            expectToBeLaunched: () => {
+                const authFlow = me.chrome.
+                    identity.
+                    authFlow.
+                    nextLaunching().
+                    expectDetailsToContain({
+                        interactive: true,
+                        url: 'https://uc-sso-prod-api.uiscom.ru' +
+                            '/oauth2/authorize?' + 
+                            'response_type=code&' +
+                            'prompt=login&' +
+                            'client_id=https%3A%2F%2Ffaaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org&' +
+                            'redirect_uri=https%3A%2F%2Ffaaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org',
+                    });
+
+                return {
+                    receiveResponse: () => {
+                        authFlow.receiveResponse(
+                            'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/?code=28gjs8o24rfsd42',
+                        );
+                    },
+                };
+            },
+            receiveResponse() {
+                return this.expectToBeLaunched().receiveResponse();
+            },
+        };
+    };
 
     me.oauthRequest = () => {
         const addResponseModifiers = me => me;
 
         return addResponseModifiers({
             expectToBeSent(requests) {
-                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                const request = (requests ? requests.someRequest() : fetch.recentRequest()).
                     expectToHaveMethod('POST').
-                    expectToHavePath('https://uc-sso-prod-api.uiscom.ru/oauth2/authorize').
+                    expectToHavePath('https://uc-sso-prod-api.uiscom.ru/oauth2/token').
+                    expectToHaveHeaders({
+                        authorization: 'Basic aHR0cHMlM0ElMkYlMkZmYWFlb3BsbG1wZm9lb2JpaGtpb2prYmhubGZrbGVpay5jaHJvbW' +
+                            'l1bWFwcC5vcmc6aHR0cHMlM0ElMkYlMkZmYWFlb3BsbG1wZm9lb2JpaGtpb2prYmhubGZrbGVpay5jaHJvbWl1b' +
+                            'WFwcC5vcmc=',
+                    }).
                     expectBodyToContain({
                         grant_type: 'authorization_code',
                         code: '28gjs8o24rfsd42',
-                        redirect_uri: 'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/',
-                        client_id: 'faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org',
+                        redirect_uri: 'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org',
+                        client_id: 'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org',
                     });
 
                 return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith({
-                            data: {
-                                token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                            },
+                            access_token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                            token_type: 'Bearer',
                         });
 
                         Promise.runAll(false, true);

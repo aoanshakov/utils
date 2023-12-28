@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index 489f985..25aceb3 100644
+index ccfc1a8..7d146ea 100644
 --- a/package.json
 +++ b/package.json
-@@ -46,13 +46,13 @@
+@@ -46,14 +46,14 @@
      "webpack": "^5.74.0"
    },
    "dependencies": {
@@ -12,6 +12,7 @@ index 489f985..25aceb3 100644
 +    "@comagic/softphone-widget": "./misc/sip_lib",
 +    "@comagic/softphone-core": "./misc/sip_lib/uis_webrtc",
 +    "@comagic/workplace-utils": "./misc/logger",
+     "axios": "^0.24.0",
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
