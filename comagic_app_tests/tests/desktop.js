@@ -1087,6 +1087,471 @@ tests.addTest(options => {
                                                         tester.button('Отчеты').expectNotToExist();
                                                     });
                                                 });
+                                                describe('Нажимаю на кнопку "Контакты".', function() {
+                                                    beforeEach(function() {
+                                                        tester.button('Контакты').click();
+
+                                                        tester.contactsRequest().differentNames().receiveResponse();
+                                                        tester.contactGroupsRequest().receiveResponse();
+                                                    });
+
+                                                    describe(
+                                                        'Нажимаю на кнопку добавления контакта. Заполняю форму. ' +
+                                                        'Нажимаю на кнопку "Создать контакт".',
+                                                    function() {
+                                                        beforeEach(function() {
+                                                            tester.contactList.plusButton.putMouseOver();
+                                                            tester.select.option('Контакт').click();
+
+                                                            tester.usersRequest().forContacts().receiveResponse();
+                                                            tester.contactGroupsRequest().receiveResponse();
+
+                                                            tester.input.
+                                                                withPlaceholder('Фамилия (Обязательное поле)').
+                                                                fill('Неделчева');
+
+                                                            tester.contactBar.
+                                                                section('Телефоны').
+                                                                plusButton.
+                                                                click();
+
+                                                            tester.contactBar.
+                                                                section('Телефоны').
+                                                                input.
+                                                                fill('74950230625');
+
+                                                            tester.contactBar.
+                                                                section('Телефоны').
+                                                                button('Сохранить').
+                                                                click();
+
+                                                            tester.contactsRequest().
+                                                                fourthPhoneSearching().
+                                                                noData().
+                                                                receiveResponse();
+
+                                                            tester.button('Создать контакт').click();
+                                                            tester.contactCreatingRequest().receiveResponse();
+                                                            
+                                                            const requests = ajax.inAnyOrder();
+
+                                                            const contactRequest = tester.contactRequest().
+                                                                expectToBeSent(requests);
+
+                                                            const contactCommunicationsRequest =
+                                                                tester.contactCommunicationsRequest().
+                                                                    expectToBeSent(requests);
+
+                                                            const groupsContainingContactRequest =
+                                                                tester.groupsContainingContactRequest().
+                                                                    expectToBeSent(requests);
+
+                                                            requests.expectToBeSent();
+
+                                                            contactRequest.receiveResponse();
+                                                            contactCommunicationsRequest.receiveResponse();
+                                                            groupsContainingContactRequest.receiveResponse();
+                                                        });
+
+                                                        describe('Нажимаю на кнопку сворачивания.', function() {
+                                                            beforeEach(function() {
+                                                                tester.maximizednessButton.click();
+
+                                                                getPackage('electron').ipcRenderer.
+                                                                    recentlySentMessage().
+                                                                    expectToBeSentToChannel('unmaximize');
+                                                            });
+
+                                                            it(
+                                                                'Нажимаю на кнопку максимизации. Отображено ' +
+                                                                'уведомление о том, что контакт создан.',
+                                                            function() {
+                                                                tester.maximizednessButton.click();
+
+                                                                getPackage('electron').ipcRenderer.
+                                                                    recentlySentMessage().
+                                                                    expectToBeSentToChannel('maximize');
+
+                                                                tester.accountRequest().
+                                                                    operatorWorkplaceAvailable().
+                                                                    forChats().
+                                                                    receiveResponse();
+
+                                                                const requests = ajax.inAnyOrder();
+
+                                                                const reportsListRequest = tester.reportsListRequest().
+                                                                    expectToBeSent(requests);
+
+                                                                const contactsRequest = tester.contactsRequest().
+                                                                    differentNames().
+                                                                    expectToBeSent(requests);
+
+                                                                const contactRequest = tester.contactRequest().
+                                                                    expectToBeSent(requests);
+
+                                                                const contactCommunicationsRequest =
+                                                                    tester.contactCommunicationsRequest().
+                                                                        expectToBeSent(requests);
+
+                                                                const contactGroupsRequest =
+                                                                    tester.contactGroupsRequest().
+                                                                        expectToBeSent(requests);
+
+                                                                const secondContactGroupsRequest =
+                                                                    tester.contactGroupsRequest().
+                                                                        expectToBeSent(requests);
+
+                                                                const groupsContainingContactRequest =
+                                                                    tester.groupsContainingContactRequest().
+                                                                        expectToBeSent(requests);
+                                                                 
+                                                                const employeesRequest = tester.employeesRequest().
+                                                                    expectToBeSent(requests);
+
+                                                                const countersRequest = tester.countersRequest().
+                                                                    expectToBeSent(requests);
+
+                                                                requests.expectToBeSent();
+
+                                                                contactRequest.receiveResponse();
+                                                                contactCommunicationsRequest.receiveResponse();
+                                                                reportsListRequest.receiveResponse();
+                                                                contactsRequest.receiveResponse();
+                                                                employeesRequest.receiveResponse();
+                                                                contactGroupsRequest.receiveResponse();
+                                                                secondContactGroupsRequest.receiveResponse();
+                                                                countersRequest.receiveResponse();
+                                                                groupsContainingContactRequest.receiveResponse();
+
+                                                                tester.offlineMessageCountersRequest().
+                                                                    receiveResponse();
+
+                                                                tester.chatChannelListRequest().receiveResponse();
+                                                                tester.siteListRequest().receiveResponse();
+                                                                tester.markListRequest().receiveResponse();
+
+                                                                tester.chatListRequest().
+                                                                    forCurrentEmployee().
+                                                                    thirdPage().
+                                                                    receiveResponse();
+
+                                                                tester.chatListRequest().
+                                                                    forCurrentEmployee().
+                                                                    thirdPage().
+                                                                    active().
+                                                                    receiveResponse();
+
+                                                                tester.chatListRequest().
+                                                                    forCurrentEmployee().
+                                                                    thirdPage().
+                                                                    closed().
+                                                                    receiveResponse();
+
+                                                                tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                                tester.offlineMessageListRequest().
+                                                                    notProcessed().
+                                                                    receiveResponse();
+
+                                                                tester.offlineMessageListRequest().
+                                                                    processing().
+                                                                    receiveResponse();
+
+                                                                tester.offlineMessageListRequest().
+                                                                    processed().
+                                                                    receiveResponse();
+
+                                                                tester.notificationWindow.
+                                                                    expectTextContentToHaveSubstring('Контакт создан');
+                                                            });
+                                                            it('Уведомление не отображено.', function() {
+                                                                tester.notificationWindow.expectNotToExist();
+                                                            });
+                                                        });
+                                                        it(
+                                                            'Отображено уведомление о том, что контакт создан.',
+                                                        function() {
+                                                            tester.notificationWindow.
+                                                                expectTextContentToHaveSubstring('Контакт создан');
+                                                        });
+                                                    });
+                                                    it('Отображена таблица контактов.', function() {
+                                                        tester.contactList.
+                                                            item('Балканска Берислава Силаговна').
+                                                            expectToBeVisible();
+                                                    });
+                                                });
+                                                describe('Выхожу из софтфона.', function() {
+                                                    beforeEach(function() {
+                                                        tester.leftMenu.userName.click();
+                                                        tester.statusesList.item('Выход').click();
+
+                                                        tester.userLogoutRequest().receiveResponse();
+
+                                                        tester.employeesWebSocket.finishDisconnecting();
+                                                        tester.chatsWebSocket.finishDisconnecting();
+                                                        tester.eventsWebSocket.finishDisconnecting();
+                                                        tester.authLogoutRequest().receiveResponse();
+
+                                                        tester.registrationRequest().
+                                                            desktopSoftphone().
+                                                            expired().
+                                                            receiveResponse();
+
+                                                        spendTime(2000);
+                                                        tester.webrtcWebsocket.finishDisconnecting();
+
+                                                        getPackage('electron').ipcRenderer.
+                                                            recentlySentMessage().
+                                                            expectToBeSentToChannel('set-icon').
+                                                            expectToBeSentWithArguments('windows, 0');
+
+                                                        getPackage('electron').ipcRenderer.
+                                                            recentlySentMessage().
+                                                            expectToBeSentToChannel('resize').
+                                                            expectToBeSentWithArguments({
+                                                                width: 300,
+                                                                height: 350
+                                                            });
+                                                    });
+
+                                                    describe('Вхожу заново.', function() {
+                                                        beforeEach(function() {
+                                                            tester.input.
+                                                                withFieldLabel('Логин').
+                                                                fill('botusharova');
+
+                                                            tester.input.
+                                                                withFieldLabel('Пароль').
+                                                                fill('8Gls8h31agwLf5k');
+
+                                                            tester.button('Войти').click();
+
+                                                            tester.loginRequest().
+                                                                anotherAuthorizationToken().
+                                                                receiveResponse();
+
+                                                            getPackage('electron').ipcRenderer.
+                                                                recentlySentMessage().
+                                                                expectToBeSentToChannel('resize').
+                                                                expectToBeSentWithArguments({
+                                                                    width: 340,
+                                                                    height: 568
+                                                                });
+
+                                                            getPackage('electron').ipcRenderer.
+                                                                recentlySentMessage().
+                                                                expectToBeSentToChannel('login').
+                                                                expectToBeSentWithArguments({
+                                                                    login: 'botusharova',
+                                                                    password: '8Gls8h31agwLf5k',
+                                                                    project: 'comagic',
+                                                                });
+
+                                                            tester.accountRequest().
+                                                                operatorWorkplaceAvailable().
+                                                                anotherAuthorizationToken().
+                                                                receiveResponse();
+
+                                                            tester.employeesWebSocket.connect();
+
+                                                            tester.employeesInitMessage().
+                                                                anotherAuthorizationToken().
+                                                                expectToBeSent();
+
+                                                            tester.employeeStatusesRequest().
+                                                                anotherAuthorizationToken().
+                                                                receiveResponse();
+
+                                                            tester.employeeSettingsRequest().
+                                                                receiveResponse();
+
+                                                            tester.employeeRequest().
+                                                                anotherAuthorizationToken().
+                                                                receiveResponse();
+
+                                                            let requests = ajax.inAnyOrder();
+
+                                                            const authCheckRequest = tester.authCheckRequest().
+                                                                anotherAuthorizationToken().
+                                                                expectToBeSent(requests);
+
+                                                            const statsRequest = tester.statsRequest().
+                                                                anotherAuthorizationToken().
+                                                                expectToBeSent(requests);
+
+                                                            const accountRequest = tester.accountRequest().
+                                                                operatorWorkplaceAvailable().
+                                                                anotherAuthorizationToken().
+                                                                expectToBeSent(requests);
+
+                                                            const secondAccountRequest = tester.accountRequest().
+                                                                operatorWorkplaceAvailable().
+                                                                forChats().
+                                                                anotherAuthorizationToken().
+                                                                expectToBeSent(requests);
+
+                                                            const reportsListRequest = tester.reportsListRequest().
+                                                                expectToBeSent(requests);
+
+                                                            requests.expectToBeSent();
+
+                                                            secondAccountRequest.receiveResponse();
+                                                            accountRequest.receiveResponse();
+                                                            statsRequest.receiveResponse();
+                                                            reportsListRequest.receiveResponse();
+
+                                                            tester.chatsWebSocket.connect();
+                                                            
+                                                            tester.chatsInitMessage().
+                                                                anotherAuthorizationToken().
+                                                                expectToBeSent();
+
+                                                            tester.countersRequest().receiveResponse();
+
+                                                            getPackage('electron').ipcRenderer.
+                                                                recentlySentMessage().
+                                                                expectToBeSentToChannel('set-icon').
+                                                                expectToBeSentWithArguments('windows, 150');
+
+                                                            tester.offlineMessageCountersRequest().receiveResponse();
+                                                            tester.chatChannelListRequest().receiveResponse();
+                                                            tester.siteListRequest().receiveResponse();
+                                                            tester.markListRequest().receiveResponse();
+
+                                                            tester.chatListRequest().
+                                                                forCurrentEmployee().
+                                                                receiveResponse();
+
+                                                            tester.chatListRequest().
+                                                                forCurrentEmployee().
+                                                                active().
+                                                                receiveResponse();
+
+                                                            tester.chatListRequest().
+                                                                forCurrentEmployee().
+                                                                closed().
+                                                                receiveResponse();
+
+                                                            tester.chatChannelTypeListRequest().receiveResponse();
+
+                                                            tester.offlineMessageListRequest().
+                                                                notProcessed().
+                                                                receiveResponse();
+
+                                                            tester.offlineMessageListRequest().
+                                                                processing().
+                                                                receiveResponse();
+
+                                                            tester.offlineMessageListRequest().
+                                                                processed().
+                                                                receiveResponse();
+
+                                                            authCheckRequest.receiveResponse();
+                                                            tester.talkOptionsRequest().receiveResponse();
+                                                            tester.permissionsRequest().receiveResponse();
+
+                                                            tester.settingsRequest().
+                                                                anotherAuthorizationToken().
+                                                                receiveResponse();
+
+                                                            tester.connectEventsWebSocket(1);
+                                                            tester.connectSIPWebSocket(1);
+
+                                                            tester.allowMediaInput();
+                                                            tester.leftMenu.expectToBeVisible();
+
+                                                            tester.authenticatedUserRequest().
+                                                                anotherStatus().
+                                                                receiveResponse();
+
+                                                            tester.registrationRequest().
+                                                                desktopSoftphone().
+                                                                receiveUnauthorized();
+
+                                                            tester.registrationRequest().
+                                                                desktopSoftphone().
+                                                                authorization().
+                                                                receiveResponse();
+                                                        });
+
+                                                        describe('Поступил входящий звонок.', function() {
+                                                            let incomingCall;
+
+                                                            beforeEach(function() {
+                                                                incomingCall = tester.incomingCall().receive();
+
+                                                                getPackage('electron').ipcRenderer.
+                                                                    recentlySentMessage().
+                                                                    expectToBeSentToChannel('call-start').
+                                                                    expectToBeSentWithArguments(false);
+
+                                                                tester.numaRequest().receiveResponse();
+                                                                tester.outCallEvent().activeLeads().receive();
+                                                            });
+
+                                                            it('Звонок пропущен. Счетчик обновился.', function() {
+                                                                incomingCall.receiveCancel();
+
+                                                                getPackage('electron').ipcRenderer.
+                                                                    recentlySentMessage().
+                                                                    expectToBeSentToChannel('call-end').
+                                                                    expectToBeSentWithArguments(true);
+
+                                                                tester.callSessionFinish().receive();
+                                                                tester.lostCallSessionEvent().receive();
+
+                                                                getPackage('electron').ipcRenderer.
+                                                                    recentlySentMessage().
+                                                                    expectToBeSentToChannel('set-icon').
+                                                                    expectToBeSentWithArguments('windows, 151');
+                                                            });
+                                                            it(
+                                                                'Получено сообщение о смене статуса. Отображен новый ' +
+                                                                'статус.',
+                                                            function() {
+                                                                tester.entityChangeEvent().
+                                                                    nameUnchanged().
+                                                                    fifthStatus().
+                                                                    receive();
+
+                                                                tester.softphone.userName.click();
+
+                                                                tester.statusesList.
+                                                                    item('Нет на месте').
+                                                                    expectNotToBeSelected();
+
+                                                                tester.statusesList.
+                                                                    item('Не беспокоить').
+                                                                    expectToBeSelected();
+                                                            });
+                                                            it(
+                                                                'Получено сообщение о смене статуса. Кнопка ' +
+                                                                'принятия звонка доступна.',
+                                                            function() {
+                                                                tester.entityChangeEvent().
+                                                                    nameUnchanged().
+                                                                    anotherStatus().
+                                                                    receive();
+
+                                                                tester.callStartingButton.
+                                                                    expectNotToHaveAttribute('disabled');
+
+                                                                tester.softphone.expectTextContentToHaveSubstring(
+                                                                    'Шалева Дора ' +
+                                                                    '+7 (916) 123-45-67'
+                                                                );
+                                                            });
+                                                        });
+                                                        it('Раздел чатов видим.', function() {
+                                                            tester.leftMenu.expectToBeVisible();
+                                                        });
+                                                    });
+                                                    it('Нажимаю на поле логина. Отображен список логинов.', function() {
+                                                        tester.input.withFieldLabel('Логин').click();
+                                                        tester.select.option('botusharova').expectToBeVisible();
+                                                    });
+                                                });
                                                 describe('Нажимаю на кнопку "Настройки".', function() {
                                                     beforeEach(function() {
                                                         tester.button('Настройки').click();
@@ -1281,427 +1746,6 @@ tests.addTest(options => {
                                                     });
                                                     it('Софтфон скрыт.', function() {
                                                         tester.dialpadButton(1).expectNotToExist();
-                                                    });
-                                                });
-                                                describe('Выхожу из софтфона.', function() {
-                                                    beforeEach(function() {
-                                                        tester.leftMenu.userName.click();
-                                                        tester.statusesList.item('Выход').click();
-
-                                                        tester.userLogoutRequest().receiveResponse();
-
-                                                        tester.employeesWebSocket.finishDisconnecting();
-                                                        tester.chatsWebSocket.finishDisconnecting();
-                                                        tester.eventsWebSocket.finishDisconnecting();
-                                                        tester.authLogoutRequest().receiveResponse();
-
-                                                        tester.registrationRequest().
-                                                            desktopSoftphone().
-                                                            expired().
-                                                            receiveResponse();
-
-                                                        spendTime(2000);
-                                                        tester.webrtcWebsocket.finishDisconnecting();
-
-                                                        getPackage('electron').ipcRenderer.
-                                                            recentlySentMessage().
-                                                            expectToBeSentToChannel('set-icon').
-                                                            expectToBeSentWithArguments('windows, 0');
-
-                                                        getPackage('electron').ipcRenderer.
-                                                            recentlySentMessage().
-                                                            expectToBeSentToChannel('resize').
-                                                            expectToBeSentWithArguments({
-                                                                width: 300,
-                                                                height: 350
-                                                            });
-                                                    });
-
-                                                    describe('Вхожу заново.', function() {
-                                                        beforeEach(function() {
-                                                            tester.input.
-                                                                withFieldLabel('Логин').
-                                                                fill('botusharova');
-
-                                                            tester.input.
-                                                                withFieldLabel('Пароль').
-                                                                fill('8Gls8h31agwLf5k');
-
-                                                            tester.button('Войти').click();
-
-                                                            tester.loginRequest().
-                                                                anotherAuthorizationToken().
-                                                                receiveResponse();
-
-                                                            getPackage('electron').ipcRenderer.
-                                                                recentlySentMessage().
-                                                                expectToBeSentToChannel('resize').
-                                                                expectToBeSentWithArguments({
-                                                                    width: 340,
-                                                                    height: 568
-                                                                });
-
-                                                            getPackage('electron').ipcRenderer.
-                                                                recentlySentMessage().
-                                                                expectToBeSentToChannel('login').
-                                                                expectToBeSentWithArguments({
-                                                                    login: 'botusharova',
-                                                                    password: '8Gls8h31agwLf5k',
-                                                                    project: 'comagic',
-                                                                });
-
-                                                            tester.accountRequest().
-                                                                operatorWorkplaceAvailable().
-                                                                anotherAuthorizationToken().
-                                                                receiveResponse();
-
-                                                            tester.employeesWebSocket.connect();
-
-                                                            tester.employeesInitMessage().
-                                                                anotherAuthorizationToken().
-                                                                expectToBeSent();
-
-                                                            tester.employeeStatusesRequest().
-                                                                anotherAuthorizationToken().
-                                                                receiveResponse();
-
-                                                            tester.employeeSettingsRequest().
-                                                                receiveResponse();
-
-                                                            tester.employeeRequest().
-                                                                anotherAuthorizationToken().
-                                                                receiveResponse();
-
-                                                            let requests = ajax.inAnyOrder();
-
-                                                            const authCheckRequest = tester.authCheckRequest().
-                                                                anotherAuthorizationToken().
-                                                                expectToBeSent(requests);
-
-                                                            const statsRequest = tester.statsRequest().
-                                                                anotherAuthorizationToken().
-                                                                expectToBeSent(requests);
-
-                                                            const accountRequest = tester.accountRequest().
-                                                                operatorWorkplaceAvailable().
-                                                                anotherAuthorizationToken().
-                                                                expectToBeSent(requests);
-
-                                                            const secondAccountRequest = tester.accountRequest().
-                                                                operatorWorkplaceAvailable().
-                                                                forChats().
-                                                                anotherAuthorizationToken().
-                                                                expectToBeSent(requests);
-
-                                                            const reportsListRequest = tester.reportsListRequest().
-                                                                expectToBeSent(requests);
-
-                                                            requests.expectToBeSent();
-
-                                                            secondAccountRequest.receiveResponse();
-                                                            accountRequest.receiveResponse();
-                                                            statsRequest.receiveResponse();
-                                                            reportsListRequest.receiveResponse();
-
-                                                            tester.chatsWebSocket.connect();
-                                                            
-                                                            tester.chatsInitMessage().
-                                                                anotherAuthorizationToken().
-                                                                expectToBeSent();
-
-                                                            tester.countersRequest().receiveResponse();
-
-                                                            getPackage('electron').ipcRenderer.
-                                                                recentlySentMessage().
-                                                                expectToBeSentToChannel('set-icon').
-                                                                expectToBeSentWithArguments('windows, 150');
-
-                                                            tester.offlineMessageCountersRequest().receiveResponse();
-                                                            tester.chatChannelListRequest().receiveResponse();
-                                                            tester.siteListRequest().receiveResponse();
-                                                            tester.markListRequest().receiveResponse();
-
-                                                            tester.chatListRequest().
-                                                                forCurrentEmployee().
-                                                                receiveResponse();
-
-                                                            tester.chatListRequest().
-                                                                forCurrentEmployee().
-                                                                active().
-                                                                receiveResponse();
-
-                                                            tester.chatListRequest().
-                                                                forCurrentEmployee().
-                                                                closed().
-                                                                receiveResponse();
-
-                                                            tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                            tester.offlineMessageListRequest().
-                                                                notProcessed().
-                                                                receiveResponse();
-
-                                                            tester.offlineMessageListRequest().
-                                                                processing().
-                                                                receiveResponse();
-
-                                                            tester.offlineMessageListRequest().
-                                                                processed().
-                                                                receiveResponse();
-
-                                                            authCheckRequest.receiveResponse();
-                                                            tester.talkOptionsRequest().receiveResponse();
-                                                            tester.permissionsRequest().receiveResponse();
-
-                                                            tester.settingsRequest().
-                                                                anotherAuthorizationToken().
-                                                                receiveResponse();
-
-                                                            tester.connectEventsWebSocket(1);
-                                                            tester.connectSIPWebSocket(1);
-
-                                                            tester.allowMediaInput();
-                                                            tester.leftMenu.expectToBeVisible();
-
-                                                            tester.authenticatedUserRequest().receiveResponse();
-
-                                                            tester.registrationRequest().
-                                                                desktopSoftphone().
-                                                                receiveUnauthorized();
-
-                                                            tester.registrationRequest().
-                                                                desktopSoftphone().
-                                                                authorization().
-                                                                receiveResponse();
-                                                        });
-
-                                                        it('Поступил входящий звонок. Звонок пропущен.', function() {
-                                                            const incomingCall = tester.incomingCall().receive();
-
-                                                            getPackage('electron').ipcRenderer.
-                                                                recentlySentMessage().
-                                                                expectToBeSentToChannel('call-start').
-                                                                expectToBeSentWithArguments(false);
-
-                                                            tester.numaRequest().receiveResponse();
-                                                            tester.outCallEvent().activeLeads().receive();
-
-                                                            incomingCall.receiveCancel();
-
-                                                            getPackage('electron').ipcRenderer.
-                                                                recentlySentMessage().
-                                                                expectToBeSentToChannel('call-end').
-                                                                expectToBeSentWithArguments(true);
-
-                                                            tester.callSessionFinish().receive();
-                                                            tester.lostCallSessionEvent().receive();
-
-                                                            getPackage('electron').ipcRenderer.
-                                                                recentlySentMessage().
-                                                                expectToBeSentToChannel('set-icon').
-                                                                expectToBeSentWithArguments('windows, 151');
-                                                        });
-                                                        it('Раздел чатов видим.', function() {
-                                                            tester.leftMenu.expectToBeVisible();
-                                                        });
-                                                    });
-                                                    it('Нажимаю на поле логина. Отображен список логинов.', function() {
-                                                        tester.input.withFieldLabel('Логин').click();
-                                                        tester.select.option('botusharova').expectToBeVisible();
-                                                    });
-                                                });
-                                                describe('Нажимаю на кнопку "Контакты".', function() {
-                                                    beforeEach(function() {
-                                                        tester.button('Контакты').click();
-
-                                                        tester.contactsRequest().differentNames().receiveResponse();
-                                                        tester.contactGroupsRequest().receiveResponse();
-                                                    });
-
-                                                    describe(
-                                                        'Нажимаю на кнопку добавления контакта. Заполняю форму. ' +
-                                                        'Нажимаю на кнопку "Создать контакт".',
-                                                    function() {
-                                                        beforeEach(function() {
-                                                            tester.contactList.plusButton.putMouseOver();
-                                                            tester.select.option('Контакт').click();
-
-                                                            tester.usersRequest().forContacts().receiveResponse();
-                                                            tester.contactGroupsRequest().receiveResponse();
-
-                                                            tester.input.
-                                                                withPlaceholder('Фамилия (Обязательное поле)').
-                                                                fill('Неделчева');
-
-                                                            tester.contactBar.
-                                                                section('Телефоны').
-                                                                plusButton.
-                                                                click();
-
-                                                            tester.contactBar.
-                                                                section('Телефоны').
-                                                                input.
-                                                                fill('74950230625');
-
-                                                            tester.contactBar.
-                                                                section('Телефоны').
-                                                                button('Сохранить').
-                                                                click();
-
-                                                            tester.contactsRequest().
-                                                                fourthPhoneSearching().
-                                                                noData().
-                                                                receiveResponse();
-
-                                                            tester.button('Создать контакт').click();
-                                                            tester.contactCreatingRequest().receiveResponse();
-                                                            
-                                                            const requests = ajax.inAnyOrder();
-
-                                                            const contactRequest = tester.contactRequest().
-                                                                expectToBeSent(requests);
-
-                                                            const contactCommunicationsRequest =
-                                                                tester.contactCommunicationsRequest().
-                                                                    expectToBeSent(requests);
-
-                                                            const groupsContainingContactRequest =
-                                                                tester.groupsContainingContactRequest().
-                                                                    expectToBeSent(requests);
-
-                                                            requests.expectToBeSent();
-
-                                                            contactRequest.receiveResponse();
-                                                            contactCommunicationsRequest.receiveResponse();
-                                                            groupsContainingContactRequest.receiveResponse();
-                                                        });
-
-                                                        describe('Нажимаю на кнопку сворачивания.', function() {
-                                                            beforeEach(function() {
-                                                                tester.maximizednessButton.click();
-
-                                                                getPackage('electron').ipcRenderer.
-                                                                    recentlySentMessage().
-                                                                    expectToBeSentToChannel('unmaximize');
-                                                            });
-
-                                                            it(
-                                                                'Нажимаю на кнопку максимизации. Отображено ' +
-                                                                'уведомление о том, что контакт создан.',
-                                                            function() {
-                                                                tester.maximizednessButton.click();
-
-                                                                getPackage('electron').ipcRenderer.
-                                                                    recentlySentMessage().
-                                                                    expectToBeSentToChannel('maximize');
-
-                                                                tester.accountRequest().
-                                                                    operatorWorkplaceAvailable().
-                                                                    forChats().
-                                                                    receiveResponse();
-
-                                                                const requests = ajax.inAnyOrder();
-
-                                                                const reportsListRequest = tester.reportsListRequest().
-                                                                    expectToBeSent(requests);
-
-                                                                const contactsRequest = tester.contactsRequest().
-                                                                    differentNames().
-                                                                    expectToBeSent(requests);
-
-                                                                const contactRequest = tester.contactRequest().
-                                                                    expectToBeSent(requests);
-
-                                                                const contactCommunicationsRequest =
-                                                                    tester.contactCommunicationsRequest().
-                                                                        expectToBeSent(requests);
-
-                                                                const contactGroupsRequest =
-                                                                    tester.contactGroupsRequest().
-                                                                        expectToBeSent(requests);
-
-                                                                const secondContactGroupsRequest =
-                                                                    tester.contactGroupsRequest().
-                                                                        expectToBeSent(requests);
-
-                                                                const groupsContainingContactRequest =
-                                                                    tester.groupsContainingContactRequest().
-                                                                        expectToBeSent(requests);
-                                                                 
-                                                                const employeesRequest = tester.employeesRequest().
-                                                                    expectToBeSent(requests);
-
-                                                                const countersRequest = tester.countersRequest().
-                                                                    expectToBeSent(requests);
-
-                                                                requests.expectToBeSent();
-
-                                                                contactRequest.receiveResponse();
-                                                                contactCommunicationsRequest.receiveResponse();
-                                                                reportsListRequest.receiveResponse();
-                                                                contactsRequest.receiveResponse();
-                                                                employeesRequest.receiveResponse();
-                                                                contactGroupsRequest.receiveResponse();
-                                                                secondContactGroupsRequest.receiveResponse();
-                                                                countersRequest.receiveResponse();
-                                                                groupsContainingContactRequest.receiveResponse();
-
-                                                                tester.offlineMessageCountersRequest().
-                                                                    receiveResponse();
-
-                                                                tester.chatChannelListRequest().receiveResponse();
-                                                                tester.siteListRequest().receiveResponse();
-                                                                tester.markListRequest().receiveResponse();
-
-                                                                tester.chatListRequest().
-                                                                    forCurrentEmployee().
-                                                                    thirdPage().
-                                                                    receiveResponse();
-
-                                                                tester.chatListRequest().
-                                                                    forCurrentEmployee().
-                                                                    thirdPage().
-                                                                    active().
-                                                                    receiveResponse();
-
-                                                                tester.chatListRequest().
-                                                                    forCurrentEmployee().
-                                                                    thirdPage().
-                                                                    closed().
-                                                                    receiveResponse();
-
-                                                                tester.chatChannelTypeListRequest().receiveResponse();
-
-                                                                tester.offlineMessageListRequest().
-                                                                    notProcessed().
-                                                                    receiveResponse();
-
-                                                                tester.offlineMessageListRequest().
-                                                                    processing().
-                                                                    receiveResponse();
-
-                                                                tester.offlineMessageListRequest().
-                                                                    processed().
-                                                                    receiveResponse();
-
-                                                                tester.notificationWindow.
-                                                                    expectTextContentToHaveSubstring('Контакт создан');
-                                                            });
-                                                            it('Уведомление не отображено.', function() {
-                                                                tester.notificationWindow.expectNotToExist();
-                                                            });
-                                                        });
-                                                        it(
-                                                            'Отображено уведомление о том, что контакт создан.',
-                                                        function() {
-                                                            tester.notificationWindow.
-                                                                expectTextContentToHaveSubstring('Контакт создан');
-                                                        });
-                                                    });
-                                                    it('Отображена таблица контактов.', function() {
-                                                        tester.contactList.
-                                                            item('Балканска Берислава Силаговна').
-                                                            expectToBeVisible();
                                                     });
                                                 });
                                                 it('Отображен большой софтфон.', function() {
@@ -2349,11 +2393,15 @@ tests.addTest(options => {
                                                     tester.statusesList.item('Нет на месте').click();
 
                                                     tester.employeeUpdatingRequest().
+                                                        checkAuthorizationHeader().
                                                         accessTokenExpired().
                                                         receiveResponse();
 
                                                     tester.refreshRequest().receiveResponse();
-                                                    tester.employeeUpdatingRequest().receiveResponse();
+
+                                                    tester.employeeUpdatingRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
                                                 });
                                                 it('Токен обновлен. Запросы переотправлены.', function() {
                                                     refreshRequest.receiveResponse();

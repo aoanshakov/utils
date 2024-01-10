@@ -668,6 +668,7 @@ tests.addTest(options => {
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                 employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                 employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -676,6 +677,7 @@ tests.addTest(options => {
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse(),
             employeeStatusesRequest.receiveResponse();
             employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
@@ -948,6 +950,7 @@ tests.addTest(options => {
             reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
             reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+            employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
             employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
             employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -957,6 +960,7 @@ tests.addTest(options => {
         reportGroupsRequest.receiveResponse();
         reportsListRequest.receiveResponse();
         reportTypesRequest.receiveResponse();
+        employeeSettingsRequest.receiveResponse(),
         employeeStatusesRequest.receiveResponse();
         employeeRequest.receiveResponse();
 
@@ -1025,14 +1029,7 @@ tests.addTest(options => {
             available().
             expectToBeSent();
 
-        tester.body.expectTextContentToHaveSubstring(
-            'Настройки ' +
-            'Общие Звук'
-        );
-
-        tester.body.expectTextContentNotToHaveSubstring(
-            'Settings ' +
-            'Common Sound'
-        );
+        tester.body.expectTextContentToHaveSubstring('Общие Звук');
+        tester.body.expectTextContentNotToHaveSubstring('Common Sound');
     });
 });

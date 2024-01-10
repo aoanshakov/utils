@@ -56,15 +56,17 @@ tests.addTest(options => {
                 const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                     authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                    employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
-                    employeeRequest = tester.employeeRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 ticketsContactsRequest.receiveResponse();
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
+                employeeSettingsRequest.receiveResponse();
                 employeeRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
@@ -196,6 +198,8 @@ tests.addTest(options => {
                     tester.employeeStatusesRequest().
                         anotherAuthorizationToken().
                         receiveResponse();
+
+                    tester.employeeSettingsRequest().receiveResponse();
 
                     tester.employeeRequest().
                         anotherAuthorizationToken().
@@ -407,6 +411,7 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                 employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                 employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -415,6 +420,7 @@ tests.addTest(options => {
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse();
             employeeStatusesRequest.receiveResponse();
             employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
@@ -503,6 +509,7 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                 employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                 employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
@@ -511,6 +518,7 @@ tests.addTest(options => {
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse();
             employeeStatusesRequest.receiveResponse();
             employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();

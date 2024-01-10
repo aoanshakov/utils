@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 3488b6c..0876df2 100644
+index 064c7fc..f0bb6d2 100644
 --- a/package.json
 +++ b/package.json
 @@ -25,8 +25,6 @@
@@ -11,21 +11,20 @@ index 3488b6c..0876df2 100644
      "@types/react-window": "^1.8.5",
      "@types/uuid": "^8.3.1",
      "@types/yup": "^0.29.11",
-@@ -60,13 +58,8 @@
+@@ -60,12 +58,8 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
--    "@comagic/core": "^1.1.1",
--    "@comagic/logger": "^1.0.2",
+-    "@comagic/core": "^1.17.0",
 -    "@comagic/ui": "1.11.12",
--    "@comagic/workplace-utils": "^1.0.21",
+-    "@comagic/workplace-utils": "^1.0.24",
      "@sentry/react": "^7.73.0",
      "async-mutex": "^0.3.2",
 -    "axios": "^0.24.0",
      "classnames": "^2.2.6",
      "dompurify": "^2.3.10",
      "dotenv": "^16.0.0",
-@@ -76,16 +69,7 @@
+@@ -75,16 +69,7 @@
      "history": "^5.3.0",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
@@ -43,18 +42,26 @@ index 3488b6c..0876df2 100644
      "uuid": "^8.3.2",
      "yup": "^0.32.9"
 diff --git a/src/App.tsx b/src/App.tsx
-index 069025a..fca5671 100644
+index f6ac0b1..2b91ac6 100644
 --- a/src/App.tsx
 +++ b/src/App.tsx
-@@ -9,6 +9,7 @@ import './App.less';
+@@ -8,7 +8,14 @@ import AppRoute from './routes/AppRoute';
+ import './App.less';
  
  const App: React.FC = observer(() => {
-     const {
+-    const { chatChannelsStore, statusesStore, employeesStore, sitesStore, chatTemplatesStore } = useMst();
++    const {
 +        authStore: { isAuthorized },
-         websocketStore,
-         chatListStore,
-         chatChannelsStore,
-@@ -31,11 +32,11 @@ const App: React.FC = observer(() => {
++        chatChannelsStore,
++        statusesStore,
++        employeesStore,
++        sitesStore,
++        chatTemplatesStore,
++    } = useMst();
+ 
+     useMountEffect(() => {
+         void (async () => {
+@@ -23,11 +30,11 @@ const App: React.FC = observer(() => {
          })();
      });
  
@@ -141,7 +148,7 @@ index 7b8a18a..2ca2687 100644
        width: 100%;
        height: 100%;
 diff --git a/src/models/account/AccountStore.ts b/src/models/account/AccountStore.ts
-index 47be9e5..2958d03 100644
+index e07a917..787fbb4 100644
 --- a/src/models/account/AccountStore.ts
 +++ b/src/models/account/AccountStore.ts
 @@ -1,4 +1,4 @@
@@ -149,7 +156,7 @@ index 47be9e5..2958d03 100644
 +import { flow, Instance, getRoot, types, cast, getSnapshot } from 'mobx-state-tree';
  import { DataApiResponseResult, HttpRpc } from '@/httpRpc';
  import { intl } from '@/i18n';
- import { RootStore, RootInstance } from '@models/RootStore';
+ import { RootInstance } from '@models/RootStore';
 @@ -56,12 +56,18 @@ export const AccountStore = types
      })
      .views(self => ({
@@ -174,10 +181,10 @@ index 47be9e5..2958d03 100644
      }))
      .actions(self => {
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 5b379a0..741d4cb 100644
+index 2ffb792..7afa1ec 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -36,7 +36,7 @@ const addEventListener = (() => {
+@@ -27,7 +27,7 @@ const addEventListener = (() => {
  
  export const AuthStore = types
      .model('AuthStore', {

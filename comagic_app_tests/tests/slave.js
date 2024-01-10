@@ -50,6 +50,7 @@ tests.addTest(options => {
             const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                 employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                 employeeRequest = tester.employeeRequest().expectToBeSent(requests);
             authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
@@ -59,6 +60,7 @@ tests.addTest(options => {
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse(),
             employeeStatusesRequest.receiveResponse();
             employeeRequest.receiveResponse();
         });
@@ -423,12 +425,14 @@ tests.addTest(options => {
 
                 const requests = ajax.inAnyOrder();
                     ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                     employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 ticketsContactsRequest.receiveResponse();
                 employeeRequest.receiveResponse();
+                employeeSettingsRequest.receiveResponse();
 
                 tester.authenticatedUserRequest().receiveResponse();
 
@@ -529,12 +533,14 @@ tests.addTest(options => {
 
                 const requests = ajax.inAnyOrder();
                     ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                     employeeRequest = tester.employeeRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 ticketsContactsRequest.receiveResponse();
                 employeeRequest.receiveResponse();
+                employeeSettingsRequest.receiveResponse();
 
                 tester.authenticatedUserRequest().receiveResponse();
 

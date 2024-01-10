@@ -254,7 +254,7 @@ define(() => function ({
 
     const runSpinWrapperIntersectionCallback = (domElement, shouldRunCallback = () => true) => {
         const list = domElement.closest(
-            '.cm-contacts-module-list, ' +
+            '.ui-tabs-content, ' +
             '.cm-chats--chats-list-container, ' +
             '.cm-chats--chat-panel-history'
         );
@@ -272,7 +272,7 @@ define(() => function ({
 
     const maybeRunSpinWrapperIntersectionCallback = domElement => runSpinWrapperIntersectionCallback(
         domElement,
-        isIntersecting => intersection.get(domElement) !== isIntersecting
+        isIntersecting => intersection.get(domElement) !== isIntersecting,
     );
 
     const getSpinWrappers = (getRootElement = () => document.body) => utils.element(getRootElement()).
@@ -1505,7 +1505,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('GET').
-                    expectPathToContain('$REACT_APP_BASE_URL/resource/payload').
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/resource/payload').
                     expectQueryToContain({ id });
 
                 return addResponseModifiers({
@@ -2021,7 +2021,12 @@ define(() => function ({
 
     me.employeeUpdatingRequest = () => {
         let response = { data: true },
-            respond = request => request.respondSuccessfullyWith(response);
+            respond = request => request.respondSuccessfullyWith(response),
+            checkComplience = request => request;
+
+        const headers = {
+            Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+        };
 
         const addResponseModifiers = me => {
             me.accessTokenExpired = () => {
@@ -2038,13 +2043,27 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            anotherAuthorizationToken() {
+                this.checkAuthorizationHeader();
+                headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+
+                return this;
+            },
+
+            checkAuthorizationHeader() {
+                checkComplience = request => request.expectToHaveHeaders(headers);
+                return this;
+            },
+
             expectToBeSent() {
-                const request = ajax.recentRequest().
-                    expectToHaveMethod('PATCH').
-                    expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816').
-                    expectBodyToContain({
-                        status_id: 4,
-                    });
+                const request = checkComplience(
+                    ajax.recentRequest().
+                        expectToHaveMethod('PATCH').
+                        expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816').
+                        expectBodyToContain({
+                            status_id: 4,
+                        })
+                );
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -3740,6 +3759,11 @@ define(() => function ({
         });
 
         return {
+            nameUnchanged() {
+                ['first_name', 'last_name'].forEach(name => delete(params.data[name]));
+                return this;
+            },
+
             insertStatus() {
                 setStatus();
                 return this;
@@ -3810,6 +3834,16 @@ define(() => function ({
 
             thirdStatus() {
                 processors.push(() => (params.data.status_id = 2));
+                return this;
+            },
+
+            fourthStatus() {
+                params.data.status_id = 1;
+                return this;
+            },
+
+            fifthStatus() {
+                params.data.status_id = 3;
                 return this;
             },
 
@@ -4405,6 +4439,7 @@ define(() => function ({
         const params = {
             chat_id: 2718937,
             chat_channel_id: 101,
+            chat_channel_type: 'whatsapp',
             visitor_id: 16479305,
             visitor_name: 'Томова Денка Райчовна',
             site_id: 4664,
@@ -6628,10 +6663,13 @@ define(() => function ({
         }
 
         const chat = chat_id => {
-            paramsProcessors.push(() => (params.is_show_pinned_chats = undefined));
+            paramsProcessors.push(() => {
+                params.is_show_pinned_chats = undefined;
+                params.statuses = undefined;
+            });
+
             params.scroll_direction = undefined;
             params.scroll_from_date = undefined;
-            params.statuses = undefined;
             params.app_id = undefined;
             params.employee_id = undefined;
             params.chat_id = chat_id;
@@ -12813,6 +12851,7 @@ define(() => function ({
             me.thirdContact = () => (id = 1689587, me);
             me.fourthContact = () => (id = 25206823, me);
             me.fifthContact = () => (id = 1689290, me);
+            me.sixthContact = () => (id = 1789283, me);
 
             return me;
         };
@@ -15454,8 +15493,10 @@ define(() => function ({
             };
             
             tester.option.atIndex = index => {
-                const getOptionAtIndex = () =>
-                    getSectionElement().querySelectorAll('.cm-contacts-contact-bar-section-option')[index];
+                const getOptionAtIndex = () => getSectionElement().querySelectorAll(
+                    '.cm-contacts-contact-bar-section-option, ' +
+                    '.cm-contacts-channel-editor-input-group'
+                )[index];
 
                 const tester = testersFactory.createDomElementTester(getOptionAtIndex);
                 return addOptionTesters(tester, getOptionAtIndex);
