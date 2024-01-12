@@ -298,6 +298,17 @@ define(() => function ({
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
 
+        me.copyIcon = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => utils.element(getRootElement()).querySelector('.cmg-copy-icon')
+            );
+
+            const putMouseOver = tester.putMouseOver.bind(tester);
+            tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+            return tester;
+        })();
+
         me.chips = text => {
             const tester = testersFactory.createDomElementTester(
                 () =>
@@ -4162,14 +4173,6 @@ define(() => function ({
                 chat_id: 2718935,
                 from_operator_id: null,
                 to_operator_id: 20818,
-            }, {
-                chat_id: 2718935,
-                from_operator_id: null,
-                to_operator_id: 20818,
-            }, {
-                chat_id: 2718935,
-                from_operator_id: null,
-                to_operator_id: 20818,
             }, undefined],
         };
 
@@ -4432,6 +4435,48 @@ define(() => function ({
 
                 spendTime(0);
             } 
+        };
+    };
+
+    me.transfersFinishedMessage = () => {
+        const interval = (1000 * 60 * 60 * 6) + (5 * 1000 * 60) + (12 * 1000) + 231;
+
+        const params = {
+            transferred_chats: [{
+                chat: {
+                    chat_channel_id: 101,
+                    chat_channel_type: 'telegram',
+                    date_time: utils.formatDate(new Date(
+                        (new Date('2022-01-19T17:25:22.098210')).getTime() - interval * 7
+                    )),
+                    id: 2718942,
+                    context: null,
+                    last_message: {
+                        message: `Сообщение #7`,
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null,
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: null,
+                    site_id: 4663,
+                    status: 'active',
+                    visitor_id: 16479303,
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    unread_message_count: 0,
+                },
+                from: 2002676,
+                to: 20816,
+            }],
+        };
+
+        return {
+            receive: () => me.chatsWebSocket.receive(JSON.stringify({
+                method: 'transfers_finished',
+                params 
+            }))
         };
     };
 
@@ -6504,20 +6549,30 @@ define(() => function ({
             skipCount: 2
         }));
         
-        function addResponseModifiers (me) {
-            me.pinnedChatsExist = () => (processors.push(
-                data => {
-                    const isPinnedChat = chat => chat.id == 2718942;
+        const pinnedChatsExist = ids => processors.push(
+            data => {
+                const isPinnedChat = chat => ids.includes(chat.id);
 
-                    data.chats = data.chats.
-                        filter(isPinnedChat).
-                        map(chat => ({
-                            ...chat,
-                            is_pinned: true,
-                        })).
-                        concat(data.chats.filter(chat => !isPinnedChat(chat)));
-                }
+                data.chats = data.chats.
+                    filter(isPinnedChat).
+                    map(chat => ({
+                        ...chat,
+                        is_pinned: true,
+                    })).
+                    concat(data.chats.filter(chat => !isPinnedChat(chat)));
+            }
+        );
+
+        function addResponseModifiers (me) {
+            me.pinned = () => (processors.push(
+                data => (data.chats = data.chats.map(chat => ({
+                    ...chat,
+                    is_pinned: true,
+                })))
             ), me);
+
+            me.pinnedChatExist = () => (pinnedChatsExist([2718942]), me);
+            me.twoPinnedChatExist = () => (pinnedChatsExist([2718941, 2718942]), me);
 
             me.shortMarks = () => (processors.push(data => {
                 data.chats[0].mark_ids = ['89', '86'];
@@ -7181,6 +7236,10 @@ define(() => function ({
     });
 
     me.countersRequest = () => {
+        const params = {
+            is_other_employee_chats: undefined,
+        };
+
         const data = {
             new_chat_count: 75,
             active_chat_count: 75,
@@ -7211,6 +7270,12 @@ define(() => function ({
             me.noActiveChats = () => {
                 data.active_chat_count = 0;
                 data.active_with_unread_count = 0;
+                return me;
+            };
+
+            me.oneActiveChat = () => {
+                data.active_chat_count = 1;
+                data.active_with_unread_count = 1;
                 return me;
             };
 
@@ -7256,16 +7321,32 @@ define(() => function ({
                 return me;
             };
 
+            me.anotherOtherChatsCount = () => {
+                data.other_chat_count = 74;
+                return me;
+            };
+
+            me.otherChatsExist = () => {
+                data.other_chat_count = 75;
+                return me;
+            };
+
             return me;
         };
 
         return addResponseModifiers({
+            otherEmployeeChats() {
+                params.is_other_employee_chats = true;
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL').
                     expectToHaveMethod('POST').
                     expectBodyToContain({
-                        method: 'get_counters'
+                        method: 'get_counters',
+                        params,
                     });
 
                 return addResponseModifiers({
@@ -15654,6 +15735,9 @@ define(() => function ({
             ));
 
             const click = tester.pin.click.bind(tester.pin);
+
+            tester.pin.expectToBePinned = () => tester.pin.expectToHaveClass('cm-chats--chat-pinned');
+            tester.pin.expectNotToBePinned = () => tester.pin.expectToHaveClass('cm-chats--chat-not-pinned');
 
             tester.pin.click = () => {
                 click();

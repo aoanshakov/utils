@@ -358,7 +358,8 @@ function JsTester_NavigatorMock (args) {
         mediaDevicesEventListeners = args.mediaDevicesEventListeners,
         getUserMedia = args.userMediaGetter,
         getMediaDevicesUserMedia = args.mediaDevicesUserMediaGetter,
-        userDeviceHandling = args.userDeviceHandling;
+        userDeviceHandling = args.userDeviceHandling,
+        writeText = args.writeText;
 
     Object.defineProperty(window, 'navigator', {
         get: function () {
@@ -366,6 +367,10 @@ function JsTester_NavigatorMock (args) {
         },
         set: function () {}
     });
+
+    this.clipboard = {
+        writeText,
+    };
 
     this.mediaDevices = {
         getUserMedia: getMediaDevicesUserMedia,
@@ -7866,6 +7871,18 @@ function JsTester_ParentWindowReplacer (fakeWindow) {
     };
 }
 
+function JsTester_ClipboardTester (getValue) {
+    this.expectToHaveValue = expectedValue => {
+        const actualValue = getValue();
+
+        if (actualValue !== expectedValue) {
+            throw new Error(
+                'В буфере обмена должно быть сохранено значение "' + expectedValue + '", а не "' + actualValue + '"'
+            );
+        }
+    };
+}
+
 function JsTester_Tests (factory) {
     Object.defineProperty(window, 'MessageChannel', {
         get: function () {
@@ -8045,7 +8062,11 @@ function JsTester_Tests (factory) {
             listeners: mediaDevicesEventListeners,
             events: ['devicechange']
         }),
+        clipboard = new JsTester_Variable(),
+        writeText = clipboard.createSetter(),
+        clipboardTester = new JsTester_ClipboardTester(clipboard.createGetter()),
         navigatorMock = new JsTester_NavigatorMock({
+            writeText,
             userMediaGetter: userMediaGetter,
             mediaDevicesUserMediaGetter: mediaDevicesUserMediaGetter,
             additionalDevices: additionalDevices,
@@ -8389,6 +8410,7 @@ function JsTester_Tests (factory) {
         args.blobsTester = blobsTester;
         args.copiedTextsTester = copiedTextsTester;
         args.getRecentPostMessage = postMessages.pop;
+        args.clipboard = clipboardTester;
 
         (function () {
             var name;
@@ -8427,6 +8449,7 @@ function JsTester_Tests (factory) {
 
         setNow(null);
 
+        writeText(null);
         resizeObservables.clear();
         intersectionObservations.clear();
         intersectionObservationHandlers.clear();

@@ -22,9 +22,16 @@ actions['fix-permissions'] =
 const modules = [{
     repository: 'comagic-app/desktop',
     directory: 'desktop',
+    configSection: 'host',
     envFileName: '.env',
     script: 'dev',
     branch: '{stand}'
+}, {
+    repository: 'comagic-app/frontend',
+    directory: 'comagic-app',
+    configSection: 'host',
+    envFileName: '.env',
+    script: 'dev',
 }, {
     repository: 'chats/frontend',
     directory: 'chats',
@@ -54,8 +61,9 @@ const modules = [{
 }];
 
 const moduleNames = modules.map(({ repository, directory }) => directory),
-    submoduleNames = moduleNames.filter(directory => directory != 'desktop'),
-    replaceWithStand = ({ value, params }) => value.split('{stand}').join(params.stand || ''),
+    isHost = directory => ['desktop', 'comagic-app'].includes(directory),
+    submoduleNames = moduleNames.filter(directory => !isHost(directory)),
+    replaceWithStand = ({ value, params }) => value?.split('{stand}').join(params.stand || ''),
     linkedModulePath = ({ path, directory}) => `${path}/linked_modules/${directory}`;
 
 const envParams = modules.filter(
@@ -222,11 +230,12 @@ actions['set-env'] = params => [
         modules.forEach(({
             repository,
             directory,
+            configSection,
             envFileName = '.env.local',
         }) => write(`${modulePath(directory)}/${envFileName}`, Object.entries({
             ...(values.common || {}),
             ...(values[key]?.common || {}),
-            ...(values[key]?.[directory] || {}),
+            ...(values[key]?.[configSection || directory] || {}),
             ...(local(params)).reduce(
                 (result, name) => {
                     const envParam = envParams[name];
@@ -258,7 +267,7 @@ actions['run'] = params =>
         const path = modulePath(directory),
             serverLog = `${path}/server.log`;
 
-        if (directory != 'desktop' && !local(params).includes(directory)) {
+        if (!isHost(directory) && !local(params).includes(directory)) {
             return result;
         }
 

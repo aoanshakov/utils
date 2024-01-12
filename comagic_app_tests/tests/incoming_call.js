@@ -18,7 +18,8 @@ tests.addTest(options => {
         windowSize,
         notificationTester,
         setDocumentVisible,
-        setFocus
+        setFocus,
+        clipboard,
     } = options;
 
     describe('Открываю лк. Ни лидген, ни РМО, ни аналитика не доступны.', function() {
@@ -1492,32 +1493,52 @@ tests.addTest(options => {
                         );
                     });
                 });
-                it('Возвращён нормализованный номер. Отображено сообщение о поиске контакта.', function() {
-                    numaRequest.
-                        normalizedNumber().
-                        receiveResponse();
+                describe('Позвонивший является сотрудником.', function() {
+                    beforeEach(function() {
+                        numaRequest.
+                            employeeNameFound().
+                            receiveResponse();
 
-                    tester.softphone.expectTextContentToHaveSubstring(
-                        '+7 (916) 123-45-67 Поиск контакта...'
-                    );
+                        tester.slavesNotification().
+                            additional().
+                            visible().
+                            name().
+                            expectToBeSent();
+                    });
+
+                    it('Нажимаю на иконку копирования номера. Номер скопирован.', function() {
+                        tester.copyIcon.click();
+                        clipboard.expectToHaveValue('79161234567');
+                    });
+                    it('Отображено имя сотрудинка.', function() {
+                        tester.contactOpeningButton.expectToBeVisible();
+
+                        tester.softphone.expectTextContentToHaveSubstring(
+                            'Шалева Дора ' +
+                            '+7 (916) 123-45-67'
+                        );
+                    });
                 });
-                it('Позвонивший является сотрудником. Отображено имя сотрудинка.', function() {
-                    numaRequest.
-                        employeeNameFound().
-                        receiveResponse();
+                describe('Возвращён нормализованный номер.', function() {
+                    beforeEach(function() {
+                        numaRequest.
+                            normalizedNumber().
+                            receiveResponse();
+                    });
 
-                    tester.slavesNotification().
-                        additional().
-                        visible().
-                        name().
-                        expectToBeSent();
-
-                    tester.contactOpeningButton.expectToBeVisible();
-
-                    tester.softphone.expectTextContentToHaveSubstring(
-                        'Шалева Дора ' +
-                        '+7 (916) 123-45-67'
-                    );
+                    it('Нажимаю на иконку копирования номера. Номер скопирован.', function() {
+                        tester.copyIcon.click();
+                        clipboard.expectToHaveValue('79161234567');
+                    });
+                    it('Помещаю курсор над иконкой копирования. Отображена подсказка.', function() {
+                        tester.copyIcon.putMouseOver();
+                        tester.tooltip.expectToHaveTextContent('Копировать номер телефона');
+                    });
+                    it('Отображено сообщение о поиске контакта.', function() {
+                        tester.softphone.expectTextContentToHaveSubstring(
+                            '+7 (916) 123-45-67 Поиск контакта...'
+                        );
+                    });
                 });
             });
             describe('Браузер скрыт.', function() {

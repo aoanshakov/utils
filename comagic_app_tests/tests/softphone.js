@@ -2259,7 +2259,7 @@ tests.addTest(options => {
                                     expectToBeSent();
                             });
 
-                            describe('Поступает входящий звонок. Поступает входящий звонок.', function() {
+                            describe('Поступает входящий звонок.', function() {
                                 let numaRequest;
 
                                 beforeEach(function() {
@@ -2315,6 +2315,8 @@ tests.addTest(options => {
                                         );
                                     });
                                     it('Номер скрыт.', function() {
+                                        tester.copyIcon.expectNotToExist();
+
                                         tester.softphone.expectTextContentToHaveSubstring(
                                             'Неизвестный номер ' +
                                             'Поиск контакта...'

@@ -177,6 +177,12 @@ function ServicesAtsHook(args) {
                             }, {
                                 id: 'http_request',
                                 required_components: []
+                            }],
+                            'comagic:ns:event_v2.0': [{
+                                id: 348925,
+                                required_components: [],
+                                name: 'Некое событие',
+                                description: 'Описание некого события',
                             }]
                         }
                     });

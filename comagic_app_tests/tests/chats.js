@@ -2291,7 +2291,7 @@ tests.addTest(options => {
                                 describe('Закрепленные чаты есть.', function() {
                                     beforeEach(function() {
                                         secondChatListRequest.
-                                            pinnedChatsExist().
+                                            pinnedChatExist().
                                             receiveResponse();
                                     });
 
@@ -2516,8 +2516,7 @@ tests.addTest(options => {
                             });
                         });
                         describe(
-                            'Есть только активные чаты. Открываю вкладку "В работе". Приходит новое сообщение в чат, ' +
-                            'данные которого',
+                            'Есть только активные чаты. Открываю вкладку "В работе". Приходит новое сообщение в чат,',
                         function() {
                             let newMessage;
 
@@ -2532,7 +2531,7 @@ tests.addTest(options => {
                                     receiveResponse();
 
                                 secondChatListRequest.
-                                    pinnedChatsExist().
+                                    twoPinnedChatExist().
                                     receiveResponse();
 
                                 thirdChatListRequest.
@@ -2543,35 +2542,70 @@ tests.addTest(options => {
                                 newMessage = tester.newMessage();
                             });
 
-                            it('не были получены ранее. Чат размещён после закрепленных.', function() {
-                                newMessage.tenthChat().receive();
-                                notificationTester.grantPermission();
+                            describe('данные которого не были получены ранее.', function() {
+                                let chatListRequest;
 
-                                tester.chatListRequest().
-                                    active().
-                                    thirdChat().
-                                    receiveResponse();
+                                beforeEach(function() {
+                                    newMessage.tenthChat().receive();
+                                    notificationTester.grantPermission();
 
-                                tester.countersRequest().
-                                    noNewChats().
-                                    noClosedChats().
-                                    receiveResponse();
+                                    chatListRequest = tester.chatListRequest().
+                                        active().
+                                        thirdChat().
+                                        expectToBeSent();
 
-                                tester.body.expectTextContentToHaveSubstring(
-                                    'Помакова Бисерка Драгановна ' +
-                                    '17 янв 2022 ' +
-                                    'Сообщение #7 ' +
+                                    tester.countersRequest().
+                                        noNewChats().
+                                        noClosedChats().
+                                        receiveResponse();
+                                });
 
-                                    'Помакова Бисерка Драгановна ' +
-                                    '20 янв 2020 ' +
-                                    'Сообщение #75 ' +
+                                it('Каким-то образом чат оказался закрепленным. Чат размещен первым.', function() {
+                                    chatListRequest.
+                                        pinned().
+                                        receiveResponse();
 
-                                    'Помакова Бисерка Драгановна ' +
-                                    '21 янв 2022 ' +
-                                    'Привет 3'
-                                );
+                                    tester.body.expectTextContentToHaveSubstring(
+                                        'Помакова Бисерка Драгановна ' +
+                                        '20 янв 2020 ' +
+                                        'Сообщение #75 ' +
+
+                                        'Помакова Бисерка Драгановна ' +
+                                        '18 янв 2022 ' +
+                                        'Сообщение #6 ' +
+
+                                        'Помакова Бисерка Драгановна ' +
+                                        '17 янв 2022 ' +
+                                        'Сообщение #7 ' +
+
+                                        'Помакова Бисерка Драгановна ' +
+                                        '21 янв 2022 ' +
+                                        'Привет 3'
+                                    );
+                                });
+                                it('Чат размещён после закрепленных.', function() {
+                                    chatListRequest.receiveResponse();
+
+                                    tester.body.expectTextContentToHaveSubstring(
+                                        'Помакова Бисерка Драгановна ' +
+                                        '18 янв 2022 ' +
+                                        'Сообщение #6 ' +
+
+                                        'Помакова Бисерка Драгановна ' +
+                                        '17 янв 2022 ' +
+                                        'Сообщение #7 ' +
+
+                                        'Помакова Бисерка Драгановна ' +
+                                        '20 янв 2020 ' +
+                                        'Сообщение #75 ' +
+
+                                        'Помакова Бисерка Драгановна ' +
+                                        '21 янв 2022 ' +
+                                        'Привет 3'
+                                    );
+                                });
                             });
-                            it('были получены ранее. Чат размещён после закрепленных.', function() {
+                            it('данные которого были получены ранее. Чат размещён после закрепленных.', function() {
                                 newMessage.ninthChat().receive();
                                 notificationTester.grantPermission();
 
@@ -2587,12 +2621,44 @@ tests.addTest(options => {
 
                                 tester.body.expectTextContentToHaveSubstring(
                                     'Помакова Бисерка Драгановна ' +
+                                    '18 янв 2022 ' +
+                                    'Сообщение #6 ' +
+
+                                    'Помакова Бисерка Драгановна ' +
                                     '17 янв 2022 ' +
                                     'Сообщение #7 ' +
 
                                     'Помакова Бисерка Драгановна ' +
                                     '21 февр 2021 ' +
                                     'Я люблю тебя ' +
+
+                                    'Помакова Бисерка Драгановна ' +
+                                    '21 янв 2022 ' +
+                                    'Привет 3'
+                                );
+                            });
+                            it('Получено сообщение в закрепленный чат. Чат переместился в начало списка.', function() {
+                                newMessage.seventhChat().receive();
+                                notificationTester.grantPermission();
+
+                                tester.chatListRequest().
+                                    active().
+                                    ninethChat().
+                                    receiveResponse();
+
+                                tester.countersRequest().
+                                    noNewChats().
+                                    noClosedChats().
+                                    receiveResponse();
+
+                                tester.body.expectTextContentToHaveSubstring(
+                                    'Помакова Бисерка Драгановна ' +
+                                    '18 янв 2022 ' +
+                                    'Сообщение #6 ' +
+
+                                    'Помакова Бисерка Драгановна ' +
+                                    '21 февр 2021 ' +
+                                    'Я люблю тебя 1 ' +
 
                                     'Помакова Бисерка Драгановна ' +
                                     '21 янв 2022 ' +
@@ -3663,16 +3729,35 @@ tests.addTest(options => {
                 siteListRequest.receiveResponse();
                 messageTemplateListRequest.receiveResponse();
 
-                tester.countersRequest().receiveResponse();
+                tester.countersRequest().
+                    otherEmployeeChats().
+                    otherChatsExist().
+                    noNewChats().
+                    noClosedChats().
+                    noActiveChats().
+                    receiveResponse();
 
                 tester.offlineMessageCountersRequest().receiveResponse();
                 tester.chatChannelListRequest().receiveResponse();
                 tester.siteListRequest().receiveResponse();
                 tester.markListRequest().receiveResponse();
 
-                tester.chatListRequest().forCurrentEmployee().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-                tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
+                tester.chatListRequest().
+                    forCurrentEmployee().
+                    noData().
+                    receiveResponse();
+
+                tester.chatListRequest().
+                    forCurrentEmployee().
+                    active().
+                    noData().
+                    receiveResponse();
+
+                tester.chatListRequest().
+                    forCurrentEmployee().
+                    closed().
+                    noData().
+                    receiveResponse();
 
                 tester.chatChannelTypeListRequest().receiveResponse();
 
@@ -3680,7 +3765,11 @@ tests.addTest(options => {
                 tester.offlineMessageListRequest().processing().receiveResponse();
                 tester.offlineMessageListRequest().processed().receiveResponse();
 
-                tester.countersRequest().receiveResponse();
+                tester.countersRequest().
+                    noNewChats().
+                    noClosedChats().
+                    noActiveChats().
+                    receiveResponse();
 
                 tester.button('Чужие чаты').click();
 
@@ -3688,10 +3777,22 @@ tests.addTest(options => {
                     active().
                     forCurrentEmployee().
                     isOtherEmployeesAppeals().
+                    pinnedChatExist().
                     receiveResponse();
 
-                tester.countersRequest().receiveResponse();
-                tester.countersRequest().receiveResponse();
+                tester.countersRequest().
+                    otherEmployeeChats().
+                    otherChatsExist().
+                    noNewChats().
+                    noClosedChats().
+                    noActiveChats().
+                    receiveResponse();
+
+                tester.countersRequest().
+                    noNewChats().
+                    noClosedChats().
+                    noActiveChats().
+                    receiveResponse();
             });
 
             describe(
@@ -3741,11 +3842,47 @@ tests.addTest(options => {
                     tester.select.withValue('Чакърова Райна Илковна').expectNotToExist();
                 });
             });
-            it('Нажимаю на кнопку переадресации. Отображен список сотрудников.', function() {
-                employeeStatusesRequest.receiveResponse();
+            describe('Прием трансфера доступен для сотрудника.', function() {
+                beforeEach(function() {
+                    employeeStatusesRequest.receiveResponse();
+                });
 
-                tester.button('Переадресовать чат').click();
-                tester.body.expectTextContentToHaveSubstring('Кому передать');
+                it(
+                    'Получено новое сообщение в закрепленный чат. Открываю вкладку "В работе". Чат не закреплен.',
+                function() {
+                    tester.newMessage().seventhChat().receive();
+                    notificationTester.grantPermission();
+
+                    tester.chatListRequest().
+                        active().
+                        ninethChat().
+                        receiveResponse();
+
+                    tester.countersRequest().
+                        otherEmployeeChats().
+                        anotherOtherChatsCount().
+                        noNewChats().
+                        noClosedChats().
+                        oneActiveChat().
+                        receiveResponse();
+
+                    tester.countersRequest().
+                        noNewChats().
+                        noClosedChats().
+                        oneActiveChat().
+                        receiveResponse();
+
+                    tester.button('В работе 1').click();
+
+                    tester.chatList.
+                        item('Я люблю тебя').
+                        pin.
+                        expectNotToExist();
+                });
+                it('Нажимаю на кнопку переадресации. Отображен список сотрудников.', function() {
+                    tester.button('Переадресовать чат').click();
+                    tester.body.expectTextContentToHaveSubstring('Кому передать');
+                });
             });
             it('Трансфер недоступен. Нажимаю на кнопку переадресации. Список сотрудников не отображен.', function() {
                 employeeStatusesRequest.
@@ -4181,7 +4318,9 @@ tests.addTest(options => {
             messageTemplateListRequest.receiveResponse();
             secondReportsListRequest.receiveResponse();
 
-            tester.countersRequest().receiveResponse();
+            tester.countersRequest().
+                otherEmployeeChats().
+                receiveResponse();
 
             tester.offlineMessageCountersRequest().receiveResponse();
             tester.chatChannelListRequest().receiveResponse();
