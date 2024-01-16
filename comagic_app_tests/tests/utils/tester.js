@@ -2328,7 +2328,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'asterisk',
                     name: 'Звёздочка',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'asterisk',
                     color: '#317f43',
                     priority: 7,
@@ -2356,7 +2356,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'bell',
                     name: 'Колокольчик',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'bell',
                     color: '#8fcd75',
                     priority: 7,
@@ -2384,7 +2384,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'bottom_left_arrow',
                     name: 'Стрелочка',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'bottom_left_arrow',
                     color: '#9d24d2',
                     priority: 7,
@@ -2412,7 +2412,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'dice',
                     name: 'Кости',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'dice',
                     color: '#9a3979',
                     priority: 7,
@@ -2440,7 +2440,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'ellipsis',
                     name: 'Многоточие',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'ellipsis',
                     color: '#29f8a9',
                     priority: 7,
@@ -2468,7 +2468,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'exclamation',
                     name: 'Восклицание',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'exclamation',
                     color: '#d6aa82',
                     priority: 7,
@@ -2496,7 +2496,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'fast_forward',
                     name: 'Перемотка',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'fast_forward',
                     color: '#4a75ff',
                     priority: 7,
@@ -2524,7 +2524,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'find',
                     name: 'Найти',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'find',
                     color: '#ff9ec5',
                     priority: 7,
@@ -2552,7 +2552,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'funnel',
                     name: 'Воронка',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'funnel',
                     color: '#dac778',
                     priority: 7,
@@ -2580,7 +2580,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'half_moon',
                     name: 'Луна',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'half_moon',
                     color: '#285b47',
                     priority: 7,
@@ -2608,7 +2608,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'handset',
                     name: 'Поднял',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'handset',
                     color: '#6c9297',
                     priority: 7,
@@ -2636,7 +2636,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'hangup',
                     name: 'Повесил',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'hangup',
                     color: '#fd1c30',
                     priority: 7,
@@ -2664,7 +2664,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'info',
                     name: 'Информация',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'info',
                     color: '#65674d',
                     priority: 7,
@@ -2692,7 +2692,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'lightning',
                     name: 'Молния',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'lightning',
                     color: '#a39034',
                     priority: 7,
@@ -2720,7 +2720,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'list',
                     name: 'Список',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'list',
                     color: '#02b852',
                     priority: 7,
@@ -2748,7 +2748,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'pen',
                     name: 'Ручка',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'pen',
                     color: '#a547a7',
                     priority: 7,
@@ -2776,7 +2776,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'play',
                     name: 'Проигрывание',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'play',
                     color: '#29fb98',
                     priority: 7,
@@ -2804,7 +2804,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'question',
                     name: 'Вопрос',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'question',
                     color: '#11aaf1',
                     priority: 7,
@@ -2832,7 +2832,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'rays',
                     name: 'Лучи',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'rays',
                     color: '#8734bf',
                     priority: 7,
@@ -2860,7 +2860,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'star',
                     name: 'Звезда',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'star',
                     color: '#06c9aa',
                     priority: 7,
@@ -2888,7 +2888,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'target',
                     name: 'Цель',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'target',
                     color: '#80130c',
                     priority: 7,
@@ -2916,7 +2916,7 @@ define(() => function ({
                     is_worktime: false,
                     mnemonic: 'auto_out_call',
                     name: 'Исходящий обзвон',
-                    is_select_allowed: false,
+                    is_select_allowed: true,
                     icon: 'auto_out_call',
                     color: '#1e2460',
                     priority: 7,
@@ -3085,6 +3085,11 @@ define(() => function ({
 
             fourthChat() {
                 params.chat_id = 2718936;
+                return this;
+            },
+
+            fifthChat() {
+                params.chat_id = 2718942;
                 return this;
             },
 
@@ -3641,7 +3646,6 @@ define(() => function ({
         receive: () => {
             me.chatsWebSocket.receive(JSON.stringify({
                 method: 'offline_messages_settings_changed',
-                params: {},
             }));
 
             spendTime(0);
@@ -4587,6 +4591,16 @@ define(() => function ({
             }))
         };
     };
+
+    me.channelEmployeeChangedMessage = () => ({
+        receive: () => {
+            me.chatsWebSocket.receive(JSON.stringify({
+                method: 'channel_employee_changed',
+            }));
+
+            spendTime(0);
+        } 
+    });
     
     this.connectEventsWebSocket = function (index) {
         this.getEventsWebSocket(index).connect();
@@ -6372,6 +6386,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            anotherChat() {
+                params.chat_id = 2718935;
+                return this;
+            },
+            
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath('$REACT_APP_BASE_URL/operator/chat/pin').
@@ -6480,7 +6499,8 @@ define(() => function ({
             visitor_id: 16479303,
             visitor_name: 'Помакова Бисерка Драгановна',
             visitor_type: 'omni',
-            unread_message_count: 3
+            unread_message_count: 3,
+            is_pinned: false,
         }, {
             chat_channel_id: 101,
             chat_channel_type: 'telegram',
@@ -6501,7 +6521,8 @@ define(() => function ({
             visitor_id: 16479303,
             visitor_name: 'Помакова Бисерка Драгановна',
             visitor_type: 'omni',
-            unread_message_count: 0
+            unread_message_count: 0,
+            is_pinned: false,
         }];
 
         const getAdditionalData = ({skipCount = 0, count}) => {
@@ -6535,7 +6556,8 @@ define(() => function ({
                     visitor_id: 16479303,
                     visitor_name: 'Помакова Бисерка Драгановна',
                     visitor_type: 'omni',
-                    unread_message_count: 0
+                    unread_message_count: 0,
+                    is_pinned: false,
                 });
 
                 number ++;
@@ -6577,6 +6599,15 @@ define(() => function ({
             me.shortMarks = () => (processors.push(data => {
                 data.chats[0].mark_ids = ['89', '86'];
             }), me);
+
+            me.onlyActiveChats = count => {
+                totals.new_chat_count = 0;
+                totals.active_with_unread_count = 0;
+                totals.active_chat_count = 3;
+                totals.closed_chat_count = 0;
+
+                return me;
+            };
 
             me.fewUnreadMessages = () => {
                 totals.new_chat_count = 5;
@@ -6830,7 +6861,8 @@ define(() => function ({
                     visitor_type: 'omni',
                     account_id: null,
                     is_phone_auto_filled: false,
-                    unread_message_count: 0
+                    unread_message_count: 0,
+                    is_pinned: false,
                 }];
 
                 return this;
@@ -6877,7 +6909,8 @@ define(() => function ({
                     visitor_type: 'omni',
                     account_id: null,
                     is_phone_auto_filled: false,
-                    unread_message_count: 1
+                    unread_message_count: 1,
+                    is_pinned: false,
                 }];
 
                 return this;
@@ -6914,7 +6947,8 @@ define(() => function ({
                     visitor_type: 'omni',
                     account_id: null,
                     is_phone_auto_filled: false,
-                    unread_message_count: 1
+                    unread_message_count: 1,
+                    is_pinned: false,
                 }];
 
                 return this;
@@ -6951,7 +6985,8 @@ define(() => function ({
                     visitor_type: 'omni',
                     account_id: null,
                     is_phone_auto_filled: false,
-                    unread_message_count: 1
+                    unread_message_count: 1,
+                    is_pinned: false,
                 }];
 
                 return this;
@@ -6988,7 +7023,8 @@ define(() => function ({
                     visitor_type: 'omni',
                     account_id: null,
                     is_phone_auto_filled: false,
-                    unread_message_count: 1
+                    unread_message_count: 1,
+                    is_pinned: false,
                 }];
 
                 return this;
@@ -7025,7 +7061,8 @@ define(() => function ({
                     visitor_type: 'omni',
                     account_id: null,
                     is_phone_auto_filled: false,
-                    unread_message_count: 1
+                    unread_message_count: 1,
+                    is_pinned: false,
                 }];
 
                 return this;
@@ -7062,7 +7099,8 @@ define(() => function ({
                     visitor_type: 'omni',
                     account_id: null,
                     is_phone_auto_filled: false,
-                    unread_message_count: 1
+                    unread_message_count: 1,
+                    is_pinned: false,
                 }];
 
                 return this;

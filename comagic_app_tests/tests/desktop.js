@@ -142,7 +142,7 @@ tests.addTest(options => {
                                 tester.connectSIPWebSocket();
 
                                 notificationTester.grantPermission();
-                                tester.employeeStatusesRequest().receiveResponse();
+                                tester.employeeStatusesRequest().many().receiveResponse();
                                 tester.numberCapacityRequest().receiveResponse();
 
                                 tester.employeeSettingsRequest().receiveResponse();

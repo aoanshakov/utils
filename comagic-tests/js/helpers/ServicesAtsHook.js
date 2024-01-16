@@ -42,12 +42,26 @@ function ServicesAtsHook(args) {
         return tester;
     };
 
+    this.form = testersFactory.createFormTester(() => Comagic.getApplication().findComponent('panel'));
+
     this.conditionGroup = function () {
         return {
             atIndex: function (index) {
-                return testersFactory.createFormTester(
-                    utils.getComponentByDomElement(document.querySelectorAll('.cm-conditiongroup-panel')[index])
+                const getFormComponent = () =>
+                    utils.getComponentByDomElement(document.querySelectorAll('.cm-conditiongroup-panel')[index]);
+
+                const tester = testersFactory.createFormTester(getFormComponent);
+
+                tester.comboboxAt = index => testersFactory.createComboBoxTester(
+                    getFormComponent().
+                        down('services-ats-hook-condition').
+                        query('field').
+                        filter(function (field) {
+                            return !field.hidden;
+                        })[index],
                 );
+
+                return tester;
             },
             first: function () {
                 return this.atIndex(0);
@@ -169,6 +183,9 @@ function ServicesAtsHook(args) {
                             'comagic:public:number_capacity_with_common': [],
                             'comagic:ns:event_param_v2.0': [],
                             'comagic:ns:handler': [{
+                                id: 'telegram_message',
+                                required_components: []
+                            }, {
                                 id: 'sms_http_request',
                                 required_components: []
                             }, {
@@ -179,11 +196,27 @@ function ServicesAtsHook(args) {
                                 required_components: []
                             }],
                             'comagic:ns:event_v2.0': [{
+                                id: 348924,
+                                required_components: [],
+                                name: 'Первое событие',
+                                description: 'Описание первого события',
+                            }, {
                                 id: 348925,
                                 required_components: [],
                                 name: 'Некое событие',
                                 description: 'Описание некого события',
-                            }]
+                            }, {
+                                description: null,
+                                id: 348926,
+                                mnemonic: 'unanswered_chats',
+                                name: 'Неотвеченное сообщение',
+                                required_components: [],
+                            }],
+                            'comagic:phone_book:contact': [{
+                                aux_id: null,
+                                id: 12931228,
+                                name: 'Тодорова Сташа',
+                            }],
                         }
                     });
             }
@@ -209,14 +242,26 @@ function ServicesAtsHook(args) {
         };
     };
 
+    this.floatingComponent = testersFactory.createComponentTester(function () {
+        return utils.getFloatingComponent();
+    });
+
     this.conditionsRequest = function () {
         var params = {
             event_version_id: undefined
         };
 
         return {
-            setEventVersion: function () {
+            anotherEventVersionSpecified: function () {
+                params.event_version_id = '348924';
+                return this;
+            },
+            eventVersionSpecified: function () {
                 params.event_version_id = '348925';
+                return this;
+            },
+            thirdEventVersionSpecified: function () {
+                params.event_version_id = '348926';
                 return this;
             },
             receiveResponse: function () {
@@ -236,6 +281,17 @@ function ServicesAtsHook(args) {
                                 'ends_with',
                                 'is_null',
                                 'is_not_null'
+                            ],
+                            leaf: true
+                        }, {
+                            id: 42984,
+                            text: 'Контакт',
+                            data_type: 'number',
+                            value_list_directory: 'comagic:phone_book:contact',
+                            available_operators: [
+                                '=',
+                                'is_null',
+                                'is_not_null',
                             ],
                             leaf: true
                         }]

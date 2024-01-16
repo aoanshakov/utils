@@ -526,7 +526,7 @@ define(() => function ({
         storage.
         local.
         set({
-            access_token: jwtToken.jwt,
+            jwt_token: jwtToken.jwt,
         });
 
     {
@@ -675,13 +675,12 @@ define(() => function ({
                         grant_type: 'authorization_code',
                         code: '28gjs8o24rfsd42',
                         redirect_uri: 'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org',
-                        client_id: 'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org',
                     });
 
                 return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith({
-                            access_token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                            access_token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
                             token_type: 'Bearer',
                         });
 
@@ -6233,6 +6232,38 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse: () => {
                         respond(request);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.authTokenRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHaveMethod('POST').
+                    expectToHavePath(`https://${softphoneHost}/auth/token`).
+                    expectBodyToContain({
+                        token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith({
+                            data: {
+                                token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                            },
+                        });
 
                         Promise.runAll(false, true);
                         spendTime(0)

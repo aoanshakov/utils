@@ -2515,11 +2515,7 @@ tests.addTest(options => {
                                 tester.leftMenu.item('8 Чаты').expectToBeVisible();
                             });
                         });
-                        describe(
-                            'Есть только активные чаты. Открываю вкладку "В работе". Приходит новое сообщение в чат,',
-                        function() {
-                            let newMessage;
-
+                        describe('Есть только активные чаты. Открываю вкладку "В работе".', function() {
                             beforeEach(function() {
                                 countersRequest.
                                     noNewChats().
@@ -2539,37 +2535,93 @@ tests.addTest(options => {
                                     receiveResponse();
 
                                 tester.button('В работе 75').click();
-                                newMessage = tester.newMessage();
                             });
 
-                            describe('данные которого не были получены ранее.', function() {
-                                let chatListRequest;
+                            describe('Приходит новое сообщение в чат,', function() {
+                                let newMessage;
 
                                 beforeEach(function() {
-                                    newMessage.tenthChat().receive();
+                                    newMessage = tester.newMessage();
+                                });
+
+                                describe('данные которого не были получены ранее.', function() {
+                                    let chatListRequest;
+
+                                    beforeEach(function() {
+                                        newMessage.tenthChat().receive();
+                                        notificationTester.grantPermission();
+
+                                        chatListRequest = tester.chatListRequest().
+                                            active().
+                                            thirdChat().
+                                            expectToBeSent();
+
+                                        tester.countersRequest().
+                                            noNewChats().
+                                            noClosedChats().
+                                            receiveResponse();
+                                    });
+
+                                    it('Каким-то образом чат оказался закрепленным. Чат размещен первым.', function() {
+                                        chatListRequest.
+                                            pinned().
+                                            receiveResponse();
+
+                                        tester.body.expectTextContentToHaveSubstring(
+                                            'Помакова Бисерка Драгановна ' +
+                                            '20 янв 2020 ' +
+                                            'Сообщение #75 ' +
+
+                                            'Помакова Бисерка Драгановна ' +
+                                            '18 янв 2022 ' +
+                                            'Сообщение #6 ' +
+
+                                            'Помакова Бисерка Драгановна ' +
+                                            '17 янв 2022 ' +
+                                            'Сообщение #7 ' +
+
+                                            'Помакова Бисерка Драгановна ' +
+                                            '21 янв 2022 ' +
+                                            'Привет 3'
+                                        );
+                                    });
+                                    it('Чат размещён после закрепленных.', function() {
+                                        chatListRequest.receiveResponse();
+
+                                        tester.body.expectTextContentToHaveSubstring(
+                                            'Помакова Бисерка Драгановна ' +
+                                            '18 янв 2022 ' +
+                                            'Сообщение #6 ' +
+
+                                            'Помакова Бисерка Драгановна ' +
+                                            '17 янв 2022 ' +
+                                            'Сообщение #7 ' +
+
+                                            'Помакова Бисерка Драгановна ' +
+                                            '20 янв 2020 ' +
+                                            'Сообщение #75 ' +
+
+                                            'Помакова Бисерка Драгановна ' +
+                                            '21 янв 2022 ' +
+                                            'Привет 3'
+                                        );
+                                    });
+                                });
+                                it('данные которого были получены ранее. Чат размещён после закрепленных.', function() {
+                                    newMessage.ninthChat().receive();
                                     notificationTester.grantPermission();
 
-                                    chatListRequest = tester.chatListRequest().
+                                    tester.chatListRequest().
                                         active().
-                                        thirdChat().
-                                        expectToBeSent();
+                                        anotherChat().
+                                        receiveResponse();
 
                                     tester.countersRequest().
                                         noNewChats().
                                         noClosedChats().
                                         receiveResponse();
-                                });
-
-                                it('Каким-то образом чат оказался закрепленным. Чат размещен первым.', function() {
-                                    chatListRequest.
-                                        pinned().
-                                        receiveResponse();
 
                                     tester.body.expectTextContentToHaveSubstring(
-                                        'Помакова Бисерка Драгановна ' +
-                                        '20 янв 2020 ' +
-                                        'Сообщение #75 ' +
-
                                         'Помакова Бисерка Драгановна ' +
                                         '18 янв 2022 ' +
                                         'Сообщение #6 ' +
@@ -2577,14 +2629,31 @@ tests.addTest(options => {
                                         'Помакова Бисерка Драгановна ' +
                                         '17 янв 2022 ' +
                                         'Сообщение #7 ' +
+
+                                        'Помакова Бисерка Драгановна ' +
+                                        '21 февр 2021 ' +
+                                        'Я люблю тебя ' +
 
                                         'Помакова Бисерка Драгановна ' +
                                         '21 янв 2022 ' +
                                         'Привет 3'
                                     );
                                 });
-                                it('Чат размещён после закрепленных.', function() {
-                                    chatListRequest.receiveResponse();
+                                it(
+                                    'Получено сообщение в закрепленный чат. Чат переместился в начало списка.',
+                                function() {
+                                    newMessage.seventhChat().receive();
+                                    notificationTester.grantPermission();
+
+                                    tester.chatListRequest().
+                                        active().
+                                        ninethChat().
+                                        receiveResponse();
+
+                                    tester.countersRequest().
+                                        noNewChats().
+                                        noClosedChats().
+                                        receiveResponse();
 
                                     tester.body.expectTextContentToHaveSubstring(
                                         'Помакова Бисерка Драгановна ' +
@@ -2592,12 +2661,8 @@ tests.addTest(options => {
                                         'Сообщение #6 ' +
 
                                         'Помакова Бисерка Драгановна ' +
-                                        '17 янв 2022 ' +
-                                        'Сообщение #7 ' +
-
-                                        'Помакова Бисерка Драгановна ' +
-                                        '20 янв 2020 ' +
-                                        'Сообщение #75 ' +
+                                        '21 февр 2021 ' +
+                                        'Я люблю тебя 1 ' +
 
                                         'Помакова Бисерка Драгановна ' +
                                         '21 янв 2022 ' +
@@ -2605,9 +2670,145 @@ tests.addTest(options => {
                                     );
                                 });
                             });
-                            it('данные которого были получены ранее. Чат размещён после закрепленных.', function() {
-                                newMessage.ninthChat().receive();
-                                notificationTester.grantPermission();
+                            it('Открываю незакрепленный чат. Закрепляю чат. Чат остается открытым.', function() {
+                                tester.chatList.
+                                    first.
+                                    item('Привет').
+                                    click();
+
+                                tester.visitorCardRequest().receiveResponse();
+                                tester.messageListRequest().receiveResponse();
+                                tester.usersRequest().forContacts().receiveResponse();
+                                tester.contactGroupsRequest().receiveResponse();
+
+                                tester.changeMessageStatusRequest().
+                                    read().
+                                    anotherMessage().
+                                    receiveResponse();
+
+                                tester.countersRequest().receiveResponse();
+
+                                tester.chatList.
+                                    first.
+                                    item('Привет').
+                                    putMouseOver();
+
+                                tester.chatList.
+                                    first.
+                                    item('Привет').
+                                    pin.
+                                    click();
+
+                                tester.chatPinningRequest().
+                                    anotherChat().
+                                    receiveResponse();
+
+                                tester.body.expectTextContentToHaveSubstring(
+                                    'Помакова Бисерка Драгановна ' +
+                                    '21 янв 2022 ' +
+                                    'Привет ' +
+
+                                    'Помакова Бисерка Драгановна ' +
+                                    '18 янв 2022 ' +
+                                    'Сообщение #6 ' +
+
+                                    'Помакова Бисерка Драгановна ' +
+                                    '17 янв 2022 ' +
+                                    'Сообщение #7 ' +
+
+                                    'Помакова Бисерка Драгановна ' +
+                                    '20 янв 2022 ' +
+                                    'Здравствуй'
+                                );
+
+                                tester.chatHistory.expectToHaveTextContent(
+                                    '10 февраля 2020 ' +
+
+                                    'Привет 12:13 Ответить ' +
+                                    'Здравствуйте 12:12 Ответить'
+                                );
+                            });
+                            it('Открываю закрепленный чат. Открепляю чат. Чат остается открытым.', function() {
+                                tester.chatList.
+                                    first.
+                                    item('Сообщение #7').
+                                    click();
+
+                                tester.visitorCardRequest().receiveResponse();
+                                tester.messageListRequest().receiveResponse();
+                                tester.usersRequest().forContacts().receiveResponse();
+                                tester.contactGroupsRequest().receiveResponse();
+
+                                tester.changeMessageStatusRequest().
+                                    fifthChat().
+                                    anotherMessage().
+                                    read().
+                                    receiveResponse();
+
+                                tester.countersRequest().receiveResponse();
+
+                                tester.chatList.
+                                    first.
+                                    item('Сообщение #7').
+                                    pin.
+                                    click();
+
+                                tester.chatUnpinningRequest().receiveResponse();
+
+                                tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    count(7).
+                                    active().
+                                    receiveResponse();
+
+                                tester.chatList.
+                                    item('Сообщение #6').
+                                    expectToBeVisible();
+
+                                tester.chatList.
+                                    item('Сообщение #7').
+                                    expectToBeVisible();
+
+                                tester.chatList.
+                                    item('Сообщение #7').
+                                    pin.
+                                    expectNotToExist();
+
+                                tester.chatList.
+                                    item('Сообщение #8').
+                                    expectNotToExist();
+
+                                tester.chatHistory.expectToHaveTextContent(
+                                    '10 февраля 2020 ' +
+
+                                    'Привет 12:13 Ответить ' +
+                                    'Здравствуйте 12:12 Ответить'
+                                );
+                            });
+                            it(
+                                'Открываю чат. Получено новое сообщение в открытый чат. В списке сообщений появилось ' +
+                                'новое сообщение.',
+                            function() {
+                                tester.chatList.
+                                    item('Здравствуй').
+                                    click();
+
+                                tester.visitorCardRequest().receiveResponse();
+                                tester.messageListRequest().receiveResponse();
+                                tester.usersRequest().forContacts().receiveResponse();
+                                tester.contactGroupsRequest().receiveResponse();
+
+                                tester.changeMessageStatusRequest().
+                                    fourthChat().
+                                    anotherMessage().
+                                    read().
+                                    receiveResponse();
+
+                                tester.countersRequest().receiveResponse();
+
+                                tester.newMessage().
+                                    ninthChat().
+                                    receive();
 
                                 tester.chatListRequest().
                                     active().
@@ -2619,51 +2820,60 @@ tests.addTest(options => {
                                     noClosedChats().
                                     receiveResponse();
 
-                                tester.body.expectTextContentToHaveSubstring(
-                                    'Помакова Бисерка Драгановна ' +
-                                    '18 янв 2022 ' +
-                                    'Сообщение #6 ' +
+                                tester.changeMessageStatusRequest().
+                                    fourthChat().
+                                    read().
+                                    receiveResponse();
 
-                                    'Помакова Бисерка Драгановна ' +
-                                    '17 янв 2022 ' +
-                                    'Сообщение #7 ' +
+                                tester.chatHistory.expectToHaveTextContent(
+                                    '10 февраля 2020 ' +
 
-                                    'Помакова Бисерка Драгановна ' +
-                                    '21 февр 2021 ' +
-                                    'Я люблю тебя ' +
+                                    'Привет 12:13 Ответить ' +
+                                    'Здравствуйте 12:12 Ответить ' +
 
-                                    'Помакова Бисерка Драгановна ' +
-                                    '21 янв 2022 ' +
-                                    'Привет 3'
+                                    '21 февраля 2021 ' +
+
+                                    'Я люблю тебя 15:24 Ответить'
                                 );
                             });
-                            it('Получено сообщение в закрепленный чат. Чат переместился в начало списка.', function() {
-                                newMessage.seventhChat().receive();
-                                notificationTester.grantPermission();
+                            it('Получено сообщение о смене сотрудника канала. Список чатов обновлен.', function() {
+                                tester.channelEmployeeChangedMessage().receive();
 
                                 tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    onlyActiveChats(3).
+                                    noData().
+                                    receiveResponse();
+
+                                tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    onlyActiveChats(3).
+                                    count(3).
                                     active().
-                                    ninethChat().
                                     receiveResponse();
 
-                                tester.countersRequest().
-                                    noNewChats().
-                                    noClosedChats().
+                                tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    onlyActiveChats(3).
+                                    noData().
+                                    closed().
                                     receiveResponse();
 
-                                tester.body.expectTextContentToHaveSubstring(
-                                    'Помакова Бисерка Драгановна ' +
-                                    '18 янв 2022 ' +
-                                    'Сообщение #6 ' +
+                                tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    onlyActiveChats(3).
+                                    noData().
+                                    active().
+                                    isOtherEmployeesAppeals().
+                                    receiveResponse();
 
-                                    'Помакова Бисерка Драгановна ' +
-                                    '21 февр 2021 ' +
-                                    'Я люблю тебя 1 ' +
+                                tester.chatList.
+                                    item('Сообщение #3').
+                                    expectToBeVisible();
 
-                                    'Помакова Бисерка Драгановна ' +
-                                    '21 янв 2022 ' +
-                                    'Привет 3'
-                                );
+                                tester.chatList.
+                                    item('Сообщение #4').
+                                    expectNotToExist();
                             });
                         });
                         it(

@@ -76,16 +76,6 @@ tests.addTest(options => {
 
                     tester.button('Скрыть софтфон').expectToBeVisible();
                 });
-                it('Получен токен авторизации. Кнопка "Войти" скрыта.', function() {
-                    tester.chrome.
-                        storage.
-                        local.
-                        set({
-                            access_token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                        });
-
-                    tester.button('Войти').expectNotToExist();
-                });
             });
             it('Софтфон видим. Нажимаю на кнопку "Скрыть софтфон". Отображена кнопка "Показать софтфон".', function() {
                 stateRequest.
@@ -122,114 +112,92 @@ tests.addTest(options => {
                         expectResponseToBeSent();
                 });
 
-                describe('Получен токен авторизации.', function() {
-                    let authCheckRequest;
+                it(
+                    'Получен токен авторизации. Удалось авторизвоваться с полученным токеном. Производится ' +
+                    'инициализация софтфона. Получено сообщение о необходимости показать виджет. Виджет видим.',
+                function() {
+                    tester.chrome.
+                        storage.
+                        local.
+                        set({
+                            access_token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+                        });
 
-                    beforeEach(function() {
-                        tester.chrome.
-                            storage.
-                            local.
-                            set({
-                                access_token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                            });
+                    tester.authTokenRequest().receiveResponse()
+                    tester.authCheckRequest().receiveResponse();
 
-                        tester.masterInfoMessage().receive();
+                    tester.masterInfoMessage().receive();
 
-                        tester.slavesNotification().
-                            additional().
-                            visible().
-                            expectToBeSent();
+                    tester.slavesNotification().
+                        additional().
+                        visible().
+                        expectToBeSent();
 
-                        tester.slavesNotification().expectToBeSent();
-                        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                    tester.slavesNotification().expectToBeSent();
+                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
-                        authCheckRequest = tester.authCheckRequest().expectToBeSent();
-                    });
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
+                    tester.statusesRequest().receiveResponse();
+                    tester.settingsRequest().receiveResponse();
 
-                    it(
-                        'Удалось авторизвоваться с полученным токеном. Производится инициализация софтфона. Получено ' +
-                        'сообщение о необходимости показать виджет. Виджет видим.',
-                    function() {
-                        authCheckRequest.receiveResponse();
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
 
-                        tester.talkOptionsRequest().receiveResponse();
-                        tester.permissionsRequest().receiveResponse();
-                        tester.statusesRequest().receiveResponse();
-                        tester.settingsRequest().receiveResponse();
+                    notificationTester.grantPermission();
+                    tester.connectEventsWebSocket();
 
-                        tester.slavesNotification().
-                            twoChannels().
-                            enabled().
-                            expectToBeSent();
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
 
-                        notificationTester.grantPermission();
-                        tester.connectEventsWebSocket();
+                    tester.connectSIPWebSocket();
 
-                        tester.slavesNotification().
-                            twoChannels().
-                            enabled().
-                            softphoneServerConnected().
-                            expectToBeSent();
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        expectToBeSent();
 
-                        tester.connectSIPWebSocket();
+                    authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                    tester.registrationRequest().receiveResponse();
 
-                        tester.slavesNotification().
-                            twoChannels().
-                            softphoneServerConnected().
-                            webRTCServerConnected().
-                            expectToBeSent();
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        registered().
+                        expectToBeSent();
 
-                        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-                        tester.registrationRequest().receiveResponse();
+                    tester.allowMediaInput();
 
-                        tester.slavesNotification().
-                            twoChannels().
-                            softphoneServerConnected().
-                            webRTCServerConnected().
-                            registered().
-                            expectToBeSent();
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        registered().
+                        microphoneAccessGranted().
+                        expectToBeSent();
 
-                        tester.allowMediaInput();
+                    authenticatedUserRequest.receiveResponse();
 
-                        tester.slavesNotification().
-                            twoChannels().
-                            softphoneServerConnected().
-                            webRTCServerConnected().
-                            registered().
-                            microphoneAccessGranted().
-                            expectToBeSent();
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
 
-                        authenticatedUserRequest.receiveResponse();
+                    tester.phoneField.expectToBeVisible();
 
-                        tester.slavesNotification().
-                            twoChannels().
-                            available().
-                            expectToBeSent();
-
-                        tester.phoneField.expectToBeVisible();
-                    });
-                    it('Не удалось авторизоваться. Токен удален из хранилища.', function() {
-                        authCheckRequest.
-                            invalidToken().
-                            receiveResponse();
-
-                        tester.masterInfoMessage().leaderDeath().expectToBeSent();
-                        tester.slavesNotification().destroyed().expectToBeSent();
-
-                        tester.authLogoutRequest().receiveResponse();
-
-                        tester.softphone.expectToHaveTextContent(
-                            'Не авторизован ' +
-                            'Для использования софтфона необходимо авторизоваться'
-                        );
-
-                        tester.chrome.
-                            storage.
-                            local.
-                            expectToContain({
-                                access_token: '',
-                            });
-                    });
+                    tester.chrome.
+                        storage.
+                        local.
+                        expectToContain({
+                            jwt_token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                        });
                 });
                 it('Отображено сообщение о том, что софтофон не авторизован.', function() {
                     tester.softphone.expectToHaveTextContent(
@@ -267,22 +235,12 @@ tests.addTest(options => {
                     storage.
                     local.
                     expectToContain({
-                        access_token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                        access_token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
                     });
             });
             it('Приходит запрос, не являющийся запросом авторизации. Ответ не был отправлен.', function() {
                 tester.toggleWidgetVisibilityRequest().expectNoResponseToBeSent();
             });
-        });
-        it('Открываю попап. Токен сохранен в хранилище. Кнопка "Войти" скрыта.', function() {
-            tester = new Tester({
-                application: 'popup',
-                isAuthorized: true,
-                ...options,
-            });
-
-            tester.stateRequest().receiveResponse();
-            tester.button('Войти').expectNotToExist();
         });
         it(
             'Токен авторизации был сохранен. Производится инициализация софтфона. Получен запрос состояния. ' +
