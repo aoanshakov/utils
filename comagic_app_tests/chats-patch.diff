@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index 8a647ae..027213a 100644
+index c20ee51..44967ae 100644
 --- a/package.json
 +++ b/package.json
-@@ -25,8 +25,6 @@
+@@ -26,8 +26,6 @@
      "@types/dompurify": "^2.3.3",
      "@types/htmlparser2": "^3.10.3",
      "@types/node": "^14.14.37",
@@ -11,7 +11,7 @@ index 8a647ae..027213a 100644
      "@types/react-window": "^1.8.5",
      "@types/uuid": "^8.3.1",
      "@types/yup": "^0.29.11",
-@@ -60,12 +58,8 @@
+@@ -61,12 +59,8 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
@@ -24,7 +24,7 @@ index 8a647ae..027213a 100644
      "classnames": "^2.2.6",
      "dompurify": "^2.3.10",
      "dotenv": "^16.0.0",
-@@ -75,16 +69,7 @@
+@@ -76,16 +70,7 @@
      "history": "^5.3.0",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",

@@ -3,7 +3,9 @@ import { createRoot } from 'react-dom/client';
 
 import Softphone from '@/Root';
 import Popup from '@/popup/Root';
+import IframeContent from '@/iframe/Root';
 import initialize from '@/background/initialize';
+
 let root;
 
 const Background = () => {
@@ -15,6 +17,7 @@ const applications = {
     softphone: Softphone,
     popup: Popup,
     background: Background,
+    iframeContent: IframeContent,
 };
 
 window.application = {

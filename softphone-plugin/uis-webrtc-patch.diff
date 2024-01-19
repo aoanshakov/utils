@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 0fa8bb8..4cb6975 100644
+index 0254aad..4cb6975 100644
 --- a/package.json
 +++ b/package.json
 @@ -11,9 +11,6 @@
@@ -7,7 +7,7 @@ index 0fa8bb8..4cb6975 100644
      "build": "webpack"
    },
 -  "peerDependencies": {
--    "@comagic/workplace-utils": "^1.0.21"
+-    "@comagic/workplace-utils": "^1.0.25"
 -  },
    "dependencies": {
      "@babel/core": "^7.1.2",

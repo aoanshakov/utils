@@ -40,6 +40,13 @@ define(() => function ({
 
     window.stores = null;
     window.softphoneBroadcastChannelCache = {};
+    window.destroyMethodCaller();
+
+    window.setSoftphoneIframe = iframe => iframe && Object.defineProperty(iframe, 'contentWindow', {
+        get: function () {
+            return window.parent;
+        },
+    });
 
     function AuthFlowLaunching ({
         respond,
@@ -86,7 +93,8 @@ define(() => function ({
         tabs,
         messageListeners,
         authFlowLaunchings,
-        runtimeMessageSender,
+        backgroundRuntimeMessageSender,
+        popupRuntimeMessageSender,
         localStorage,
         permissions,
     }) {
@@ -94,8 +102,14 @@ define(() => function ({
             this.current = tabs.getCurrentTabMessagesTester();
         }
 
+        function Messages (messageSender) {
+            const messages = messageSender.createMessagesTester();
+            this.nextMessage = () => messages.nextMessage();
+        }
+
         function Runtime (messageListeners) {
-            this.background = runtimeMessageSender.createMessagesTester();
+            this.background = new Messages(backgroundRuntimeMessageSender);
+            this.popup = new Messages(popupRuntimeMessageSender);
 
             this.receiveMessage = message => new ReceivedMessage({
                 message,
@@ -429,7 +443,8 @@ define(() => function ({
         tabs,
         messageListeners,
         authFlowLaunchings,
-        runtimeMessageSender,
+        backgroundRuntimeMessageSender,
+        popupRuntimeMessageSender,
         localStorage,
         permissions,
     }) {
@@ -445,15 +460,26 @@ define(() => function ({
         function Runtime (messageListeners) {
             this.onMessage = new MessageListeners(messageListeners);
 
-            this.sendMessage = (extensionId, message) => {
+            this.sendMessage = function () {
+                if (arguments.length == 1) {
+                    return popupRuntimeMessageSender.sendMessage(arguments[0]);
+                }
+
+                if (arguments.length != 2) {
+                    throw new Error('Некорректный вызов метода отправки сообщения');
+                }
+
+                const extensionId = arguments[0],
+                    message = arguments[1];
+
                 if (extensionId != 'faaeopllmpfoeobihkiojkbhnlfkleik') {
                     throw new Error(
                         `Передан некорренктный идентификатор расширения ${extensionId} при попытке отправить ` +
-                        `сообщение ${JSON.stringify(message)} в background-скрипт`
+                        `сообщение ${JSON.stringify(message)} в background-скрипт или popup-скрипт`
                     );
                 }
 
-                return runtimeMessageSender.sendMessage(message);
+                return backgroundRuntimeMessageSender.sendMessage(message);
             };
         }
 
@@ -499,7 +525,8 @@ define(() => function ({
         const tabs = new ChromeTabs(),
             messageListeners = new ChromeMessageListeners(),
             authFlowLaunchings = new JsTester_Stack(new NoAuthFlowLaunching()),
-            runtimeMessageSender = new ChromeMessageSender('В background-скрипт'),
+            backgroundRuntimeMessageSender = new ChromeMessageSender('В background-скрипт'),
+            popupRuntimeMessageSender = new ChromeMessageSender('В popup-скрипт'),
             localStorage = new ChromeStorage(storage),
             permissions = new ChromePermissions(initialPermissions);
 
@@ -507,7 +534,8 @@ define(() => function ({
             tabs,
             messageListeners,
             authFlowLaunchings,
-            runtimeMessageSender,
+            backgroundRuntimeMessageSender,
+            popupRuntimeMessageSender,
             localStorage,
             permissions,
         });
@@ -516,7 +544,8 @@ define(() => function ({
             tabs,
             messageListeners,
             authFlowLaunchings,
-            runtimeMessageSender,
+            backgroundRuntimeMessageSender,
+            popupRuntimeMessageSender,
             localStorage,
             permissions,
         });
@@ -526,23 +555,15 @@ define(() => function ({
         storage.
         local.
         set({
-            jwt_token: jwtToken.jwt,
+            token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
         });
 
     {
-        const createRequest = (method, params) => () => {
-            const response = {
-                hidden: true,
-            };
+        const createRequest = (method, data) => () => {
+            const response = true,
+                message = { method, data };
 
-            const message = { method, params };
-
-            addResponseModifiers = me => {
-                me.visible = () => (response.hidden = false, me);
-                return me;
-            };
-
-            return addResponseModifiers({
+            return {
                 receive: () => {
                     const request = me.chrome.
                         runtime.
@@ -566,7 +587,7 @@ define(() => function ({
                         nextMessage().
                         expectToContain(message);
 
-                    return addResponseModifiers({
+                    return {
                         receiveResponse: () => request.receiveResponse(response),
                         fail: () => {
                             request.fail();
@@ -574,7 +595,7 @@ define(() => function ({
                             spendTime(0);
                             spendTime(0);
                         },
-                    });
+                    };
                 },
                 fail() {
                     this.expectToBeSent().fail();
@@ -582,21 +603,22 @@ define(() => function ({
                 receiveResponse() {
                     this.expectToBeSent().receiveResponse();
                 },
-            });
+            };
         };
 
-        me.stateRequest = createRequest('get_state');
+        me.visibilityRequest = createRequest('get_visibility');
         me.toggleWidgetVisibilityRequest = createRequest('toggle_widget_visibility');
     }
 
     {
-        const createRequest = method => () => {
-            const response = {},
-                message = { method };
+        const createRequest = params => () => {
+            const response = true;
 
-            const addResponseModifiers = me => {
-                return me;
-            };
+            const {
+                addResponseModifiers = me => me, 
+                script,
+                ...message
+            } = params;
 
             return addResponseModifiers({
                 expectResponseToBeSent() {
@@ -607,8 +629,7 @@ define(() => function ({
                 },
                 expectToBeSent: () => {
                     const request = me.chrome.
-                        runtime.
-                        background.
+                        runtime[script].
                         nextMessage().
                         expectToContain(message);
 
@@ -621,28 +642,64 @@ define(() => function ({
                 receiveResponse() {
                     this.expectToBeSent().receiveResponse();
                 }
-            });
+            }, message);
         };
 
-        me.authorizationRequest = createRequest('authorize');
+        me.visibilitySettingRequest = createRequest({
+            method: 'set_visibility',
+            data: false,
+            script: 'popup',
+            addResponseModifiers: (me, message) => {
+                me.visible = () => (message.data = true, me);
+                return me;
+            },
+        });
+
+        me.authorizationRequest = createRequest({
+            method: 'authorize',
+            script: 'background',
+        });
+
+        me.logoutRequest = createRequest({
+            method: 'logout',
+            script: 'background',
+        });
     }
 
     me.authFlow = () => {
+        const details = {
+            interactive: true,
+            url: 'https://uc-sso-prod-api.uiscom.ru' +
+                '/oauth2/authorize?' + 
+                'response_type=code&' +
+                'client_id=https%3A%2F%2Ffaaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org&' +
+                'redirect_uri=https%3A%2F%2Ffaaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org&' +
+                'prompt=login'
+        };
+
         return {
+            logout() {
+                details.url = 'https://uc-sso-prod-api.uiscom.ru/ru/logout?' +
+                    'response_type=code&' +
+                    'client_id=https%3A%2F%2Ffaaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org&' +
+                    'redirect_uri=https%3A%2F%2Ffaaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org&' +
+                    'submit=true&' +
+                    'continue=' +
+                        'https%3A%2F%2Fuc-sso-prod-api.uiscom.ru' +
+                            '%2Foauth2%2Fauthorize%3F' +
+                            'response_type%3Dcode%26' +
+                            'client_id%3Dhttps%253A%252F%252Ffaaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org%26' +
+                            'redirect_uri%3Dhttps%253A%252F%252Ffaaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org%26' +
+                            'prompt%3Dlogin';
+
+                return this;
+            },
             expectToBeLaunched: () => {
                 const authFlow = me.chrome.
                     identity.
                     authFlow.
                     nextLaunching().
-                    expectDetailsToContain({
-                        interactive: true,
-                        url: 'https://uc-sso-prod-api.uiscom.ru' +
-                            '/oauth2/authorize?' + 
-                            'response_type=code&' +
-                            'prompt=login&' +
-                            'client_id=https%3A%2F%2Ffaaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org&' +
-                            'redirect_uri=https%3A%2F%2Ffaaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org',
-                    });
+                    expectDetailsToContain(details);
 
                 return {
                     receiveResponse: () => {
@@ -5999,7 +6056,6 @@ define(() => function ({
 
         const headers = {
             Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-            'X-Auth-Type': 'jwt'
         };
 
         const addResponseModifiers = (me, response) => {
@@ -6252,7 +6308,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('POST').
-                    expectToHavePath(`https://${softphoneHost}/auth/token`).
+                    expectToHavePath(`https://${softphoneHost}/sup/auth/token`).
                     expectBodyToContain({
                         token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
                     });
@@ -6330,7 +6386,6 @@ define(() => function ({
                     expectToHavePath(`https://${softphoneHost}/sup/auth/check`).
                     expectToHaveHeaders({
                         Authorization: `Bearer ${token}`,
-                        'X-Auth-Type': 'jwt',
                         'X-Widget-Id': xWidgetId,
                     });
 

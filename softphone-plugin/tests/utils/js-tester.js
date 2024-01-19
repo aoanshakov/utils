@@ -7929,6 +7929,21 @@ function JsTester_ParentWindowReplacer (fakeWindow) {
     };
 }
 
+function JsTester_PostMessageTester ({
+    postMessages,
+    utils,
+}) {
+    this.nextMessage = () => postMessages.pop();
+
+    this.receive = message => utils.receiveWindowMessage(message.data && message.origin ? {
+        ...message,
+        data: typeof message.data == 'string' ? message.data : JSON.stringify(message.data),
+    } : {
+        data: JSON.stringify(message),
+        origin: 'https://somedomain.com',
+    });
+}
+
 function JsTester_Tests (factory) {
     Object.defineProperty(window, 'MessageChannel', {
         get: function () {
@@ -8320,7 +8335,11 @@ function JsTester_Tests (factory) {
         copiedTexts = [],
         copiedTextsTester = new JsTester_CopiedTextsTester(copiedTexts),
         execCommandReplacer = new JsTester_ExecCommandReplacer(copiedTexts),
-        postMessages = new JsTester_Queue(new JsTester_NoWindowMessage()),
+        postMessages = new JsTester_Stack(new JsTester_NoWindowMessage()),
+        postMessagesTester = new JsTester_PostMessageTester({
+            postMessages,
+            utils,
+        }),
         fakeWindow = new JsTester_FakeWindow({
             postMessages: postMessages,
             debug: debug,
@@ -8451,7 +8470,7 @@ function JsTester_Tests (factory) {
         });
         args.blobsTester = blobsTester;
         args.copiedTextsTester = copiedTextsTester;
-        args.getRecentPostMessage = postMessages.pop;
+        args.postMessages = postMessagesTester;
 
         (function () {
             var name;
@@ -8490,6 +8509,7 @@ function JsTester_Tests (factory) {
 
         setNow(null);
 
+        postMessages.removeAll();
         resizeObservables.clear();
         intersectionObservations.clear();
         intersectionObservationHandlers.clear();
@@ -8546,7 +8566,7 @@ function JsTester_Tests (factory) {
         broadcastChannelTester.recentMessage().expectNotToExist(exceptions);
         windowSize.reset();
         broadcastChannelMocker.restoreReal();
-        postMessages.pop().expectNotToExist(exceptions);
+        postMessagesTester.nextMessage().expectNotToExist(exceptions);
         parentWindowReplacer.restoreReal();
         mutationObserverMocker.restoreReal();
         intersectionObserverMocker.restoreReal();

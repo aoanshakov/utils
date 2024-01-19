@@ -3843,6 +3843,7 @@ define(function () {
         this.disallowMediaInput = function () {
             userMedia.disallowMediaInput();
             Promise.runAll();
+            spendTime(0);
         };
 
         this.extendRegistrationRequestTester = function (value) {
