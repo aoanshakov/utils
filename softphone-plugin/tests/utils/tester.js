@@ -17,6 +17,7 @@ define(() => function ({
     softphoneHost,
     storage = {},
     permissions: initialPermissions,
+    postMessages,
 }) {
     let history,
         eventBus,
@@ -42,11 +43,24 @@ define(() => function ({
     window.softphoneBroadcastChannelCache = {};
     window.destroyMethodCaller();
 
-    window.setSoftphoneIframe = iframe => iframe && Object.defineProperty(iframe, 'contentWindow', {
-        get: function () {
-            return window.parent;
-        },
-    });
+    me.restoreIFrameContentWindow = () => null;
+
+    window.setSoftphoneIframe = iframe => {
+        if (!iframe) {
+            return;
+        }
+
+        const originalContentWindow = iframe?.contentWindow;
+        let contentWindow = window.parent;
+
+        me.restoreIFrameContentWindow = () => (contentWindow = originalContentWindow);
+
+        Object.defineProperty(iframe, 'contentWindow', {
+            get: function () {
+                return contentWindow;
+            },
+        })
+    };
 
     function AuthFlowLaunching ({
         respond,
@@ -666,6 +680,59 @@ define(() => function ({
         });
     }
 
+    me.stateSettingRequest = () => {
+        const processors = [];
+        let expanded = false,
+            noIdleChannels = false;
+
+        const getMessage = () => {
+            const message = {
+                method: 'set_state',
+                data: {
+                    visible: false,
+                    size: expanded ?
+                        noIdleChannels ? {
+                            width: 340,
+                            height: 632,
+                        } : {
+                            width: 340,
+                            height: 568,
+                        } :
+                        noIdleChannels ? {
+                            width: 340,
+                            height: 276,
+                        } : {
+                            width: 340,
+                            height: 212,
+                        },
+                },
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        return {
+            expanded() {
+                expanded = true;
+                return this;
+            },
+
+            noIdleChannels() {
+                noIdleChannels = true;
+                return this;
+            },
+
+            visible() {
+                processors.push(message => (message.data.visible = true));
+                return this;
+            },
+
+            receive: () => postMessages.receive(getMessage()),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+
     me.authFlow = () => {
         const details = {
             interactive: true,
@@ -782,6 +849,8 @@ define(() => function ({
 
     spendTime(0);
     spendTime(0);
+
+    me.iframe = testersFactory.createDomElementTester('iframe');
 
     me.notificationsList = (() => {
         const getDrawerAncestor = domElement => domElement && domElement.closest('.ui-drawer-inner');
@@ -6282,7 +6351,6 @@ define(() => function ({
                     expectPathToContain('/sup/auth/logout').
                     expectToHaveHeaders({
                         Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                        'X-Auth-Type': 'jwt'
                     });
 
                 return addResponseModifiers({

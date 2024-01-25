@@ -631,10 +631,8 @@ tests.addTest(options => {
                 'Нажимаю на кнпоку выход. Софтфон разлогинивается. Отправлен запрос выключения софтфона в мастер ' +
                 'вкладку.',
             function() {
-                tester.userName.putMouseOver();
+                tester.userName.click();
                 tester.logoutButton.click();
-
-                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 tester.userLogoutRequest().receiveResponse();
                 tester.authLogoutRequest().receiveResponse();

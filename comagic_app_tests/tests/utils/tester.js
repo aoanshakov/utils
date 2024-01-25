@@ -528,7 +528,7 @@ define(() => function ({
             );
 
             const click = tester.click.bind(tester);
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             return tester;
         })();
@@ -896,13 +896,21 @@ define(() => function ({
             );
 
             const click = tester.click.bind(tester);
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             return tester;
         })();
 
-        me.callStartingButton = testersFactory.createDomElementTester(() =>
-            rootTester.querySelector('.cmg-call-button-start'));
+        me.callStartingButton = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => rootTester.querySelector('.cmg-call-button-start')
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
+
+            return tester;
+        })();
 
         me.select = (getSelectField => {
             const createTester = (filter = () => true) => {
@@ -5206,6 +5214,8 @@ define(() => function ({
             receive() {
                 me.eventsWebSocket.receiveMessage(createMessage().message);
                 spendTime(0);
+                spendTime(0);
+                spendTime(0);
             }
         };
     };
@@ -5358,6 +5368,7 @@ define(() => function ({
 
             receive: () => {
                 me.eventsWebSocket.receiveMessage(createMessage().message);
+                spendTime(0);
                 spendTime(0);
             } 
         };
@@ -15870,7 +15881,7 @@ define(() => function ({
         const tester = testersFactory.createDomElementTester('.cmg-bug-icon');
 
         const click = tester.click.bind(tester);
-        tester.click = () => (click(), spendTime(0));
+        tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
 
         return tester;
     })();

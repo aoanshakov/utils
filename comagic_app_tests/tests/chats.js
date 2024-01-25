@@ -1854,7 +1854,7 @@ tests.addTest(options => {
                                         'статуса.',
                                     function() {
                                         beforeEach(function() {
-                                            tester.userName.putMouseOver();
+                                            tester.userName.click();
 
                                             tester.statusesList.
                                                 item('Нет на месте').

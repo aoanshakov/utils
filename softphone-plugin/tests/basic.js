@@ -10,6 +10,8 @@ tests.addTest(options => {
         let tester;
 
         afterEach(function() {
+            tester.restoreIFrameContentWindow();
+
             tester.chrome.
                 tabs.
                 current.
@@ -35,6 +37,240 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
+        describe('Открыт IFrame.', function() {
+            beforeEach(function() {
+                tester = new Tester({
+                    application: 'iframeContent',
+                    softphoneHost: 'my.uiscom.ru',
+                    ...options,
+                });
+
+                tester.stateSettingRequest().expectToBeSent();
+            });
+
+            describe('Получен запрос изменения видимости софтфофона.', function() {
+                beforeEach(function() {
+                    postMessages.receive({
+                        method: 'toggle_widget_visibility',
+                    });
+                    
+                    tester.stateSettingRequest().
+                        visible().
+                        expectToBeSent();
+                });
+
+                describe('Получен токен авторизации.', function() {
+                    let authCheckRequest;
+
+                    beforeEach(function() {
+                        postMessages.receive({
+                            method: 'set_token',
+                            data: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+                        });
+
+                        tester.masterInfoMessage().receive();
+
+                        tester.slavesNotification().
+                            additional().
+                            visible().
+                            expectToBeSent();
+
+                        tester.slavesNotification().expectToBeSent();
+                        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                            
+                        tester.authTokenRequest().receiveResponse()
+                        authCheckRequest = tester.authCheckRequest().expectToBeSent();
+                    });
+
+                    describe('Произведена авторизация.', function() {
+                        beforeEach(function() {
+                            authCheckRequest.receiveResponse();
+
+                            tester.talkOptionsRequest().receiveResponse();
+                            tester.permissionsRequest().receiveResponse();
+                            tester.statusesRequest().receiveResponse();
+                            tester.settingsRequest().receiveResponse();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                enabled().
+                                expectToBeSent();
+
+                            notificationTester.grantPermission();
+                        });
+
+                        describe('Произведено подключение к серверам.', function() {
+                            beforeEach(function() {
+                                tester.connectEventsWebSocket();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    enabled().
+                                    softphoneServerConnected().
+                                    expectToBeSent();
+
+                                tester.connectSIPWebSocket();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    softphoneServerConnected().
+                                    webRTCServerConnected().
+                                    expectToBeSent();
+
+                                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                                tester.registrationRequest().receiveResponse();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    softphoneServerConnected().
+                                    webRTCServerConnected().
+                                    registered().
+                                    expectToBeSent();
+
+                                authenticatedUserRequest.receiveResponse();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    softphoneServerConnected().
+                                    webRTCServerConnected().
+                                    registered().
+                                    userDataFetched().
+                                    expectToBeSent();
+                            });
+
+                            describe('Доступ к микрофону разрешён.', function() {
+                                beforeEach(function() {
+                                    tester.allowMediaInput();
+
+                                    tester.slavesNotification().
+                                        twoChannels().
+                                        available().
+                                        expectToBeSent();
+                                });
+                                
+                                it(
+                                    'Поступил входящий звонок. Поступил еще один входящий звонок. В родительское ' +
+                                    'окно отправлено сообщение об изменении размера софтфона.',
+                                function() {
+                                    const incomingCall = tester.incomingCall().receive();
+
+                                    tester.slavesNotification().
+                                        twoChannels().
+                                        available().
+                                        incoming().
+                                        progress().
+                                        expectToBeSent();
+
+                                    tester.numaRequest().receiveResponse();
+
+                                    tester.outCallEvent().receive();
+                                    tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                                    tester.stateSettingRequest().
+                                        visible().
+                                        expanded().
+                                        expectToBeSent();
+
+                                    tester.incomingCall().thirdNumber().receive();
+
+                                    tester.slavesNotification().
+                                        twoChannels().
+                                        available().
+                                        incoming().
+                                        progress().
+                                        secondChannel().
+                                            incoming().
+                                            progress().
+                                            fifthPhoneNumber().
+                                        expectToBeSent();
+
+                                    tester.numaRequest().thirdNumber().receiveResponse();
+
+                                    tester.outCallEvent().
+                                        anotherPerson().
+                                        receive();
+
+                                    tester.outCallEvent().
+                                        anotherPerson().
+                                        slavesNotification().
+                                        expectToBeSent();
+
+                                    tester.stateSettingRequest().
+                                        noIdleChannels().
+                                        expanded().
+                                        visible().
+                                        expectToBeSent();
+                                });
+                                it('Раскрываю список статусов. Отображён список статусов.', function() {
+                                    tester.userName.click();
+                                    
+                                    tester.statusesList.
+                                        item('Не беспокоить').
+                                        expectToBeSelected();
+                                    
+                                    tester.statusesList.
+                                        item('Нет на месте').
+                                        expectNotToBeSelected();
+                                });
+                                it('Софтфон готов к использованию.', function() {
+                                    tester.phoneField.expectToBeVisible();
+                                });
+                            });
+                            it(
+                                'Доступ к микрофону запрещён. Отображено сообщение о недоступности микрофона.',
+                            function() {
+                                tester.disallowMediaInput();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    enabled().
+                                    softphoneServerConnected().
+                                    webRTCServerConnected().
+                                    userDataFetched().
+                                    microphoneAccessDenied().
+                                    registered().
+                                    expectToBeSent();
+
+                                tester.softphone.expectToHaveTextContent(
+                                    'Микрофон не обнаружен ' +
+                                    'Подключите микрофон или разрешите доступ к микрофону для сайта'
+                                );
+                            });
+                        });
+                        it('Отображено сообщение об установки соединения.', function() {
+                            tester.getEventsWebSocket().expectToBeConnecting();
+                            tester.softphone.expectToHaveTextContent('Устанавливается соединение...');
+                        });
+                    });
+                    it('Ну удалось произвести авторизацию.', function() {
+                        authCheckRequest.
+                            invalidToken().
+                            receiveResponse();
+
+                        tester.masterInfoMessage().leaderDeath().expectToBeSent();
+
+                        tester.slavesNotification().
+                            destroyed().
+                            expectToBeSent();
+
+                        tester.authLogoutRequest().receiveResponse();
+
+                        postMessages.nextMessage().expectMessageToContain({
+                            method: 'logout',
+                        });
+                    });
+                });
+                it('Отображено сообщение о том, что софтофон не авторизован.', function() {
+                    tester.softphone.expectToHaveTextContent(
+                        'Не авторизован ' +
+                        'Для использования софтфона необходимо авторизоваться'
+                    );
+                });
+            });
+            it('Софтфон скрыт.', function() {
+                tester.softphone.expectNotToExist();
+            });
+        });
         describe('Открываю попап. Отправлен запрос состояния.', function() {
             let visibilityRequest,
                 visibilitySettingRequest;
@@ -103,148 +339,6 @@ tests.addTest(options => {
                 tester.body.expectToHaveTextContent('Загрузка...');
             });
         });
-        describe('Открыт IFrame.', function() {
-            beforeEach(function() {
-                tester = new Tester({
-                    application: 'iframeContent',
-                    softphoneHost: 'my.uiscom.ru',
-                    ...options,
-                });
-
-                postMessages.nextMessage().expectMessageToContain({
-                    method: 'set_visibility',
-                    data: false,
-                });
-            });
-
-            describe('Получен запрос изменения видимости софтфофона.', function() {
-                beforeEach(function() {
-                    postMessages.receive({
-                        method: 'toggle_widget_visibility',
-                    });
-                    
-                    postMessages.nextMessage().expectMessageToContain({
-                        method: 'set_visibility',
-                        data: true,
-                    });
-                });
-
-                describe('Получен токен авторизации. Произведена авторизация.', function() {
-                    beforeEach(function() {
-                        postMessages.receive({
-                            method: 'set_token',
-                            data: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
-                        });
-
-                        tester.masterInfoMessage().receive();
-
-                        tester.slavesNotification().
-                            additional().
-                            visible().
-                            expectToBeSent();
-
-                        tester.slavesNotification().expectToBeSent();
-                        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                            
-                        tester.authTokenRequest().receiveResponse()
-                        tester.authCheckRequest().receiveResponse();
-                        tester.talkOptionsRequest().receiveResponse();
-                        tester.permissionsRequest().receiveResponse();
-                        tester.statusesRequest().receiveResponse();
-                        tester.settingsRequest().receiveResponse();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            enabled().
-                            expectToBeSent();
-
-                        notificationTester.grantPermission();
-                    });
-
-                    describe('Произведено подключение к серверам.', function() {
-                        beforeEach(function() {
-                            tester.connectEventsWebSocket();
-
-                            tester.slavesNotification().
-                                twoChannels().
-                                enabled().
-                                softphoneServerConnected().
-                                expectToBeSent();
-
-                            tester.connectSIPWebSocket();
-
-                            tester.slavesNotification().
-                                twoChannels().
-                                softphoneServerConnected().
-                                webRTCServerConnected().
-                                expectToBeSent();
-
-                            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-                            tester.registrationRequest().receiveResponse();
-
-                            tester.slavesNotification().
-                                twoChannels().
-                                softphoneServerConnected().
-                                webRTCServerConnected().
-                                registered().
-                                expectToBeSent();
-
-                            authenticatedUserRequest.receiveResponse();
-
-                            tester.slavesNotification().
-                                twoChannels().
-                                softphoneServerConnected().
-                                webRTCServerConnected().
-                                registered().
-                                userDataFetched().
-                                expectToBeSent();
-                        });
-
-                        it('Доступ к микрофону запрещён. Отображено сообщение о недоступности микрофона.', function() {
-                            tester.disallowMediaInput();
-
-                            tester.slavesNotification().
-                                twoChannels().
-                                enabled().
-                                softphoneServerConnected().
-                                webRTCServerConnected().
-                                userDataFetched().
-                                microphoneAccessDenied().
-                                registered().
-                                expectToBeSent();
-
-                            tester.softphone.expectToHaveTextContent(
-                                'Микрофон не обнаружен ' +
-                                'Подключите микрофон или разрешите доступ к микрофону для сайта'
-                            );
-                        });
-                        it('Доступ к микрофону разрешён. Софтфон готов к использованию.', function() {
-                            tester.allowMediaInput();
-
-                            tester.slavesNotification().
-                                twoChannels().
-                                available().
-                                expectToBeSent();
-
-                            tester.phoneField.expectToBeVisible();
-                        });
-                    });
-                    it('Отображено сообщение об установки соединения.', function() {
-                        tester.getEventsWebSocket().expectToBeConnecting();
-                        tester.softphone.expectToHaveTextContent('Устанавливается соединение...');
-                    });
-                });
-                it('Отображено сообщение о том, что софтофон не авторизован.', function() {
-                    tester.softphone.expectToHaveTextContent(
-                        'Не авторизован ' +
-                        'Для использования софтфона необходимо авторизоваться'
-                    );
-                });
-            });
-            it('Софтфон скрыт.', function() {
-                tester.softphone.expectNotToExist();
-            });
-        });
         describe('Токен авторизации не был сохранен.', function() {
             let authenticatedUserRequest;
 
@@ -264,10 +358,9 @@ tests.addTest(options => {
                 'От IFrame получено сообщение изменения видимости. В popup-скрипт отправлено сообщение об изменении ' +
                 'видимости.',
             function() {
-                postMessages.receive({
-                    method: 'set_visibility',
-                    data: true,
-                });
+                tester.stateSettingRequest().
+                    visible().
+                    receive();
 
                 tester.visibilitySettingRequest().
                     visible().
@@ -277,6 +370,9 @@ tests.addTest(options => {
                     method: 'set_token',
                     data: '',
                 });
+
+                tester.iframe.expectToHaveWidth(340);
+                tester.iframe.expectToHaveHeight(212);
             });
             it('Получен токен авторизации. Токен авторизации передан в IFrame.', function() {
                 tester.chrome.
@@ -301,6 +397,8 @@ tests.addTest(options => {
             it('Получен запрос состояния. В ответ на запрос было отправлено текущее состояние.', function() {
                 tester.visibilityRequest().expectResponseToBeSent();
                 tester.visibilitySettingRequest().receiveResponse();
+
+                tester.iframe.expectNotToExist();
             });
         });
         describe('Софтфон авторизован. Получен запрос выхода. Производится выход.', function() {
@@ -412,6 +510,30 @@ tests.addTest(options => {
                 method: 'set_token',
                 data: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
             });
+
+            tester.stateSettingRequest().receive();
+            tester.visibilitySettingRequest().expectToBeSent();
+
+            postMessages.nextMessage().expectMessageToContain({
+                method: 'set_token',
+                data: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+            });
+
+            postMessages.receive({
+                method: 'logout',
+            });
+
+            postMessages.nextMessage().expectMessageToContain({
+                method: 'set_token',
+                data: '',
+            });
+
+            tester.chrome.
+                storage.
+                local.
+                expectToContain({
+                    token: '',
+                });
         });
     });
 });

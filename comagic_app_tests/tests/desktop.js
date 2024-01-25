@@ -142,7 +142,7 @@ tests.addTest(options => {
                                 tester.connectSIPWebSocket();
 
                                 notificationTester.grantPermission();
-                                tester.employeeStatusesRequest().many().receiveResponse();
+                                tester.employeeStatusesRequest().receiveResponse();
                                 tester.numberCapacityRequest().receiveResponse();
 
                                 tester.employeeSettingsRequest().receiveResponse();
@@ -2515,6 +2515,8 @@ tests.addTest(options => {
                                                     tester.offlineMessageListRequest().notProcessed().receiveResponse();
                                                     tester.offlineMessageListRequest().processing().receiveResponse();
                                                     tester.offlineMessageListRequest().processed().receiveResponse();
+
+                                                    tester.otherChannelCallNotification.expectToBeVisible();
                                                 });
                                                 it('Нажимаю на кнопку диалпада. Обновлен размер.', function() {
                                                     tester.dialpadVisibilityButton.click();
@@ -2529,7 +2531,8 @@ tests.addTest(options => {
                                                 });
                                                 it('Отображено сообщение о звонке.', function() {
                                                     tester.softphone.expectTextContentToHaveSubstring(
-                                                        'Гигова Петранка Входящий (2-ая линия)...'
+                                                        'Гигова Петранка ' +
+                                                        'Входящий (2-ая линия)...'
                                                     );
                                                 });
                                             });

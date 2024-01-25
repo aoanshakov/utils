@@ -435,12 +435,18 @@ tests.addTest(options => {
                                             fifthPhoneNumber().
                                         expectToBeSent();
                                     
-                                    tester.numaRequest().thirdNumber().
+                                    tester.numaRequest().
+                                        thirdNumber().
                                         receiveResponse();
 
-                                    tester.outCallEvent().anotherPerson().receive();
-                                    tester.outCallEvent().anotherPerson().
-                                        slavesNotification().expectToBeSent();
+                                    tester.outCallEvent().
+                                        anotherPerson().
+                                        receive();
+
+                                    tester.outCallEvent().
+                                        anotherPerson().
+                                        slavesNotification().
+                                        expectToBeSent();
                                 });
 
                                 it(
@@ -518,6 +524,8 @@ tests.addTest(options => {
                                     tester.otherChannelCallNotification.
                                         callStartingButton.
                                         click();
+
+                                    spendTime(0);
 
                                     tester.otherChannelCallNotification.
                                         callStartingButton.

@@ -152,7 +152,7 @@ tests.addTest(options => {
                     'Нажимаю на кнопку "Выход". Вхожу в лк заново. Запрошена статистика текущего авторизованного ' +
                     'сотрудника.',
                 function() {
-                    tester.userName.putMouseOver();
+                    tester.userName.click();
                     tester.logoutButton.click();
 
                     tester.userLogoutRequest().receiveResponse();

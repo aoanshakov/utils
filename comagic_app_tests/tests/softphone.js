@@ -498,7 +498,7 @@ tests.addTest(options => {
                                                 });
                                                 describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
                                                     beforeEach(function() {
-                                                        tester.userName.putMouseOver();
+                                                        tester.userName.click();
                                                         tester.logoutButton.click();
 
                                                         tester.userLogoutRequest().receiveResponse();
@@ -660,11 +660,15 @@ tests.addTest(options => {
                                                         tester.callStartingButton.expectNotToHaveAttribute('disabled');
                                                         tester.button('Софтфон').expectToBeVisible();
 
-                                                        tester.userName.putMouseOver();
+                                                        tester.userName.click();
 
-                                                        tester.statusesList.item('Исходящий обзвон').
+                                                        tester.statusesList.
+                                                            item('Исходящий обзвон').
                                                             expectToBeVisible();
-                                                        tester.statusesList.item('Нет на месте').expectNotToExist();
+
+                                                        tester.statusesList.
+                                                            item('Нет на месте').
+                                                            expectNotToExist();
                                                     });
                                                 });
                                                 describe('Нажимаю на кнопку открытия диалпада.', function() {
@@ -958,7 +962,7 @@ tests.addTest(options => {
                                                 });
                                                 describe('Нажимаю на кнопку аккаунта.', function() {
                                                     beforeEach(function() {
-                                                        tester.userName.putMouseOver();
+                                                        tester.userName.click();
                                                     });
 
                                                     describe('Выбираю другой статус.', function() {
@@ -1631,8 +1635,7 @@ tests.addTest(options => {
                                                         available().
                                                         expectToBeSent();
 
-                                                    tester.userName.putMouseOver();
-
+                                                    tester.userName.click();
                                                     tester.logoutButton.click();
 
                                                     tester.userLogoutRequest().receiveResponse();
@@ -3154,7 +3157,7 @@ tests.addTest(options => {
                                     it(
                                         'Нажимаю на кнопку аккаунта. Выбираю другой статус. Другой статус выбран.',
                                     function() {
-                                        tester.userName.putMouseOver();
+                                        tester.userName.click();
                                         tester.statusesList.item('Нет на месте').click();
 
                                         tester.employeeUpdatingRequest().receiveResponse();
@@ -4171,10 +4174,8 @@ tests.addTest(options => {
                     'Нажимаю на кнпоку выход. Софтфон разлогинивается. Отправлен запрос выключения софтфона в мастер ' +
                     'вкладку.',
                 function() {
-                    tester.userName.putMouseOver();
+                    tester.userName.click();
                     tester.logoutButton.click();
-
-                    tester.notificationChannel().applyLeader().expectToBeSent();
 
                     tester.userLogoutRequest().receiveResponse();
                     tester.authLogoutRequest().receiveResponse();

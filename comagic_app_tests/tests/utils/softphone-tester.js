@@ -727,7 +727,12 @@ define(function () {
         };
 
         this.otherChannelCallNotification = (() => {
-            const tester = this.createRootTester('#cmg-another-sip-line-incoming-call-notification');
+            const getRootElement = () => utils.querySelector('#cmg-another-sip-line-incoming-call-notification');
+
+            const tester = this.addTesters(
+                testersFactory.createDomElementTester(getRootElement),
+                getRootElement,
+            );
 
             const click = tester.click.bind(tester);
             tester.click = () => (click(), spendTime(0), spendTime(0));
@@ -801,7 +806,7 @@ define(function () {
             });
 
             const click = tester.click.bind(tester);
-            tester.click = () => (click(), spendTime(0), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
 
             return tester;
         })();
@@ -4035,9 +4040,11 @@ define(function () {
             const tester = testersFactory.createTextFieldTester('.cmg-input'),
                 click = tester.click.bind(tester),
                 pressEnter = tester.pressEnter.bind(tester);
+                fill = tester.fill.bind(tester);
 
             tester.click = () => (click(), spendTime(0));
             tester.pressEnter = () => (pressEnter(), spendTime(0));
+            tester.fill = (...values) => (fill(...values), spendTime(0));
 
             return tester;
         })();

@@ -293,7 +293,7 @@ tests.addTest(options => {
                                                 let permissionsRequest;
 
                                                 beforeEach(function() {
-                                                    tester.userName.putMouseOver();
+                                                    tester.userName.click();
                                                     tester.logoutButton.click();
 
                                                     tester.userLogoutRequest().receiveResponse();
