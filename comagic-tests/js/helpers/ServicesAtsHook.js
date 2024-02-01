@@ -7,6 +7,8 @@ function ServicesAtsHook(args) {
         utils = args.utils,
         controller = Comagic.getApplication().getController('Comagic.services.ats.hook.controller.EditPage');
 
+    document.body.style.overflowY = 'auto';
+
     this.treeNode = function (text) {
         var domElement = utils.descendantOfBody().matchesSelector('.x-tree-node-text').textEquals(text).find(),
             tester = testersFactory.createDomElementTester(domElement);
@@ -69,6 +71,10 @@ function ServicesAtsHook(args) {
         };
     };
 
+    this.anchor = function (text) {
+        return testersFactory.createAnchorTester(utils.descendantOfBody().matchesSelector('a').textEquals(text).find());
+    };
+
     this.button = function (text) {
         return testersFactory.createDomElementTester(
             utils.descendantOfBody().
@@ -94,6 +100,31 @@ function ServicesAtsHook(args) {
                     respondSuccessfullyWith({
                         success: true,
                         data: {
+                            'comagic:ns:handler_default_message_template_v2.0': [{
+                                event_version_id: 348924,
+                                handler: 'http_request',
+                                id: 357,
+                                message_template: 'Уважаемый клиент CoMagic. Произошло событие "{{notification_name}}',
+                                params: {
+                                    method: 'GET',
+                                },
+                            }, {
+                                event_version_id: 348925,
+                                handler: 'http_request',
+                                id: 358,
+                                message_template: 'Comagic.ru средства на Вашем счете подходят к концу',
+                                params: {
+                                    method: 'GET',
+                                },
+                            }, {
+                                event_version_id: 348926,
+                                handler: 'http_request',
+                                id: 359,
+                                message_template: 'Уважаемый клиент CoMagic. Сработало событие "{{notification_name}}',
+                                params: {
+                                    method: 'GET',
+                                },
+                            }],
                             'comagic:ns:condition_operator': [{
                                 description: null,
                                 id: '>',
@@ -184,16 +215,12 @@ function ServicesAtsHook(args) {
                             'comagic:ns:event_param_v2.0': [],
                             'comagic:ns:handler': [{
                                 id: 'telegram_message',
-                                required_components: []
                             }, {
                                 id: 'sms_http_request',
-                                required_components: []
                             }, {
                                 id: 'send_mail',
-                                required_components: []
                             }, {
                                 id: 'http_request',
-                                required_components: []
                             }],
                             'comagic:ns:event_v2.0': [{
                                 id: 348924,
@@ -234,6 +261,23 @@ function ServicesAtsHook(args) {
                     }).
                     respondSuccessfullyWith({
                         success: true,
+                        handler: [{
+                            notification_id: 26418,
+                            name: 'HTTP',
+                            app_id: 4735,
+                            handler: 'http_request',
+                            params: {
+                                to: [
+                                    {
+                                        destination: 'http://requestbin.fullcontact.com/11uol2q1'
+                                    }
+                                ],
+                                method: 'GET'
+                            },
+                            message_template: 'CoMagic средства на Вашем счете подходят к концу',
+                            default_message_template: 'Comagic.ru средства на Вашем счете подходят к концу',
+                            id: 28826
+                        }],
                         notification: {
                             event_version_id: 348925
                         }

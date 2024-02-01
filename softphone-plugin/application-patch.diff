@@ -1,13 +1,13 @@
 diff --git a/package.json b/package.json
-index ccfc1a8..7d146ea 100644
+index 9ecc6fd..5251f4a 100644
 --- a/package.json
 +++ b/package.json
-@@ -46,14 +46,14 @@
+@@ -47,14 +47,14 @@
      "webpack": "^5.74.0"
    },
    "dependencies": {
 -    "@comagic/softphone-widget": "0.0.0-int0",
--    "@comagic/softphone-core": "^2.0.13",
+-    "@comagic/softphone-core": "0.0.0-int0",
 -    "@comagic/workplace-utils": "^1.0.21",
 +    "@comagic/softphone-widget": "./misc/sip_lib",
 +    "@comagic/softphone-core": "./misc/sip_lib/uis_webrtc",

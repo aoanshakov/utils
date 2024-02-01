@@ -71,6 +71,7 @@ config = {
             'timezone': 'Europe/Moscow',
             'crm_type': None,
             'debug_mode': 'dev',
+            'comagic_app_url': 'https://go.comagic.ru/',
             'url_logo': '/static/comagic/resources2/images/interfaces/main/logo-comagic.png',
             'url_small_logo': '/static/comagic/resources2/images/interfaces/main/logo-comagic-small.png',
             'agent_url_logo': '',

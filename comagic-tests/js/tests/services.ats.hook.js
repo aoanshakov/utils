@@ -32,6 +32,75 @@ tests.addTest(function(args) {
                 wait();
             });
 
+            describe('Открываю список событий.', function() {
+                beforeEach(function() {
+                    tester.form.
+                        combobox().
+                        withFieldLabel('Тип события').
+                        clickArrow();
+                });
+
+                describe('Выбираю тип события "Неотвеченное сообщение".', function() {
+                    beforeEach(function() {
+                        tester.form.
+                            combobox().
+                            withFieldLabel('Тип события').
+                            option('Неотвеченное сообщение').
+                            click();
+
+                        tester.conditionsRequest().
+                            thirdEventVersionSpecified().
+                            receiveResponse();
+
+                        wait();
+                        wait();
+                    });
+
+                    it(
+                        'Нажимаю на кнопку "Да". Отображено уведомление о необходимости перейти в новый ЛК.',
+                    function() {
+                        tester.button('Да').click();
+
+                        tester.floatingComponent.expectTextContentToHaveSubstring(
+                            'Чтобы событие отработало корректно, не забудьте включить и настроить параметры для ' +
+                            'неотвеченного сообщения в новом личном кабинете',
+                        );
+                    });
+                    it('Отображено предложение изменить шаблон по умолчанию.', function() {
+                        tester.floatingComponent.expectTextContentToHaveSubstring(
+                            'Подтверждение Выбран новый тип уведомления "Неотвеченное сообщение". Привести шаблон к ' +
+                            'шаблону по умолчанию для "HTTP", в выбранном уведомлении?',
+                        );
+                    });
+                });
+                describe('Выбираю тип события "Первое событие".', function() {
+                    beforeEach(function() {
+                        tester.form.
+                            combobox().
+                            withFieldLabel('Тип события').
+                            option('Первое событие').
+                            click();
+
+                        tester.conditionsRequest().
+                            anotherEventVersionSpecified().
+                            receiveResponse();
+
+                        wait();
+                        wait();
+                    });
+
+                    it('Нажимаю на кнопку "Да". Ни одно сообщение не отображено.', function() {
+                        tester.button('Да').click();
+                        tester.floatingComponent.expectToBeHiddenOrNotExist();
+                    });
+                    it('Отображено предложение изменить шаблон по умолчанию.', function() {
+                        tester.floatingComponent.expectTextContentToHaveSubstring(
+                            'Подтверждение Выбран новый тип уведомления "Первое событие". Привести шаблон к ' +
+                            'шаблону по умолчанию для "HTTP", в выбранном уведомлении?',
+                        );
+                    });
+                });
+            });
             it('Нажимаю на кнопку "Добавить группу условий". Выбираю показатель и условие.', function() {
                 tester.button('Добавить группу условий').click();
 
@@ -151,6 +220,9 @@ tests.addTest(function(args) {
                     'Чтобы событие отработало корректно, не забудьте включить и настроить параметры для ' +
                     'неотвеченного сообщения в новом личном кабинете',
                 );
+
+                tester.anchor('новом личном кабинете').
+                    expectHrefToHavePath('https://go.comagic.ru/chats/chat-settings/');
             });
             it('Отображен первый тип события.', function() {
                 tester.form.
