@@ -146,6 +146,9 @@ tests.addTest(options => {
                                         twoChannels().
                                         available().
                                         expectToBeSent();
+
+                                    tester.widgetSettingsRequest().receiveResponse();
+                                    tester.widgetSettingsRequest().windowMessage().expectToBeSent();
                                 });
                                 
                                 it(
@@ -354,6 +357,184 @@ tests.addTest(options => {
                 });
             });
 
+            describe('Получены настройки расширения.', function() {
+                let widgetSettingsRequest;
+
+                beforeEach(function() {
+                    widgetSettingsRequest = tester.widgetSettingsRequest().windowMessage();
+                });
+
+                describe('Кнопка видимости должна добавляться перед элементом.', function() {
+                    beforeEach(function() {
+                        widgetSettingsRequest.receive();
+                    });
+
+                    describe('Содержимое страницы изменилось.', function() {
+                        beforeEach(function() {
+                            tester.page.duplicate();
+                            spendTime(999);
+                        });
+
+                        describe('Содержимое страницы снова изменилось.', function() {
+                            beforeEach(function() {
+                                tester.page.triggerMutation();
+                                spendTime(1);
+                            });
+
+                            it(
+                                'Прошло некоторое время. Кнопка добавлена в измененное содержимое страницы.',
+                            function() {
+                                spendTime(999);
+                                    
+                                tester.body.expectToHaveTextContent(
+                                    'Первый элемент #1 ' +
+                                    'Трубочка ' +
+                                    'Некий элемент #1 ' +
+                                    'Последний элемент #1 ' +
+
+                                    'Первый элемент #2 ' +
+                                    'Трубочка ' +
+                                    'Некий элемент #2 ' +
+                                    'Последний элемент #2'
+                                );
+
+                                tester.visibilityButton.first.expectToHaveTextContent('Трубочка');
+                                tester.visibilityButton.atIndex(1).expectToHaveTextContent('Трубочка');
+                            });
+                            it('Кнопка не была добавлена.', function() {
+                                tester.body.expectToHaveTextContent(
+                                    'Первый элемент #1 ' +
+                                    'Трубочка ' +
+                                    'Некий элемент #1 ' +
+                                    'Последний элемент #1 ' +
+
+                                    'Первый элемент #2 ' +
+                                    'Некий элемент #2 ' +
+                                    'Последний элемент #2'
+                                );
+                            });
+                        });
+                        it('Прошло некоторое время. Кнопка добавлена в измененное содержимое страницы.', function() {
+                            spendTime(1);
+
+                            tester.body.expectToHaveTextContent(
+                                'Первый элемент #1 ' +
+                                'Трубочка ' +
+                                'Некий элемент #1 ' +
+                                'Последний элемент #1 ' +
+
+                                'Первый элемент #2 ' +
+                                'Трубочка ' +
+                                'Некий элемент #2 ' +
+                                'Последний элемент #2'
+                            );
+
+                            tester.visibilityButton.first.expectToHaveTextContent('Трубочка');
+                            tester.visibilityButton.atIndex(1).expectToHaveTextContent('Трубочка');
+                        });
+                        it('Кнопка не была добавлена.', function() {
+                            tester.body.expectToHaveTextContent(
+                                'Первый элемент #1 ' +
+                                'Трубочка ' +
+                                'Некий элемент #1 ' +
+                                'Последний элемент #1 ' +
+
+                                'Первый элемент #2 ' +
+                                'Некий элемент #2 ' +
+                                'Последний элемент #2'
+                            );
+                        });
+                    });
+                    it('Нажиюма на кнопку видимости. Отправлен запрос изменения видимости.', function() {
+                        tester.visibilityButton.click();
+
+                        postMessages.nextMessage().expectMessageToContain({
+                            method: 'toggle_widget_visibility'
+                        });
+                    });
+                    it('Кнопка видимости добавлена перед элементом.', function() {
+                        tester.body.expectToHaveTextContent(
+                            'Первый элемент #1 ' +
+                            'Трубочка ' +
+                            'Некий элемент #1 ' +
+                            'Последний элемент #1'
+                        );
+
+                        tester.visibilityButton.expectToHaveTextContent('Трубочка');
+                    });
+                });
+                it('Настройки отсутствуют. Кнопка видимости не была добавлена.', function() {
+                    widgetSettingsRequest.
+                        noData().
+                        receive();
+
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Некий элемент #1 ' +
+                        'Последний элемент #1'
+                    );
+                });
+                it(
+                    'Кнопка видимости должна быть дефолтной. Кнопка видимости является дефолтной.',
+                function() {
+                    widgetSettingsRequest.
+                        noButtonElementSettings().
+                        receive();
+
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Софтфон ' +
+                        'Некий элемент #1 ' +
+                        'Последний элемент #1'
+                    );
+
+                    tester.visibilityButton.default.expectToHaveTextContent('Софтфон');
+                });
+                it(
+                    'Кнопка видимости должна добавляться после несуществующего элемента. Кнопка видимости добавлена ' +
+                    'в конец.',
+                function() {
+                    widgetSettingsRequest.
+                        insertBeforeNonExistingElement().
+                        receive();
+
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Некий элемент #1 ' +
+                        'Последний элемент #1 ' +
+                        'Трубочка'
+                    );
+                });
+                it(
+                    'Кнопка видимости должна добавляться после последнего элемента. Кнопка видимости добавлена в ' +
+                    'конец.',
+                function() {
+                    widgetSettingsRequest.
+                        insertAfterLastElement().
+                        receive();
+
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Некий элемент #1 ' +
+                        'Последний элемент #1 ' +
+                        'Трубочка'
+                    );
+                });
+                it(
+                    'Кнопка видимости должна добавляться после элемента. Кнопка видимости добавлена после элемента.',
+                function() {
+                    widgetSettingsRequest.
+                        insertAfter().
+                        receive();
+
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Некий элемент #1 ' +
+                        'Трубочка ' +
+                        'Последний элемент #1'
+                    );
+                });
+            });
             it(
                 'От IFrame получено сообщение изменения видимости. В popup-скрипт отправлено сообщение об изменении ' +
                 'видимости.',

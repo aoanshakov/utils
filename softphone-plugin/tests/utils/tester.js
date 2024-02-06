@@ -18,6 +18,7 @@ define(() => function ({
     storage = {},
     permissions: initialPermissions,
     postMessages,
+    triggerMutation,
 }) {
     let history,
         eventBus,
@@ -41,7 +42,7 @@ define(() => function ({
 
     window.stores = null;
     window.softphoneBroadcastChannelCache = {};
-    window.destroyMethodCaller();
+    window.destroyMethodCaller?.();
 
     me.restoreIFrameContentWindow = () => null;
 
@@ -572,6 +573,16 @@ define(() => function ({
             token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
         });
 
+
+    me.page = {
+        triggerMutation: () => triggerMutation(document.body, { childList: true }),
+
+        duplicate() {
+            addPageContent(2);
+            this.triggerMutation();
+        },
+    };
+
     {
         const createRequest = (method, data) => () => {
             const response = true,
@@ -827,6 +838,34 @@ define(() => function ({
 
     process.env.REACT_APP_LOCALE = 'ru';
     window.application.run(application);
+
+    const addPageContent = number => {
+        const pageContainer = document.createElement('div');
+        pageContainer.classList.add('page-container');
+
+        document.getElementById('pages-container').appendChild(pageContainer);
+
+        pageContainer.innerHTML = (
+            '<div class="first-element">Первый элемент #' + number + '</div>' + 
+            '<div class="some-element">Некий элемент #' + number + '</div>' +
+            '<div class="last-element">Последний элемент #' + number + '</div>'
+        );
+    };
+
+    if (application == 'softphone') {
+        Array.prototype.forEach.call(
+            document.querySelectorAll('.cmg-softphone-chrome-extension-visibility-button, #pages-container'),
+            element => element.remove(),
+        );
+
+        {
+            const pagesContainer = document.createElement('div');
+            pagesContainer.id = 'pages-container';
+
+            document.body.appendChild(pagesContainer);
+            addPageContent(1);
+        }
+    }
 
     notification?.destroyAll();
     Modal?.destroyAll();
@@ -1902,6 +1941,143 @@ define(() => function ({
                     }
                 });
             },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.visibilityButton = (() => {
+        const createTester = (selector = 'button.visibility-button') => {
+            const tester = testersFactory.createDomElementTester(selector);
+
+            tester.atIndex = index =>
+                testersFactory.createDomElementTester(() => document.querySelectorAll(selector)[index]);
+
+            tester.first = tester.atIndex(0);
+            return tester;
+        };
+
+        const tester = createTester();
+        tester.default = createTester('div.cmg-softphone-chrome-extension-visibility-button');
+
+        return tester;
+    })();
+
+    me.widgetSettingsRequest = () => {
+        const bodyParams = {
+            widget_id: 'faaeopllmpfoeobihkiojkbhnlfkleik',
+            origin: 'https://somedomain.com',
+        };
+
+        let data = {
+            softphone: {
+                button: {
+                    elementSelector: '.some-element',
+                    mode: 'insertBefore',
+                    tag: 'button',
+
+                    innerHTML: '<span class="visibility-button-inner">' +
+                        'Трубочка ' +
+
+                        '{% if missedEventsCount > 0 %}' +
+                            '({{ missedEventsCount }}) ' +
+                        '{% endif %}' +
+                    '</span>',
+
+                    attributes: {
+                        class: 'visibility-button',
+                    },
+                },
+                click2call: {
+                    mode: 'webrtc',
+                    handlers: [{
+                        elementSelector: '.phone-number',
+                        phoneXpath: '//text()',
+                        tag: 'button',
+                        innerHTML: '<span class="click-2-call-inner">{{ phone }}</span>',
+                        attributes: {
+                            class: 'click-2-call',
+                        },
+                    }],
+                },
+            },
+            chats: {},
+        };
+
+        const addResponseModifiers = me => {
+            me.noButtonElementSettings = () => {
+                data.softphone.button = {
+                    elementSelector: '.some-element',
+                };
+
+                return me;
+            };
+
+            me.noData = () => {
+                data = {};
+                return me;
+            };
+            
+            me.insertBeforeNonExistingElement = () => {
+                data.softphone.button.elementSelector = '.non-existing-element';
+                return me;
+            };
+
+            me.insertAfter = () => {
+                data.softphone.button.mode = 'insertAfter';
+                return me;
+            };
+
+            me.insertAfterLastElement = () => {
+                data.softphone.button.elementSelector = '.last-element';
+                data.softphone.button.mode = 'insertAfter';
+
+                return me;
+            };
+
+            me.callapi = () => {
+                data.softphone.click2call.mode = 'callapi';
+
+                data.softphone.click2call.callapi = {
+                    url: 'click2call/{{ phone }}',
+                    method: 'post',
+                    data: {
+                        phone: '{{ phone }}',
+                    },
+                };
+            };
+
+            return me;
+        };
+
+        const getMessage = () => ({
+            method: 'set_widget_settings',
+            data,
+        });
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHaveMethod('POST').
+                    expectBodyToContain(bodyParams).
+                    expectToHavePath('https://my.uiscom.ru/get_widget_settings');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            data,
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            windowMessage: () => addResponseModifiers({
+                expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+                receive: () => postMessages.receive(getMessage()),
+            }),
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
             }
