@@ -793,6 +793,34 @@ define(() => function ({
         };
     };
 
+    me.click2CallRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHaveMethod('POST').
+                    expectToHavePath('https://somedomain.com/click2call/79161234567').
+                    expectBodyToContain({
+                        phone: '79161234567',
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({ data: true });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            },
+        });
+    };
+
     me.oauthRequest = () => {
         const addResponseModifiers = me => me;
 
@@ -845,10 +873,24 @@ define(() => function ({
 
         document.getElementById('pages-container').appendChild(pageContainer);
 
+        const processPhone = value => value + (number - 1) * 8;
+
         pageContainer.innerHTML = (
             '<div class="first-element">Первый элемент #' + number + '</div>' + 
             '<div class="some-element">Некий элемент #' + number + '</div>' +
-            '<div class="last-element">Последний элемент #' + number + '</div>'
+            '<div class="last-element">Последний элемент #' + number + '</div>' +
+
+            '<div class="phone-number"><span data-value="' + processPhone(74951234567) + '">+' +
+                processPhone(74951234568) + '</span></div>' +
+            '<br/>' +
+            '<div class="phone-number"><span data-value="' + processPhone(74951234569) + '">+' +
+                processPhone(74951234570) + '</span></div>' +
+            '<br/>' +
+            '<div class="telephone-number"><span data-phone="' + processPhone(74951234571) + '">+' +
+                processPhone(74951234572) + '</span></div>' +
+            '<br/>' +
+            '<div class="telephone-number"><span data-phone="' + processPhone(74951234573) + '">+' +
+                processPhone(74951234574) + '</span></div>'
         );
     };
 
@@ -1964,6 +2006,17 @@ define(() => function ({
         return tester;
     })();
 
+    me.phoneButton = (() => {
+        const selector = '.cmg-softphone-chrome-extension-phone-button',
+            tester = testersFactory.createDomElementTester(selector);
+
+        tester.atIndex = index =>
+            testersFactory.createDomElementTester(() => document.querySelectorAll(selector)[index]);
+
+        tester.first = tester.atIndex(0);
+        return tester;
+    })();
+
     me.widgetSettingsRequest = () => {
         const bodyParams = {
             widget_id: 'faaeopllmpfoeobihkiojkbhnlfkleik',
@@ -1993,12 +2046,23 @@ define(() => function ({
                     mode: 'webrtc',
                     handlers: [{
                         elementSelector: '.phone-number',
-                        phoneXpath: '//text()',
                         tag: 'button',
-                        innerHTML: '<span class="click-2-call-inner">{{ phone }}</span>',
+                        innerHTML: '<span class="click-2-call-inner">Телефон: {{ phone }}</span>',
                         attributes: {
                             class: 'click-2-call',
                         },
+                        phoneXpath: './/text()',
+                    }, {
+                        elementSelector: '.telephone-number',
+                        tag: 'button',
+                        innerHTML:
+                            '<span class="click-2-call-inner-wrapper">' +
+                                'Номер телефона: {{ element|raw }} ({{ phone }})' +
+                            '</span>',
+                        attributes: {
+                            class: 'click-2-call-wrapper',
+                        },
+                        phoneXpath: 'span/@data-phone',
                     }],
                 },
             },
@@ -2040,12 +2104,14 @@ define(() => function ({
                 data.softphone.click2call.mode = 'callapi';
 
                 data.softphone.click2call.callapi = {
-                    url: 'click2call/{{ phone }}',
+                    url: 'https://somedomain.com/click2call/{{ phone }}',
                     method: 'post',
                     data: {
                         phone: '{{ phone }}',
                     },
                 };
+
+                return me;
             };
 
             return me;

@@ -139,6 +139,8 @@ tests.addTest(options => {
                             });
 
                             describe('Доступ к микрофону разрешён.', function() {
+                                let widgetSettingsRequest;
+
                                 beforeEach(function() {
                                     tester.allowMediaInput();
 
@@ -147,76 +149,117 @@ tests.addTest(options => {
                                         available().
                                         expectToBeSent();
 
-                                    tester.widgetSettingsRequest().receiveResponse();
-                                    tester.widgetSettingsRequest().windowMessage().expectToBeSent();
+                                    widgetSettingsRequest = tester.widgetSettingsRequest().expectToBeSent();
                                 });
-                                
-                                it(
-                                    'Поступил входящий звонок. Поступил еще один входящий звонок. В родительское ' +
-                                    'окно отправлено сообщение об изменении размера софтфона.',
-                                function() {
-                                    const incomingCall = tester.incomingCall().receive();
 
-                                    tester.slavesNotification().
-                                        twoChannels().
-                                        available().
-                                        incoming().
-                                        progress().
-                                        expectToBeSent();
+                                describe('Звонки совершаются через WebRTC.', function() {
+                                    beforeEach(function() {
+                                        widgetSettingsRequest.receiveResponse();
+                                        tester.widgetSettingsRequest().windowMessage().expectToBeSent();
+                                    });
+                                    
+                                    it(
+                                        'Поступил входящий звонок. Поступил еще один входящий звонок. В родительское ' +
+                                        'окно отправлено сообщение об изменении размера софтфона.',
+                                    function() {
+                                        const incomingCall = tester.incomingCall().receive();
 
-                                    tester.numaRequest().receiveResponse();
-
-                                    tester.outCallEvent().receive();
-                                    tester.outCallEvent().slavesNotification().expectToBeSent();
-
-                                    tester.stateSettingRequest().
-                                        visible().
-                                        expanded().
-                                        expectToBeSent();
-
-                                    tester.incomingCall().thirdNumber().receive();
-
-                                    tester.slavesNotification().
-                                        twoChannels().
-                                        available().
-                                        incoming().
-                                        progress().
-                                        secondChannel().
+                                        tester.slavesNotification().
+                                            twoChannels().
+                                            available().
                                             incoming().
                                             progress().
-                                            fifthPhoneNumber().
-                                        expectToBeSent();
+                                            expectToBeSent();
 
-                                    tester.numaRequest().thirdNumber().receiveResponse();
+                                        tester.numaRequest().receiveResponse();
 
-                                    tester.outCallEvent().
-                                        anotherPerson().
-                                        receive();
+                                        tester.outCallEvent().receive();
+                                        tester.outCallEvent().slavesNotification().expectToBeSent();
 
-                                    tester.outCallEvent().
-                                        anotherPerson().
-                                        slavesNotification().
-                                        expectToBeSent();
+                                        tester.stateSettingRequest().
+                                            visible().
+                                            expanded().
+                                            expectToBeSent();
 
-                                    tester.stateSettingRequest().
-                                        noIdleChannels().
-                                        expanded().
-                                        visible().
-                                        expectToBeSent();
+                                        tester.incomingCall().thirdNumber().receive();
+
+                                        tester.slavesNotification().
+                                            twoChannels().
+                                            available().
+                                            incoming().
+                                            progress().
+                                            secondChannel().
+                                                incoming().
+                                                progress().
+                                                fifthPhoneNumber().
+                                            expectToBeSent();
+
+                                        tester.numaRequest().thirdNumber().receiveResponse();
+
+                                        tester.outCallEvent().
+                                            anotherPerson().
+                                            receive();
+
+                                        tester.outCallEvent().
+                                            anotherPerson().
+                                            slavesNotification().
+                                            expectToBeSent();
+
+                                        tester.stateSettingRequest().
+                                            noIdleChannels().
+                                            expanded().
+                                            visible().
+                                            expectToBeSent();
+                                    });
+                                    it('Получен запрос вызова. Производится вызов.', function() {
+                                        postMessages.receive({
+                                            method: 'start_call',
+                                            data: '79161234567',
+                                        });
+
+                                        tester.numaRequest().receiveResponse();
+
+                                        tester.firstConnection.connectWebRTC();
+                                        tester.allowMediaInput();
+                                        tester.outboundCall().start();
+
+                                        tester.slavesNotification().
+                                            twoChannels().
+                                            available().
+                                            sending().
+                                            expectToBeSent();
+                                    });
+                                    it('Раскрываю список статусов. Отображён список статусов.', function() {
+                                        tester.userName.click();
+                                        
+                                        tester.statusesList.
+                                            item('Не беспокоить').
+                                            expectToBeSelected();
+                                        
+                                        tester.statusesList.
+                                            item('Нет на месте').
+                                            expectNotToBeSelected();
+                                    });
+                                    it('Софтфон готов к использованию.', function() {
+                                        tester.phoneField.expectToBeVisible();
+                                    });
                                 });
-                                it('Раскрываю список статусов. Отображён список статусов.', function() {
-                                    tester.userName.click();
-                                    
-                                    tester.statusesList.
-                                        item('Не беспокоить').
-                                        expectToBeSelected();
-                                    
-                                    tester.statusesList.
-                                        item('Нет на месте').
-                                        expectNotToBeSelected();
-                                });
-                                it('Софтфон готов к использованию.', function() {
-                                    tester.phoneField.expectToBeVisible();
+                                it('Звонки совершаются через Call API.', function() {
+                                    widgetSettingsRequest.
+                                        callapi().
+                                        receiveResponse();
+
+                                    tester.widgetSettingsRequest().
+                                        callapi().
+                                        windowMessage().
+                                        expectToBeSent();
+
+                                    postMessages.receive({
+                                        method: 'start_call',
+                                        data: '79161234567',
+                                    });
+
+                                    tester.click2CallRequest().receiveResponse();
                                 });
                             });
                             it(
@@ -375,44 +418,37 @@ tests.addTest(options => {
                             spendTime(999);
                         });
 
-                        describe('Содержимое страницы снова изменилось.', function() {
-                            beforeEach(function() {
-                                tester.page.triggerMutation();
-                                spendTime(1);
-                            });
+                        it(
+                            'Содержимое страницы снова изменилось. Прошло некоторое время.  Кнопка добавлена в ' +
+                            'измененное содержимое страницы.',
+                        function() {
+                            tester.page.triggerMutation();
+                            spendTime(1);
 
-                            it(
-                                'Прошло некоторое время. Кнопка добавлена в измененное содержимое страницы.',
-                            function() {
-                                spendTime(999);
-                                    
-                                tester.body.expectToHaveTextContent(
-                                    'Первый элемент #1 ' +
-                                    'Трубочка ' +
-                                    'Некий элемент #1 ' +
-                                    'Последний элемент #1 ' +
+                            tester.body.expectToHaveTextContent(
+                                'Первый элемент #1 ' +
+                                'Трубочка ' +
+                                'Некий элемент #1 ' +
+                                'Последний элемент #1 ' +
 
-                                    'Первый элемент #2 ' +
-                                    'Трубочка ' +
-                                    'Некий элемент #2 ' +
-                                    'Последний элемент #2'
-                                );
+                                'Телефон: 74951234568 ' +
+                                'Телефон: 74951234570 ' +
+                                'Номер телефона: +74951234572 (74951234571) ' +
+                                'Номер телефона: +74951234574 (74951234573) ' +
 
-                                tester.visibilityButton.first.expectToHaveTextContent('Трубочка');
-                                tester.visibilityButton.atIndex(1).expectToHaveTextContent('Трубочка');
-                            });
-                            it('Кнопка не была добавлена.', function() {
-                                tester.body.expectToHaveTextContent(
-                                    'Первый элемент #1 ' +
-                                    'Трубочка ' +
-                                    'Некий элемент #1 ' +
-                                    'Последний элемент #1 ' +
+                                'Первый элемент #2 ' +
+                                'Трубочка ' +
+                                'Некий элемент #2 ' +
+                                'Последний элемент #2 ' +
 
-                                    'Первый элемент #2 ' +
-                                    'Некий элемент #2 ' +
-                                    'Последний элемент #2'
-                                );
-                            });
+                                'Телефон: 74951234576 ' +
+                                'Телефон: 74951234578 ' +
+                                'Номер телефона: +74951234580 (74951234579) ' +
+                                'Номер телефона: +74951234582 (74951234581)'
+                            );
+
+                            tester.visibilityButton.first.expectToHaveTextContent('Трубочка');
+                            tester.visibilityButton.atIndex(1).expectToHaveTextContent('Трубочка');
                         });
                         it('Прошло некоторое время. Кнопка добавлена в измененное содержимое страницы.', function() {
                             spendTime(1);
@@ -423,10 +459,20 @@ tests.addTest(options => {
                                 'Некий элемент #1 ' +
                                 'Последний элемент #1 ' +
 
+                                'Телефон: 74951234568 ' +
+                                'Телефон: 74951234570 ' +
+                                'Номер телефона: +74951234572 (74951234571) ' +
+                                'Номер телефона: +74951234574 (74951234573) ' +
+
                                 'Первый элемент #2 ' +
                                 'Трубочка ' +
                                 'Некий элемент #2 ' +
-                                'Последний элемент #2'
+                                'Последний элемент #2 ' +
+
+                                'Телефон: 74951234576 ' +
+                                'Телефон: 74951234578 ' +
+                                'Номер телефона: +74951234580 (74951234579) ' +
+                                'Номер телефона: +74951234582 (74951234581)'
                             );
 
                             tester.visibilityButton.first.expectToHaveTextContent('Трубочка');
@@ -439,10 +485,28 @@ tests.addTest(options => {
                                 'Некий элемент #1 ' +
                                 'Последний элемент #1 ' +
 
+                                'Телефон: 74951234568 ' +
+                                'Телефон: 74951234570 ' +
+                                'Номер телефона: +74951234572 (74951234571) ' +
+                                'Номер телефона: +74951234574 (74951234573) ' +
+
                                 'Первый элемент #2 ' +
                                 'Некий элемент #2 ' +
-                                'Последний элемент #2'
+                                'Последний элемент #2 ' +
+
+                                '+74951234576 ' +
+                                '+74951234578 ' +
+                                '+74951234580 ' +
+                                '+74951234582'
                             );
+                        });
+                    });
+                    it('Нажимаю на номер телефона. Отправлен запрос вызова.', function() {
+                        tester.phoneButton.atIndex(2).click();
+
+                        postMessages.nextMessage().expectMessageToContain({
+                            method: 'start_call',
+                            data: '74951234571',
                         });
                     });
                     it('Нажиюма на кнопку видимости. Отправлен запрос изменения видимости.', function() {
@@ -457,7 +521,12 @@ tests.addTest(options => {
                             'Первый элемент #1 ' +
                             'Трубочка ' +
                             'Некий элемент #1 ' +
-                            'Последний элемент #1'
+                            'Последний элемент #1 ' +
+
+                            'Телефон: 74951234568 ' +
+                            'Телефон: 74951234570 ' +
+                            'Номер телефона: +74951234572 (74951234571) ' +
+                            'Номер телефона: +74951234574 (74951234573)'
                         );
 
                         tester.visibilityButton.expectToHaveTextContent('Трубочка');
@@ -471,7 +540,12 @@ tests.addTest(options => {
                     tester.body.expectToHaveTextContent(
                         'Первый элемент #1 ' +
                         'Некий элемент #1 ' +
-                        'Последний элемент #1'
+                        'Последний элемент #1 ' +
+
+                        '+74951234568 ' +
+                        '+74951234570 ' +
+                        '+74951234572 ' +
+                        '+74951234574'
                     );
                 });
                 it(
@@ -485,7 +559,12 @@ tests.addTest(options => {
                         'Первый элемент #1 ' +
                         'Софтфон ' +
                         'Некий элемент #1 ' +
-                        'Последний элемент #1'
+                        'Последний элемент #1 ' +
+
+                        'Телефон: 74951234568 ' +
+                        'Телефон: 74951234570 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573)'
                     );
 
                     tester.visibilityButton.default.expectToHaveTextContent('Софтфон');
@@ -502,6 +581,12 @@ tests.addTest(options => {
                         'Первый элемент #1 ' +
                         'Некий элемент #1 ' +
                         'Последний элемент #1 ' +
+
+                        'Телефон: 74951234568 ' +
+                        'Телефон: 74951234570 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573) ' +
+
                         'Трубочка'
                     );
                 });
@@ -517,7 +602,12 @@ tests.addTest(options => {
                         'Первый элемент #1 ' +
                         'Некий элемент #1 ' +
                         'Последний элемент #1 ' +
-                        'Трубочка'
+                        'Трубочка ' +
+
+                        'Телефон: 74951234568 ' +
+                        'Телефон: 74951234570 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573)'
                     );
                 });
                 it(
@@ -531,7 +621,12 @@ tests.addTest(options => {
                         'Первый элемент #1 ' +
                         'Некий элемент #1 ' +
                         'Трубочка ' +
-                        'Последний элемент #1'
+                        'Последний элемент #1 ' +
+
+                        'Телефон: 74951234568 ' +
+                        'Телефон: 74951234570 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573)'
                     );
                 });
             });
