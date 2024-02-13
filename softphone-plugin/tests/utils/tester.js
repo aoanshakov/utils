@@ -1,4 +1,5 @@
 define(() => function ({
+    origin = 'https://app.uiscom.ru',
     testersFactory,
     utils,
     triggerResize,
@@ -40,6 +41,7 @@ define(() => function ({
 
     window.resetElectronCookiesManager?.();
 
+    window.getOrigin = () => origin;
     window.stores = null;
     window.softphoneBroadcastChannelCache = {};
     window.destroyMethodCaller?.();
@@ -566,12 +568,276 @@ define(() => function ({
         });
     }
 
-    isAuthorized && me.chrome.
-        storage.
-        local.
-        set({
-            token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+    me.widgetSettings = () => {
+        const queryParams = {
+            widget_id: 'faaeopllmpfoeobihkiojkbhnlfkleik',
+        };
+
+        let wildcart = 'https://*.uiscom.ru/**';
+
+        const softphoneSettingsProcessors = [],
+            settingsProcessors = [],
+            storageDataProcessors = [];
+
+        const getSoftphoneSettings = () => {
+            const value = {
+                button: {
+                    elementSelector: '.some-element',
+                    mode: 'insertBefore',
+                    tag: 'button',
+
+                    innerHTML: '<span class="visibility-button-inner">' +
+                        'Трубочка ' +
+
+                        '{% if missedEventsCount > 0 %}' +
+                            '({{ missedEventsCount }}) ' +
+                        '{% endif %}' +
+                    '</span>',
+
+                    attributes: {
+                        class: 'visibility-button',
+                    },
+                },
+                click2call: {
+                    mode: 'webrtc',
+                    handlers: [{
+                        elementSelector: '.phone-number',
+                        tag: 'button',
+                        innerHTML: '<span class="click-2-call-inner">Телефон: {{ phone }}</span>',
+                        attributes: {
+                            class: 'click-2-call',
+                        },
+                        phoneXpath: './/text()',
+                    }, {
+                        elementSelector: '.telephone-number',
+                        tag: 'button',
+                        innerHTML:
+                            '<span class="click-2-call-inner-wrapper">' +
+                                'Номер телефона: {{ element|raw }} ({{ phone }})' +
+                            '</span>',
+                        attributes: {
+                            class: 'click-2-call-wrapper',
+                        },
+                        phoneXpath: 'span/@data-phone',
+                    }],
+                },
+            };
+
+            return softphoneSettingsProcessors.reduce((value, process) => process(value), value);
+        };
+
+        const getSettings = () => {
+            const value = {
+                softphone: {
+                    [wildcart]: getSoftphoneSettings(),
+                },
+                chats: {},
+            };
+
+            return settingsProcessors.reduce((value, process) => process(value), value);
+        };
+
+        const getStorageData = () => {
+            const value = {
+                token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+                time: '2019-12-19T12:10:06',
+                settings: getSettings(),
+            };
+
+            return storageDataProcessors.reduce((value, process) => process(value), value);
+        };
+
+        const addResponseModifiers = me => {
+            me.anotherWildcart = () => {
+                wildcart = 'https://*.comagic.ru/**';
+                return me;
+            };
+
+            me.anotherClick2CallHandlers = () => {
+                softphoneSettingsProcessors.push(softphoneSettings => {
+                    softphoneSettings.click2call.handlers[0].tag = 'a';
+                    softphoneSettings.click2call.handlers[0].innerHTML = '<span class="click-2-call-inner">' +
+                        'Тел: {{ phone }}' +
+                    '</span>';
+
+
+                    softphoneSettings.click2call.handlers[1].tag = 'a';
+                    softphoneSettings.click2call.handlers[1].innerHTML = '<span class="click-2-call-inner-wrapper">' +
+                        'Номер тел: {{ element|raw }} [{{ phone }}]' +
+                    '</span>';
+
+                    return softphoneSettings;
+                });
+
+                return me;
+            };
+
+            me.expired = () => {
+                storageDataProcessors.push(storageData => (storageData.time = '2019-12-19T12:09:06', storageData));
+                return me;
+            };
+
+            me.noButtonElementSettings = () => {
+                softphoneSettingsProcessors.push(softphoneSettings => (softphoneSettings.button = {
+                    elementSelector: '.some-element',
+                }, softphoneSettings));
+
+                return me;
+            };
+
+            me.noSettings = () => {
+                softphoneSettingsProcessors.push(() => null);
+
+                storageDataProcessors.push(storageData => ({
+                    token: storageData.token,
+                }));
+
+                return me;
+            };
+
+            me.emptyToken = () => {
+                softphoneSettingsProcessors.push(() => null);
+
+                storageDataProcessors.push(storageData => ({
+                    token: '',
+                }));
+
+                return me;
+            };
+
+            me.noData = () => {
+                storageDataProcessors.push(() => null);
+                return me;
+            };
+            
+            me.insertBeforeNonExistingElement = () => {
+                softphoneSettingsProcessors.push(
+                    softphoneSettings => (
+                        softphoneSettings.button.elementSelector = '.non-existing-element',
+                        softphoneSettings
+                    ),
+                );
+
+                return me;
+            };
+
+            me.insertAfter = () => {
+                softphoneSettingsProcessors.push(
+                    softphoneSettings => (
+                        softphoneSettings.button.mode = 'insertAfter',
+                        softphoneSettings
+                    ),
+                );
+
+                return me;
+            };
+
+            me.insertAfterLastElement = () => {
+                softphoneSettingsProcessors.push(softphoneSettings => {
+                    softphoneSettings.button.elementSelector = '.last-element';
+                    softphoneSettings.button.mode = 'insertAfter';
+
+                    return softphoneSettings;
+                });
+
+                return me;
+            };
+
+            me.callapi = () => {
+                softphoneSettingsProcessors.push(softphoneSettings => {
+                    softphoneSettings.click2call.mode = 'callapi';
+
+                    softphoneSettings.click2call.callapi = {
+                        url: 'https://somedomain.com/click2call/{{ phone }}',
+                        method: 'post',
+                        data: {
+                            phone: '{{ phone }}',
+                        },
+                    };
+
+                    return softphoneSettings;
+                });
+
+                return me;
+            };
+
+            return me;
+        };
+
+        const getMessage = () => ({
+            method: 'set_widget_settings',
+            data: {
+                token: getStorageData()?.token,
+                ...(getSoftphoneSettings() || {}),
+            },
         });
+
+        return addResponseModifiers({
+            storageData: () => addResponseModifiers({
+                receive() {
+                    const storageData = getStorageData();
+
+                    me.chrome.
+                        storage.
+                        local.
+                        set({
+                            widget_settings: storageData ? JSON.stringify({
+                                ...storageData,
+                                ...(storageData.time ? {
+                                    time: (new Date(storageData.time)).getTime(),
+                                } : {}),
+                            }) : 'null',
+                        });
+                },
+
+                expectToBeSaved() {
+                    const storageData = getStorageData();
+
+                    me.chrome.
+                        storage.
+                        local.
+                        expectToContain({
+                            widget_settings: storageData ? utils.expectJSONToContain(({
+                                ...storageData,
+                                time: storageData.time ? utils.expectTime(storageData.time) : undefined,
+                                settings: storageData.settings || undefined,
+                            })) : 'null',
+                        });
+                },
+            }),
+            request: () => addResponseModifiers({
+                expectToBeSent(requests) {
+                    const request = (requests ? requests.someRequest() : fetch.recentRequest()).
+                        expectToHaveMethod('GET').
+                        expectQueryToContain(queryParams).
+                        expectToHaveHeaders({
+                            authorization: 'Bearer 23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+                            'x-auth-type': 'jwt',
+                        }).
+                        expectToHavePath('https://my.uiscom.ru/extension/uc_flow/installment_settings');
+
+                    return addResponseModifiers({
+                        receiveResponse() {
+                            request.respondSuccessfullyWith(getSettings());
+
+                            Promise.runAll(false, true);
+                            spendTime(0)
+                        }
+                    });
+                },
+
+                receiveResponse() {
+                    this.expectToBeSent().receiveResponse();
+                }
+            }),
+            windowMessage: () => addResponseModifiers({
+                expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+                receive: () => postMessages.receive(getMessage()),
+            }),
+        });
+    };
+
+    isAuthorized && me.widgetSettings().storageData().receive();
 
 
     me.page = {
@@ -700,6 +966,7 @@ define(() => function ({
             const message = {
                 method: 'set_state',
                 data: {
+                    lostCallsCount: 0,
                     visible: false,
                     size: expanded ?
                         noIdleChannels ? {
@@ -731,6 +998,11 @@ define(() => function ({
 
             noIdleChannels() {
                 noIdleChannels = true;
+                return this;
+            },
+
+            lostCalls(value) {
+                processors.push(message => (message.data.lostCallsCount = value));
                 return this;
             },
 
@@ -2016,139 +2288,6 @@ define(() => function ({
         tester.first = tester.atIndex(0);
         return tester;
     })();
-
-    me.widgetSettingsRequest = () => {
-        const bodyParams = {
-            widget_id: 'faaeopllmpfoeobihkiojkbhnlfkleik',
-            origin: 'https://somedomain.com',
-        };
-
-        let data = {
-            softphone: {
-                button: {
-                    elementSelector: '.some-element',
-                    mode: 'insertBefore',
-                    tag: 'button',
-
-                    innerHTML: '<span class="visibility-button-inner">' +
-                        'Трубочка ' +
-
-                        '{% if missedEventsCount > 0 %}' +
-                            '({{ missedEventsCount }}) ' +
-                        '{% endif %}' +
-                    '</span>',
-
-                    attributes: {
-                        class: 'visibility-button',
-                    },
-                },
-                click2call: {
-                    mode: 'webrtc',
-                    handlers: [{
-                        elementSelector: '.phone-number',
-                        tag: 'button',
-                        innerHTML: '<span class="click-2-call-inner">Телефон: {{ phone }}</span>',
-                        attributes: {
-                            class: 'click-2-call',
-                        },
-                        phoneXpath: './/text()',
-                    }, {
-                        elementSelector: '.telephone-number',
-                        tag: 'button',
-                        innerHTML:
-                            '<span class="click-2-call-inner-wrapper">' +
-                                'Номер телефона: {{ element|raw }} ({{ phone }})' +
-                            '</span>',
-                        attributes: {
-                            class: 'click-2-call-wrapper',
-                        },
-                        phoneXpath: 'span/@data-phone',
-                    }],
-                },
-            },
-            chats: {},
-        };
-
-        const addResponseModifiers = me => {
-            me.noButtonElementSettings = () => {
-                data.softphone.button = {
-                    elementSelector: '.some-element',
-                };
-
-                return me;
-            };
-
-            me.noData = () => {
-                data = {};
-                return me;
-            };
-            
-            me.insertBeforeNonExistingElement = () => {
-                data.softphone.button.elementSelector = '.non-existing-element';
-                return me;
-            };
-
-            me.insertAfter = () => {
-                data.softphone.button.mode = 'insertAfter';
-                return me;
-            };
-
-            me.insertAfterLastElement = () => {
-                data.softphone.button.elementSelector = '.last-element';
-                data.softphone.button.mode = 'insertAfter';
-
-                return me;
-            };
-
-            me.callapi = () => {
-                data.softphone.click2call.mode = 'callapi';
-
-                data.softphone.click2call.callapi = {
-                    url: 'https://somedomain.com/click2call/{{ phone }}',
-                    method: 'post',
-                    data: {
-                        phone: '{{ phone }}',
-                    },
-                };
-
-                return me;
-            };
-
-            return me;
-        };
-
-        const getMessage = () => ({
-            method: 'set_widget_settings',
-            data,
-        });
-
-        return addResponseModifiers({
-            expectToBeSent(requests) {
-                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHaveMethod('POST').
-                    expectBodyToContain(bodyParams).
-                    expectToHavePath('https://my.uiscom.ru/get_widget_settings');
-
-                return addResponseModifiers({
-                    receiveResponse() {
-                        request.respondSuccessfullyWith({
-                            data,
-                        });
-
-                        Promise.runAll(false, true);
-                        spendTime(0)
-                    }
-                });
-            },
-            windowMessage: () => addResponseModifiers({
-                expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
-                receive: () => postMessages.receive(getMessage()),
-            }),
-            receiveResponse() {
-                this.expectToBeSent().receiveResponse();
-            }
-        });
-    };
 
     me.ticketCreatingRequest = () => {
         const bodyParams = {

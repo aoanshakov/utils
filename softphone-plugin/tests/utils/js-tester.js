@@ -3510,7 +3510,8 @@ function JsTester_VisibilitySetter ({
     setFocus,
     setBrowserHidden,
     setBrowserVisible,
-    isBrowserHidden
+    isBrowserHidden,
+    spendTime,
 }) {
     return function (newValue) {
         newValue = !newValue;
@@ -3521,6 +3522,7 @@ function JsTester_VisibilitySetter ({
         
         isChanged && document.dispatchEvent(new Event('visibilitychange'));
         Promise.runAll(false, true);
+        spendTime(0);
     };
 }
 
@@ -4437,6 +4439,12 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
 
         expectation.checkCompliance(object);
     };
+    
+    this.expectTime = expectedValue => new JsTests_TimeExpectation({
+        expectedValue,
+        utils: this,
+    });
+
     this.expectJSONToContain = this.expectJSONObjectToContain;
     this.expectObjectToContain = function (object, expectedContent) {
         if (typeof expectedContent != 'object') {
@@ -4485,6 +4493,10 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
         maybeAddZero = function (time) {
             return (time <= 9 ? '0' : '') + time;
         };
+
+        if (!(date instanceof Date)) {
+            throw new Error('Value is not a date');
+        }
 
         return date.getFullYear() + '-' +
             maybeAddZero((date.getMonth() + 1)) + '-' +
@@ -6352,6 +6364,19 @@ function JsTester_DomElement (
             );
         }
     };
+
+    this.expectToHaveTag = expectedTag => {
+        const actualTag = getDomElement().tagName.toLowerCase();
+
+        if (actualTag != expectedTag) {
+            throw new Error(
+                `${getNominativeDescription()} ${gender.should} иметь тэг ${expectedTag}, а не ${actualTag}.`
+            );
+        }
+
+        return me;
+    };
+
     this.expectToExist = function () {
         var domElement = getDomElement();
 
@@ -6732,7 +6757,7 @@ function JsTests_JSONContentExpectation (expectedContent) {
         description = 'Значение ' + description;
 
         if (!actualValue) {
-            throw new Error(description + ',которое необходимо разобрать как JSON не должна быть пустой.');
+            throw new Error(description + ', которое необходимо разобрать как JSON не должна быть пустой.');
         }
 
         if (typeof actualValue != 'string') {
@@ -6756,6 +6781,43 @@ function JsTests_JSONContentExpectation (expectedContent) {
     };
 }
 
+function JsTests_TimeExpectation ({
+    utils,
+    expectedValue,
+}) {
+    this.checkCompliance = (actualValue, description) => {
+        description = 'Значение ' + description;
+
+        try {
+            actualValue = (value => value.slice(0, value.length - 1).join('.'))(
+                utils.formatDate(actualValue).split('+')[0].split('.'),
+            );
+        } catch (e) {
+            throw new Error(
+                `${description} должно быть временем ${expectedValue}, тогда как параметр имеет ` +
+                `значение ${actualValue}.`
+            );
+        }
+
+        if (!actualValue) {
+            throw new Error(
+                `${description} должно быть временем ${expectedValue}, тогда как значение является пустым.`
+            );
+        }
+
+        if (expectedValue !== actualValue) {
+            throw new Error(
+                `${description},  должно быть временем ${expectedValue} однако значение таково - ${actualValue}.`
+            );
+        }
+    };
+
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        this.checkCompliance(actualValue, 'параметра ' + keyDescription);
+    };
+}
+
+JsTests_TimeExpectation.prototype = JsTests_ParamExpectationPrototype;
 JsTests_FileContentSubstringExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_BlobExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_NonStrictExpectaion.prototype = JsTests_ParamExpectationPrototype;
@@ -8467,6 +8529,7 @@ function JsTester_Tests (factory) {
             setBrowserHidden,
             setBrowserVisible,
             isBrowserHidden: isBrowserHidden.createGetter(),
+            spendTime,
         });
         args.blobsTester = blobsTester;
         args.copiedTextsTester = copiedTextsTester;

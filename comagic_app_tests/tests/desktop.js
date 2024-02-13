@@ -3281,16 +3281,16 @@ tests.addTest(options => {
 
                                                     getPackage('electron').ipcRenderer.
                                                         recentlySentMessage().
+                                                        expectToBeSentToChannel('set-icon').
+                                                        expectToBeSentWithArguments('windows, 150');
+
+                                                    getPackage('electron').ipcRenderer.
+                                                        recentlySentMessage().
                                                         expectToBeSentToChannel('resize').
                                                         expectToBeSentWithArguments({
                                                             width: 300,
                                                             height: 350
                                                         });
-
-                                                    getPackage('electron').ipcRenderer.
-                                                        recentlySentMessage().
-                                                        expectToBeSentToChannel('set-icon').
-                                                        expectToBeSentWithArguments('windows, 150');
 
                                                     tester.input.withFieldLabel('Логин').fill('botusharova');
                                                     tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');

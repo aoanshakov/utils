@@ -6680,6 +6680,10 @@ define(function () {
                         }
 
                         var methods = {
+                            callsHistoryOpened: function ()  {
+                                state.openedPanel = 'history';
+                                return this;
+                            },
                             visible: function ()  {
                                 state.hidden = false;
                                 return this;
