@@ -9,6 +9,7 @@ define(() => function ({
     spendTime,
     softphoneTester: me,
     isAuthorized = false,
+    areSettingsExpired = false,
     application = 'softphone',
     platform = 'windows',
     webSockets,
@@ -20,6 +21,7 @@ define(() => function ({
     permissions: initialPermissions,
     postMessages,
     triggerMutation,
+    isIframe,
 }) {
     let history,
         eventBus,
@@ -41,6 +43,7 @@ define(() => function ({
 
     window.resetElectronCookiesManager?.();
 
+    window.isIframe = !!isIframe;
     window.getOrigin = () => origin;
     window.stores = null;
     window.softphoneBroadcastChannelCache = {};
@@ -67,6 +70,7 @@ define(() => function ({
 
     function AuthFlowLaunching ({
         respond,
+        reject,
         details,
     }) {
         this.expectNotToExist = () => {
@@ -78,6 +82,11 @@ define(() => function ({
 
         this.expectDetailsToContain = function (expectedContent) {
             utils.expectObjectToContain(details, expectedContent);
+            return this;
+        };
+
+        this.fail = function (e) {
+            reject(e);
             return this;
         };
 
@@ -97,6 +106,10 @@ define(() => function ({
                 `Должна быть запущена авторизация с такими параметрами ${JSON.stringify(expectedContent)}, тогда как ` +
                 `авторизация не была запущена.`
             );
+        };
+
+        this.fail = () => {
+            throw new Error('Авторизация не была запущена.');
         };
 
         this.receiveResponse = responseUrl => {
@@ -371,6 +384,8 @@ define(() => function ({
             requestedPermissions,
             callback,
         }) {
+            const callStack = debug.getCallStack();
+
             this.grant = function () {
                 params.forEach(
                     name => requestedPermissions[name] && requestedPermissions[name].forEach(
@@ -379,6 +394,7 @@ define(() => function ({
                 );
 
                 callback(true);
+                spendTime(0);
                 spendTime(0);
 
                 return this;
@@ -391,7 +407,7 @@ define(() => function ({
                 return this;
             };
 
-            this.expectPermissionToBeRequested = permission => {
+            this.expectPermissionToBeRequested = function (permission) {
                 if (!(requestedPermissions.permissions || []).includes(permission)) {
                     throw new Error(
                         `Должно быть запрошено право "${permission}, однако были запрошены только эти права - ` +
@@ -402,13 +418,22 @@ define(() => function ({
                 return this;
             };
 
-            this.expectHostPermissionToBeRequested = origin => {
+            this.expectHostPermissionToBeRequested = function (origin) {
                 if (!(requestedPermissions.origins || []).includes(origin)) {
                     throw new Error(
                         `Должно быть запрошено право "${origin}, однако были запрошены только эти права - ` +
                         `"${(requestedPermissions.origins || []).join('", "')}".`
                     );
                 }
+
+                return this;
+            };
+
+            this.expectNotToExist = function () {
+                throw new Error(
+                    'Никакие права не должно быть запрошены, однако были запрошены права ' +
+                    `${JSON.stringify(requestedPermissions)}.\n\n${callStack}`
+                );
 
                 return this;
             };
@@ -419,8 +444,8 @@ define(() => function ({
                 throw new Error('Права не были запрошены.');
             };
 
-            this.grant = () => throwError;
-            this.deny = () => throwError;
+            this.grant = throwError;
+            this.deny = throwError;
 
             this.expectPermissionToBeRequested = permission => {
                 throw new Error(`Должно быть запрошено право "${permission}, однако никакие права не были запрошены.`);
@@ -429,6 +454,8 @@ define(() => function ({
             this.expectHostPermissionToBeRequested = origin => {
                 throw new Error(`Должно быть запрошено право "${origin}, однако никакие права не были запрошены.`);
             };
+
+            this.expectNotToExist = () => null;
         }
 
         const params = ['permissions', 'origins'],
@@ -519,9 +546,10 @@ define(() => function ({
             this.getRedirectURL = () => 'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/';
 
             this.launchWebAuthFlow = details => new Promise(
-                resolve => authFlowLaunchings.add(new AuthFlowLaunching({
+                (resolve, reject) => authFlowLaunchings.add(new AuthFlowLaunching({
                     details,
                     respond: resolve,
+                    reject,
                 }))
             );
         }
@@ -581,6 +609,12 @@ define(() => function ({
 
         const getSoftphoneSettings = () => {
             const value = {
+                padding: {
+                    top: 40,
+                    right: 10,
+                    bottom: 30,
+                    left: 50,
+                },
                 button: {
                     elementSelector: '.some-element',
                     mode: 'insertBefore',
@@ -640,14 +674,26 @@ define(() => function ({
         const getStorageData = () => {
             const value = {
                 token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
-                time: '2019-12-19T12:10:06',
-                settings: getSettings(),
+                loading: 0,
+                settings: {
+                    time: '2019-12-19T12:10:06',
+                    ...getSettings(),
+                },
             };
 
             return storageDataProcessors.reduce((value, process) => process(value), value);
         };
 
         const addResponseModifiers = me => {
+            me.noPadding = () => {
+                softphoneSettingsProcessors.push(softphoneSettings => (
+                    softphoneSettings.padding = null,
+                    softphoneSettings
+                ));
+
+                return me;
+            },
+
             me.anotherWildcart = () => {
                 wildcart = 'https://*.comagic.ru/**';
                 return me;
@@ -673,7 +719,11 @@ define(() => function ({
             };
 
             me.expired = () => {
-                storageDataProcessors.push(storageData => (storageData.time = '2019-12-19T12:09:06', storageData));
+                storageDataProcessors.push(storageData => (
+                    storageData.settings.time = '2019-12-19T12:09:06',
+                    storageData
+                ));
+
                 return me;
             };
 
@@ -685,31 +735,75 @@ define(() => function ({
                 return me;
             };
 
-            me.noSettings = () => {
-                softphoneSettingsProcessors.push(() => null);
+            me.buttonElementXpath = () => {
+                softphoneSettingsProcessors.push(softphoneSettings => {
+                    softphoneSettings.button.elementSelector = undefined;
+                    softphoneSettings.button.elementXpath = '//div[@class="last-element"]';
 
-                storageDataProcessors.push(storageData => ({
-                    token: storageData.token,
-                }));
+                    return softphoneSettings;
+                });
+
+                return me;
+            };
+
+            me.phoneListXpath = () => {
+                softphoneSettingsProcessors.push(softphoneSettings => {
+                    softphoneSettings.click2call.handlers[0].elementSelector = '.phone-number';
+
+                    softphoneSettings.click2call.handlers[0].phoneXpath =
+                        '//div[@class="phone-number-source"]/@data-phone';
+                    
+                    return softphoneSettings;
+                });
+
+                return me;
+            };
+
+            me.rawPhone = () => {
+                softphoneSettingsProcessors.push(softphoneSettings => {
+                    softphoneSettings.click2call.handlers[0].innerHTML =
+                        '<span class="click-2-call-inner">Телефон: {{ rawPhone }}</span>';
+
+                    return softphoneSettings;
+                });
+
+                return me;
+            };
+
+            me.noData = () => {
+                softphoneSettingsProcessors.push(() => null);
+                settingsProcessors.push(() => null);
+
+                storageDataProcessors.push(storageData => {
+                    storageData.token = undefined;
+                    storageData.loading = undefined;
+                    storageData.settings = undefined;
+
+                    return storageData;
+                });
 
                 return me;
             };
 
             me.emptyToken = () => {
                 softphoneSettingsProcessors.push(() => null);
+                settingsProcessors.push(() => null);
 
-                storageDataProcessors.push(storageData => ({
-                    token: '',
-                }));
+                storageDataProcessors.push(storageData => {
+                    storageData.token = '';
+                    storageData.settings = null;
+
+                    return storageData;
+                });
 
                 return me;
             };
 
-            me.noData = () => {
-                storageDataProcessors.push(() => null);
+            me.settingsLoading = () => {
+                storageDataProcessors.push(storageData => (storageData.loading = '2019-12-19T12:10:06', storageData));
                 return me;
             };
-            
+
             me.insertBeforeNonExistingElement = () => {
                 softphoneSettingsProcessors.push(
                     softphoneSettings => (
@@ -727,6 +821,19 @@ define(() => function ({
                         softphoneSettings.button.mode = 'insertAfter',
                         softphoneSettings
                     ),
+                );
+
+                return me;
+            };
+
+            me.insertInto = () => {
+                softphoneSettingsProcessors.push(
+                    softphoneSettings => {
+                        softphoneSettings.button.mode = 'insertInto';
+                        softphoneSettings.button.elementSelector = '.elements-groups';
+
+                        return softphoneSettings
+                    },
                 );
 
                 return me;
@@ -767,42 +874,56 @@ define(() => function ({
         const getMessage = () => ({
             method: 'set_widget_settings',
             data: {
-                token: getStorageData()?.token,
+                token: getStorageData().token,
                 ...(getSoftphoneSettings() || {}),
             },
         });
 
+        const encodeJSON = data => Object.entries(data).reduce(
+            (data, [name, value]) => (data[name] = JSON.stringify(value), data),
+            {},
+        );
+
         return addResponseModifiers({
             storageData: () => addResponseModifiers({
                 receive() {
-                    const storageData = getStorageData();
+                    const storageData = getStorageData(),
+                        getTime = time => time ? (new Date(time)).getTime() : 0;
 
                     me.chrome.
                         storage.
                         local.
-                        set({
-                            widget_settings: storageData ? JSON.stringify({
-                                ...storageData,
-                                ...(storageData.time ? {
-                                    time: (new Date(storageData.time)).getTime(),
-                                } : {}),
-                            }) : 'null',
-                        });
+                        set(encodeJSON({
+                            ...storageData,
+                            loading: getTime(storageData.loading),
+                            settings: storageData.settings ? {
+                                ...storageData.settings,
+                                time: getTime(storageData.settings.time),
+                            } : 'null',
+                        }));
                 },
 
                 expectToBeSaved() {
-                    const storageData = getStorageData();
+                    const storageData = getStorageData(),
+                        getTime = (time, defaultValue = 0) => time ? utils.expectTime(time) : defaultValue;
+
+                    const content = {
+                        ...encodeJSON(storageData),
+                        loading: storageData.loading === undefined ? undefined : getTime(storageData.loading, '0'),
+                        settings: storageData.settings === undefined ?
+                            undefined :
+                            storageData.settings ?
+                                utils.expectJSONToContain(({
+                                    ...storageData.settings,
+                                    time: getTime(storageData.settings.time),
+                                })) :
+                                'null',
+                    };
 
                     me.chrome.
                         storage.
                         local.
-                        expectToContain({
-                            widget_settings: storageData ? utils.expectJSONToContain(({
-                                ...storageData,
-                                time: storageData.time ? utils.expectTime(storageData.time) : undefined,
-                                settings: storageData.settings || undefined,
-                            })) : 'null',
-                        });
+                        expectToContain(content);
                 },
             }),
             request: () => addResponseModifiers({
@@ -837,7 +958,11 @@ define(() => function ({
         });
     };
 
-    isAuthorized && me.widgetSettings().storageData().receive();
+    isAuthorized && (
+        areSettingsExpired ?
+            storageData => storageData.expired() :
+            storageData => storageData
+    )(me.widgetSettings().storageData()).receive();
 
 
     me.page = {
@@ -942,6 +1067,7 @@ define(() => function ({
             script: 'popup',
             addResponseModifiers: (me, message) => {
                 me.visible = () => (message.data = true, me);
+                me.disabled = () => (message.data = null, me);
                 return me;
             },
         });
@@ -956,6 +1082,90 @@ define(() => function ({
             script: 'background',
         });
     }
+        
+    me.installmentSettingsProbableUpdatingRequest = () => {
+        let script = 'popup';
+        const addResponseModifiers = me => me,
+            response = true;
+
+        const message = {
+            method: 'maybe_update_settings',
+            data: undefined,
+        };
+
+        return addResponseModifiers({
+            expectResponseToBeSent() {
+                me.chrome.
+                    runtime.
+                    receiveMessage(message).
+                    expectResponseToContain(response);
+            },
+
+            fromPopup() {
+                script = 'background';
+                return this;
+            },
+
+            expectToBeSent() {
+                const request = me.chrome.
+                    runtime[script].
+                    nextMessage().
+                    expectToContain(message);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.receiveResponse(response);
+                    },
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.installmentSettingsUpdatingRequest = () => {
+        let script = 'popup';
+        const response = true,
+            addResponseModifiers = me => me;
+
+        const message = {
+            method: 'update_settings',
+            data: undefined,
+        };
+
+        return addResponseModifiers({
+            expectResponseToBeSent() {
+                me.chrome.
+                    runtime.
+                    receiveMessage(message).
+                    expectResponseToContain(response);
+            },
+
+            fromPopup() {
+                script = 'background';
+                return this;
+            },
+
+            expectToBeSent() {
+                const request = me.chrome.
+                    runtime[script].
+                    nextMessage().
+                    expectToContain(message);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.receiveResponse(response);
+                    },
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     me.stateSettingRequest = () => {
         const processors = [];
@@ -1052,11 +1262,11 @@ define(() => function ({
                     expectDetailsToContain(details);
 
                 return {
-                    receiveResponse: () => {
-                        authFlow.receiveResponse(
-                            'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/?code=28gjs8o24rfsd42',
-                        );
-                    },
+                    fail: () => authFlow.fail('Failed to open authorization page'),
+
+                    receiveResponse: () => authFlow.receiveResponse(
+                        'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/?code=28gjs8o24rfsd42',
+                    ),
                 };
             },
             receiveResponse() {
@@ -1148,9 +1358,14 @@ define(() => function ({
         const processPhone = value => value + (number - 1) * 8;
 
         pageContainer.innerHTML = (
-            '<div class="first-element">Первый элемент #' + number + '</div>' + 
-            '<div class="some-element">Некий элемент #' + number + '</div>' +
-            '<div class="last-element">Последний элемент #' + number + '</div>' +
+            '<div class="elements-groups">' +
+                '<div class="first-element">Первый элемент #' + number + '</div>' + 
+                '<div class="some-element">Некий элемент #' + number + '</div>' +
+                '<div class="last-element">Последний элемент #' + number + '</div>' +
+            '</div>' +
+
+            '<div class="phone-number-source" data-phone="' + processPhone(74951234565) + '"></div>' +
+            '<div class="phone-number-source" data-phone="' + processPhone(74951234566) + '"></div>' +
 
             '<div class="phone-number"><span data-value="' + processPhone(74951234567) + '">+' +
                 processPhone(74951234568) + '</span></div>' +
@@ -1203,7 +1418,7 @@ define(() => function ({
     spendTime(0);
     spendTime(0);
 
-    me.iframe = testersFactory.createDomElementTester('iframe');
+    me.iframe = testersFactory.createDomElementTester(() => document.querySelector('iframe'));
 
     me.notificationsList = (() => {
         const getDrawerAncestor = domElement => domElement && domElement.closest('.ui-drawer-inner');

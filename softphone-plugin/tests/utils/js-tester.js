@@ -6790,7 +6790,9 @@ function JsTests_TimeExpectation ({
 
         try {
             actualValue = (value => value.slice(0, value.length - 1).join('.'))(
-                utils.formatDate(actualValue).split('+')[0].split('.'),
+                utils.formatDate(
+                    typeof actualValue == 'number' ? actualValue : parseInt(actualValue, 0)
+                ).split('+')[0].split('.'),
             );
         } catch (e) {
             throw new Error(
@@ -7962,6 +7964,10 @@ function JsTester_FakeWindow (args) {
         utils = args.utils;
 
     this.focus = function () {};
+
+    this.location = {
+        href: 'https://fake-window.com',
+    };
 
     this.postMessage = function (actualMessage, actualTargetOrigin) {
         postMessages.add(new JsTester_WindowMessage({
