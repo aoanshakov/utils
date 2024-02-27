@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { createRoot } from 'react-dom/client';
+import { createMemoryHistory } from 'history';
 
 import Softphone from '@/Root';
 import Popup from '@/popup/Root';
 import IframeContent from '@/iframe/Root';
+import Amocrm from '@/amocrm/Root';
 import initialize from '@/background/initialize';
 
 let root;
@@ -13,17 +15,25 @@ const Background = () => {
     return <></>;
 };
 
+const history = createMemoryHistory();
+
 const applications = {
     softphone: Softphone,
     popup: Popup,
     background: Background,
     iframeContent: IframeContent,
+    amocrm: Amocrm,
+    amocrmIframeContent: IframeContent,
 };
 
 window.application = {
-    run(application = 'softphone') {
+    run({
+        application = 'softphone',
+        setHistory,
+    }) {
         let rootStore;
         const Root = applications[application] || Softphone;
+        setHistory(history);
 
         this.exit();
 
@@ -32,7 +42,7 @@ window.application = {
         document.body.appendChild(container);
 
         root = createRoot(document.getElementById('root')),
-        root.render(<Root />);
+        root.render(<Root history={history} />);
     },
 
     exit() {

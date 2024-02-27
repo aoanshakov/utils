@@ -1404,6 +1404,205 @@ tests.addTest(options => {
                 );
             });
         });
+        describe('Открыт IFrame софтфона amoCRM.', function() {
+            beforeEach(function() {
+                tester = new Tester({
+                    application: 'amocrmIframeContent',
+                    isIframe: true,
+                    softphoneHost: 'my.uiscom.ru',
+                    ...options,
+                });
+
+                tester.stateSettingRequest().expectToBeSent();
+            });
+
+            it('Из родительского окна приходит токен. Прозиводится авторизация.', function() {
+                postMessages.receive({
+                    method: 'set_token',
+                    data: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+                });
+
+                tester.masterInfoMessage().receive();
+
+                tester.slavesNotification().
+                    additional().
+                    expectToBeSent();
+
+                tester.slavesNotification().expectToBeSent();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                    
+                tester.authTokenRequest().receiveResponse()
+                tester.authCheckRequest().receiveResponse();
+
+                tester.talkOptionsRequest().receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+                tester.statusesRequest().receiveResponse();
+                tester.settingsRequest().receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    expectToBeSent();
+
+                notificationTester.grantPermission();
+                tester.connectEventsWebSocket();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    softphoneServerConnected().
+                    expectToBeSent();
+
+                tester.connectSIPWebSocket();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    expectToBeSent();
+
+                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                tester.registrationRequest().receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    registered().
+                    expectToBeSent();
+                    authenticatedUserRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    registered().
+                    userDataFetched().
+                    expectToBeSent();
+                    tester.allowMediaInput();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    expectToBeSent();
+
+                {
+                    const actualValue = window.localStorage.getItem('token'),
+                        expectedValue = '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf';
+
+                    if (actualValue != expectedValue) {
+                        throw new Error(
+                            'Должен быть сохранен токен "' + expectedValue + '", а не "' + actualValue + '".'
+                        );
+                    }
+                }
+            });
+            it('Приходит запрос изменения видимости. Софтфон отображён.', function() {
+                postMessages.receive({
+                    method: 'toggle_widget_visibility'
+                });
+
+                tester.stateSettingRequest().
+                    visible().
+                    expectToBeSent();
+
+                tester.anchor('Для использования софтфона необходимо авторизоваться').
+                    expectHrefToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru/').expectToBeVisible();
+            });
+        });
+        it('В локальном хранилище сохранен токен. Открыт IFrame софтфона amoCRM. Производится авторизация.', function() {
+            window.localStorage.setItem('token', '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf');
+
+            tester = new Tester({
+                application: 'amocrmIframeContent',
+                isIframe: true,
+                softphoneHost: 'my.uiscom.ru',
+                ...options,
+            });
+
+            tester.stateSettingRequest().expectToBeSent();
+            tester.masterInfoMessage().receive();
+
+            tester.slavesNotification().
+                additional().
+                expectToBeSent();
+
+            tester.slavesNotification().expectToBeSent();
+            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                
+            tester.authTokenRequest().receiveResponse()
+            tester.authCheckRequest().receiveResponse();
+
+            tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+            tester.statusesRequest().receiveResponse();
+            tester.settingsRequest().receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                expectToBeSent();
+
+            notificationTester.grantPermission();
+            tester.connectEventsWebSocket();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
+
+            tester.connectSIPWebSocket();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                expectToBeSent();
+
+            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+            tester.registrationRequest().receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                registered().
+                expectToBeSent();
+                authenticatedUserRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                registered().
+                userDataFetched().
+                expectToBeSent();
+                tester.allowMediaInput();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
+        });
+        it(
+            'Контент скрипт встроился в IFrame. URL не находится в списке тех, на которых расширение должно ' +
+            'работать. Приходит запрос изменения видимости. ыв',
+        function() {
+            tester = new Tester({
+                softphoneHost: 'my.uiscom.ru',
+                isAuthorized: true,
+                anotherWildcart: true,
+                isIframe: true,
+                ...options,
+            });
+
+            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+
+            postMessages.receive({
+                method: 'toggle_widget_visibility'
+            });
+        });
         it(
             'Открываю background-скрипт. Софтфон авторизован. Время хранения настроек истекло. Получен запрос ' +
             'возможного обновления настроек. Настройки обновлены.',
@@ -1429,6 +1628,52 @@ tests.addTest(options => {
             tester.widgetSettings().
                 storageData().
                 expectToBeSaved();
+        });
+        describe('Открываю виджет amoCRM.', function() {
+            beforeEach(function() {
+                tester = new Tester({
+                    softphoneHost: 'my.uiscom.ru',
+                    ...options,
+                    application: 'amocrm',
+                });
+            });
+
+            it('Получаю токен. Передаю токен в софтфон.', function() {
+                postMessages.receive({
+                    method: 'set_token',
+                    data: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+                });
+
+                postMessages.nextMessage().expectMessageToContain({
+                    method: 'set_token',
+                    data: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+                });
+            });
+            it('Нажимаю на номер телефона. В софтфон отправлен запрос звонка.', function() {
+                tester.contactPhone('79161234567').click();
+
+                postMessages.nextMessage().expectMessageToContain({
+                    method: 'start_call',
+                    data: '79161234567',
+                });
+            });
+            it('Получено сообщение отображения софтфона. Софтфон отображен.', function() {
+                tester.stateSettingRequest().
+                    visible().
+                    receive();
+
+                tester.iframe.expectToBeVisible();
+            });
+            it('Нажимаю на иконку с телефоном. В IFrame софтфона отправлен запрос изменения видимости.', function() {
+                tester.clickPhoneIcon();
+
+                postMessages.nextMessage().expectMessageToContain({
+                    method: 'toggle_widget_visibility'
+                });
+            });
+            it('IFrame скрыт.', function() {
+                tester.iframe.expectToBeHidden();
+            });
         });
         it('Открываю страницу с расширением. Токен авторизации был сохранен. В IFrame отправлен токен.', function() {
             tester = new Tester({

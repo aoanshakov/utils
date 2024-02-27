@@ -9,6 +9,7 @@ define(() => function ({
     spendTime,
     softphoneTester: me,
     isAuthorized = false,
+    anotherWildcart = false,
     areSettingsExpired = false,
     application = 'softphone',
     platform = 'windows',
@@ -48,8 +49,42 @@ define(() => function ({
     window.stores = null;
     window.softphoneBroadcastChannelCache = {};
     window.destroyMethodCaller?.();
+    window.widget.reset();
 
     me.restoreIFrameContentWindow = () => null;
+
+    {
+
+        let phoneIconClickHandler = function () {
+            throw new Error('Обработчик нажатия на иконку с трубкой не был назначен.');
+        };
+
+        window.AMOCRM = window.APP = {
+            widgets: {
+                notificationsPhone: function (args) {
+                    phoneIconClickHandler = args.click;
+
+                    throwPhoneIconExists = function () {
+                        throw new Error('Иконка с трубкой не должна существовать.');
+                    };
+                },
+            },
+            lang_id: 'ru'
+        };
+
+        me.clickPhoneIcon = function () {
+            phoneIconClickHandler();
+            spendTime(0);
+            spendTime(0);
+        };
+
+        me.contactPhone = value => ({
+            click: () => {
+                window.widget.handleAction('phone', { value });
+                spendTime(0);
+            }
+        });
+    }
 
     window.setSoftphoneIframe = iframe => {
         if (!iframe) {
@@ -958,12 +993,14 @@ define(() => function ({
         });
     };
 
-    isAuthorized && (
-        areSettingsExpired ?
-            storageData => storageData.expired() :
-            storageData => storageData
-    )(me.widgetSettings().storageData()).receive();
+    if (isAuthorized) {
+        const storageData = me.widgetSettings().storageData();
 
+        areSettingsExpired && storageData.expired();
+        anotherWildcart && storageData.anotherWildcart();
+
+        storageData.receive();
+    }
 
     me.page = {
         triggerMutation: () => triggerMutation(document.body, { childList: true }),
@@ -1340,14 +1377,53 @@ define(() => function ({
         });
     };
 
-    me.getUserAgent = softphoneType => 'Softphone Chrome Plugin';
+    me.getUserAgent = () => application == 'amocrmIframeContent' ?
+        'Softphone AmoCRM widget' :
+        'Softphone Chrome Plugin';
 
     me.ReactDOM = {
         flushSync: () => null
     };
 
     process.env.REACT_APP_LOCALE = 'ru';
-    window.application.run(application);
+
+    {
+        let history;
+
+        const setHistory = value => {
+            history = value;
+        };
+
+        window.application.run({
+            application,
+            setHistory,
+        });
+
+        me.history = (() => {
+            return {
+                push: path => {
+                    history?.push(path);
+                    spendTime(0);
+                    spendTime(0);
+                },
+                expectToHavePathName(expectedPathName) {
+                    const actualPathName = history.location.pathname;
+
+                    if (expectedPathName != actualPathName) {
+                        throw new Error(
+                            `В адресной строке должен быть путь "${expectedPathName}", а не "${actualPathName}".`
+                        );
+                    }
+                }
+            };
+        })();
+
+        if (application == 'iframeContent') {
+            me.history.push('/chrome');
+        } else if (application == 'amocrmIframeContent') {
+            me.history.push('/amocrm');
+        }
+    }
 
     const addPageContent = number => {
         const pageContainer = document.createElement('div');
