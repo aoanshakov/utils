@@ -1209,6 +1209,30 @@ define(() => function ({
         });
     };
 
+    me.authorizednessSettingRequest = () => {
+        const processors = [];
+
+        const getMessage = () => {
+            const message = {
+                method: 'set_authorized',
+                data: false,
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        return {
+            authorized() {
+                processors.push(message => (message.data = true));
+                return this;
+            },
+
+            receive: () => postMessages.receive(getMessage()),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+
     me.stateSettingRequest = () => {
         const processors = [];
         let expanded = false,
@@ -1218,7 +1242,6 @@ define(() => function ({
             const message = {
                 method: 'set_state',
                 data: {
-                    authenticated: false,
                     lostCallsCount: 0,
                     visible: false,
                     size: expanded ?
@@ -1244,11 +1267,6 @@ define(() => function ({
         };
 
         return {
-            authenticated() {
-                processors.push(message => (message.data.authenticated = true));
-                return this;
-            },
-
             expanded() {
                 expanded = true;
                 return this;

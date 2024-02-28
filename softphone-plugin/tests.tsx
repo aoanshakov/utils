@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect, useState, useImperativeHandle } from 'react';
+import React, { useRef, useCallback, useEffect, useState, useImperativeHandle, forwardRef } from 'react';
 import { createRoot } from 'react-dom/client';
 import { createMemoryHistory } from 'history';
 
@@ -42,6 +42,7 @@ class Widget {
         const dictionary = {
             userLang: {
                 login: 'Войти',
+                logout: 'Выйти',
             },
         };
 
@@ -77,6 +78,23 @@ const applications = {
     settings: Settings,
 };
 
+const App = forwardRef(({ Root, ...props }, ref) => {
+    const [areSettingsVisible, setSettingsVisibility] = useState(false);
+
+    useImperativeHandle(
+        ref,
+        () => ({
+            openSettings: () => setSettingsVisibility(true),
+        }),
+        [],
+    );
+
+    return <>
+        <Root {...props} />
+        {areSettingsVisible && <Settings {...props} />}
+    </>;
+});
+
 window.application = {
     run({
         application = 'softphone',
@@ -95,7 +113,20 @@ window.application = {
         const widget = new Application(window.widget);
 
         root = createRoot(document.getElementById('root')),
-        root.render(<Root {...{ widget, history }} />);
+
+        root.render(
+            <App
+                ref={handle => (this.openSettings = handle ? handle.openSettings : () => {
+                    throw new Error('Рендеринг еще не завершился');
+                })}
+
+                {...{ Root, widget, history }}
+            />
+        );
+    },
+
+    openSettings() {
+        throw new Error('Рендеринг еще не завершился');
     },
 
     exit() {
