@@ -993,6 +993,11 @@ define(() => function ({
         });
     };
 
+    me.openSettings = () => {
+        window.application.openSettings();
+        spendTime(0);
+    };
+
     if (isAuthorized) {
         const storageData = me.widgetSettings().storageData();
 
@@ -1213,6 +1218,7 @@ define(() => function ({
             const message = {
                 method: 'set_state',
                 data: {
+                    authenticated: false,
                     lostCallsCount: 0,
                     visible: false,
                     size: expanded ?
@@ -1238,6 +1244,11 @@ define(() => function ({
         };
 
         return {
+            authenticated() {
+                processors.push(message => (message.data.authenticated = true));
+                return this;
+            },
+
             expanded() {
                 expanded = true;
                 return this;
@@ -1615,6 +1626,13 @@ define(() => function ({
 
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
+
+        me.span = text => testersFactory.createDomElementTester(
+            () => utils.descendantOf(getRootElement()).
+                matchesSelector('span').
+                textEquals(text).
+                find(),
+        );
 
         me.chips = text => {
             const tester = testersFactory.createDomElementTester(
