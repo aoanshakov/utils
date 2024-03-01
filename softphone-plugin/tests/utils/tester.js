@@ -23,6 +23,7 @@ define(() => function ({
     postMessages,
     triggerMutation,
     isIframe,
+    active = false,
 }) {
     let history,
         eventBus,
@@ -49,7 +50,6 @@ define(() => function ({
     window.stores = null;
     window.softphoneBroadcastChannelCache = {};
     window.destroyMethodCaller?.();
-    window.widget.reset();
 
     me.restoreIFrameContentWindow = () => null;
 
@@ -632,15 +632,21 @@ define(() => function ({
     }
 
     me.widgetSettings = () => {
-        const queryParams = {
-            widget_id: 'faaeopllmpfoeobihkiojkbhnlfkleik',
-        };
-
-        let wildcart = 'https://*.uiscom.ru/**';
+        let wildcart = 'https://*.uiscom.ru/**',
+            widget_id = 'chrome';
 
         const softphoneSettingsProcessors = [],
             settingsProcessors = [],
-            storageDataProcessors = [];
+            storageDataProcessors = [],
+            getQueryParams = () => ({ widget_id });
+
+        const getCallapi = () => ({
+            url: 'https://somedomain.com/click2call/{{ phone }}',
+            method: 'post',
+            data: {
+                phone: '{{ phone }}',
+            },
+        });
 
         const getSoftphoneSettings = () => {
             const value = {
@@ -668,7 +674,7 @@ define(() => function ({
                     },
                 },
                 click2call: {
-                    mode: 'webrtc',
+                    callapi: getCallapi(),
                     handlers: [{
                         elementSelector: '.phone-number',
                         tag: 'button',
@@ -696,11 +702,20 @@ define(() => function ({
         };
 
         const getSettings = () => {
+            const isChrome = widget_id == 'chrome';
+
             const value = {
                 softphone: {
-                    [wildcart]: getSoftphoneSettings(),
+                    [wildcart]: isChrome ? getSoftphoneSettings() : {
+                        click2call: {
+                            callapi: getCallapi(),
+                        },
+                    },
                 },
-                chats: {},
+
+                ...(isChrome ? {
+                    chats: {},
+                } : {}),
             };
 
             return settingsProcessors.reduce((value, process) => process(value), value);
@@ -720,6 +735,29 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.amocrm = () => {
+                widget_id = 'amoSoftphone';
+                return me;
+            };
+
+            me.textSelectorRegExp = () => {
+                softphoneSettingsProcessors.push(softphoneSettings => {
+                    softphoneSettings.click2call.handlers[1].elementSelector = '.some-text-container';
+
+                    const MAX_SHORT_PHONE_NUMBER_LENGTH = 5,
+                        separator = space => `[\\-\\(\\)${space}]*`,
+                        character = separator => `(?:${separator}\\d${separator})`,
+                        noSpace = character(separator('')),
+                        hasSpace = character(separator(' ')),
+                        pattern = `\\+?\\d${hasSpace}{${MAX_SHORT_PHONE_NUMBER_LENGTH - 1}}${hasSpace}*${noSpace}{1}`;
+
+                    softphoneSettings.click2call.handlers[1].textSelectorRegExp = pattern;
+                    return softphoneSettings;
+                });
+
+                return me;
+            };
+
             me.noPadding = () => {
                 softphoneSettingsProcessors.push(softphoneSettings => (
                     softphoneSettings.padding = null,
@@ -885,24 +923,6 @@ define(() => function ({
                 return me;
             };
 
-            me.callapi = () => {
-                softphoneSettingsProcessors.push(softphoneSettings => {
-                    softphoneSettings.click2call.mode = 'callapi';
-
-                    softphoneSettings.click2call.callapi = {
-                        url: 'https://somedomain.com/click2call/{{ phone }}',
-                        method: 'post',
-                        data: {
-                            phone: '{{ phone }}',
-                        },
-                    };
-
-                    return softphoneSettings;
-                });
-
-                return me;
-            };
-
             return me;
         };
 
@@ -965,7 +985,7 @@ define(() => function ({
                 expectToBeSent(requests) {
                     const request = (requests ? requests.someRequest() : fetch.recentRequest()).
                         expectToHaveMethod('GET').
-                        expectQueryToContain(queryParams).
+                        expectQueryToContain(getQueryParams()).
                         expectToHaveHeaders({
                             authorization: 'Bearer 23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
                             'x-auth-type': 'jwt',
@@ -1233,6 +1253,25 @@ define(() => function ({
         };
     };
 
+    me.originSettingRequest = () => {
+        const processors = [];
+
+        const getMessage = () => {
+            const message = {
+                method: 'set_origin',
+                data: 'https://app.uiscom.ru'
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        return {
+            receive: () => postMessages.receive(getMessage()),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+
     me.stateSettingRequest = () => {
         const processors = [];
         let expanded = false,
@@ -1426,6 +1465,7 @@ define(() => function ({
         window.application.run({
             application,
             setHistory,
+            active,
         });
 
         me.history = (() => {
@@ -1482,7 +1522,14 @@ define(() => function ({
                 processPhone(74951234572) + '</span></div>' +
             '<br/>' +
             '<div class="telephone-number"><span data-phone="' + processPhone(74951234573) + '">+' +
-                processPhone(74951234574) + '</span></div>'
+                processPhone(74951234574) + '</span></div>' +
+            '<div class="some-text-container">' +
+                '<span data-phone="74951234562">' +
+                    '[+7 (495) 123-45-64] ' +
+
+                    '[+7 (495) 123-45-63]' +
+                '</span>' +
+            '</div>'
         );
     };
 

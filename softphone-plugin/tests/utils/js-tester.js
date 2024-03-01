@@ -5111,7 +5111,11 @@ function JsTester_RequestTester (args) {
         return requests.expectNoRequestsToBeSent();
     };
     this.replaceByFake = function () {
-        requests = new JsTester_Requests(createRequestsProvider(), utils);
+        requests = new JsTester_Requests({
+            requests: createRequestsProvider(),
+            utils,
+        });
+
         replaceByFake(requests);
     };
     this.restoreReal = function (exceptions) {
@@ -5386,7 +5390,7 @@ function JsTester_ReadableStream (data) {
     };
 }
 
-function JsTester_Requests (requests, utils) {
+function JsTester_Requests ({ requests, utils }) {
     var indexOfRecentRequest = 0,
         recentRequest,
         callStacks = [];

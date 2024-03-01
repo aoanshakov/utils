@@ -20,9 +20,27 @@ const history = createMemoryHistory();
 
 class Widget {
     private widgetActions;
+    private settings;
 
-    constructor() {
-        this.reset();
+    constructor(active) {
+        this.widgetActions = {};
+
+        this.settings = {
+            finished: active ? 'Y' : 'N',
+            id: 1022170,
+            status: 'installed',
+            widget_code: 'qxxjueyui7po3xx7xhiw52sy9kzy1pxnfjgofuit',
+            path: '/upl/qxxjueyui7po3xx7xhiw52sy9kzy1pxnfjgofuit/widget',
+            version: '1.0.0',
+            oauth_client_uuid: 'e4830af5-279e-440b-a955-18a3cf60fd3c',
+            widget_active: 'Y',
+            images_path: '/upl/qxxjueyui7po3xx7xhiw52sy9kzy1pxnfjgofuit/widget/images',
+            support: [],
+        };
+    }
+
+    get_settings() {
+        return this.settings;
     }
 
     add_action(name, callback) {
@@ -34,23 +52,17 @@ class Widget {
         action && action.apply(null, args);
     }
 
-    reset() {
-        this.widgetActions = {};
-    }
-
     i18n(key) {
         const dictionary = {
             userLang: {
-                login: 'Войти',
-                logout: 'Выйти',
+                install: 'Завершить установку',
+                settings: 'Перейти к настройкам',
             },
         };
 
         return dictionary[key];
     }
 }
-
-window.widget = new Widget();
 
 const Settings = ({ widget }) => {
     const ref = useRef();
@@ -98,6 +110,7 @@ const App = forwardRef(({ Root, ...props }, ref) => {
 window.application = {
     run({
         application = 'softphone',
+        active = false,
         setHistory,
     }) {
         let rootStore;
@@ -110,6 +123,7 @@ window.application = {
         container.id = 'root';
         document.body.appendChild(container);
 
+        window.widget = new Widget(active);
         const widget = new Application(window.widget);
 
         root = createRoot(document.getElementById('root')),
