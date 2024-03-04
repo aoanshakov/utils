@@ -148,6 +148,11 @@ tests.addTest(options => {
                                 beforeEach(function() {
                                     authenticatedUserRequest.receiveResponse();
 
+                                    tester.stateSettingRequest().
+                                        visible().
+                                        userDataFetched().
+                                        expectToBeSent();
+
                                     tester.slavesNotification().
                                         twoChannels().
                                         softphoneServerConnected().
@@ -289,6 +294,12 @@ tests.addTest(options => {
                                     lostCalls(1).
                                     expectToBeSent();
 
+                                tester.stateSettingRequest().
+                                    visible().
+                                    userDataFetched().
+                                    lostCalls(1).
+                                    expectToBeSent();
+
                                 tester.slavesNotification().
                                     twoChannels().
                                     softphoneServerConnected().
@@ -308,6 +319,7 @@ tests.addTest(options => {
 
                                 tester.stateSettingRequest().
                                     visible().
+                                    userDataFetched().
                                     expanded().
                                     lostCalls(1).
                                     expectToBeSent();
@@ -316,6 +328,7 @@ tests.addTest(options => {
 
                                 tester.stateSettingRequest().
                                     visible().
+                                    userDataFetched().
                                     expanded().
                                     expectToBeSent();
 
@@ -335,6 +348,7 @@ tests.addTest(options => {
 
                                 tester.stateSettingRequest().
                                     visible().
+                                    userDataFetched().
                                     expanded().
                                     lostCalls(1).
                                     expectToBeSent();
@@ -349,6 +363,7 @@ tests.addTest(options => {
                                 tester.stateSettingRequest().
                                     visible().
                                     expanded().
+                                    userDataFetched().
                                     expectToBeSent();
                             });
                         });
@@ -375,6 +390,11 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.stateSettingRequest().
+                            userDataFetched().
+                            visible().
+                            expectToBeSent();
 
                         tester.slavesNotification().
                             userDataFetched().
@@ -1005,35 +1025,75 @@ tests.addTest(options => {
 
                     );
                 });
-                /*
-                it('', function() {
-                    widgetSettings.
-                        textSelectorRegExp().
-                        receive();
+                describe('Укзано регулярное выражение для замены номера.', function() {
+                    beforeEach(function() {
+                        widgetSettings.
+                            textSelectorRegExp().
+                            receive();
 
-                    tester.stateSettingRequest().receive();
-                    tester.visibilitySettingRequest().receiveResponse();
+                        tester.stateSettingRequest().receive();
+                        tester.visibilitySettingRequest().receiveResponse();
 
-                    tester.widgetSettings().
-                        textSelectorRegExp().
-                        windowMessage().
-                        expectToBeSent();
+                        tester.widgetSettings().
+                            textSelectorRegExp().
+                            windowMessage().
+                            expectToBeSent();
+                    });
 
-                    tester.body.expectToHaveTextContent(
-                        'Первый элемент #1 ' +
-                        'Трубочка ' +
-                        'Некий элемент #1 ' +
-                        'Последний элемент #1 ' +
+                    it('Нажимаю на кнопку номера телефона. Отправлен запрос вызова.', function() {
+                        tester.phoneButton.
+                            atIndex(2).
+                            click();
 
-                        'Телефон: 74951234568 ' +
-                        'Телефон: 74951234570 ' +
-                        '+74951234572 ' +
-                        '+74951234574 ' +
-                        '[+7 (495) 123-45-64] ' +
-                        '[Номер телефона: +7 (495) 123-45-63 (74951234563)]'
-                    );
+                        tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+
+                        postMessages.nextMessage().expectMessageToContain({
+                            method: 'start_call',
+                            data: '74951234564',
+                        });
+                    });
+                    it('Обновляю настройки. Разметка вернулась к исходному состоянию.', function() {
+                        tester.widgetSettings().
+                            storageData().
+                            receive();
+
+                        tester.stateSettingRequest().receive();
+                        tester.visibilitySettingRequest().receiveResponse();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            expectToBeSent();
+
+                        tester.body.expectToHaveTextContent(
+                            'Первый элемент #1 ' +
+                            'Трубочка ' +
+                            'Некий элемент #1 ' +
+                            'Последний элемент #1 ' +
+
+                            'Телефон: 74951234568 ' +
+                            'Телефон: 74951234570 ' +
+                            'Номер телефона: +74951234572 (74951234571) ' +
+                            'Номер телефона: +74951234574 (74951234573) ' +
+                            '[+7 (495) 123-45-64] ' +
+                            '[+7 (495) 123-45-63]'
+                        );
+                    });
+                    it('Замена произведена.', function() {
+                        tester.body.expectToHaveTextContent(
+                            'Первый элемент #1 ' +
+                            'Трубочка ' +
+                            'Некий элемент #1 ' +
+                            'Последний элемент #1 ' +
+
+                            'Телефон: 74951234568 ' +
+                            'Телефон: 74951234570 ' +
+                            '+74951234572 ' +
+                            '+74951234574 ' +
+                            '[ Номер телефона: +7 (495) 123-45-64 (74951234564) ] ' +
+                            '[ Номер телефона: +7 (495) 123-45-63 (74951234563) ]'
+                        );
+                    });
                 });
-                */
                 it('Не переданы настройки доступного для перемещения пространства. IFrame отображен.', function() {
                     widgetSettings.
                         noPadding().
@@ -1514,6 +1574,10 @@ tests.addTest(options => {
 
                         authenticatedUserRequest.receiveResponse();
 
+                        tester.stateSettingRequest().
+                            userDataFetched().
+                            expectToBeSent();
+
                         tester.slavesNotification().
                             twoChannels().
                             softphoneServerConnected().
@@ -1542,6 +1606,7 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.stateSettingRequest().
+                            userDataFetched().
                             visible().
                             expectToBeSent();
 
@@ -1773,6 +1838,10 @@ tests.addTest(options => {
                             available().
                             expectToBeSent();
 
+                        tester.stateSettingRequest().
+                            userDataFetched().
+                            expectToBeSent();
+
                         postMessages.receive({
                             method: 'toggle_widget_visibility',
                         });
@@ -1783,6 +1852,7 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.stateSettingRequest().
+                            userDataFetched().
                             visible().
                             expectToBeSent();
                     });
@@ -1844,6 +1914,10 @@ tests.addTest(options => {
 
                         tester.authenticatedUserRequest().receiveResponse();
 
+                        tester.stateSettingRequest().
+                            userDataFetched().
+                            expectToBeSent();
+
                         tester.slavesNotification().
                             userDataFetched().
                             twoChannels().
@@ -1870,6 +1944,7 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.stateSettingRequest().
+                            userDataFetched().
                             visible().
                             expectToBeSent();
 
@@ -1910,6 +1985,10 @@ tests.addTest(options => {
 
                     tester.authenticatedUserRequest().receiveResponse();
 
+                    tester.stateSettingRequest().
+                        userDataFetched().
+                        expectToBeSent();
+
                     tester.slavesNotification().
                         userDataFetched().
                         twoChannels().
@@ -1932,6 +2011,7 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.stateSettingRequest().
+                        userDataFetched().
                         visible().
                         expectToBeSent();
 
@@ -1957,6 +2037,7 @@ tests.addTest(options => {
 
                     tester.stateSettingRequest().
                         visible().
+                        userDataFetched().
                         expectToBeSent();
 
                     tester.softphone.expectTextContentToHaveSubstring(

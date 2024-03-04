@@ -1281,6 +1281,7 @@ define(() => function ({
             const message = {
                 method: 'set_state',
                 data: {
+                    userName: '',
                     lostCallsCount: 0,
                     visible: false,
                     size: expanded ?
@@ -1306,6 +1307,11 @@ define(() => function ({
         };
 
         return {
+            userDataFetched() {
+                processors.push(message => (message.data.userName = 'Ганева Стефка'));
+                return this;
+            },
+            
             expanded() {
                 expanded = true;
                 return this;
@@ -1525,7 +1531,7 @@ define(() => function ({
                 processPhone(74951234574) + '</span></div>' +
             '<div class="some-text-container">' +
                 '<span data-phone="74951234562">' +
-                    '[+7 (495) 123-45-64] ' +
+                    '[+7 (495) 123-45-64] ' + "\n" +
 
                     '[+7 (495) 123-45-63]' +
                 '</span>' +
