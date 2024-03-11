@@ -2,12 +2,14 @@ import React, { useRef, useCallback, useEffect, useState, useImperativeHandle, f
 import { createRoot } from 'react-dom/client';
 import { createMemoryHistory } from 'history';
 
-import Softphone from '@/Root';
-import Popup from '@/popup/Root';
-import IframeContent from '@/iframe/Root';
-import Amocrm from '@/amocrm/Root';
-import initialize from '@/background/initialize';
-import Application from '@/amocrm/Application';
+import Softphone from '@/chrome/content/Root';
+import Popup from '@/chrome/popup/Root';
+import initialize from '@/chrome/background/initialize';
+
+import Amocrm from '@/amocrm/parent/Root';
+import Application from '@/amocrm/parent/Application';
+
+import IframeContent from '@/iframeContent/Root';
 
 let root;
 
@@ -87,6 +89,7 @@ const applications = {
     iframeContent: IframeContent,
     amocrm: Amocrm,
     amocrmIframeContent: IframeContent,
+    chatsIframe: IframeContent,
     settings: Settings,
 };
 

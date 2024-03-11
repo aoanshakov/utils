@@ -35,7 +35,15 @@ const {
     testsServerLog,
     testsServerPid,
     testsEntripointSource,
-    testsEntripointTarget
+    testsEntripointTarget,
+    chatsPatch,
+    employeesPatch,
+    contactsPatch,
+    contacts,
+    employees,
+    chats,
+    core,
+    corePatch,
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -46,6 +54,12 @@ const rmVerbose = target => `if [ -e ${target} ]; then rm -rvf ${target}; fi`;
 
 actions['fix-permissions'] =
     [`if [ -n "$APPLICATION_OWNER" ]; then chown -R $APPLICATION_OWNER:$APPLICATION_OWNER $1 ${application}; fi`];
+
+const chatOverridenFiles = 'package.json ' +
+    'src/App.tsx ' +
+    'src/models/auth/AuthStore.ts ' +
+    'src/models/account/AccountStore.ts ' +
+    'src/components/chats/chat-panel/styles.less';
 
 const overriding = [{
     application,
@@ -67,6 +81,22 @@ const overriding = [{
     application: uisWebRTC,
     overridenFiles: packageJson,
     applicationPatch: uisWebRTCPatch,
+}, {
+    application: chats,
+    overridenFiles: chatOverridenFiles,
+    applicationPatch: chatsPatch,
+}, {
+    application: employees,
+    overridenFiles: packageJson,
+    applicationPatch: employeesPatch,
+},  {
+    application: contacts,
+    overridenFiles: packageJson,
+    applicationPatch: contactsPatch,
+}, {
+    application: core,
+    overridenFiles: packageJson,
+    applicationPatch: corePatch,
 }];
 
 const getOverriding = () => overriding.map(overriding => ({
@@ -120,14 +150,19 @@ actions['patch-node-modules'] = [
 ].map(([path, patch]) => `cd ${path} && patch -p1 < ${patch}`);
 
 actions['initialize'] = params => [`git config --global --add safe.directory ${application}`].concat([
-    [`web/logger`, logger, 'master', misc],
+    ['chats/frontend', chats, 'stand-int0', misc],
+    ['web/comagic_app_modules/operator-workplace', employees, 'stand-int0', misc],
+    ['web/comagic_app_modules/contacts', contacts, 'stand-int0', misc],
+    ['web/logger', logger, 'master', misc],
+    ['lib/web/core', core, 'master', misc],
     ['web/magic_ui', magicUi, 'feature/softphone', misc],
     ['web/sip_lib', sipLib, 'stand-int0', misc],
     ['web/uis_webrtc', uisWebRTC, 'stand-int0', sipLib]
-].map(([module, path, branch, misc]) => [`git config --global --add safe.directory ${path}`].
+].map(([module, path, branch, misc]) => [].
     concat(!fs.existsSync(path) ? [
-        () => mkdir(misc),
-        `cd ${misc} && git clone --branch ${branch} git@gitlab.uis.dev:${module}.git`
+        () => mkdir(path),
+        `cd ${path} && git clone --branch ${branch} git@gitlab.uis.dev:${module}.git .`,
+        `git config --global --add safe.directory ${path}`,
     ] : [])).reduce((result, item) => result.concat(item), [])).concat(
     actions['modify-code'],
 ).concat(!fs.existsSync(nodeModules) ?  [

@@ -4650,6 +4650,7 @@ function JsTester_NoWindowOpened (utils) {
 
 function JsTester_WindowOpener (utils) {
     var open = window.open,
+        close = window.close,
         actualWindow = new JsTester_NoWindowOpened(utils);
 
     this.expectNoWindowToBeOpened = function () {
@@ -4669,6 +4670,7 @@ function JsTester_WindowOpener (utils) {
     };
     this.replaceByFake = function () {
         actualWindow = new JsTester_NoWindowOpened();
+        window.close = () => null;
 
         window.open = function (url) {
             var results = utils.parseUrl(url);
@@ -4678,6 +4680,7 @@ function JsTester_WindowOpener (utils) {
     this.restoreReal = function () {
         actualWindow = new JsTester_NoWindowOpened();
         window.open = open;
+        window.close = close;
     };
 }
 

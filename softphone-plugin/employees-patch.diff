@@ -1,0 +1,22 @@
+diff --git a/package.json b/package.json
+index de7dc56..c2e2946 100644
+--- a/package.json
++++ b/package.json
+@@ -59,17 +59,7 @@
+     "webpack-dev-server": "^4.9.3"
+   },
+   "dependencies": {
+-    "@comagic/core": "^0.7.0",
+-    "@comagic/workplace-utils": "^1.0.25",
+-    "axios": "^0.24.0",
+-    "magic-ui": "0.0.0-int1",
+-    "mobx": "^6.6.1",
+-    "mobx-react-lite": "^3.4.0",
+-    "mobx-state-tree": "^5.1.5",
+     "nanoid": "^3.2.0",
+-    "react": "^18.2.0",
+-    "react-dom": "^18.2.0",
+-    "react-intl": "^6.5.5",
+     "uuid": "^8.3.2"
+   }
+ }

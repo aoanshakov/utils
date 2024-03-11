@@ -1,14 +1,16 @@
 diff --git a/package.json b/package.json
-index d699386..83f174e 100644
+index 210912b..1e87664 100644
 --- a/package.json
 +++ b/package.json
-@@ -47,14 +47,14 @@
+@@ -47,14 +47,16 @@
      "webpack": "^5.74.0"
    },
    "dependencies": {
 -    "@comagic/softphone-widget": "0.0.0-int0",
 -    "@comagic/softphone-core": "0.0.0-int0",
 -    "@comagic/workplace-utils": "^1.0.21",
++    "@comagic/core": "./misc/core",
++    "@comagic/ui": "1.85.0",
 +    "@comagic/softphone-core": "./misc/sip_lib/uis_webrtc",
 +    "@comagic/softphone-widget": "./misc/sip_lib",
 +    "@comagic/workplace-utils": "./misc/logger",
@@ -21,3 +23,15 @@ index d699386..83f174e 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
+@@ -67,6 +69,10 @@
+     "wildcard-match": "^5.1.2",
+     "json3": "3.3.3",
+     "react-router-dom": "6.9.0",
+-    "jwt-decode": "^4.0.0"
++    "jwt-decode": "^4.0.0",
++    "js-cookie": "^3.0.5",
++    "chats": "./misc/chats",
++    "contacts": "./misc/contacts",
++    "employees": "./misc/operator-workplace"
+   }
+ }

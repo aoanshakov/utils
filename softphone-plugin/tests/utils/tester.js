@@ -32,6 +32,7 @@ define(() => function ({
         Modal;
 
     const mainTester = me;
+    me.oauthToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6InBqeWNOMndxTkotbU1mcVpRSllIdHAtMGw0Uk1XNVNkUUF3N2JITmhjc00iLCJ0eXAiOiJKV1QifQ.eyJqdGkiOiI4NjZhZTFkZC02M2E2LTRhMTItOGVkZC1hODcyMmUwNjhlODAiLCJzaWQiOiJmYjZhYWJkMC05YjIzLTQzNDAtYjFkNC1hYTk4ZTIxYjAxYzciLCJpc3MiOiJodHRwczovL3Byb2QtbXNrLXVjLXNzby1hcGkubm92b2Zvbi5ydSIsImF1ZCI6WyJodHRwczovL3Byb2QtbXNrLWRhdGFhcGktanNvbnJwYy5ub3ZvZm9uLnJ1IiwiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJodHRwczovL3Byb2QtbXNrLXNvZnRwaG9uZS1yZXN0LWFwaS5ub3ZvZm9uLnJ1Il0sInN1YiI6IkNvbWFnaWNEQnxub3ZvZm9ufDEwNnw0NTEiLCJzdWJkIjp7ImFwcF9pZCI6MTA2LCJjdXN0b21lcl9pZCI6Mjg5MTU2NCwidXNlcl9pZCI6NDUxLCJsb2dpbiI6ImJpdHJpeHRlc3QiLCJpc19zeXN0ZW0iOmZhbHNlfSwiY2xpZW50X2lkIjoiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJpYXQiOjE3MDk2Mzg2MzR9.G3Irx8UHLLv1mGSnx_fpE-wZoaQud1Jh7hJQrg_17v1eKFQrrzBYD4s_PMUe_bso90c9ooWLudXMHuRrAfQzrJasaEFIkEtalKbnNAxwRac_sWdAUfr5-sxiUcJPPEkUWWxqD3fAAvuo-8lANps89W0f3DN_8WJ7lXUqEwZT8bftOOGcAthbkXKnVyzRUNJfkFnK3jV7qa6uwIbYOd0sJAXpc-rDyG_kWfnwZv-NYZinIHgk92kRT-tOiSnX6HAOKDQ3QbtKOCT-uJqAd78RKMjFcMAbbFRrQBr1q3s9OUJCArYi6wQcHkhiMuT0mXAPK-eAnaiKFfuuT9r1S0tPCKnnnyK6mUQo_K11Ne3kW1xShVYEhK7wtTn-BnJORF-Y0KHLI3Ndp6Jjs7Ak7nbQRztJ64buBpksI0PAKRc9euWdc04HmHxftCCgZ9uc2YjL77sqr_ExzJsMNJDNwEDrFsmMIHhpNvA19P1zuDaiCr2zja1HQEE3vyLr-JAjlYdCTOZkJ5dqRFAmCWBQ-12JJbRihB1kPyhrpbKcWg7Ry1RV47ghbgQ6igv-1BCelu9LT5IvSXLnhNxPLTdi17ukKFdS5V5XugryqFgDujSJiBCWLGAZ1mzT08BVK4yIeSo5GQhs8oNReNDmnDo33tfTzzpFDbQxHwHQAUG1oXYvuEI';
 
     const jwtToken = {
         jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
@@ -302,6 +303,37 @@ define(() => function ({
         this.createMessagesTester = () => new MessagesTester(messages);
     };
 
+    function ReloadingsCount () {
+        let value = 0;
+
+        this.increase = () => {
+            value ++;
+        };
+
+        this.reset = () => {
+            value = 0;
+        };
+
+        this.get = () => {
+            return value;
+        };
+    }
+
+    function ReloadingsTester (reloadingsCount) {
+        this.expectToBeReloaded = () => {
+            const value = reloadingsCount.get();
+            reloadingsCount.reset();
+
+            if (!value) {
+                throw new Error('Вкладка должна быть обновлена.');
+            }
+
+            if (value > 1) {
+                throw new Error('Вкладка не должна быть обновлена больше одного раза.');
+            }
+        };
+    }
+
     function ChromeTabs () {
         function Tab () {
             this.id = 5829373782;
@@ -332,7 +364,19 @@ define(() => function ({
             lastFocusedWindow: true,
         });
 
-        this.getCurrentTabMessagesTester = () => currentTab.messageSender.createMessagesTester();
+        const reloadingsCount = new ReloadingsCount();
+
+        this.getCurrentTabMessagesTester = () => {
+            const tester = currentTab.messageSender.createMessagesTester(),
+                reloadingsTester = new ReloadingsTester(reloadingsCount);
+
+            tester.expectToBeReloaded = () => reloadingsTester.expectToBeReloaded();
+            return tester;
+        };
+
+        this.reload = () => {
+            reloadingsCount.increase();
+        };
 
         this.sendMessage = (tabId, message) => {
             const item = tabs[tabId];
@@ -530,6 +574,7 @@ define(() => function ({
         function Tabs (tabs) {
             this.sendMessage = (tabId, message) => tabs.sendMessage(tabId, message);
             this.query = queryOptions => Promise.resolve(tabs.query(queryOptions).map(item => item.tab));
+            this.reload = () => tabs.reload();
         }
 
         function MessageListeners (messageListeners) {
@@ -631,9 +676,13 @@ define(() => function ({
         });
     }
 
+    me.refreshButton = testersFactory.createDomElementTester('.cmg-chrome-extension-settings-refresh');
+    me.popupLogoutButton = testersFactory.createDomElementTester('.cmg-chrome-extension-logout');
+
     me.widgetSettings = () => {
         let wildcart = 'https://*.uiscom.ru/**',
-            widget_id = 'chrome';
+            widget_id = 'chrome',
+            chatsSettings = false;
 
         const softphoneSettingsProcessors = [],
             settingsProcessors = [],
@@ -723,7 +772,7 @@ define(() => function ({
 
         const getStorageData = () => {
             const value = {
-                token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+                token: mainTester.oauthToken,
                 loading: 0,
                 settings: {
                     time: '2019-12-19T12:10:06',
@@ -735,6 +784,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.chatsSettings = () => {
+                chatsSettings = true;
+                return me;
+            };
+
             me.amocrm = () => {
                 widget_id = 'amoSoftphone';
                 return me;
@@ -930,7 +984,7 @@ define(() => function ({
             method: 'set_widget_settings',
             data: {
                 token: getStorageData().token,
-                ...(getSoftphoneSettings() || {}),
+                ...(chatsSettings ? {} : (getSoftphoneSettings() || {})),
             },
         });
 
@@ -987,7 +1041,7 @@ define(() => function ({
                         expectToHaveMethod('GET').
                         expectQueryToContain(getQueryParams()).
                         expectToHaveHeaders({
-                            authorization: 'Bearer 23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+                            authorization: `Bearer ${mainTester.oauthToken}`,
                             'x-auth-type': 'jwt',
                         }).
                         expectToHavePath('https://my.uiscom.ru/extension/uc_flow/installment_settings');
@@ -1084,7 +1138,7 @@ define(() => function ({
             };
         };
 
-        me.visibilityRequest = createRequest('get_visibility');
+        me.stateRequest = createRequest('get_state');
         me.toggleWidgetVisibilityRequest = createRequest('toggle_widget_visibility');
     }
 
@@ -1123,13 +1177,18 @@ define(() => function ({
             }, message);
         };
 
-        me.visibilitySettingRequest = createRequest({
-            method: 'set_visibility',
-            data: false,
+        me.popupStateSettingRequest = createRequest({
+            method: 'set_state',
+            data: {
+                visible: false,
+                userName: '',
+            },
             script: 'popup',
             addResponseModifiers: (me, message) => {
-                me.visible = () => (message.data = true, me);
-                me.disabled = () => (message.data = null, me);
+                me.userDataFetched = () => (message.data.userName = 'Ганева Стефка', me);
+                me.visible = () => (message.data.visible = true, me);
+                me.disabled = () => (message.data.visible = null, me);
+
                 return me;
             },
         });
@@ -1436,7 +1495,7 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith({
-                            access_token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+                            access_token: mainTester.oauthToken,
                             token_type: 'Bearer',
                         });
 
@@ -1497,6 +1556,8 @@ define(() => function ({
             me.history.push('/chrome');
         } else if (application == 'amocrmIframeContent') {
             me.history.push('/amocrm');
+        } else if (application == 'chatsIframe') {
+            me.history.push('/chats');
         }
     }
 
@@ -1531,7 +1592,7 @@ define(() => function ({
                 processPhone(74951234574) + '</span></div>' +
             '<div class="some-text-container">' +
                 '<span data-phone="74951234562">' +
-                    '[+7 (495) 123-45-64] ' + "\n" +
+                    '[+7 (495) 123-45-64] ' + "\n<span></span>" +
 
                     '[+7 (495) 123-45-63]' +
                 '</span>' +
@@ -3418,6 +3479,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.oauthToken = () => {
+                headers.Authorization = `Bearer ${mainTester.oauthToken}`;
+                return me;
+            };
+
             me.anotherAuthorizationToken = () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), me);
 
@@ -3727,6 +3793,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.oauthToken = () => {
+                headers.Authorization = `Bearer ${mainTester.oauthToken}`;
+                return me;
+            };
+
             me.many = () => {
                 data.push({
                     id: 8,
@@ -5396,6 +5467,11 @@ define(() => function ({
         let access_token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
 
         return {
+            oauthToken() {
+                access_token = mainTester.oauthToken;
+                return this;
+            },
+
             anotherAuthorizationToken() {
                 access_token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
                 return this;
@@ -7139,7 +7215,7 @@ define(() => function ({
                     expectToHaveMethod('POST').
                     expectToHavePath(`https://${softphoneHost}/sup/auth/token`).
                     expectBodyToContain({
-                        token: '23f8DS8sdflsdf8DslsdfLSD0ad31Ffsdf',
+                        token: mainTester.oauthToken,
                     });
 
                 return addResponseModifiers({
@@ -15883,6 +15959,7 @@ define(() => function ({
                     ],
                     user_login: 'karadimova',
                     customer_id: 183510,
+                    limits: [],
                     permissions: [
                         {
                             'unit_id': 'call_recordings',
@@ -15933,6 +16010,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.oauthToken = () => {
+                token = mainTester.oauthToken;
+                return me;
+            };
+
             me.callGear = () => {
                 response.result.data.project = 'usa';
                 return me;

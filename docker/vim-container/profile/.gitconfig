@@ -5,3 +5,7 @@
 [user]
 	name = Alexander Anshakov
 	email = a.anshakov@uiscom.ru
+[safe]
+	directory = /usr/local/src/gitlab.uis.dev/softphone-chrome-widget/misc/contacts
+	directory = /usr/local/src/gitlab.uis.dev/softphone-chrome-widget/misc/chats
+	directory = /usr/local/src/gitlab.uis.dev/softphone-chrome-widget/misc/operator-workplace
