@@ -52,8 +52,6 @@ define(() => function ({
     window.softphoneBroadcastChannelCache = {};
     window.destroyMethodCaller?.();
 
-    me.restoreIFrameContentWindow = () => null;
-
     {
 
         let phoneIconClickHandler = function () {
@@ -87,22 +85,29 @@ define(() => function ({
         });
     }
 
-    window.setSoftphoneIframe = iframe => {
-        if (!iframe) {
-            return;
-        }
+    function createIframeSetter (restoreMethodName) {
+        me[restoreMethodName] = () => null;
 
-        const originalContentWindow = iframe?.contentWindow;
-        let contentWindow = window.parent;
+        return iframe => {
+            if (!iframe) {
+                return;
+            }
 
-        me.restoreIFrameContentWindow = () => (contentWindow = originalContentWindow);
+            const originalContentWindow = iframe?.contentWindow;
+            let contentWindow = window.parent;
 
-        Object.defineProperty(iframe, 'contentWindow', {
-            get: function () {
-                return contentWindow;
-            },
-        })
-    };
+            me[restoreMethodName] = () => (contentWindow = originalContentWindow);
+
+            Object.defineProperty(iframe, 'contentWindow', {
+                get: function () {
+                    return contentWindow;
+                },
+            })
+        };
+    }
+
+    window.setSoftphoneIframe = createIframeSetter('restoreSoftphoneIFrameContentWindow');
+    window.setChatsIframe = createIframeSetter('restoreChatsIFrameContentWindow');
 
     function AuthFlowLaunching ({
         respond,
@@ -1140,6 +1145,7 @@ define(() => function ({
 
         me.stateRequest = createRequest('get_state');
         me.toggleWidgetVisibilityRequest = createRequest('toggle_widget_visibility');
+        me.toggleChatsVisibilityRequest = createRequest('toggle_chats_visibility');
     }
 
     {
@@ -1637,7 +1643,19 @@ define(() => function ({
     spendTime(0);
     spendTime(0);
 
-    me.iframe = testersFactory.createDomElementTester(() => document.querySelector('iframe'));
+    me.iframe = (() => {
+        const getIframes = () => Array.prototype.slice.call(document.querySelectorAll('iframe') || [], 0) || [];
+
+        const tester = testersFactory.createDomElementTester(() => {
+            const iframes = getIframes();
+            iframes.length == 1 ? iframes[0] : null;
+        });
+
+        tester.atIndex = index => testersFactory.createDomElementTester(() => getIframes()[index]);
+        tester.first = tester.atIndex(0);
+
+        return tester;
+    })();
 
     me.notificationsList = (() => {
         const getDrawerAncestor = domElement => domElement && domElement.closest('.ui-drawer-inner');

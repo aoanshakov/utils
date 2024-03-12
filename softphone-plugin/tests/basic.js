@@ -17,7 +17,7 @@ tests.addTest(options => {
         });
 
         afterEach(function() {
-            tester.restoreIFrameContentWindow();
+            tester.restoreSoftphoneIFrameContentWindow();
 
             tester.chrome.
                 tabs.
@@ -49,7 +49,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        xdescribe('Открыт IFrame.', function() {
+        describe('Открыт IFrame.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'iframeContent',
@@ -433,7 +433,7 @@ tests.addTest(options => {
                 tester.softphone.expectNotToExist();
             });
         });
-        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
+        describe('Открываю попап. Отправлен запрос состояния.', function() {
             let stateRequest,
                 popupStateSettingRequest;
 
@@ -486,7 +486,7 @@ tests.addTest(options => {
                     expectToBeReloaded();
             });
         });
-        xdescribe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
+        describe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -514,6 +514,11 @@ tests.addTest(options => {
                         tester.popupStateSettingRequest().
                             userDataFetched().
                             receiveResponse();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            chatsSettings().
+                            expectToBeSent();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -621,6 +626,48 @@ tests.addTest(options => {
                             );
                         });
                     });
+                    it('Получены другие настройки. Кнопка видимости добавлена после элемента.', function() {
+                        tester.widgetSettings().
+                            storageData().
+                            insertAfter().
+                            anotherClick2CallHandlers().
+                            receive();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            chatsSettings().
+                            expectToBeSent();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            insertAfter().
+                            anotherClick2CallHandlers().
+                            expectToBeSent();
+
+                        tester.phoneButton.
+                            first.
+                            expectToHaveTag('a');
+
+                        tester.body.expectToHaveTextContent(
+                            'Первый элемент #1 ' +
+                            'Некий элемент #1 ' +
+                            'Трубочка ' +
+                            'Последний элемент #1 ' +
+
+                            'Тел: 74951234568 ' +
+                            'Тел: 74951234570 ' +
+                            'Номер тел: +74951234572 [74951234571] ' +
+                            'Номер тел: +74951234574 [74951234573] ' +
+                            '[+7 (495) 123-45-64] ' +
+                            '[+7 (495) 123-45-63]'
+                        );
+                    });
+                    it('Получен запрос изменения видимости чатов. Чаты видимы.', function() {
+                        tester.toggleChatsVisibilityRequest().expectResponseToBeSent();
+
+                        tester.iframe.first.expectToBeHidden();
+                        tester.iframe.atIndex(1).expectToBeVisible();
+                    });
                     it('В дочернем IFrame  нажимаю на номер телефона. Отправлен запрос вызова.', function() {
                         postMessages.receive({
                             method: 'start_call',
@@ -674,8 +721,10 @@ tests.addTest(options => {
                             visible().
                             receiveResponse();
 
-                        tester.iframe.expectToHaveWidth(340);
-                        tester.iframe.expectToHaveHeight(212);
+                        tester.iframe.first.expectToHaveWidth(340);
+                        tester.iframe.first.expectToHaveHeight(212);
+
+                        tester.iframe.atIndex(1).expectToBeHidden();
                     });
                     it(
                         'Получено сообщение о пропущенном звонке. Отображено количество пропущенных звонков.',
@@ -704,38 +753,7 @@ tests.addTest(options => {
                         tester.stateRequest().expectResponseToBeSent();
                         tester.popupStateSettingRequest().receiveResponse();
 
-                        tester.iframe.expectToBeHidden();
-                    });
-                    it('Получены другие настройки. Кнопка видимости добавлена после элемента.', function() {
-                        tester.widgetSettings().
-                            storageData().
-                            insertAfter().
-                            anotherClick2CallHandlers().
-                            receive();
-
-                        tester.widgetSettings().
-                            windowMessage().
-                            insertAfter().
-                            anotherClick2CallHandlers().
-                            expectToBeSent();
-
-                        tester.phoneButton.
-                            first.
-                            expectToHaveTag('a');
-
-                        tester.body.expectToHaveTextContent(
-                            'Первый элемент #1 ' +
-                            'Некий элемент #1 ' +
-                            'Трубочка ' +
-                            'Последний элемент #1 ' +
-
-                            'Тел: 74951234568 ' +
-                            'Тел: 74951234570 ' +
-                            'Номер тел: +74951234572 [74951234571] ' +
-                            'Номер тел: +74951234574 [74951234573] ' +
-                            '[+7 (495) 123-45-64] ' +
-                            '[+7 (495) 123-45-63]'
-                        );
+                        tester.iframe.first.expectToBeHidden();
                     });
                     it('Кнопка видимости добавлена перед элементом.', function() {
                         tester.body.expectToHaveTextContent(
@@ -789,7 +807,7 @@ tests.addTest(options => {
                             '[+7 (495) 123-45-63]'
                         );
 
-                        tester.iframe.expectNotToExist();
+                        tester.iframe.first.expectNotToExist();
                     });
                 });
                 describe('Для отображения телефона должно использоваться необработанное значение.', function() {
@@ -800,6 +818,11 @@ tests.addTest(options => {
 
                         tester.stateSettingRequest().receive();
                         tester.popupStateSettingRequest().receiveResponse();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            chatsSettings().
+                            expectToBeSent();
 
                         tester.widgetSettings().
                             rawPhone().
@@ -1055,6 +1078,11 @@ tests.addTest(options => {
                         tester.popupStateSettingRequest().receiveResponse();
 
                         tester.widgetSettings().
+                            windowMessage().
+                            chatsSettings().
+                            expectToBeSent();
+
+                        tester.widgetSettings().
                             textSelectorRegExp().
                             windowMessage().
                             expectToBeSent();
@@ -1079,6 +1107,11 @@ tests.addTest(options => {
 
                         tester.stateSettingRequest().receive();
                         tester.popupStateSettingRequest().receiveResponse();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            chatsSettings().
+                            expectToBeSent();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -1128,11 +1161,16 @@ tests.addTest(options => {
                         receiveResponse();
 
                     tester.widgetSettings().
+                        windowMessage().
+                        chatsSettings().
+                        expectToBeSent();
+
+                    tester.widgetSettings().
                         noPadding().
                         windowMessage().
                         expectToBeSent();
 
-                    tester.iframe.expectToBeVisible();
+                    tester.iframe.first.expectToBeVisible();
                 });
                 it('Настройки отсутствуют. Кнопка видимости не была добавлена.', function() {
                     widgetSettings.
@@ -1154,14 +1192,14 @@ tests.addTest(options => {
                         '[+7 (495) 123-45-63]'
                     );
 
-                    tester.iframe.expectNotToExist();
+                    tester.iframe.first.expectNotToExist();
                 });
             });
             it('IFrame отсутствует.', function() {
-                tester.iframe.expectNotToExist();
+                tester.iframe.first.expectNotToExist();
             });
         });
-        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
+        describe('Открываю попап. Отправлен запрос состояния.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'popup',
@@ -1207,6 +1245,20 @@ tests.addTest(options => {
                         tester.switchButton('Показать софтфон').expectToBeDisabled();
                         tester.refreshButton.expectToHaveAttribute('disabled');
                     });
+                    it('Нажимаю на кнопку чатов. Отправлен запрос отображения чатов.', function() {
+                        tester.button('Чаты').click();
+
+                        tester.chrome.
+                            permissions.
+                            nextRequest().
+                            grant();
+
+                        tester.installmentSettingsProbableUpdatingRequest().
+                            fromPopup().
+                            receiveResponse();
+
+                        tester.toggleChatsVisibilityRequest().expectToBeSent();
+                    });
                     it('Кнопка входа скрыта.', function() {
                         tester.button('Войти').expectNotToExist();
                         tester.switchButton('Показать софтфон').expectNotToBeChecked();
@@ -1251,7 +1303,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentToHaveSubstring('bitrixtest');
             });
         });
-        xdescribe('Открываю background-скрипт. Софтфон авторизован.', function() {
+        describe('Открываю background-скрипт. Софтфон авторизован.', function() {
             let oauthRequest;
 
             beforeEach(function() {
@@ -1379,7 +1431,7 @@ tests.addTest(options => {
                     grant();
             });
         });
-        xdescribe('Открываю background-скрипт.', function() {
+        describe('Открываю background-скрипт.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'background',
@@ -1465,7 +1517,7 @@ tests.addTest(options => {
                 tester.popupStateSettingRequest().expectResponseToBeSent();
             });
         });
-        xdescribe('Контент скрипт встроился в IFrame.', function() {
+        describe('Контент скрипт встроился в IFrame.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -1518,7 +1570,7 @@ tests.addTest(options => {
                 tester.stateRequest().receive();
             });
             it('Добавлены кнопки видимости и кнопи телефонов. IFrame софтфона отсутствует.', function() {
-                tester.iframe.expectNotToExist();
+                tester.iframe.first.expectNotToExist();
 
                 tester.body.expectToHaveTextContent(
                     'Первый элемент #1 ' +
@@ -1535,7 +1587,7 @@ tests.addTest(options => {
                 );
             });
         });
-        xdescribe('Открыт IFrame софтфона amoCRM.', function() {
+        describe('Открыт IFrame софтфона amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'amocrmIframeContent',
@@ -1727,7 +1779,7 @@ tests.addTest(options => {
                 windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru');
             });
         });
-        xdescribe('Открываю виджет amoCRM.', function() {
+        describe('Открываю виджет amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -1763,7 +1815,7 @@ tests.addTest(options => {
                     });
                 });
                 it('Софтфон отображен.', function() {
-                    tester.iframe.expectToBeVisible();
+                    tester.iframe.first.expectToBeVisible();
                 });
             });
             it(
@@ -1784,10 +1836,10 @@ tests.addTest(options => {
                 windowOpener.expectToHavePath('https://go.comagic.ru/marketplace/integration_list');
             });
             it('IFrame скрыт.', function() {
-                tester.iframe.expectToBeHidden();
+                tester.iframe.first.expectToBeHidden();
             });
         });
-        xdescribe(
+        describe(
             'В локальном хранилище сохранен токен. Открыт IFrame софтфона amoCRM. Производится авторизация.',
         function() {
             let settingsRequest,
@@ -2094,6 +2146,7 @@ tests.addTest(options => {
                 });
             });
         });
+/*
         it('Открываю IFrame чатов. Получены настройки. Отображены чаты.', function() {
             tester = new Tester({
                 application: 'chatsIframe',
@@ -2172,7 +2225,7 @@ tests.addTest(options => {
                 item('Привет').
                 expectToBeVisible();
         });
-        return;
+        */
         it(
             'Контент скрипт встроился в IFrame. URL не находится в списке тех, на которых расширение должно ' +
             'работать. Приходит запрос изменения видимости.',
@@ -2241,11 +2294,22 @@ tests.addTest(options => {
 
             tester.widgetSettings().
                 windowMessage().
+                chatsSettings().
+                expectToBeSent();
+
+            tester.widgetSettings().
+                windowMessage().
                 expectToBeSent();
 
             postMessages.receive({
                 method: 'logout',
             });
+
+            tester.widgetSettings().
+                windowMessage().
+                emptyToken().
+                chatsSettings().
+                expectToBeSent();
 
             tester.widgetSettings().
                 windowMessage().
