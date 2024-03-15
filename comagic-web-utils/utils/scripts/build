@@ -1,0 +1,11 @@
+#!/bin/bash
+
+source ~/.bashrc
+
+cd /usr/local/src/comagic_web
+gulp build
+
+if [ -n $COMAGIC_ENV_USER ]
+then
+    chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER /usr/local/src/comagic_web/
+fi

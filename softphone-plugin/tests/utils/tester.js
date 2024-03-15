@@ -24,6 +24,7 @@ define(() => function ({
     triggerMutation,
     isIframe,
     active = false,
+    lang = 'ru',
 }) {
     let history,
         eventBus,
@@ -68,7 +69,7 @@ define(() => function ({
                     };
                 },
             },
-            lang_id: 'ru'
+            lang_id: lang,
         };
 
         me.clickPhoneIcon = function () {
@@ -989,7 +990,11 @@ define(() => function ({
             method: 'set_widget_settings',
             data: {
                 token: getStorageData().token,
-                ...(chatsSettings ? {} : (getSoftphoneSettings() || {})),
+                ...(chatsSettings ? {
+                    padding: undefined,
+                    button: undefined,
+                    click2call: undefined,
+                } : (getSoftphoneSettings() || {})),
             },
         });
 
@@ -1199,6 +1204,16 @@ define(() => function ({
             },
         });
 
+        me.chatsVisibilitySettingRequest = createRequest({
+            method: 'set_chats_visible',
+            data: false,
+            script: 'popup',
+            addResponseModifiers: (me, message) => {
+                me.visible = () => (message.data = true, me);
+                return me;
+            },
+        });
+
         me.authorizationRequest = createRequest({
             method: 'authorize',
             script: 'background',
@@ -1217,6 +1232,48 @@ define(() => function ({
 
         const message = {
             method: 'maybe_update_settings',
+            data: undefined,
+        };
+
+        return addResponseModifiers({
+            expectResponseToBeSent() {
+                me.chrome.
+                    runtime.
+                    receiveMessage(message).
+                    expectResponseToContain(response);
+            },
+
+            fromPopup() {
+                script = 'background';
+                return this;
+            },
+
+            expectToBeSent() {
+                const request = me.chrome.
+                    runtime[script].
+                    nextMessage().
+                    expectToContain(message);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.receiveResponse(response);
+                    },
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.installmentSettingsUpdatingRequest = () => {
+        let script = 'popup';
+        const response = true,
+            addResponseModifiers = me => me;
+
+        const message = {
+            method: 'update_settings',
             data: undefined,
         };
 
@@ -1318,13 +1375,16 @@ define(() => function ({
         };
     };
 
-    me.originSettingRequest = () => {
+    me.amocrmStateSettingRequest = () => {
         const processors = [];
 
         const getMessage = () => {
             const message = {
-                method: 'set_origin',
-                data: 'https://app.uiscom.ru'
+                method: 'set_amocrm_state',
+                data: {
+                    origin: 'https://app.uiscom.ru',
+                    locale: lang,
+                },
             };
 
             processors.forEach(process => process(message));
@@ -1399,6 +1459,15 @@ define(() => function ({
 
             receive: () => postMessages.receive(getMessage()),
             expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+
+    me.chatsInitilizationEvent = () => {
+        const message = { method: 'chats_initilized' };
+
+        return {
+            receive: () => postMessages.receive(message),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
         };
     };
 
@@ -1559,11 +1628,11 @@ define(() => function ({
         })();
 
         if (application == 'iframeContent') {
-            me.history.push('/chrome');
+            me.history.push('/chrome/softphone');
         } else if (application == 'amocrmIframeContent') {
             me.history.push('/amocrm');
         } else if (application == 'chatsIframe') {
-            me.history.push('/chats');
+            me.history.push('/chrome/chats');
         }
     }
 
@@ -1651,7 +1720,30 @@ define(() => function ({
             iframes.length == 1 ? iframes[0] : null;
         });
 
-        tester.atIndex = index => testersFactory.createDomElementTester(() => getIframes()[index]);
+        tester.atIndex = index => {
+            const getDomElement = () => getIframes()[index],
+                tester = testersFactory.createDomElementTester(getDomElement);
+
+            tester.expectAttributeToHaveValue = (attributeName, expectedValue) => {
+                if (!getDomElement()) {
+                    throw new Error('IFrame должен существововать.');
+                }
+
+                var actualValue = getDomElement().getAttribute(attributeName);
+
+                if (actualValue != expectedValue) {
+                    throw new Error(
+                        'Атрибут "' + attributeName + '" IFrame должен иметь значение "' + expectedValue + '", а не "' +
+                        actualValue + '".'
+                    );
+                }
+
+                return tester;
+            };
+
+            return tester;
+        };
+
         tester.first = tester.atIndex(0);
 
         return tester;

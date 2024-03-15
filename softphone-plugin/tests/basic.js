@@ -494,6 +494,7 @@ tests.addTest(options => {
                 });
 
                 tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+                tester.chatsVisibilitySettingRequest().receiveResponse();
             });
 
             describe('Получен токен авторизации и настройки.', function() {
@@ -517,27 +518,260 @@ tests.addTest(options => {
 
                         tester.widgetSettings().
                             windowMessage().
-                            chatsSettings().
-                            expectToBeSent();
-
-                        tester.widgetSettings().
-                            windowMessage().
                             expectToBeSent();
                     });
 
-                    describe('Содержимое страницы изменилось.', function() {
+                    describe('Получено событие инициализации чатов.', function() {
                         beforeEach(function() {
-                            tester.page.duplicate();
-                            spendTime(999);
+                            tester.chatsInitilizationEvent().receive();
+
+                            tester.widgetSettings().
+                                windowMessage().
+                                chatsSettings().
+                                expectToBeSent();
                         });
 
+                        describe('Содержимое страницы изменилось.', function() {
+                            beforeEach(function() {
+                                tester.page.duplicate();
+                                spendTime(999);
+                            });
+
+                            it(
+                                'Содержимое страницы снова изменилось. Прошло некоторое время.  Кнопка добавлена в ' +
+                                'измененное содержимое страницы.',
+                            function() {
+                                tester.page.triggerMutation();
+                                spendTime(1);
+
+                                tester.body.expectToHaveTextContent(
+                                    'Первый элемент #1 ' +
+                                    'Трубочка ' +
+                                    'Некий элемент #1 ' +
+                                    'Последний элемент #1 ' +
+
+                                    'Телефон: 74951234568 ' +
+                                    'Телефон: 74951234570 ' +
+                                    'Номер телефона: +74951234572 (74951234571) ' +
+                                    'Номер телефона: +74951234574 (74951234573) ' +
+                                    '[+7 (495) 123-45-64] ' +
+                                    '[+7 (495) 123-45-63] ' +
+
+                                    'Первый элемент #2 ' +
+                                    'Трубочка ' +
+                                    'Некий элемент #2 ' +
+                                    'Последний элемент #2 ' +
+
+                                    'Телефон: 74951234576 ' +
+                                    'Телефон: 74951234578 ' +
+                                    'Номер телефона: +74951234580 (74951234579) ' +
+                                    'Номер телефона: +74951234582 (74951234581) ' +
+                                    '[+7 (495) 123-45-64] ' +
+                                    '[+7 (495) 123-45-63]'
+                                );
+
+                                tester.visibilityButton.first.expectToHaveTextContent('Трубочка');
+                                tester.visibilityButton.atIndex(1).expectToHaveTextContent('Трубочка');
+                            });
+                            it(
+                                'Прошло некоторое время. Кнопка добавлена в измененное содержимое страницы.',
+                            function() {
+                                spendTime(1);
+
+                                tester.body.expectToHaveTextContent(
+                                    'Первый элемент #1 ' +
+                                    'Трубочка ' +
+                                    'Некий элемент #1 ' +
+                                    'Последний элемент #1 ' +
+
+                                    'Телефон: 74951234568 ' +
+                                    'Телефон: 74951234570 ' +
+                                    'Номер телефона: +74951234572 (74951234571) ' +
+                                    'Номер телефона: +74951234574 (74951234573) ' +
+                                    '[+7 (495) 123-45-64] ' +
+                                    '[+7 (495) 123-45-63] ' +
+
+                                    'Первый элемент #2 ' +
+                                    'Трубочка ' +
+                                    'Некий элемент #2 ' +
+                                    'Последний элемент #2 ' +
+
+                                    'Телефон: 74951234576 ' +
+                                    'Телефон: 74951234578 ' +
+                                    'Номер телефона: +74951234580 (74951234579) ' +
+                                    'Номер телефона: +74951234582 (74951234581) ' +
+                                    '[+7 (495) 123-45-64] ' +
+                                    '[+7 (495) 123-45-63]'
+                                );
+
+                                tester.visibilityButton.first.expectToHaveTextContent('Трубочка');
+                                tester.visibilityButton.atIndex(1).expectToHaveTextContent('Трубочка');
+                            });
+                            it('Кнопка не была добавлена.', function() {
+                                tester.body.expectToHaveTextContent(
+                                    'Первый элемент #1 ' +
+                                    'Трубочка ' +
+                                    'Некий элемент #1 ' +
+                                    'Последний элемент #1 ' +
+
+                                    'Телефон: 74951234568 ' +
+                                    'Телефон: 74951234570 ' +
+                                    'Номер телефона: +74951234572 (74951234571) ' +
+                                    'Номер телефона: +74951234574 (74951234573) ' +
+                                    '[+7 (495) 123-45-64] ' +
+                                    '[+7 (495) 123-45-63] ' +
+
+                                    'Первый элемент #2 ' +
+                                    'Некий элемент #2 ' +
+                                    'Последний элемент #2 ' +
+
+                                    '+74951234576 ' +
+                                    '+74951234578 ' +
+                                    '+74951234580 ' +
+                                    '+74951234582 ' +
+                                    '[+7 (495) 123-45-64] ' +
+                                    '[+7 (495) 123-45-63]'
+                                );
+                            });
+                        });
+                        it('Получены другие настройки. Кнопка видимости добавлена после элемента.', function() {
+                            tester.widgetSettings().
+                                storageData().
+                                insertAfter().
+                                anotherClick2CallHandlers().
+                                receive();
+
+                            tester.widgetSettings().
+                                windowMessage().
+                                insertAfter().
+                                anotherClick2CallHandlers().
+                                expectToBeSent();
+
+                            tester.widgetSettings().
+                                windowMessage().
+                                chatsSettings().
+                                expectToBeSent();
+
+                            tester.phoneButton.
+                                first.
+                                expectToHaveTag('a');
+
+                            tester.body.expectToHaveTextContent(
+                                'Первый элемент #1 ' +
+                                'Некий элемент #1 ' +
+                                'Трубочка ' +
+                                'Последний элемент #1 ' +
+
+                                'Тел: 74951234568 ' +
+                                'Тел: 74951234570 ' +
+                                'Номер тел: +74951234572 [74951234571] ' +
+                                'Номер тел: +74951234574 [74951234573] ' +
+                                '[+7 (495) 123-45-64] ' +
+                                '[+7 (495) 123-45-63]'
+                            );
+                        });
+                        it('Получен запрос изменения видимости чатов. Чаты видимы.', function() {
+                            tester.toggleChatsVisibilityRequest().expectResponseToBeSent();
+
+                            tester.chatsVisibilitySettingRequest().
+                                visible().
+                                receiveResponse();
+
+                            tester.iframe.first.expectToBeHidden();
+                            tester.iframe.atIndex(1).expectToBeVisible();
+                        });
+                        it('В дочернем IFrame  нажимаю на номер телефона. Отправлен запрос вызова.', function() {
+                            postMessages.receive({
+                                method: 'start_call',
+                                data: '74951234571',
+                            });
+
+                            postMessages.nextMessage().expectMessageToContain({
+                                method: 'start_call',
+                                data: '74951234571',
+                            });
+                        });
                         it(
-                            'Содержимое страницы снова изменилось. Прошло некоторое время.  Кнопка добавлена в ' +
-                            'измененное содержимое страницы.',
+                            'В дочернем IFrame нажимаю на кнопку видимости. Отправлен запрос изменения видимости.',
                         function() {
-                            tester.page.triggerMutation();
-                            spendTime(1);
+                            postMessages.receive({
+                                method: 'toggle_widget_visibility'
+                            });
 
+                            postMessages.nextMessage().expectMessageToContain({
+                                method: 'toggle_widget_visibility'
+                            });
+                        });
+                        it('Нажимаю на номер телефона. Отправлен запрос вызова.', function() {
+                            tester.phoneButton.atIndex(2).click();
+                            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+
+                            postMessages.nextMessage().expectMessageToContain({
+                                method: 'start_call',
+                                data: '74951234571',
+                            });
+                        });
+                        it('Нажимаю на кнопку видимости. Отправлен запрос изменения видимости.', function() {
+                            tester.visibilityButton.click();
+                            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+
+                            postMessages.nextMessage().expectMessageToContain({
+                                method: 'toggle_widget_visibility'
+                            });
+                        });
+                        it(
+                            'От IFrame получено сообщение изменения видимости. В popup-скрипт отправлено сообщение ' +
+                            'об изменении видимости.',
+                        function() {
+                            tester.stateSettingRequest().
+                                userDataFetched().
+                                visible().
+                                receive();
+
+                            tester.popupStateSettingRequest().
+                                userDataFetched().
+                                visible().
+                                receiveResponse();
+
+                            tester.iframe.first.expectToHaveWidth(340);
+                            tester.iframe.first.expectToHaveHeight(212);
+
+                            tester.iframe.atIndex(1).expectToBeHidden();
+                        });
+                        it(
+                            'Получено сообщение о пропущенном звонке. Отображено количество пропущенных звонков.',
+                        function() {
+                            tester.stateSettingRequest().
+                                userDataFetched().
+                                lostCalls(1).
+                                receive();
+
+                            tester.popupStateSettingRequest().
+                                userDataFetched().
+                                receiveResponse();
+
+                            tester.visibilityButton.expectToHaveTextContent('Трубочка (1)');
+                        });
+                        it(
+                            'Получаю запрос изменения видимости. В IFrame отправлен запрос изменения видимости.',
+                        function() {
+                            tester.toggleWidgetVisibilityRequest().expectResponseToBeSent();
+
+                            postMessages.nextMessage().expectMessageToContain({
+                                method: 'toggle_widget_visibility'
+                            });
+                        });
+                        it(
+                            'Получен запрос видимости. В ответ на запрос было отправлено текущее состояние.',
+                        function() {
+                            tester.stateRequest().expectResponseToBeSent();
+
+                            tester.popupStateSettingRequest().receiveResponse();
+                            tester.chatsVisibilitySettingRequest().receiveResponse();
+
+                            tester.iframe.first.expectToBeHidden();
+                        });
+                        it('Кнопка видимости добавлена перед элементом.', function() {
                             tester.body.expectToHaveTextContent(
                                 'Первый элемент #1 ' +
                                 'Трубочка ' +
@@ -549,232 +783,23 @@ tests.addTest(options => {
                                 'Номер телефона: +74951234572 (74951234571) ' +
                                 'Номер телефона: +74951234574 (74951234573) ' +
                                 '[+7 (495) 123-45-64] ' +
-                                '[+7 (495) 123-45-63] ' +
-
-                                'Первый элемент #2 ' +
-                                'Трубочка ' +
-                                'Некий элемент #2 ' +
-                                'Последний элемент #2 ' +
-
-                                'Телефон: 74951234576 ' +
-                                'Телефон: 74951234578 ' +
-                                'Номер телефона: +74951234580 (74951234579) ' +
-                                'Номер телефона: +74951234582 (74951234581) ' +
-                                '[+7 (495) 123-45-64] ' +
                                 '[+7 (495) 123-45-63]'
                             );
 
-                            tester.visibilityButton.first.expectToHaveTextContent('Трубочка');
-                            tester.visibilityButton.atIndex(1).expectToHaveTextContent('Трубочка');
-                        });
-                        it('Прошло некоторое время. Кнопка добавлена в измененное содержимое страницы.', function() {
-                            spendTime(1);
+                            tester.phoneButton.
+                                first.
+                                expectToHaveTag('button');
 
-                            tester.body.expectToHaveTextContent(
-                                'Первый элемент #1 ' +
-                                'Трубочка ' +
-                                'Некий элемент #1 ' +
-                                'Последний элемент #1 ' +
-
-                                'Телефон: 74951234568 ' +
-                                'Телефон: 74951234570 ' +
-                                'Номер телефона: +74951234572 (74951234571) ' +
-                                'Номер телефона: +74951234574 (74951234573) ' +
-                                '[+7 (495) 123-45-64] ' +
-                                '[+7 (495) 123-45-63] ' +
-
-                                'Первый элемент #2 ' +
-                                'Трубочка ' +
-                                'Некий элемент #2 ' +
-                                'Последний элемент #2 ' +
-
-                                'Телефон: 74951234576 ' +
-                                'Телефон: 74951234578 ' +
-                                'Номер телефона: +74951234580 (74951234579) ' +
-                                'Номер телефона: +74951234582 (74951234581) ' +
-                                '[+7 (495) 123-45-64] ' +
-                                '[+7 (495) 123-45-63]'
-                            );
-
-                            tester.visibilityButton.first.expectToHaveTextContent('Трубочка');
-                            tester.visibilityButton.atIndex(1).expectToHaveTextContent('Трубочка');
-                        });
-                        it('Кнопка не была добавлена.', function() {
-                            tester.body.expectToHaveTextContent(
-                                'Первый элемент #1 ' +
-                                'Трубочка ' +
-                                'Некий элемент #1 ' +
-                                'Последний элемент #1 ' +
-
-                                'Телефон: 74951234568 ' +
-                                'Телефон: 74951234570 ' +
-                                'Номер телефона: +74951234572 (74951234571) ' +
-                                'Номер телефона: +74951234574 (74951234573) ' +
-                                '[+7 (495) 123-45-64] ' +
-                                '[+7 (495) 123-45-63] ' +
-
-                                'Первый элемент #2 ' +
-                                'Некий элемент #2 ' +
-                                'Последний элемент #2 ' +
-
-                                '+74951234576 ' +
-                                '+74951234578 ' +
-                                '+74951234580 ' +
-                                '+74951234582 ' +
-                                '[+7 (495) 123-45-64] ' +
-                                '[+7 (495) 123-45-63]'
+                            tester.visibilityButton.expectToHaveTextContent('Трубочка');
+                            
+                            tester.iframe.first.expectAttributeToHaveValue(
+                                'src',
+                                'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/softphone',
                             );
                         });
                     });
-                    it('Получены другие настройки. Кнопка видимости добавлена после элемента.', function() {
-                        tester.widgetSettings().
-                            storageData().
-                            insertAfter().
-                            anotherClick2CallHandlers().
-                            receive();
-
-                        tester.widgetSettings().
-                            windowMessage().
-                            chatsSettings().
-                            expectToBeSent();
-
-                        tester.widgetSettings().
-                            windowMessage().
-                            insertAfter().
-                            anotherClick2CallHandlers().
-                            expectToBeSent();
-
-                        tester.phoneButton.
-                            first.
-                            expectToHaveTag('a');
-
-                        tester.body.expectToHaveTextContent(
-                            'Первый элемент #1 ' +
-                            'Некий элемент #1 ' +
-                            'Трубочка ' +
-                            'Последний элемент #1 ' +
-
-                            'Тел: 74951234568 ' +
-                            'Тел: 74951234570 ' +
-                            'Номер тел: +74951234572 [74951234571] ' +
-                            'Номер тел: +74951234574 [74951234573] ' +
-                            '[+7 (495) 123-45-64] ' +
-                            '[+7 (495) 123-45-63]'
-                        );
-                    });
-                    it('Получен запрос изменения видимости чатов. Чаты видимы.', function() {
-                        tester.toggleChatsVisibilityRequest().expectResponseToBeSent();
-
-                        tester.iframe.first.expectToBeHidden();
-                        tester.iframe.atIndex(1).expectToBeVisible();
-                    });
-                    it('В дочернем IFrame  нажимаю на номер телефона. Отправлен запрос вызова.', function() {
-                        postMessages.receive({
-                            method: 'start_call',
-                            data: '74951234571',
-                        });
-
-                        postMessages.nextMessage().expectMessageToContain({
-                            method: 'start_call',
-                            data: '74951234571',
-                        });
-                    });
-                    it(
-                        'В дочернем IFrame нажимаю на кнопку видимости. Отправлен запрос изменения видимости.',
-                    function() {
-                        postMessages.receive({
-                            method: 'toggle_widget_visibility'
-                        });
-
-                        postMessages.nextMessage().expectMessageToContain({
-                            method: 'toggle_widget_visibility'
-                        });
-                    });
-                    it('Нажимаю на номер телефона. Отправлен запрос вызова.', function() {
-                        tester.phoneButton.atIndex(2).click();
-                        tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-
-                        postMessages.nextMessage().expectMessageToContain({
-                            method: 'start_call',
-                            data: '74951234571',
-                        });
-                    });
-                    it('Нажимаю на кнопку видимости. Отправлен запрос изменения видимости.', function() {
-                        tester.visibilityButton.click();
-                        tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-
-                        postMessages.nextMessage().expectMessageToContain({
-                            method: 'toggle_widget_visibility'
-                        });
-                    });
-                    it(
-                        'От IFrame получено сообщение изменения видимости. В popup-скрипт отправлено сообщение об ' +
-                        'изменении видимости.',
-                    function() {
-                        tester.stateSettingRequest().
-                            userDataFetched().
-                            visible().
-                            receive();
-
-                        tester.popupStateSettingRequest().
-                            userDataFetched().
-                            visible().
-                            receiveResponse();
-
-                        tester.iframe.first.expectToHaveWidth(340);
-                        tester.iframe.first.expectToHaveHeight(212);
-
-                        tester.iframe.atIndex(1).expectToBeHidden();
-                    });
-                    it(
-                        'Получено сообщение о пропущенном звонке. Отображено количество пропущенных звонков.',
-                    function() {
-                        tester.stateSettingRequest().
-                            userDataFetched().
-                            lostCalls(1).
-                            receive();
-
-                        tester.popupStateSettingRequest().
-                            userDataFetched().
-                            receiveResponse();
-
-                        tester.visibilityButton.expectToHaveTextContent('Трубочка (1)');
-                    });
-                    it(
-                        'Получаю запрос изменения видимости. В IFrame отправлен запрос изменения видимости.',
-                    function() {
-                        tester.toggleWidgetVisibilityRequest().expectResponseToBeSent();
-
-                        postMessages.nextMessage().expectMessageToContain({
-                            method: 'toggle_widget_visibility'
-                        });
-                    });
-                    it('Получен запрос видимости. В ответ на запрос было отправлено текущее состояние.', function() {
-                        tester.stateRequest().expectResponseToBeSent();
-                        tester.popupStateSettingRequest().receiveResponse();
-
-                        tester.iframe.first.expectToBeHidden();
-                    });
-                    it('Кнопка видимости добавлена перед элементом.', function() {
-                        tester.body.expectToHaveTextContent(
-                            'Первый элемент #1 ' +
-                            'Трубочка ' +
-                            'Некий элемент #1 ' +
-                            'Последний элемент #1 ' +
-
-                            'Телефон: 74951234568 ' +
-                            'Телефон: 74951234570 ' +
-                            'Номер телефона: +74951234572 (74951234571) ' +
-                            'Номер телефона: +74951234574 (74951234573) ' +
-                            '[+7 (495) 123-45-64] ' +
-                            '[+7 (495) 123-45-63]'
-                        );
-
-                        tester.phoneButton.
-                            first.
-                            expectToHaveTag('button');
-
-                        tester.visibilityButton.expectToHaveTextContent('Трубочка');
+                    it('Запрос установления настроек чатов не был отправлен.', function() {
+                        postMessages.nextMessage().expectNotToExist();
                     });
                 });
                 describe('URL страницы не соответствует wildcard.', function() {
@@ -782,6 +807,13 @@ tests.addTest(options => {
                         widgetSettings.
                             anotherWildcart().
                             receive();
+
+                        tester.chatsInitilizationEvent().receive();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            chatsSettings().
+                            expectToBeSent();
 
                         tester.stateSettingRequest().receive();
                     });
@@ -792,6 +824,8 @@ tests.addTest(options => {
                         tester.popupStateSettingRequest().
                             disabled().
                             receiveResponse();
+
+                        tester.chatsVisibilitySettingRequest().receiveResponse();
                     });
                     it('Кнопка видимости не была добавлена.', function() {
                         tester.body.expectToHaveTextContent(
@@ -807,7 +841,12 @@ tests.addTest(options => {
                             '[+7 (495) 123-45-63]'
                         );
 
-                        tester.iframe.first.expectNotToExist();
+                        tester.iframe.first.expectAttributeToHaveValue(
+                            'src',
+                            'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats',
+                        );
+
+                        tester.iframe.atIndex(1).expectNotToExist();
                     });
                 });
                 describe('Для отображения телефона должно использоваться необработанное значение.', function() {
@@ -820,13 +859,15 @@ tests.addTest(options => {
                         tester.popupStateSettingRequest().receiveResponse();
 
                         tester.widgetSettings().
-                            windowMessage().
-                            chatsSettings().
-                            expectToBeSent();
-
-                        tester.widgetSettings().
                             rawPhone().
                             windowMessage().
+                            expectToBeSent();
+
+                        tester.chatsInitilizationEvent().receive();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            chatsSettings().
                             expectToBeSent();
                     });
 
@@ -1078,13 +1119,15 @@ tests.addTest(options => {
                         tester.popupStateSettingRequest().receiveResponse();
 
                         tester.widgetSettings().
-                            windowMessage().
-                            chatsSettings().
-                            expectToBeSent();
-
-                        tester.widgetSettings().
                             textSelectorRegExp().
                             windowMessage().
+                            expectToBeSent();
+
+                        tester.chatsInitilizationEvent().receive();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            chatsSettings().
                             expectToBeSent();
                     });
 
@@ -1110,11 +1153,11 @@ tests.addTest(options => {
 
                         tester.widgetSettings().
                             windowMessage().
-                            chatsSettings().
                             expectToBeSent();
 
                         tester.widgetSettings().
                             windowMessage().
+                            chatsSettings().
                             expectToBeSent();
 
                         tester.body.expectToHaveTextContent(
@@ -1161,13 +1204,15 @@ tests.addTest(options => {
                         receiveResponse();
 
                     tester.widgetSettings().
-                        windowMessage().
-                        chatsSettings().
-                        expectToBeSent();
-
-                    tester.widgetSettings().
                         noPadding().
                         windowMessage().
+                        expectToBeSent();
+
+                    tester.chatsInitilizationEvent().receive();
+
+                    tester.widgetSettings().
+                        windowMessage().
+                        chatsSettings().
                         expectToBeSent();
 
                     tester.iframe.first.expectToBeVisible();
@@ -1224,6 +1269,36 @@ tests.addTest(options => {
                             expectResponseToBeSent();
                     });
 
+                    describe('Чаты скрыты.', function() {
+                        beforeEach(function() {
+                            tester.chatsVisibilitySettingRequest().expectResponseToBeSent();
+                        });
+
+                        it('Нажимаю на кнопку чатов. Отправлен запрос отображения чатов.', function() {
+                            tester.switchButton('Показать чаты').click();
+
+                            tester.chrome.
+                                permissions.
+                                nextRequest().
+                                grant();
+
+                            tester.installmentSettingsProbableUpdatingRequest().
+                                fromPopup().
+                                receiveResponse();
+
+                            tester.toggleChatsVisibilityRequest().expectToBeSent();
+                        });
+                        it('Кнопка чатов не нажата.', function() {
+                            tester.switchButton('Показать чаты').expectNotToBeChecked();
+                        });
+                    });
+                    it('Чаты видимы. Кнопка чатов нажата.', function() {
+                        tester.chatsVisibilitySettingRequest().
+                            visible().
+                            expectResponseToBeSent();
+
+                        tester.switchButton('Показать чаты').expectToBeChecked();
+                    });
                     it('Нажимаю на кнопку выхода. Отправлен запрос выхода.', function() {
                         tester.popupLogoutButton.click();
                         tester.logoutRequest().receiveResponse();
@@ -1244,20 +1319,6 @@ tests.addTest(options => {
                         tester.popupLogoutButton.expectToHaveAttribute('disabled');
                         tester.switchButton('Показать софтфон').expectToBeDisabled();
                         tester.refreshButton.expectToHaveAttribute('disabled');
-                    });
-                    it('Нажимаю на кнопку чатов. Отправлен запрос отображения чатов.', function() {
-                        tester.button('Чаты').click();
-
-                        tester.chrome.
-                            permissions.
-                            nextRequest().
-                            grant();
-
-                        tester.installmentSettingsProbableUpdatingRequest().
-                            fromPopup().
-                            receiveResponse();
-
-                        tester.toggleChatsVisibilityRequest().expectToBeSent();
                     });
                     it('Кнопка входа скрыта.', function() {
                         tester.button('Войти').expectNotToExist();
@@ -1301,6 +1362,7 @@ tests.addTest(options => {
             });
             it('Отображён логин авторизованного пользователя.', function() {
                 tester.body.expectTextContentToHaveSubstring('bitrixtest');
+                tester.switchButton('Показать чаты').expectNotToExist();
             });
         });
         describe('Открываю background-скрипт. Софтфон авторизован.', function() {
@@ -1527,6 +1589,7 @@ tests.addTest(options => {
                 });
 
                 tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+                tester.chatsVisibilitySettingRequest().receiveResponse();
             });
 
             it('Нажимаю на номер телефона. Отправлен запрос вызова.', function() {
@@ -1597,6 +1660,7 @@ tests.addTest(options => {
                 });
 
                 tester.stateSettingRequest().expectToBeSent();
+                tester.amocrmStateSettingRequest().receive();
             });
 
             describe('Из родительского окна приходит токен. Прозиводится авторизация.', function() {
@@ -1794,7 +1858,7 @@ tests.addTest(options => {
                         visible().
                         receive();
 
-                    tester.originSettingRequest().expectToBeSent();
+                    tester.amocrmStateSettingRequest().expectToBeSent();
                 });
 
                 it('Нажимаю на номер телефона. В софтфон отправлен запрос звонка.', function() {
@@ -1816,6 +1880,11 @@ tests.addTest(options => {
                 });
                 it('Софтфон отображен.', function() {
                     tester.iframe.first.expectToBeVisible();
+
+                    tester.iframe.first.expectAttributeToHaveValue(
+                        'src',
+                        'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm',
+                    );
                 });
             });
             it(
@@ -1861,7 +1930,7 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.stateSettingRequest().expectToBeSent();
-                tester.originSettingRequest().receive();
+                tester.amocrmStateSettingRequest().receive();
 
                 tester.masterInfoMessage().receive();
 
@@ -2146,12 +2215,13 @@ tests.addTest(options => {
                 });
             });
         });
-/*
         it('Открываю IFrame чатов. Получены настройки. Отображены чаты.', function() {
             tester = new Tester({
                 application: 'chatsIframe',
                 ...options,
             });
+
+            tester.chatsInitilizationEvent().expectToBeSent();
 
             tester.widgetSettings().
                 windowMessage().
@@ -2225,7 +2295,6 @@ tests.addTest(options => {
                 item('Привет').
                 expectToBeVisible();
         });
-        */
         it(
             'Контент скрипт встроился в IFrame. URL не находится в списке тех, на которых расширение должно ' +
             'работать. Приходит запрос изменения видимости.',
@@ -2239,6 +2308,7 @@ tests.addTest(options => {
             });
 
             tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+            tester.chatsVisibilitySettingRequest().receiveResponse();
 
             postMessages.receive({
                 method: 'toggle_widget_visibility'
@@ -2281,6 +2351,18 @@ tests.addTest(options => {
             tester.openSettings();
             tester.button('Перейти к настройкам').expectToBeVisible();
         });
+        it('Должен использоваться английский язык. Открываю настройки. Используется английский язык.', function() {
+            tester = new Tester({
+                softphoneHost: 'my.uiscom.ru',
+                ...options,
+                application: 'amocrm',
+                lang: 'en',
+                active: true,
+            });
+
+            tester.openSettings();
+            tester.button('Open settings').expectToBeVisible();
+        });
         it('Открываю страницу с расширением. Токен авторизации был сохранен. В IFrame отправлен токен.', function() {
             tester = new Tester({
                 softphoneHost: 'my.uiscom.ru',
@@ -2289,16 +2371,20 @@ tests.addTest(options => {
             });
 
             tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+            tester.chatsVisibilitySettingRequest().receiveResponse();
+
             tester.stateSettingRequest().receive();
             tester.popupStateSettingRequest().receiveResponse();
 
             tester.widgetSettings().
                 windowMessage().
-                chatsSettings().
                 expectToBeSent();
+
+            tester.chatsInitilizationEvent().receive();
 
             tester.widgetSettings().
                 windowMessage().
+                chatsSettings().
                 expectToBeSent();
 
             postMessages.receive({

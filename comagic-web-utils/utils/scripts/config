@@ -1,0 +1,10 @@
+#!/bin/bash
+
+/home/venv/bin/python3 /home/configure /usr/local/src/comagic-config.json /usr/local/src/comagic_web
+#/home/venv/bin/python3 -m black /usr/local/src/comagic_web/comagic/local_config.py
+#/home/venv/bin/python3 -m black /usr/local/src/comagic_web/local_config_db.py
+
+if [ -n $COMAGIC_ENV_USER ]
+then
+    chown -R $COMAGIC_ENV_USER:$COMAGIC_ENV_USER /usr/local/src/comagic_web/
+fi

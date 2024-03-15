@@ -20,8 +20,6 @@ module.exports = {
     testsServerPid: `${tests}/tests-server.pid`,
     stub: `${tests}/Stub.js`,
     stubCss: `${tests}/stub.css`,
-    testsEntripointSource: `${tests}/tests.tsx`,
-    testsEntripointTarget: `${application}/src/tests.tsx`,
     fileSaverPatch: `${tests}/file-saver-patch.diff`,
     schedulerPatch: `${tests}/scheduler-patch.diff`,
     broadcastChannelPatch: `${tests}/broadcast-channel-patch.diff`,

@@ -34,8 +34,6 @@ const {
     server,
     testsServerLog,
     testsServerPid,
-    testsEntripointSource,
-    testsEntripointTarget,
     chatsPatch,
     employeesPatch,
     contactsPatch,
@@ -111,9 +109,7 @@ actions['create-patch'] = getOverriding().reduce((result, {
 }) => result.concat(fs.existsSync(application) ? [
     `git config --global --add safe.directory ${application}`,
     `cd ${application} && git diff -- ${overridenFiles} > ${applicationPatch}`
-] : []), []).concat([
-    [testsEntripointTarget, testsEntripointSource]
-].map(([target, source]) => `if [ -e ${target} ]; then cp ${target} ${source}; fi`));
+] : []), []);
 
 actions['restore-code'] = getOverriding().reduce((result, {
     application,
@@ -122,9 +118,7 @@ actions['restore-code'] = getOverriding().reduce((result, {
     `if [ -d ${application} ]; ` +
         `then cd ${application} && git checkout ${overridenFiles}; ` +
     `fi`,
-])), []).concat([
-    rmVerbose(testsEntripointTarget)
-]);
+])), []);
 
 actions['modify-code'] = actions['restore-code'].
     concat(actions['restore-code']).
@@ -137,7 +131,6 @@ actions['modify-code'] = actions['restore-code'].
         `fi`
     ]), [])).
     concat([
-        `cp ${testsEntripointSource} ${testsEntripointTarget}`,
         `cp ${stub} ${misc}`,
         `cp ${stubCss} ${misc}`,
     ]).concat(actions['fix-permissions']);

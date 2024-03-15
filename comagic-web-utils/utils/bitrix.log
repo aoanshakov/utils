@@ -1,0 +1,48 @@
+app_id:97127
+user_id:416234
+
+2022-12-29 18:14:13,615 INFO [ComagicUDB.0x7faf532d4e90.callproc]
+
+    select bitrix.update_easy_start(97127, 'test_in_call', '{}')
+
+2022-12-29 18:14:13,739 INFO [log_info.log_info]
+
+    Procedure call result: {
+        u'is_need_import_users': None,
+        u'next_step': None,
+        u'id': 317,
+        u'task_id': 28642355,
+        u'next_step_params': None
+    }
+
+2022-12-29 18:14:16,786 INFO [ComagicUDB.0x7faf532d4e90.callproc]
+
+    select bitrix.get_test_call_task_state(28642355)
+
+2022-12-29 18:14:16,794 INFO [log_info.log_info]
+
+    Procedure call result: new
+
+2022-12-29 18:14:19,832 INFO [ComagicUDB.0x7faf532d4e90.callproc]
+
+    select bitrix.get_test_call_task_state(28642355)
+
+2022-12-29 18:14:19,834 INFO [log_info.log_info]
+
+    Procedure call result: in_process
+
+2022-12-29 18:14:25,912 INFO [ComagicUDB.0x7faf532d4e90.callproc]
+
+    select bitrix.get_test_call_task_state(28642355)
+
+2022-12-29 18:14:25,914 INFO [log_info.log_info]
+
+    Procedure call result: processed - [../comagic/easystart/log_info.py:7]
+
+2022-12-29 18:14:27,739 INFO [ComagicUDB.0x7faf532d4e90.callproc]
+
+    select bitrix.get_easy_start_calls(97127)
+
+2022-12-29 18:14:27,775 INFO [log_info.log_info]
+
+    Procedure call result: [] - [../comagic/easystart/log_info.py:7]

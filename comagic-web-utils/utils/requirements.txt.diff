@@ -1,0 +1,15 @@
+diff --git a/.venv/requirements.txt b/.venv/requirements.txt
+index e874b1c82..449ca15d2 100644
+--- a/.venv/requirements.txt
++++ b/.venv/requirements.txt
+@@ -33,10 +33,8 @@ rtu_api==1.2
+ pycrypto==2.6.1
+ smtpapi==0.2.0
+ pydub==0.15.0
+-numpy==1.10.4
+ # unnecessary requirement used by ulib
+ tornado==4.3
+-Wand==0.4.2
+ xlrd==1.2.0
+ feature-flags[simple]==0.4.0
+ pyjwt==1.7.1
