@@ -41,7 +41,7 @@ else
     dockerArguments="$dockerArguments --mount type=bind,source=$HOME/.ssh/$macSshKeyName,target=/root/.ssh/$macSshKeyName"
 fi
 
-imageTag=comagic-web
+imageTag=aoanshakov/utils
 
 docker --version
 
