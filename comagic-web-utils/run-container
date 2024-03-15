@@ -96,4 +96,4 @@ docker run -it --rm \
     -v $utilsDir/configure:/home/configure \
     --mount type=bind,source=$configJsonPath,target=/usr/local/src/comagic-config.json \
     $dockerArguments $port \
-    comagic-web $entrypointArguments -a $action
+    $imageTag $entrypointArguments -a $action
