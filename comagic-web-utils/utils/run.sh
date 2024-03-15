@@ -31,7 +31,7 @@ fi
 
 initialize
 
-if [ ! -d /usr/local/src/comagic_web/static/comagic/gen ]
+if [ ! -f /usr/local/src/comagic_web/static/comagic/gen/app.ru.js ]
 then
     build
 fi 
