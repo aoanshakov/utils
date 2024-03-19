@@ -523,7 +523,7 @@ tests.addTest(options => {
 
                     describe('Получено событие инициализации чатов.', function() {
                         beforeEach(function() {
-                            tester.chatsInitilizationEvent().receive();
+                            tester.submoduleInitilizationEvent().receive();
 
                             tester.widgetSettings().
                                 windowMessage().
@@ -808,7 +808,7 @@ tests.addTest(options => {
                             anotherWildcart().
                             receive();
 
-                        tester.chatsInitilizationEvent().receive();
+                        tester.submoduleInitilizationEvent().receive();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -863,7 +863,7 @@ tests.addTest(options => {
                             windowMessage().
                             expectToBeSent();
 
-                        tester.chatsInitilizationEvent().receive();
+                        tester.submoduleInitilizationEvent().receive();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -1123,7 +1123,7 @@ tests.addTest(options => {
                             windowMessage().
                             expectToBeSent();
 
-                        tester.chatsInitilizationEvent().receive();
+                        tester.submoduleInitilizationEvent().receive();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -1208,7 +1208,7 @@ tests.addTest(options => {
                         windowMessage().
                         expectToBeSent();
 
-                    tester.chatsInitilizationEvent().receive();
+                    tester.submoduleInitilizationEvent().receive();
 
                     tester.widgetSettings().
                         windowMessage().
@@ -1589,7 +1589,6 @@ tests.addTest(options => {
                 });
 
                 tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-                tester.chatsVisibilitySettingRequest().receiveResponse();
             });
 
             it('Нажимаю на номер телефона. Отправлен запрос вызова.', function() {
@@ -2215,85 +2214,151 @@ tests.addTest(options => {
                 });
             });
         });
-        it('Открываю IFrame чатов. Получены настройки. Отображены чаты.', function() {
-            tester = new Tester({
-                application: 'chatsIframe',
-                ...options,
+        describe('Открываю IFrame чатов. Получены настройки. Отображены чаты.', function() {
+            beforeEach(function() {
+                tester = new Tester({
+                    application: 'chatsIframe',
+                    ...options,
+                });
+
+                tester.submoduleInitilizationEvent().expectToBeSent();
+                tester.submoduleInitilizationEvent().expectToBeSent();
+
+                tester.widgetSettings().
+                    windowMessage().
+                    chatsSettings().
+                    receive();
+
+                tester.accountRequest().
+                    forIframe().
+                    webAccountLoginUnavailable().
+                    softphoneFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    receiveResponse();
+
+                tester.accountRequest().
+                    forIframe().
+                    fromIframe().
+                    webAccountLoginUnavailable().
+                    softphoneFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    receiveResponse();
+
+                tester.chatsWebSocket.connect();
+
+                tester.chatsInitMessage().
+                    oauthToken().
+                    expectToBeSent();
+
+                tester.chatSettingsRequest().receiveResponse();
+                tester.chatChannelListRequest().receiveResponse();
+
+                tester.employeeStatusesRequest().
+                    oauthToken().
+                    receiveResponse();
+
+                tester.listRequest().receiveResponse();
+                tester.siteListRequest().receiveResponse();
+                tester.messageTemplateListRequest().receiveResponse();
+                tester.employeeSettingsRequest().receiveResponse();
+
+                tester.employeeRequest().
+                    oauthToken().
+                    receiveResponse();
+
+                tester.accountRequest().
+                    forIframe().
+                    fromIframe().
+                    webAccountLoginUnavailable().
+                    softphoneFeatureFlagDisabled().
+                    operatorWorkplaceAvailable().
+                    receiveResponse();
+
+                tester.countersRequest().
+                    noNewChats().
+                    noClosedChats().
+                    receiveResponse();
+
+                tester.offlineMessageCountersRequest().receiveResponse();
+                tester.chatChannelListRequest().receiveResponse();
+                tester.siteListRequest().receiveResponse();
+                tester.markListRequest().receiveResponse();
+
+                tester.chatListRequest().
+                    forCurrentEmployee().
+                    noData().
+                    receiveResponse();
+
+                tester.chatListRequest().
+                    forCurrentEmployee().
+                    active().
+                    receiveResponse();
+
+                tester.chatListRequest().forCurrentEmployee().
+                    closed().
+                    noData().
+                    receiveResponse();
+
+                tester.chatChannelTypeListRequest().receiveResponse();
+
+                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                tester.offlineMessageListRequest().processing().receiveResponse();
+                tester.offlineMessageListRequest().processed().receiveResponse();
+
+                tester.button('В работе 75').click();
             });
 
-            tester.chatsInitilizationEvent().expectToBeSent();
+            it('Выбираю чат.', function() {
+                tester.chatList.
+                    first.
+                    item('Привет').
+                    click();
 
-            tester.widgetSettings().
-                windowMessage().
-                chatsSettings().
-                receive();
+                tester.submoduleInitilizationEvent().expectToBeSent();
 
-            tester.accountRequest().
-                oauthToken().
-                webAccountLoginUnavailable().
-                softphoneFeatureFlagDisabled().
-                operatorWorkplaceAvailable().
-                receiveResponse();
+                tester.visitorCardRequest().receiveResponse();
+                tester.messageListRequest().receiveResponse();
 
-            tester.accountRequest().
-                forChats().
-                oauthToken().
-                webAccountLoginUnavailable().
-                softphoneFeatureFlagDisabled().
-                operatorWorkplaceAvailable().
-                receiveResponse();
+                tester.changeMessageStatusRequest().
+                    read().
+                    anotherMessage().
+                    receiveResponse();
 
-            tester.chatsWebSocket.connect();
+                tester.countersRequest().
+                    noNewChats().
+                    noClosedChats().
+                    receiveResponse();
 
-            tester.chatsInitMessage().
-                oauthToken().
-                expectToBeSent();
+                tester.widgetSettings().
+                    windowMessage().
+                    chatsSettings().
+                    receive();
 
-            tester.chatSettingsRequest().receiveResponse();
-            tester.chatChannelListRequest().receiveResponse();
+                tester.usersRequest().
+                    forContacts().
+                    forIframe().
+                    receiveResponse();
 
-            tester.employeeStatusesRequest().
-                oauthToken().
-                receiveResponse();
+                tester.groupsContainingContactRequest().
+                    forIframe().
+                    noContact().
+                    receiveResponse();
 
-            tester.listRequest().receiveResponse();
-            tester.siteListRequest().receiveResponse();
-            tester.messageTemplateListRequest().receiveResponse();
-            tester.employeeSettingsRequest().receiveResponse();
+                tester.contactGroupsRequest().
+                    forIframe().
+                    receiveResponse();
 
-            tester.employeeRequest().
-                oauthToken().
-                receiveResponse();
-
-            tester.accountRequest().
-                forChats().
-                oauthToken().
-                webAccountLoginUnavailable().
-                softphoneFeatureFlagDisabled().
-                operatorWorkplaceAvailable().
-                receiveResponse();
-
-            tester.countersRequest().receiveResponse();
-
-            tester.offlineMessageCountersRequest().receiveResponse();
-            tester.chatChannelListRequest().receiveResponse();
-            tester.siteListRequest().receiveResponse();
-            tester.markListRequest().receiveResponse();
-
-            tester.chatListRequest().forCurrentEmployee().receiveResponse();
-            tester.chatListRequest().forCurrentEmployee().active().receiveResponse();
-            tester.chatListRequest().forCurrentEmployee().closed().receiveResponse();
-
-            tester.chatChannelTypeListRequest().receiveResponse();
-
-            tester.offlineMessageListRequest().notProcessed().receiveResponse();
-            tester.offlineMessageListRequest().processing().receiveResponse();
-            tester.offlineMessageListRequest().processed().receiveResponse();
-
-            tester.chatList.
-                first.
-                item('Привет').
-                expectToBeVisible();
+                tester.contactBar.expectTextContentToHaveSubstring(
+                    'ФИО ' +
+                    'Помакова Бисерка Драгановна'
+                );
+            });
+            it('Отображен список чатов.', function() {
+                tester.chatList.
+                    first.
+                    item('Привет').
+                    expectToBeVisible();
+            });
         });
         it(
             'Контент скрипт встроился в IFrame. URL не находится в списке тех, на которых расширение должно ' +
@@ -2308,7 +2373,6 @@ tests.addTest(options => {
             });
 
             tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-            tester.chatsVisibilitySettingRequest().receiveResponse();
 
             postMessages.receive({
                 method: 'toggle_widget_visibility'
@@ -2380,7 +2444,7 @@ tests.addTest(options => {
                 windowMessage().
                 expectToBeSent();
 
-            tester.chatsInitilizationEvent().receive();
+            tester.submoduleInitilizationEvent().receive();
 
             tester.widgetSettings().
                 windowMessage().

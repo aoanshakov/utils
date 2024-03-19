@@ -50,6 +50,9 @@ define(() => function ({
     window.isIframe = !!isIframe;
     window.getOrigin = () => origin;
     window.stores = null;
+    window.contactStore = null;
+    window.chatsStore = null;
+    window.employeesStore = null;
     window.softphoneBroadcastChannelCache = {};
     window.destroyMethodCaller?.();
 
@@ -1462,8 +1465,8 @@ define(() => function ({
         };
     };
 
-    me.chatsInitilizationEvent = () => {
-        const message = { method: 'chats_initilized' };
+    me.submoduleInitilizationEvent = () => {
+        const message = { method: 'submodule_initilized' };
 
         return {
             receive: () => postMessages.receive(message),
@@ -1606,6 +1609,75 @@ define(() => function ({
             application,
             setHistory,
             active,
+            setEventBus: eventBus => {
+                const events = {},
+                    ignoredEvents = {};
+
+                eventBus.subscribe = (eventName, callback) => {
+                    const callbacks = events[eventName] || (events[eventName] = new Set());
+                    callbacks.add(callback);
+
+                    return () => callbacks.delete(callback);
+                };
+
+                const broadcast = (eventName, ...args) =>
+                    (events[eventName] || new Set()).forEach(callback => callback(...args));
+
+                const stack = new JsTester_Stack({
+                    expectNotToExist: () => null,
+                    expectToHaveArguments: (...expectedArguments) => {
+                        throw new Error(
+                            `Событие должно быть вызывано с такими аргументами ${JSON.stringify(expectedArguments)}, ` +
+                            'тогда как никакое событие не было вызвано.'
+                        );
+                    },
+                    expectEventNameToEqual: expectedEventName => {
+                        throw new Error(
+                            `Должно быть вызывано событие "${expectedEventName}", тогда как никакое событие не было ` +
+                            `вызвано.`
+                        );
+                    }
+                });
+
+                eventBus.broadcast = (actualEventName, ...args) => {
+                    const callStack = debug.getCallStack();
+
+                    const event = {
+                        expectToHaveArguments: (...expectedArguments) =>
+                            (utils.expectObjectToContain(args, expectedArguments), event),
+                        expectNotToExist: () => {
+                            throw new Error(
+                                `Никакое событие не должно быть вызвано, тогда как было вызвано событие ` +
+                                `"${actualEventName}" с аргументами ${JSON.stringify(args)}\n\n${callStack}`
+                            );
+                        },
+                        expectEventNameToEqual: expectedEventName => {
+                            if (expectedEventName != actualEventName) {
+                                throw new Error(
+                                    `Должно быть вызывано событие "${expectedEventName}", тогда как было вызвано событие ` +
+                                    `"${actualEventName}".\n\n${callStack}`
+                                );
+                            }
+
+                            return event;
+                        }
+                    };
+
+                    !ignoredEvents[actualEventName] && stack.add(event);
+                    broadcast(actualEventName, ...args);
+                };
+
+                me.eventBus = {
+                    broadcast,
+                    nextEvent: () => stack.pop(),
+                    ignoreEvent: eventName => (ignoredEvents[eventName] = true),
+                    assumeSomeMessageMayBeSent: () => stack.removeAll()
+                };
+
+                me.eventBus.ignoreEvent('log');
+                me.eventBus.ignoreEvent('set_chats_and_offline_messages_count');
+                me.eventBus.ignoreEvent('set_lost_call_count');
+            },
         });
 
         me.history = (() => {
@@ -5574,26 +5646,28 @@ define(() => function ({
     */
 
     me.chatsInitMessage = () => {
-        let access_token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+        const params = {
+            access_token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            access_type: 'jwt',
+            employee_id: 20816
+        };
 
         return {
             oauthToken() {
-                access_token = mainTester.oauthToken;
+                params.access_token = mainTester.oauthToken;
+                params.access_type = undefined;
+
                 return this;
             },
 
             anotherAuthorizationToken() {
-                access_token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                params.access_token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
                 return this;
             },
 
             expectToBeSent: () => me.chatsWebSocket.expectSentMessageToContain({
                 method: 'init',
-                params: {
-                    access_token,
-                    access_type: 'jwt',
-                    employee_id: 20816
-                }
+                params,
             })
         };
     };
@@ -14454,11 +14528,28 @@ define(() => function ({
     me.groupsContainingContactRequest = () => {
         let id = 1689283;
 
+        const headers = {
+            Authorization: undefined,
+            'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
         const response = {
             data: []
         };
 
         const addResponseModifiers = me => {
+            me.forIframe = () => {
+                token = mainTester.oauthToken;
+
+                headers.Authorization = `Bearer ${token}`;
+                headers['X-Auth-Token'] = undefined;
+                headers['X-Auth-Type'] = undefined;
+
+                return me;
+            };
+
+            me.noContact = () => (id = 'null', me),
             me.anotherContact = () => (id = 2968308, me);
             me.thirdContact = () => (id = 1689587, me);
             me.fourthContact = () => (id = 25206823, me);
@@ -14471,6 +14562,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}/contact-groups`).
+                    expectToHaveHeaders(headers).
                     expectToHaveMethod('GET');
 
                 return addResponseModifiers({
@@ -14490,6 +14582,12 @@ define(() => function ({
     };
 
     me.contactGroupsRequest = () => {
+        const headers = {
+            Authorization: undefined,
+            'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
         const queryParams = {
             search: undefined,
         };
@@ -14501,6 +14599,16 @@ define(() => function ({
         const addResponseModifiers = me => me;
 
         return addResponseModifiers({
+            forIframe() {
+                token = mainTester.oauthToken;
+
+                headers.Authorization = `Bearer ${token}`;
+                headers['X-Auth-Token'] = undefined;
+                headers['X-Auth-Type'] = undefined;
+
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath('$REACT_APP_BASE_URL/contact-groups').
@@ -15940,7 +16048,10 @@ define(() => function ({
 
     me.accountRequest = () => {
         let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-            method = 'getobj.account';
+            method = 'getobj.account',
+            path = '$REACT_APP_BASE_URL';
+
+        const requestProcessors = [];
 
         const response = {
             result: {
@@ -16120,11 +16231,6 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
-            me.oauthToken = () => {
-                token = mainTester.oauthToken;
-                return me;
-            };
-
             me.callGear = () => {
                 response.result.data.project = 'usa';
                 return me;
@@ -16304,12 +16410,33 @@ define(() => function ({
 
         let getAuthorizationHeader = () => ({
             Authorization: `Bearer ${token}`,
+            'X-Auth-Token': undefined,
             'X-Auth-Type': 'jwt'
         });
 
         return addResponseModifiers({
+            forIframe() {
+                token = mainTester.oauthToken;
+                method = 'get_account';
+                path = 'https://dev-int0-chats-logic.uis.st/v1/operator';
+
+                getAuthorizationHeader = () => ({
+                    Authorization: `Bearer ${token}`,
+                    'X-Auth-Token': undefined,
+                    'X-Auth-Type': undefined
+                });
+
+                return this;
+            },
+
+            fromIframe() {
+                requestProcessors.push(() => (path = '$REACT_APP_BASE_URL/operator'));
+                return this;
+            },
+
             forChats() {
                 getAuthorizationHeader = () => ({
+                    Authorization: undefined,
                     'X-Auth-Token': token,
                     'X-Auth-Type': 'jwt'
                 });
@@ -16324,8 +16451,11 @@ define(() => function ({
             },
 
             expectToBeSent(requests) {
+                requestProcessors.forEach(process => process());
+
                 let request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL').
+                    expectPathToContain(path).
+                    expectQueryToContain({ method }).
                     expectToHaveMethod('POST').
                     expectToHaveHeaders(getAuthorizationHeader()).
                     expectBodyToContain({

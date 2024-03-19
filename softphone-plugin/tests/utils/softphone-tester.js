@@ -1970,12 +1970,16 @@ define(function () {
         this.triggerScrollRecalculation = this.recalculateScroll = triggerScrollRecalculation;
 
         this.requestUsers = function () {
+            let headers = {};
+
             var params = {
                 with_active_phones: undefined
             };
 
             const additionalUsers = [],
-                processors = [];
+                processors = [],
+                requestProcessors = [];
+
             let data,
                 is_in_call = true,
                 path = '/sup/api/v1/users',
@@ -2090,9 +2094,25 @@ define(function () {
             }
 
             return addResponseModifiers({
+                forIframe() {
+                    requestProcessors.push(() => (headers = {
+                        Authorization: `Bearer ${softphoneTester.oauthToken}`,
+                        'X-Auth-Token': undefined,
+                        'X-Auth-Type': undefined,
+                    }));
+
+                    return this;
+                },
+
                 forContacts: function () {
                     path = '$REACT_APP_BASE_URL/employees';
                     maybeTriggerScrollRecalculation = () => null;
+
+                    headers = {
+                        Authorization: undefined,
+                        'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                        'X-Auth-Type': 'jwt'
+                    };
 
                     processors.push(data => {
                         data.forEach(({
@@ -2117,8 +2137,11 @@ define(function () {
                     return this;
                 },
                 expectToBeSent: function (requests) {
+                    requestProcessors.forEach(process => process());
+
                     var request = (requests ? requests.someRequest() : ajax.recentRequest()).
                         expectPathToContain(path).
+                        expectToHaveHeaders(headers).
                         expectQueryToContain(params);
 
                     return addResponseModifiers({
