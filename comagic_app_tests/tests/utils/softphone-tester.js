@@ -1975,6 +1975,8 @@ define(function () {
         this.triggerScrollRecalculation = this.recalculateScroll = triggerScrollRecalculation;
 
         this.requestUsers = function () {
+            let headers = {};
+
             var params = {
                 with_active_phones: undefined
             };
@@ -2098,6 +2100,12 @@ define(function () {
                 forContacts: function () {
                     path = '$REACT_APP_BASE_URL/employees';
                     maybeTriggerScrollRecalculation = () => null;
+
+                    headers = {
+                        Authorization: undefined,
+                        'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                        'X-Auth-Type': 'jwt'
+                    };
 
                     processors.push(data => {
                         data.forEach(({

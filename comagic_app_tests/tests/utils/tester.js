@@ -23,6 +23,7 @@ define(() => function ({
         Modal;
 
     const mainTester = me;
+    me.oauthToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6InBqeWNOMndxTkotbU1mcVpRSllIdHAtMGw0Uk1XNVNkUUF3N2JITmhjc00iLCJ0eXAiOiJKV1QifQ.eyJqdGkiOiI4NjZhZTFkZC02M2E2LTRhMTItOGVkZC1hODcyMmUwNjhlODAiLCJzaWQiOiJmYjZhYWJkMC05YjIzLTQzNDAtYjFkNC1hYTk4ZTIxYjAxYzciLCJpc3MiOiJodHRwczovL3Byb2QtbXNrLXVjLXNzby1hcGkubm92b2Zvbi5ydSIsImF1ZCI6WyJodHRwczovL3Byb2QtbXNrLWRhdGFhcGktanNvbnJwYy5ub3ZvZm9uLnJ1IiwiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJodHRwczovL3Byb2QtbXNrLXNvZnRwaG9uZS1yZXN0LWFwaS5ub3ZvZm9uLnJ1Il0sInN1YiI6IkNvbWFnaWNEQnxub3ZvZm9ufDEwNnw0NTEiLCJzdWJkIjp7ImFwcF9pZCI6MTA2LCJjdXN0b21lcl9pZCI6Mjg5MTU2NCwidXNlcl9pZCI6NDUxLCJsb2dpbiI6ImJpdHJpeHRlc3QiLCJpc19zeXN0ZW0iOmZhbHNlfSwiY2xpZW50X2lkIjoiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJpYXQiOjE3MDk2Mzg2MzR9.G3Irx8UHLLv1mGSnx_fpE-wZoaQud1Jh7hJQrg_17v1eKFQrrzBYD4s_PMUe_bso90c9ooWLudXMHuRrAfQzrJasaEFIkEtalKbnNAxwRac_sWdAUfr5-sxiUcJPPEkUWWxqD3fAAvuo-8lANps89W0f3DN_8WJ7lXUqEwZT8bftOOGcAthbkXKnVyzRUNJfkFnK3jV7qa6uwIbYOd0sJAXpc-rDyG_kWfnwZv-NYZinIHgk92kRT-tOiSnX6HAOKDQ3QbtKOCT-uJqAd78RKMjFcMAbbFRrQBr1q3s9OUJCArYi6wQcHkhiMuT0mXAPK-eAnaiKFfuuT9r1S0tPCKnnnyK6mUQo_K11Ne3kW1xShVYEhK7wtTn-BnJORF-Y0KHLI3Ndp6Jjs7Ak7nbQRztJ64buBpksI0PAKRc9euWdc04HmHxftCCgZ9uc2YjL77sqr_ExzJsMNJDNwEDrFsmMIHhpNvA19P1zuDaiCr2zja1HQEE3vyLr-JAjlYdCTOZkJ5dqRFAmCWBQ-12JJbRihB1kPyhrpbKcWg7Ry1RV47ghbgQ6igv-1BCelu9LT5IvSXLnhNxPLTdi17ukKFdS5V5XugryqFgDujSJiBCWLGAZ1mzT08BVK4yIeSo5GQhs8oNReNDmnDo33tfTzzpFDbQxHwHQAUG1oXYvuEI';
 
     const jwtToken = {
         jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
@@ -12972,6 +12973,12 @@ define(() => function ({
     me.groupsContainingContactRequest = () => {
         let id = 1689283;
 
+        const headers = {
+            Authorization: undefined,
+            'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
         const response = {
             data: []
         };
@@ -12990,6 +12997,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}/contact-groups`).
+                    expectToHaveHeaders(headers).
                     expectToHaveMethod('GET');
 
                 return addResponseModifiers({
@@ -13009,6 +13017,12 @@ define(() => function ({
     };
 
     me.contactGroupsRequest = () => {
+        const headers = {
+            Authorization: undefined,
+            'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
         const queryParams = {
             search: undefined,
         };
@@ -13023,6 +13037,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath('$REACT_APP_BASE_URL/contact-groups').
+                    expectToHaveHeaders(headers).
                     expectQueryToContain(queryParams).
                     expectToHaveMethod('GET');
 
@@ -14817,12 +14832,14 @@ define(() => function ({
 
         let getAuthorizationHeader = () => ({
             Authorization: `Bearer ${token}`,
+            'X-Auth-Token': undefined,
             'X-Auth-Type': 'jwt'
         });
 
         return addResponseModifiers({
             forChats() {
                 getAuthorizationHeader = () => ({
+                    Authorization: undefined,
                     'X-Auth-Token': token,
                     'X-Auth-Type': 'jwt'
                 });

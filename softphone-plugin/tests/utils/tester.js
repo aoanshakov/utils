@@ -5320,6 +5320,11 @@ define(() => function ({
         let jwt = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
 
         return {
+            oauthToken() {
+                jwt = mainTester.oauthToken;
+                return this;
+            },
+
             anotherAuthorizationToken() {
                 jwt = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
                 return this;
@@ -14612,6 +14617,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath('$REACT_APP_BASE_URL/contact-groups').
+                    expectToHaveHeaders(headers).
                     expectQueryToContain(queryParams).
                     expectToHaveMethod('GET');
 

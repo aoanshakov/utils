@@ -2236,6 +2236,9 @@ tests.addTest(options => {
                     operatorWorkplaceAvailable().
                     receiveResponse();
 
+                tester.masterInfoMessage().receive();
+                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
                 tester.accountRequest().
                     forIframe().
                     fromIframe().
@@ -2243,6 +2246,12 @@ tests.addTest(options => {
                     softphoneFeatureFlagDisabled().
                     operatorWorkplaceAvailable().
                     receiveResponse();
+
+                tester.employeesWebSocket.connect();
+
+                tester.employeesInitMessage().
+                    oauthToken().
+                    expectToBeSent();
 
                 tester.chatsWebSocket.connect();
 
