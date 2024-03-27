@@ -5306,17 +5306,19 @@ function JsTester_FetchRequest (args) {
 
 function JsTester_FetchResponse (args) {
     var status = args.status,
-        responseText = args.responseText,
-        json;
-
-    try {
-        json = JSON.parse(responseText);
-    } catch (e) {
-        json = null;
-    }
+        responseText = args.responseText;
 
     this.json = function () {
-        return Promise.resolve(json);
+        let json,
+            error;
+
+        try {
+            json = JSON.parse(responseText);
+        } catch (e) {
+            error = e;
+        }
+
+        return error ? Promise.reject(error) : Promise.resolve(json);
     };
 
     this.text = function () {

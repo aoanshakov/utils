@@ -33,7 +33,9 @@ define(() => function ({
         Modal;
 
     const mainTester = me;
+
     me.oauthToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6InBqeWNOMndxTkotbU1mcVpRSllIdHAtMGw0Uk1XNVNkUUF3N2JITmhjc00iLCJ0eXAiOiJKV1QifQ.eyJqdGkiOiI4NjZhZTFkZC02M2E2LTRhMTItOGVkZC1hODcyMmUwNjhlODAiLCJzaWQiOiJmYjZhYWJkMC05YjIzLTQzNDAtYjFkNC1hYTk4ZTIxYjAxYzciLCJpc3MiOiJodHRwczovL3Byb2QtbXNrLXVjLXNzby1hcGkubm92b2Zvbi5ydSIsImF1ZCI6WyJodHRwczovL3Byb2QtbXNrLWRhdGFhcGktanNvbnJwYy5ub3ZvZm9uLnJ1IiwiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJodHRwczovL3Byb2QtbXNrLXNvZnRwaG9uZS1yZXN0LWFwaS5ub3ZvZm9uLnJ1Il0sInN1YiI6IkNvbWFnaWNEQnxub3ZvZm9ufDEwNnw0NTEiLCJzdWJkIjp7ImFwcF9pZCI6MTA2LCJjdXN0b21lcl9pZCI6Mjg5MTU2NCwidXNlcl9pZCI6NDUxLCJsb2dpbiI6ImJpdHJpeHRlc3QiLCJpc19zeXN0ZW0iOmZhbHNlfSwiY2xpZW50X2lkIjoiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJpYXQiOjE3MDk2Mzg2MzR9.G3Irx8UHLLv1mGSnx_fpE-wZoaQud1Jh7hJQrg_17v1eKFQrrzBYD4s_PMUe_bso90c9ooWLudXMHuRrAfQzrJasaEFIkEtalKbnNAxwRac_sWdAUfr5-sxiUcJPPEkUWWxqD3fAAvuo-8lANps89W0f3DN_8WJ7lXUqEwZT8bftOOGcAthbkXKnVyzRUNJfkFnK3jV7qa6uwIbYOd0sJAXpc-rDyG_kWfnwZv-NYZinIHgk92kRT-tOiSnX6HAOKDQ3QbtKOCT-uJqAd78RKMjFcMAbbFRrQBr1q3s9OUJCArYi6wQcHkhiMuT0mXAPK-eAnaiKFfuuT9r1S0tPCKnnnyK6mUQo_K11Ne3kW1xShVYEhK7wtTn-BnJORF-Y0KHLI3Ndp6Jjs7Ak7nbQRztJ64buBpksI0PAKRc9euWdc04HmHxftCCgZ9uc2YjL77sqr_ExzJsMNJDNwEDrFsmMIHhpNvA19P1zuDaiCr2zja1HQEE3vyLr-JAjlYdCTOZkJ5dqRFAmCWBQ-12JJbRihB1kPyhrpbKcWg7Ry1RV47ghbgQ6igv-1BCelu9LT5IvSXLnhNxPLTdi17ukKFdS5V5XugryqFgDujSJiBCWLGAZ1mzT08BVK4yIeSo5GQhs8oNReNDmnDo33tfTzzpFDbQxHwHQAUG1oXYvuEI';
+    me.anotherOauthToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic3ViZCI6eyJsb2dpbiI6Im1hc2hhbF9tYXJvdW4iLCJkYXRhY2VudGVyIjoiZHViYWkifSwiaWF0IjoxNTE2MjM5MDIyfQ.cLg6DiiEmR0ZkuZoXaxPBGLSYLzSAn3B590LE5yyOAI';
 
     const jwtToken = {
         jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
@@ -426,7 +428,7 @@ define(() => function ({
 
         this.set = value => {
             const changes = {};
-            
+
             Object.entries(value).forEach(([key, value]) => {
                 if (value === items[key]) {
                     return;
@@ -691,11 +693,13 @@ define(() => function ({
     me.widgetSettings = () => {
         let wildcart = 'https://*.uiscom.ru/**',
             widget_id = 'chrome',
-            chatsSettings = false;
+            chatsSettings = false,
+            host = 'my.uiscom.ru';
 
         const softphoneSettingsProcessors = [],
             settingsProcessors = [],
             storageDataProcessors = [],
+            anotherStorageDataProcessors = [],
             getQueryParams = () => ({ widget_id });
 
         const getCallapi = () => ({
@@ -780,7 +784,8 @@ define(() => function ({
         };
 
         const getStorageData = () => {
-            const value = {
+            let value = {
+                error: null,
                 token: mainTester.oauthToken,
                 loading: 0,
                 settings: {
@@ -789,10 +794,40 @@ define(() => function ({
                 },
             };
 
-            return storageDataProcessors.reduce((value, process) => process(value), value);
+            value = storageDataProcessors.reduce((value, process) => process(value), value);
+            return anotherStorageDataProcessors.reduce((value, process) => process(value), value);
         };
 
+        let respond = request => request.respondSuccessfullyWith(getSettings());
+
         const addResponseModifiers = me => {
+            me.failedToGetSettings = () => {
+                respond = request =>
+                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+
+                storageDataProcessors.push(storageData => {
+                    storageData.error = {
+                        type: 'settings',
+
+                        message: 'SyntaxError: Unexpected non-whitespace character after JSON at position 4 (line 1 ' +
+                            'column 5)',
+                    };
+
+                    return storageData;
+                });
+
+                return me;
+            };
+
+            me.anotherTime = () => {
+                storageDataProcessors.push(storageData => {
+                    storageData.settings.time = '2019-12-19T12:10:07';
+                    return storageData;
+                });
+
+                return me;
+            };
+
             me.chatsSettings = () => {
                 chatsSettings = true;
                 return me;
@@ -906,11 +941,38 @@ define(() => function ({
                 return me;
             };
 
+            me.failedToAuthorize = () => {
+                storageDataProcessors.push(storageData => {
+                    storageData.error = {
+                        type: 'login',
+                        message: 'Failed to open authorization page',
+                    };
+
+                    storageData.token = undefined;
+                    storageData.settings = undefined;
+
+                    return storageData;
+                });
+
+                return me;
+            };
+
+            me.noError = () => {
+                anotherStorageDataProcessors.push(storageData => {
+                    storageData.error = null;
+                    storageData.settings = null;
+                    return storageData;
+                });
+
+                return me;
+            };
+
             me.noData = () => {
                 softphoneSettingsProcessors.push(() => null);
                 settingsProcessors.push(() => null);
 
                 storageDataProcessors.push(storageData => {
+                    storageData.error = undefined;
                     storageData.token = undefined;
                     storageData.loading = undefined;
                     storageData.settings = undefined;
@@ -932,6 +994,15 @@ define(() => function ({
                     return storageData;
                 });
 
+                return me;
+            };
+
+            me.anotherToken = () => {
+                storageDataProcessors.push(
+                    storageData => (storageData.token = mainTester.anotherOauthToken, storageData)
+                );
+
+                host = 'my.callgear.ae';
                 return me;
             };
 
@@ -986,6 +1057,11 @@ define(() => function ({
                 return me;
             };
 
+            me.noSettings = () => {
+                softphoneSettingsProcessors.push(() => null);
+                return me;
+            };
+
             return me;
         };
 
@@ -1018,10 +1094,11 @@ define(() => function ({
                         set(encodeJSON({
                             ...storageData,
                             loading: getTime(storageData.loading),
+                            error: storageData.error || null,
                             settings: storageData.settings ? {
                                 ...storageData.settings,
                                 time: getTime(storageData.settings.time),
-                            } : 'null',
+                            } : null,
                         }));
                 },
 
@@ -1032,6 +1109,11 @@ define(() => function ({
                     const content = {
                         ...encodeJSON(storageData),
                         loading: storageData.loading === undefined ? undefined : getTime(storageData.loading, '0'),
+                        error: storageData.error === undefined ?
+                            undefined :
+                            storageData.error ?
+                                utils.expectJSONToContain(storageData.error) :
+                                'null',
                         settings: storageData.settings === undefined ?
                             undefined :
                             storageData.settings ?
@@ -1054,14 +1136,14 @@ define(() => function ({
                         expectToHaveMethod('GET').
                         expectQueryToContain(getQueryParams()).
                         expectToHaveHeaders({
-                            authorization: `Bearer ${mainTester.oauthToken}`,
+                            authorization: `Bearer ${getStorageData().token}`,
                             'x-auth-type': 'jwt',
                         }).
-                        expectToHavePath('https://my.uiscom.ru/extension/uc_flow/installment_settings');
+                        expectToHavePath(`https://${host}/extension/uc_flow/installment_settings`);
 
                     return addResponseModifiers({
                         receiveResponse() {
-                            request.respondSuccessfullyWith(getSettings());
+                            respond(request);
 
                             Promise.runAll(false, true);
                             spendTime(0)
@@ -1133,7 +1215,12 @@ define(() => function ({
                         expectToContain(message);
 
                     return {
-                        receiveResponse: () => request.receiveResponse(response),
+                        receiveResponse: () => {
+                            request.receiveResponse(response);
+
+                            spendTime(0);
+                            spendTime(0);
+                        },
                         fail: () => {
                             request.fail();
 
@@ -1219,12 +1306,12 @@ define(() => function ({
 
         me.authorizationRequest = createRequest({
             method: 'authorize',
-            script: 'background',
+            script: 'popup',
         });
 
         me.logoutRequest = createRequest({
             method: 'logout',
-            script: 'background',
+            script: 'popup',
         });
     }
         
@@ -1510,7 +1597,10 @@ define(() => function ({
                     expectDetailsToContain(details);
 
                 return {
-                    fail: () => authFlow.fail('Failed to open authorization page'),
+                    fail: () => {
+                        authFlow.fail('Failed to open authorization page');
+                        spendTime(0);
+                    },
 
                     receiveResponse: () => authFlow.receiveResponse(
                         'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/?code=28gjs8o24rfsd42',
@@ -1552,7 +1642,15 @@ define(() => function ({
     };
 
     me.oauthRequest = () => {
-        const addResponseModifiers = me => me;
+        const response = {
+            access_token: mainTester.oauthToken,
+            token_type: 'Bearer',
+        };
+
+        const addResponseModifiers = me => {
+            me.anotherToken = () => (response.access_token = mainTester.anotherOauthToken, me);
+            return me;
+        };
 
         return addResponseModifiers({
             expectToBeSent(requests) {
@@ -1572,10 +1670,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith({
-                            access_token: mainTester.oauthToken,
-                            token_type: 'Bearer',
-                        });
+                        request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -7396,16 +7491,23 @@ define(() => function ({
     };
 
     me.authTokenRequest = () => {
-        const addResponseModifiers = me => me;
+        const bodyParams = {
+            token: mainTester.oauthToken,
+        };
+
+        const addResponseModifiers = me => {
+            me.anotherToken = () => (bodyParams.token = mainTester.anotherOauthToken, me);
+            return me;
+        };
 
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('POST').
                     expectToHavePath(`https://${softphoneHost}/sup/auth/token`).
-                    expectBodyToContain({
-                        token: mainTester.oauthToken,
-                    });
+                    expectBodyToContain(bodyParams);
+
+                spendTime(0);
 
                 return addResponseModifiers({
                     receiveResponse: () => {

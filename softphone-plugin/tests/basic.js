@@ -472,6 +472,32 @@ tests.addTest(options => {
                 it('Кнопки видимости софтфона скрыты.', function() {
                     tester.refreshButton.expectNotToExist();
                     tester.switchButton('Показать софтфон').expectNotToExist();
+                    tester.body.expectTextContentToHaveSubstring('Вы не авторизованы');
+                });
+            });
+            describe('Получено сообщение о безуспешной попытке авторизации.', function() {
+                beforeEach(function() {
+                    tester.widgetSettings().
+                        failedToAuthorize().
+                        storageData().
+                        receive();
+                });
+
+                it('Получен авторизационный токен. Сообщение об ошибке скрыто.', function() {
+                    tester.widgetSettings().
+                        storageData().
+                        receive();
+
+                    tester.body.expectTextContentNotToHaveSubstring('Не удалось авторизоваться');
+                });
+                it('Отображено сообщение об ошибке.', function() {
+                    tester.body.expectTextContentToHaveSubstring('Не удалось авторизоваться');
+
+                    tester.widgetSettings().
+                        failedToAuthorize().
+                        noError().
+                        storageData().
+                        expectToBeSaved();
                 });
             });
             it('Не удалось отправить сообщение. Отображено сообщение об ошибке.', function() {
@@ -814,10 +840,39 @@ tests.addTest(options => {
                             windowMessage().
                             chatsSettings().
                             expectToBeSent();
-
-                        tester.stateSettingRequest().receive();
                     });
 
+                    describe('Получен запрос отображения софтфона.', function() {
+                        beforeEach(function() {
+                            tester.toggleWidgetVisibilityRequest().receive();
+                        });
+
+                        it('Получен запрос изменения состояния софтфона.', function() {
+                            tester.stateSettingRequest().receive();
+
+                            tester.widgetSettings().
+                                noSettings().
+                                windowMessage().
+                                expectToBeSent();
+
+                            tester.popupStateSettingRequest().receiveResponse();
+
+                            postMessages.nextMessage().expectMessageToContain({
+                                method: 'toggle_widget_visibility'
+                            });
+                        });
+                        it('Отображен IFrame софтфона.', function() {
+                            tester.iframe.first.expectAttributeToHaveValue(
+                                'src',
+                                'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/softphone',
+                            );
+
+                            tester.iframe.atIndex(1).expectAttributeToHaveValue(
+                                'src',
+                                'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats',
+                            );
+                        });
+                    });
                     it('Получен запрос видимости. В ответ на запрос было отправлено текущее состояние.', function() {
                         tester.stateRequest().expectResponseToBeSent();
 
@@ -899,216 +954,6 @@ tests.addTest(options => {
                         );
                     });
                 });
-                describe(
-                    'Кнопка видимости должна быть дефолтной. Кнопка видимости является дефолтной.',
-                function() {
-                    widgetSettings.
-                        noButtonElementSettings().
-                        receive();
-
-                    tester.stateSettingRequest().receive();
-                    tester.popupStateSettingRequest().receiveResponse();
-
-                    tester.widgetSettings().
-                        noButtonElementSettings().
-                        windowMessage().
-                        expectToBeSent();
-
-                    tester.body.expectToHaveTextContent(
-                        'Первый элемент #1 ' +
-                        'Софтфон ' +
-                        'Некий элемент #1 ' +
-                        'Последний элемент #1 ' +
-
-                        'Телефон: 74951234568 ' +
-                        'Телефон: 74951234570 ' +
-                        'Номер телефона: +74951234572 (74951234571) ' +
-                        'Номер телефона: +74951234574 (74951234573) ' +
-                        '[+7 (495) 123-45-64] ' +
-                        '[+7 (495) 123-45-63]'
-                    );
-
-                    tester.visibilityButton.default.expectToHaveTextContent('Софтфон');
-                });
-                describe(
-                    'Кнопка видимости должна добавляться после несуществующего элемента. Кнопка видимости не была ' +
-                    'добавлена.',
-                function() {
-                    widgetSettings.
-                        insertBeforeNonExistingElement().
-                        receive();
-
-                    tester.stateSettingRequest().receive();
-                    tester.popupStateSettingRequest().receiveResponse();
-
-                    tester.widgetSettings().
-                        insertBeforeNonExistingElement().
-                        windowMessage().
-                        expectToBeSent();
-
-                    tester.body.expectToHaveTextContent(
-                        'Первый элемент #1 ' +
-                        'Некий элемент #1 ' +
-                        'Последний элемент #1 ' +
-
-                        'Телефон: 74951234568 ' +
-                        'Телефон: 74951234570 ' +
-                        'Номер телефона: +74951234572 (74951234571) ' +
-                        'Номер телефона: +74951234574 (74951234573) ' +
-                        '[+7 (495) 123-45-64] ' +
-                        '[+7 (495) 123-45-63]'
-                    );
-                });
-                describe(
-                    'Кнопка видимости должна добавляться после последнего элемента. Кнопка видимости добавлена в ' +
-                    'конец.',
-                function() {
-                    widgetSettings.
-                        insertAfterLastElement().
-                        receive();
-
-                    tester.stateSettingRequest().receive();
-                    tester.popupStateSettingRequest().receiveResponse();
-
-                    tester.widgetSettings().
-                        insertAfterLastElement().
-                        windowMessage().
-                        expectToBeSent();
-
-                    tester.body.expectToHaveTextContent(
-                        'Первый элемент #1 ' +
-                        'Некий элемент #1 ' +
-                        'Последний элемент #1 ' +
-                        'Трубочка ' +
-
-                        'Телефон: 74951234568 ' +
-                        'Телефон: 74951234570 ' +
-                        'Номер телефона: +74951234572 (74951234571) ' +
-                        'Номер телефона: +74951234574 (74951234573) ' +
-                        '[+7 (495) 123-45-64] ' +
-                        '[+7 (495) 123-45-63]'
-                    );
-                });
-                describe(
-                    'Кнопка видимости должна добавляться после элемента. Кнопка видимости добавлена после элемента.',
-                function() {
-                    widgetSettings.
-                        insertAfter().
-                        receive();
-
-                    tester.stateSettingRequest().receive();
-                    tester.popupStateSettingRequest().receiveResponse();
-
-                    tester.widgetSettings().
-                        insertAfter().
-                        windowMessage().
-                        expectToBeSent();
-
-                    tester.body.expectToHaveTextContent(
-                        'Первый элемент #1 ' +
-                        'Некий элемент #1 ' +
-                        'Трубочка ' +
-                        'Последний элемент #1 ' +
-
-                        'Телефон: 74951234568 ' +
-                        'Телефон: 74951234570 ' +
-                        'Номер телефона: +74951234572 (74951234571) ' +
-                        'Номер телефона: +74951234574 (74951234573) ' +
-                        '[+7 (495) 123-45-64] ' +
-                        '[+7 (495) 123-45-63]'
-                    );
-                });
-                describe(
-                    'Кнопка видимости должна добавляться внутрь элемента. Кнопка видимости добавлена внурть элемента.',
-                function() {
-                    widgetSettings.
-                        insertInto().
-                        receive();
-
-                    tester.stateSettingRequest().receive();
-                    tester.popupStateSettingRequest().receiveResponse();
-
-                    tester.widgetSettings().
-                        insertInto().
-                        windowMessage().
-                        expectToBeSent();
-
-                    tester.body.expectToHaveTextContent(
-                        'Первый элемент #1 ' +
-                        'Некий элемент #1 ' +
-                        'Последний элемент #1 ' +
-
-                        'Трубочка ' +
-
-                        'Телефон: 74951234568 ' +
-                        'Телефон: 74951234570 ' +
-                        'Номер телефона: +74951234572 (74951234571) ' +
-                        'Номер телефона: +74951234574 (74951234573) ' +
-                        '[+7 (495) 123-45-64] ' +
-                        '[+7 (495) 123-45-63]'
-                    );
-                });
-                describe(
-                    'Использую XPath для поиска элемента, перед которым нужно вставить кнопку видиомсти. Кнопка ' +
-                    'видимости вставлена.',
-                function() {
-                    widgetSettings.
-                        buttonElementXpath().
-                        receive();
-
-                    tester.stateSettingRequest().receive();
-                    tester.popupStateSettingRequest().receiveResponse();
-
-                    tester.widgetSettings().
-                        buttonElementXpath().
-                        windowMessage().
-                        expectToBeSent();
-
-                    tester.body.expectToHaveTextContent(
-                        'Первый элемент #1 ' +
-                        'Некий элемент #1 ' +
-                        'Трубочка ' +
-                        'Последний элемент #1 ' +
-
-                        'Телефон: 74951234568 ' +
-                        'Телефон: 74951234570 ' +
-                        'Номер телефона: +74951234572 (74951234571) ' +
-                        'Номер телефона: +74951234574 (74951234573) ' +
-                        '[+7 (495) 123-45-64] ' +
-                        '[+7 (495) 123-45-63]'
-                    );
-                });
-                describe(
-                    'По XPath номера телефона удается найти несколько элементов. Значения подставлены в кнопки ' +
-                    'номеров телефонов.',
-                function() {
-                    widgetSettings.
-                        phoneListXpath().
-                        receive();
-
-                    tester.stateSettingRequest().receive();
-                    tester.popupStateSettingRequest().receiveResponse();
-
-                    tester.widgetSettings().
-                        phoneListXpath().
-                        windowMessage().
-                        expectToBeSent();
-
-                    tester.body.expectToHaveTextContent(
-                        'Первый элемент #1 ' +
-                        'Трубочка ' +
-                        'Некий элемент #1 ' +
-                        'Последний элемент #1 ' +
-
-                        'Телефон: 74951234565 ' +
-                        'Телефон: 74951234566 ' +
-                        'Номер телефона: +74951234572 (74951234571) ' +
-                        'Номер телефона: +74951234574 (74951234573) ' +
-                        '[+7 (495) 123-45-64] ' +
-                        '[+7 (495) 123-45-63]'
-
-                    );
-                });
                 describe('Укзано регулярное выражение для замены номера.', function() {
                     beforeEach(function() {
                         widgetSettings.
@@ -1189,6 +1034,247 @@ tests.addTest(options => {
                             '[ Номер телефона: +7 (495) 123-45-63 (74951234563) ]'
                         );
                     });
+                });
+                it('Получен дубайский токен. Отображен IFrame с дубайского сервера.', function() {
+                    widgetSettings.
+                        anotherToken().
+                        receive();
+
+                    tester.stateSettingRequest().
+                        userDataFetched().
+                        receive();
+
+                    tester.popupStateSettingRequest().
+                        userDataFetched().
+                        receiveResponse();
+
+                    tester.widgetSettings().
+                        anotherToken().
+                        windowMessage().
+                        expectToBeSent();
+
+                    tester.submoduleInitilizationEvent().receive();
+
+                    tester.widgetSettings().
+                        anotherToken().
+                        windowMessage().
+                        chatsSettings().
+                        expectToBeSent();
+
+                    tester.iframe.first.expectAttributeToHaveValue(
+                        'src',
+                        'https://prod-msk-softphone-widget-iframe.callgear.ae/chrome/softphone',
+                    );
+                });
+                it(
+                    'Кнопка видимости должна быть дефолтной. Кнопка видимости является дефолтной.',
+                function() {
+                    widgetSettings.
+                        noButtonElementSettings().
+                        receive();
+
+                    tester.stateSettingRequest().receive();
+                    tester.popupStateSettingRequest().receiveResponse();
+
+                    tester.widgetSettings().
+                        noButtonElementSettings().
+                        windowMessage().
+                        expectToBeSent();
+
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Софтфон ' +
+                        'Некий элемент #1 ' +
+                        'Последний элемент #1 ' +
+
+                        'Телефон: 74951234568 ' +
+                        'Телефон: 74951234570 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573) ' +
+                        '[+7 (495) 123-45-64] ' +
+                        '[+7 (495) 123-45-63]'
+                    );
+
+                    tester.visibilityButton.default.expectToHaveTextContent('Софтфон');
+                });
+                it(
+                    'Кнопка видимости должна добавляться после несуществующего элемента. Кнопка видимости не была ' +
+                    'добавлена.',
+                function() {
+                    widgetSettings.
+                        insertBeforeNonExistingElement().
+                        receive();
+
+                    tester.stateSettingRequest().receive();
+                    tester.popupStateSettingRequest().receiveResponse();
+
+                    tester.widgetSettings().
+                        insertBeforeNonExistingElement().
+                        windowMessage().
+                        expectToBeSent();
+
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Некий элемент #1 ' +
+                        'Последний элемент #1 ' +
+
+                        'Телефон: 74951234568 ' +
+                        'Телефон: 74951234570 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573) ' +
+                        '[+7 (495) 123-45-64] ' +
+                        '[+7 (495) 123-45-63]'
+                    );
+                });
+                it(
+                    'Кнопка видимости должна добавляться после последнего элемента. Кнопка видимости добавлена в ' +
+                    'конец.',
+                function() {
+                    widgetSettings.
+                        insertAfterLastElement().
+                        receive();
+
+                    tester.stateSettingRequest().receive();
+                    tester.popupStateSettingRequest().receiveResponse();
+
+                    tester.widgetSettings().
+                        insertAfterLastElement().
+                        windowMessage().
+                        expectToBeSent();
+
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Некий элемент #1 ' +
+                        'Последний элемент #1 ' +
+                        'Трубочка ' +
+
+                        'Телефон: 74951234568 ' +
+                        'Телефон: 74951234570 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573) ' +
+                        '[+7 (495) 123-45-64] ' +
+                        '[+7 (495) 123-45-63]'
+                    );
+                });
+                it(
+                    'Кнопка видимости должна добавляться после элемента. Кнопка видимости добавлена после элемента.',
+                function() {
+                    widgetSettings.
+                        insertAfter().
+                        receive();
+
+                    tester.stateSettingRequest().receive();
+                    tester.popupStateSettingRequest().receiveResponse();
+
+                    tester.widgetSettings().
+                        insertAfter().
+                        windowMessage().
+                        expectToBeSent();
+
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Некий элемент #1 ' +
+                        'Трубочка ' +
+                        'Последний элемент #1 ' +
+
+                        'Телефон: 74951234568 ' +
+                        'Телефон: 74951234570 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573) ' +
+                        '[+7 (495) 123-45-64] ' +
+                        '[+7 (495) 123-45-63]'
+                    );
+                });
+                it(
+                    'Кнопка видимости должна добавляться внутрь элемента. Кнопка видимости добавлена внурть элемента.',
+                function() {
+                    widgetSettings.
+                        insertInto().
+                        receive();
+
+                    tester.stateSettingRequest().receive();
+                    tester.popupStateSettingRequest().receiveResponse();
+
+                    tester.widgetSettings().
+                        insertInto().
+                        windowMessage().
+                        expectToBeSent();
+
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Некий элемент #1 ' +
+                        'Последний элемент #1 ' +
+
+                        'Трубочка ' +
+
+                        'Телефон: 74951234568 ' +
+                        'Телефон: 74951234570 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573) ' +
+                        '[+7 (495) 123-45-64] ' +
+                        '[+7 (495) 123-45-63]'
+                    );
+                });
+                it(
+                    'Использую XPath для поиска элемента, перед которым нужно вставить кнопку видиомсти. Кнопка ' +
+                    'видимости вставлена.',
+                function() {
+                    widgetSettings.
+                        buttonElementXpath().
+                        receive();
+
+                    tester.stateSettingRequest().receive();
+                    tester.popupStateSettingRequest().receiveResponse();
+
+                    tester.widgetSettings().
+                        buttonElementXpath().
+                        windowMessage().
+                        expectToBeSent();
+
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Некий элемент #1 ' +
+                        'Трубочка ' +
+                        'Последний элемент #1 ' +
+
+                        'Телефон: 74951234568 ' +
+                        'Телефон: 74951234570 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573) ' +
+                        '[+7 (495) 123-45-64] ' +
+                        '[+7 (495) 123-45-63]'
+                    );
+                });
+                it(
+                    'По XPath номера телефона удается найти несколько элементов. Значения подставлены в кнопки ' +
+                    'номеров телефонов.',
+                function() {
+                    widgetSettings.
+                        phoneListXpath().
+                        receive();
+
+                    tester.stateSettingRequest().receive();
+                    tester.popupStateSettingRequest().receiveResponse();
+
+                    tester.widgetSettings().
+                        phoneListXpath().
+                        windowMessage().
+                        expectToBeSent();
+
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Трубочка ' +
+                        'Некий элемент #1 ' +
+                        'Последний элемент #1 ' +
+
+                        'Телефон: 74951234565 ' +
+                        'Телефон: 74951234566 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573) ' +
+                        '[+7 (495) 123-45-64] ' +
+                        '[+7 (495) 123-45-63]'
+
+                    );
                 });
                 it('Не переданы настройки доступного для перемещения пространства. IFrame отображен.', function() {
                     widgetSettings.
@@ -1282,14 +1368,35 @@ tests.addTest(options => {
                                 nextRequest().
                                 grant();
 
-                            tester.installmentSettingsProbableUpdatingRequest().
-                                fromPopup().
-                                receiveResponse();
-
+                            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
                             tester.toggleChatsVisibilityRequest().expectToBeSent();
                         });
                         it('Кнопка чатов не нажата.', function() {
                             tester.switchButton('Показать чаты').expectNotToBeChecked();
+                        });
+                    });
+                    describe('Получено сообщение о безуспешной попытке получить настройки.', function() {
+                        beforeEach(function() {
+                            tester.widgetSettings().
+                                failedToGetSettings().
+                                storageData().
+                                receive();
+                        });
+
+                        it('Получены настройки. Сообщение об ошибке скрыто.', function() {
+                            tester.widgetSettings().
+                                anotherTime().
+                                storageData().
+                                receive();
+                            
+                            tester.body.expectTextContentNotToHaveSubstring('Не удалось получить настройки');
+                        });
+                        it('Отображено сообщение об ошибке.', function() {
+                            tester.body.expectTextContentToHaveSubstring('Не удалось получить настройки');
+
+                            tester.widgetSettings().
+                                storageData().
+                                expectToBeSaved();
                         });
                     });
                     it('Чаты видимы. Кнопка чатов нажата.', function() {
@@ -1307,7 +1414,6 @@ tests.addTest(options => {
                         tester.refreshButton.click();
 
                         tester.installmentSettingsUpdatingRequest().
-                            fromPopup().
                             expectToBeSent();
                     });
                     it('Настройки загружаются. Кнопки заблокированы.', function() {
@@ -1342,27 +1448,49 @@ tests.addTest(options => {
                             nextRequest().
                             grant();
 
-                        tester.installmentSettingsProbableUpdatingRequest().
-                            fromPopup().
-                            receiveResponse();
-
+                        tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
                         tester.toggleWidgetVisibilityRequest().receiveResponse();
+
+                        tester.switchButton('Показать софтфон').expectToBeEnabled();
                     });
                     it('Кнопка "Показать софтфон" отмечена.', function() {
                         tester.switchButton('Показать софтфон').expectToBeChecked();
                     });
                 });
-                it('Софтфон отсутствует. Кнопки видимости софтфона скрыты.', function() {
-                    popupStateSettingRequest.
-                        disabled().
-                        expectResponseToBeSent();
+                describe('Софтфон отсутствует. Нажимаю на кнопку видимости софтфона.', function() {
+                    beforeEach(function() {
+                        popupStateSettingRequest.
+                            disabled().
+                            expectResponseToBeSent();
 
-                    tester.switchButton('Показать софтфон').expectNotToExist();
+                        tester.switchButton('Показать софтфон').click();
+
+                        tester.chrome.
+                            permissions.
+                            nextRequest().
+                            grant();
+
+                        tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+                        tester.toggleWidgetVisibilityRequest().receiveResponse();
+                    });
+
+                    it('Получено сообщение о видимости софтфона. Кнопка видимости софтфона доступна.', function() {
+                        tester.popupStateSettingRequest().
+                            visible().
+                            expectResponseToBeSent();
+
+                        tester.switchButton('Показать софтфон').expectToBeEnabled();
+                    });
+                    it('Кнопка видимости софтфона заблокирована.', function() {
+                        tester.switchButton('Показать софтфон').expectToBeDisabled();
+                    });
                 });
             });
             it('Отображён логин авторизованного пользователя.', function() {
                 tester.body.expectTextContentToHaveSubstring('bitrixtest');
                 tester.switchButton('Показать чаты').expectNotToExist();
+                tester.switchButton('Показать софтфон').expectToBeVisible();
+                tester.body.expectTextContentNotToHaveSubstring('Вы не авторизованы');
             });
         });
         describe('Открываю background-скрипт. Софтфон авторизован.', function() {
@@ -1392,6 +1520,36 @@ tests.addTest(options => {
                         expectToBeSent();
                 });
 
+                describe('Не удалось получить настройки.', function() {
+                    beforeEach(function() {
+                        widgetSettings.
+                            failedToGetSettings().
+                            receiveResponse();
+                    });
+
+                    it('Получен запрос обновления настроек. Сообщение об ошибке удалено.', function() {
+                        tester.installmentSettingsUpdatingRequest().expectResponseToBeSent();
+
+                        tester.chrome.
+                            permissions.
+                            nextRequest().
+                            grant();
+
+                        tester.widgetSettings().
+                            request().
+                            receiveResponse();
+
+                        tester.widgetSettings().
+                            storageData().
+                            expectToBeSaved();
+                    });
+                    it('Сообщение об ошибке сохранено.', function() {
+                        tester.widgetSettings().
+                            failedToGetSettings().
+                            storageData().
+                            expectToBeSaved();
+                    });
+                });
                 it(
                     'Настройки обновлены. Получен ещё один запрос обновления настроек. Настройки ещё раз обновлены.',
                 function() {
@@ -1509,7 +1667,9 @@ tests.addTest(options => {
                         permissions.
                         nextRequest().
                         expectHostPermissionToBeRequested('https://uc-sso-prod-api.uiscom.ru/*').
-                        expectHostPermissionToBeRequested('https://my.uiscom.ru/*');
+                        expectHostPermissionToBeRequested('https://my.uiscom.ru/*').
+                        expectHostPermissionToBeRequested('https://my.callgear.ae/*').
+                        expectHostPermissionToBeRequested('https://my.comagic.com/*');
                 });
 
                 describe('Права предоставлены. Производится попытка открыть форму авторизации.', function() {
@@ -1520,34 +1680,74 @@ tests.addTest(options => {
                         authFlow = tester.authFlow().expectToBeLaunched();
                     });
 
-                    it(
-                        'Не удалось открыть форму авторизации. Приходит запрос авторизации. Производится попытка ' +
-                        'открыть форму авторизации.',
-                    function() {
-                        authFlow.fail();
-                        tester.authorizationRequest().expectResponseToBeSent();
+                    describe('Получен код авторизации.', function() {
+                        let oauthRequest;
 
-                        tester.chrome.
-                            permissions.
-                            nextRequest().
-                            grant();
+                        beforeEach(function() {
+                            authFlow.receiveResponse();
+                            oauthRequest = tester.oauthRequest().expectToBeSent();
+                        });
 
-                        tester.authFlow().expectToBeLaunched();
+                        it('Получен дубайский токен. Отправлен запрос настроек в дубайский сервер.', function() {
+                            oauthRequest.
+                                anotherToken().
+                                receiveResponse();
+
+                            tester.widgetSettings().
+                                anotherToken().
+                                request().
+                                receiveResponse();
+
+                            tester.widgetSettings().
+                                anotherToken().
+                                storageData().
+                                expectToBeSaved();
+                        });
+                        it(
+                            'Получен авторизационный токен. В текущей вкладке установлен авторизационный токен. В ' +
+                            'хранилище сохранено состояние вкладки.',
+                        function() {
+                            oauthRequest.receiveResponse();
+
+                            tester.widgetSettings().
+                                request().
+                                receiveResponse();
+
+                            tester.widgetSettings().
+                                storageData().
+                                expectToBeSaved();
+                        });
                     });
-                    it(
-                        'Получен код авторизации. Получен авторизационный токен. В текущей вкладке установлен ' +
-                        'авторизационный токен. В хранилище сохранено состояние вкладки.',
-                    function() {
-                        authFlow.receiveResponse();
-                        tester.oauthRequest().receiveResponse();
+                    describe('Не удалось открыть форму авторизации.', function() {
+                        beforeEach(function() {
+                            authFlow.fail();
+                        });
 
-                        tester.widgetSettings().
-                            request().
-                            receiveResponse();
+                        it('Приходит запрос авторизации. Производится попытка открыть форму авторизации.', function() {
+                            tester.authorizationRequest().expectResponseToBeSent();
 
-                        tester.widgetSettings().
-                            storageData().
-                            expectToBeSaved();
+                            tester.chrome.
+                                permissions.
+                                nextRequest().
+                                grant();
+
+                            tester.authFlow().receiveResponse();
+                            tester.oauthRequest().receiveResponse();
+
+                            tester.widgetSettings().
+                                request().
+                                receiveResponse();
+
+                            tester.widgetSettings().
+                                storageData().
+                                expectToBeSaved();
+                        });
+                        it('В хранилище сохранено сообщение об ошибке.', function() {
+                            tester.widgetSettings().
+                                failedToAuthorize().
+                                storageData().
+                                expectToBeSaved();
+                        });
                     });
                     it('Приходит запрос авторизации. Попытка открыть форму авторизации не производится.', function() {
                         tester.authorizationRequest().expectResponseToBeSent();
@@ -1658,15 +1858,25 @@ tests.addTest(options => {
                     ...options,
                 });
 
+                postMessages.nextMessage().expectMessageToContain({
+                    method: 'set_token',
+                    data: '',
+                });
+
                 tester.stateSettingRequest().expectToBeSent();
                 tester.amocrmStateSettingRequest().receive();
             });
 
-            describe('Из родительского окна приходит токен. Прозиводится авторизация.', function() {
+            describe('Из окна авторизации приходит токен. Прозиводится авторизация.', function() {
                 let authCheckRequest;
 
                 beforeEach(function() {
                     postMessages.receive({
+                        method: 'set_token',
+                        data: tester.oauthToken,
+                    });
+
+                    postMessages.nextMessage().expectMessageToContain({
                         method: 'set_token',
                         data: tester.oauthToken,
                     });
@@ -1829,6 +2039,17 @@ tests.addTest(options => {
                     }
                 });
             });
+            it('Из окна авторизации приходит дубайский токен. Авторизация не производится.', function() {
+                postMessages.receive({
+                    method: 'set_token',
+                    data: tester.anotherOauthToken,
+                });
+
+                postMessages.nextMessage().expectMessageToContain({
+                    method: 'set_token',
+                    data: tester.anotherOauthToken,
+                });
+            });
             it('Приходит запрос изменения видимости. Софтфон отображён.', function() {
                 postMessages.receive({
                     method: 'toggle_widget_visibility'
@@ -1849,6 +2070,11 @@ tests.addTest(options => {
                     ...options,
                     application: 'amocrm',
                 });
+
+                postMessages.receive({
+                    method: 'set_token',
+                    data: '',
+                });
             });
 
             describe('Получено состояние софтфона. Софтфон должен быть видимым.', function() {
@@ -1860,6 +2086,100 @@ tests.addTest(options => {
                     tester.amocrmStateSettingRequest().expectToBeSent();
                 });
 
+                describe('Получен дубайский токен авторизации.', function() {
+                    beforeEach(function() {
+                        postMessages.receive({
+                            method: 'set_token',
+                            data: tester.anotherOauthToken,
+                        });
+                    });
+
+                    it('Получен запрос изменения состояния.', function() {
+                        tester.stateSettingRequest().receive();
+
+                        postMessages.nextMessage().expectMessageToContain({
+                            method: 'toggle_widget_visibility'
+                        });
+
+                        tester.amocrmStateSettingRequest().expectToBeSent();
+
+                        tester.stateSettingRequest().
+                            visible().
+                            receive();
+
+                        postMessages.receive({
+                            method: 'set_token',
+                            data: '',
+                        });
+
+                        postMessages.nextMessage().expectMessageToContain({
+                            method: 'set_token',
+                            data: tester.anotherOauthToken,
+                        });
+
+                        postMessages.receive({
+                            method: 'set_token',
+                            data: tester.anotherOauthToken,
+                        });
+                    });
+                    it('IFrame изменился.', function() {
+                        tester.iframe.first.expectToBeVisible();
+
+                        {
+                            const actualValue = window.localStorage.getItem('datacenter'),
+                                expectedValue = 'dubai';
+
+                            if (actualValue != expectedValue) {
+                                throw new Error(
+                                    'Должен быть сохранен data center "' + expectedValue + '", а не "' + actualValue +
+                                    '".'
+                                );
+                            }
+                        }
+
+                        tester.iframe.first.expectAttributeToHaveValue(
+                            'src',
+                            'https://prod-msk-softphone-widget-iframe.callgear.ae/amocrm'
+                        );
+                    });
+                });
+                describe('Получен токен авторизации.', function() {
+                    beforeEach(function() {
+                        postMessages.receive({
+                            method: 'set_token',
+                            data: tester.oauthToken,
+                        });
+                    });
+
+                    it('Получен пустой токен. Предыдущий сохраненный токен не был передан в IFrame.', function() {
+                        tester.stateSettingRequest().receive();
+
+                        postMessages.receive({
+                            method: 'set_token',
+                            data: '',
+                        });
+                    });
+                    it('URL IFrame не изменился.', function() {
+                        tester.iframe.first.expectToBeVisible();
+
+                        {
+                            const actualValue = !!window.localStorage.getItem('datacenter'),
+                                expectedValue = false;
+
+                            if (actualValue != expectedValue) {
+                                throw new Error(
+                                    'Data center не должен быть сохранен, однако было сохранено значение "' +
+                                    actualValue + '".'
+                                );
+                            }
+                        }
+
+                        tester.iframe.first.expectAttributeToHaveValue(
+                            'src',
+                            'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm',
+                        );
+                    });
+                });
                 it('Нажимаю на номер телефона. В софтфон отправлен запрос звонка.', function() {
                     tester.contactPhone('79161234567').click();
 
@@ -1891,7 +2211,6 @@ tests.addTest(options => {
                 'настроек. Открыто окно настроек.',
             function() {
                 tester.openSettings();
-
                 tester.button('Завершить установку').click();
 
                 windowOpener.
@@ -1901,7 +2220,7 @@ tests.addTest(options => {
                     });
 
                 tester.button('Перейти к настройкам').click();
-                windowOpener.expectToHavePath('https://go.comagic.ru/marketplace/integration_list');
+                windowOpener.expectToHavePath('https://go.uiscom.ru/marketplace/integration_list');
             });
             it('IFrame скрыт.', function() {
                 tester.iframe.first.expectToBeHidden();
@@ -1927,6 +2246,11 @@ tests.addTest(options => {
                     amocrm().
                     request().
                     expectToBeSent();
+
+                postMessages.nextMessage().expectMessageToContain({
+                    method: 'set_token',
+                    data: tester.oauthToken,
+                });
 
                 tester.stateSettingRequest().expectToBeSent();
                 tester.amocrmStateSettingRequest().receive();
@@ -2027,6 +2351,11 @@ tests.addTest(options => {
 
                     it('Получен запрос выхода. Отображена ссылка на страницу авторизации.', function() {
                         postMessages.receive({
+                            method: 'set_token',
+                            data: '',
+                        });
+
+                        postMessages.nextMessage().expectMessageToContain({
                             method: 'set_token',
                             data: '',
                         });
@@ -2369,6 +2698,46 @@ tests.addTest(options => {
                     expectToBeVisible();
             });
         });
+        it('Открыт IFrame. Получен дубайский токен. Отправлен запрос авторизации в дубайский сервер.', function() {
+            tester = new Tester({
+                application: 'iframeContent',
+                isIframe: true,
+                softphoneHost: 'my.callgear.ae',
+                ...options,
+            });
+
+            tester.stateSettingRequest().expectToBeSent();
+
+            postMessages.receive({
+                method: 'toggle_widget_visibility',
+            });
+            
+            tester.stateSettingRequest().
+                visible().
+                expectToBeSent();
+
+            tester.widgetSettings().
+                anotherToken().
+                windowMessage().
+                receive();
+
+            tester.masterInfoMessage().receive();
+
+            tester.slavesNotification().
+                additional().
+                visible().
+                expectToBeSent();
+
+            tester.slavesNotification().expectToBeSent();
+
+            tester.masterInfoMessage().
+                tellIsLeader().
+                expectToBeSent();
+                
+            tester.authTokenRequest().
+                anotherToken().
+                expectToBeSent();
+        });
         it(
             'Контент скрипт встроился в IFrame. URL не находится в списке тех, на которых расширение должно ' +
             'работать. Приходит запрос изменения видимости.',
@@ -2412,6 +2781,32 @@ tests.addTest(options => {
             tester.widgetSettings().
                 storageData().
                 expectToBeSaved();
+        });
+        it('Ранее был открыт дубайский IFrame. Дубайский IFrame снова открыт.', function() {
+            window.localStorage.setItem('datacenter', 'dubai'),
+
+            tester = new Tester({
+                softphoneHost: 'my.uiscom.ru',
+                ...options,
+                application: 'amocrm',
+            });
+
+            postMessages.receive({
+                method: 'set_token',
+                data: '',
+            });
+
+            tester.stateSettingRequest().
+                visible().
+                receive();
+
+            tester.amocrmStateSettingRequest().expectToBeSent();
+            tester.iframe.first.expectToBeVisible();
+
+            tester.iframe.first.expectAttributeToHaveValue(
+                'src',
+                'https://prod-msk-softphone-widget-iframe.callgear.ae/amocrm',
+            );
         });
         it('Виджет установлен. Открываю настройки. Кнопока настроек видима.', function() {
             tester = new Tester({

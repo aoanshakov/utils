@@ -182,6 +182,12 @@ tests.addTest(options => {
                                         let searchResultsRequest;
 
                                         beforeEach(function() {
+                                            tester.chatList.
+                                                header.
+                                                button.
+                                                atIndex(1).
+                                                click();
+
                                             tester.input.fill('Сообщение #75');
                                             
                                             tester.input.pressEnter();
@@ -1871,6 +1877,12 @@ tests.addTest(options => {
                                         it(
                                             'Нажимаю на элемент списка чатов. Кнопка принятия чата заблокирована.',
                                         function() {
+                                            tester.chatList.
+                                                header.
+                                                button.
+                                                atIndex(1).
+                                                click();
+
                                             tester.input.fill('Сообщение #75');
 
                                             tester.input.pressEnter();
@@ -2379,6 +2391,12 @@ tests.addTest(options => {
                                         'Принимаю новый чат в работу. Перехожу на вкладку "В работе". Закрепленные ' +
                                         'чаты находятся наверху.',
                                     function() {
+                                        tester.chatList.
+                                            header.
+                                            button.
+                                            atIndex(1).
+                                            click();
+
                                         tester.input.fill('Сообщение #75');
 
                                         tester.input.pressEnter();
@@ -2979,6 +2997,12 @@ tests.addTest(options => {
                             'Открываю чат. Кнопка завершения чата заблокирована. Нажимаю на кнопку принятия чата. ' +
                             'Кнопка завершения чата заблокирована.',
                         function() {
+                            tester.chatList.
+                                header.
+                                button.
+                                atIndex(1).
+                                click();
+
                             tester.input.fill('Сообщение #75');
 
                             tester.input.pressEnter();
@@ -3020,6 +3044,12 @@ tests.addTest(options => {
                             chatListRequest.receiveResponse();
                             secondChatListRequest.receiveResponse();
                             thirdChatListRequest.receiveResponse();
+
+                            tester.chatList.
+                                header.
+                                button.
+                                atIndex(1).
+                                click();
 
                             tester.input.fill('Сообщение #75');
 
@@ -3101,6 +3131,12 @@ tests.addTest(options => {
                             chatListRequest.receiveResponse();
                             secondChatListRequest.receiveResponse();
                             thirdChatListRequest.receiveResponse();
+
+                            tester.chatList.
+                                header.
+                                button.
+                                atIndex(1).
+                                click();
 
                             tester.input.fill('Сообщение #75');
 
@@ -3219,6 +3255,12 @@ tests.addTest(options => {
                             secondChatListRequest.receiveResponse();
                             thirdChatListRequest.receiveResponse();
 
+                            tester.chatList.
+                                header.
+                                button.
+                                atIndex(1).
+                                click();
+
                             tester.input.fill('Сообщение #75');
 
                             tester.input.pressEnter();
@@ -3279,6 +3321,12 @@ tests.addTest(options => {
                         chatListRequest.receiveResponse();
                         secondChatListRequest.receiveResponse();
                         thirdChatListRequest.receiveResponse();
+
+                        tester.chatList.
+                            header.
+                            button.
+                            atIndex(1).
+                            click();
 
                         tester.input.fill('Сообщение #75');
 
@@ -3611,6 +3659,11 @@ tests.addTest(options => {
                 tester.offlineMessageListRequest().processing().receiveResponse();
                 tester.offlineMessageListRequest().processed().receiveResponse();
 
+                tester.chatList.
+                    header.
+                    button.
+                    atIndex(1).
+                    click();
 
                 tester.input.fill('Сообщение #75');
 
@@ -3835,6 +3888,12 @@ tests.addTest(options => {
                 });
             });
             it('Открываю чат. Раскрываю панель "Заметки". Опции тегов заблокированы.', function() {
+                tester.chatList.
+                    header.
+                    button.
+                    atIndex(1).
+                    click();
+
                 tester.input.fill('Сообщение #75');
 
                 tester.input.pressEnter();
@@ -4548,6 +4607,12 @@ tests.addTest(options => {
             tester.offlineMessageListRequest().processed().receiveResponse();
 
             tester.countersRequest().receiveResponse();
+
+            tester.chatList.
+                header.
+                button.
+                atIndex(1).
+                click();
 
             tester.input.fill('Сообщение #75');
 

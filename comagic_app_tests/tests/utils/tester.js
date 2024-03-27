@@ -5997,6 +5997,12 @@ define(() => function ({
             search_string: 'Сообщение #75'
         };
 
+        const headers = {
+            Authorization: undefined,
+            'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
         const response = {
             result: {
                 data: {
@@ -6115,6 +6121,7 @@ define(() => function ({
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('BASE_URL').
                     expectToHaveMethod('POST').
+                    expectToHaveHeaders(headers).
                     expectBodyToContain({
                         method: 'get_search_results',
                         params,
@@ -6358,6 +6365,12 @@ define(() => function ({
     };
 
     me.chatPinningRequest = () => {
+        const headers = {
+            Authorization: undefined,
+            'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
         const params = {
             chat_id: 2718942
         };
@@ -6406,6 +6419,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath('$REACT_APP_BASE_URL/operator/chat/pin').
+                    expectToHaveHeaders(headers).
                     expectBodyToContain(params);
 
                 spendTime(0)
@@ -14832,7 +14846,7 @@ define(() => function ({
 
         let getAuthorizationHeader = () => ({
             Authorization: `Bearer ${token}`,
-            'X-Auth-Token': undefined,
+            'X-Auth-Token': token,
             'X-Auth-Type': 'jwt'
         });
 
@@ -15832,6 +15846,15 @@ define(() => function ({
 
         tester.atIndex = index => createTester(index);
         tester.first = createTester(0);
+
+        tester.header = (() => {
+            const getDomElement = () => utils.querySelector(
+                '.misc-chats-src-components-chats-chats-list-panel-styles-module__header'
+            );
+
+            const tester = testersFactory.createDomElementTester(getDomElement);
+            return addTesters(tester, getDomElement);
+        })();
 
         return tester;
     })();

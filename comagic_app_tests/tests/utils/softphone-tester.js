@@ -382,10 +382,17 @@ define(function () {
                 return getRootElement().querySelector('input[type=file]');
             });
 
-            me.button.atIndex = index => testersFactory.createDomElementTester(() => {
-                return utils.element(getRootElement()).querySelectorAll(buttonSelector)[index] ||
-                    new JsTester_NoElement();
-            });
+            me.button.atIndex = index => (() => {
+                const tester = testersFactory.createDomElementTester(() => {
+                    return utils.element(getRootElement()).querySelectorAll(buttonSelector)[index] ||
+                        new JsTester_NoElement();
+                });
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), spendTime(0));
+
+                return tester;
+            })();
 
             me.button.first = me.button.atIndex(0);
 

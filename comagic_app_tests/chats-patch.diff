@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index c20ee51..44967ae 100644
+index ddbaee36..c6e1b171 100644
 --- a/package.json
 +++ b/package.json
-@@ -26,8 +26,6 @@
+@@ -25,8 +25,6 @@
      "@types/dompurify": "^2.3.3",
      "@types/htmlparser2": "^3.10.3",
      "@types/node": "^14.14.37",
@@ -11,24 +11,21 @@ index c20ee51..44967ae 100644
      "@types/react-window": "^1.8.5",
      "@types/uuid": "^8.3.1",
      "@types/yup": "^0.29.11",
-@@ -61,12 +59,8 @@
+@@ -60,9 +58,6 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "^1.17.0",
--    "@comagic/ui": "1.11.12",
+-    "@comagic/ui": "1.72.2",
 -    "@comagic/workplace-utils": "^1.0.25",
      "@sentry/react": "^7.73.0",
      "async-mutex": "^0.3.2",
--    "axios": "^0.24.0",
-     "classnames": "^2.2.6",
-     "dompurify": "^2.3.10",
-     "dotenv": "^16.0.0",
-@@ -76,16 +70,7 @@
+     "axios": "0.27.2",
+@@ -75,16 +70,7 @@
      "history": "^5.3.0",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
--    "magic-ui": "0.0.0-int1",
+-    "magic-ui": "^0.0.0-int1",
 -    "mobx": "^6.6.1",
 -    "mobx-react-lite": "^3.4.0",
 -    "mobx-state-tree": "^5.1.6",
@@ -41,155 +38,3 @@ index c20ee51..44967ae 100644
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
      "yup": "^0.32.9"
-diff --git a/src/App.tsx b/src/App.tsx
-index f6ac0b1..2b91ac6 100644
---- a/src/App.tsx
-+++ b/src/App.tsx
-@@ -8,7 +8,14 @@ import AppRoute from './routes/AppRoute';
- import './App.less';
- 
- const App: React.FC = observer(() => {
--    const { chatChannelsStore, statusesStore, employeesStore, sitesStore, chatTemplatesStore } = useMst();
-+    const {
-+        authStore: { isAuthorized },
-+        chatChannelsStore,
-+        statusesStore,
-+        employeesStore,
-+        sitesStore,
-+        chatTemplatesStore,
-+    } = useMst();
- 
-     useMountEffect(() => {
-         void (async () => {
-@@ -23,11 +30,11 @@ const App: React.FC = observer(() => {
-         })();
-     });
- 
--    return (
-+    return [false, true].some(value => value === isAuthorized) ? (
-         <div className="cm-app-module">
-             <AppRoute />
-         </div>
--    );
-+    ) : null;
- });
- 
- export default App;
-diff --git a/src/components/chats/chat-panel/styles.less b/src/components/chats/chat-panel/styles.less
-index 7b8a18a..2ca2687 100644
---- a/src/components/chats/chat-panel/styles.less
-+++ b/src/components/chats/chat-panel/styles.less
-@@ -196,7 +196,7 @@
-           }
-         }
- 
--        .ui-button {
-+        .ui-button, .cmgui-button {
-           grid-column: 3;
-           grid-row: 1 / 3;
-         }
-@@ -218,7 +218,7 @@
-           width: 100%;
-       }
- 
--      .ui-textarea {
-+      .ui-textarea, .cmgui-textarea {
-         box-shadow: none;
-         border: none;
-         background: white;
-@@ -1022,15 +1022,15 @@
- 
- .@{p}audio-download-popup {
- 
--  .ui-popover-arrow {
-+  .ui-popover-arrow, .cmgui-popover-arrow {
-     display: none;
-   }
- 
--  .ui-popover-content {
-+  .ui-popover-content, .cmgui-popover-content {
-     transform: translateY(8px);
-   }
- 
--  .ui-popover-inner {
-+  .ui-popover-inner, .cmgui-popover-inner {
-     position: relative;
-     left: 10px;
-     top: 9px;
-@@ -1043,7 +1043,7 @@
-       background-color: @surfaces-highlight;
-     }
- 
--    .ui-button-ghost {
-+    .ui-button-ghost, .cmgui-button-ghost {
-       color: @fonts-primary;
-     }
-   }
-@@ -1053,18 +1053,18 @@
-   width: 100%;
-   height: 100%;
- 
--  .ui-modal-content {
-+  .ui-modal-content, .cmgui-modal-content {
-     background: none;
-     box-shadow: none;
-     padding: 0;
-     height: 100%;
-     border: none;
- 
--    .ui-modal-header {
-+    .ui-modal-header, .cmgui-modal-header {
-       display: none;
-     }
- 
--    .ui-modal-main {
-+    .ui-modal-main, .cmgui-modal-main {
-       margin: 0;
-       width: 100%;
-       height: 100%;
-diff --git a/src/models/account/AccountStore.ts b/src/models/account/AccountStore.ts
-index e07a917..787fbb4 100644
---- a/src/models/account/AccountStore.ts
-+++ b/src/models/account/AccountStore.ts
-@@ -1,4 +1,4 @@
--import { flow, Instance, getRoot, types, cast } from 'mobx-state-tree';
-+import { flow, Instance, getRoot, types, cast, getSnapshot } from 'mobx-state-tree';
- import { DataApiResponseResult, HttpRpc } from '@/httpRpc';
- import { intl } from '@/i18n';
- import { RootInstance } from '@models/RootStore';
-@@ -56,12 +56,18 @@ export const AccountStore = types
-     })
-     .views(self => ({
-         getOtherEmployeeChatsAccess() {
--            const permission = [...self.account.permissions].find(item => item[0] === 'other_employee_chats_access');
--            return permission && permission[1] ? permission[1].is_select : false;
-+            const permission = getSnapshot(self.account.permissions).other_employee_chats_access;
-+            return permission?.is_select || false;
-         },
-         getTagsPermissions() {
--            const tagsPermissions = [...self.account.permissions].find(item => item[0] === 'tag_management')[1];
--            return tagsPermissions;
-+            return (
-+                getSnapshot(self.account.permissions).tag_management || {
-+                    is_delete: false,
-+                    is_insert: false,
-+                    is_select: false,
-+                    is_update: false,
-+                }
-+            );
-         },
-     }))
-     .actions(self => {
-diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index 2ffb792..7afa1ec 100644
---- a/src/models/auth/AuthStore.ts
-+++ b/src/models/auth/AuthStore.ts
-@@ -27,7 +27,7 @@ const addEventListener = (() => {
- 
- export const AuthStore = types
-     .model('AuthStore', {
--        isAuthorized: types.optional(types.boolean, false),
-+        isAuthorized: types.maybe(types.boolean),
-         windowId: types.optional(types.string, generateTraceId('local')),
-     })
-     .views(() => ({

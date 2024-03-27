@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0579dd31..c77edf97 100644
+index 0579dd31..fbec0b3f 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -57,7 +57,31 @@ index 0579dd31..c77edf97 100644
          },
          {
              loader: 'css-loader',
-@@ -214,7 +230,9 @@ const plugins = () => {
+@@ -136,15 +152,11 @@ const getSharedDeps = () => {
+         'react-router-dom',
+         'history',
+         'classnames',
+-        'formik',
+         'mobx',
+         'mobx-react-lite',
+         'mobx-state-tree',
+-        'lodash.clonedeep',
+         'react-intl',
+         '@comagic/core',
+-        '@sentry/react',
+-        '@sentry/tracing',
+     ].reduce((shared, key) => {
+         shared[key] = {
+             requiredVersion: deps[key],
+@@ -158,7 +170,6 @@ const getSharedDeps = () => {
+         ...baseDeps,
+     };
+ 
+-    delete(baseDeps['magic-ui']);
+     return baseDeps;
+ };
+ 
+@@ -214,7 +225,9 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -68,7 +92,7 @@ index 0579dd31..c77edf97 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -260,6 +278,11 @@ const plugins = () => {
+@@ -260,6 +273,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -80,7 +104,7 @@ index 0579dd31..c77edf97 100644
      ];
  
      if (isProductionMode) {
-@@ -283,11 +306,27 @@ const plugins = () => {
+@@ -283,11 +301,27 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -108,7 +132,7 @@ index 0579dd31..c77edf97 100644
      optimization: isProductionMode
          ? {
                minimize: true,
-@@ -303,6 +342,21 @@ module.exports = {
+@@ -303,6 +337,21 @@ module.exports = {
      },
      module: {
          rules: [
@@ -130,7 +154,7 @@ index 0579dd31..c77edf97 100644
              {
                  test: /\.(ts|tsx)$/,
                  use: {
-@@ -311,7 +365,7 @@ module.exports = {
+@@ -311,7 +360,7 @@ module.exports = {
                          transpileOnly: true,
                      },
                  },
@@ -139,7 +163,7 @@ index 0579dd31..c77edf97 100644
              },
              {
                  test: /\.css$/,
-@@ -321,6 +375,29 @@ module.exports = {
+@@ -321,6 +370,29 @@ module.exports = {
                  test: /\.less$/,
                  use: cssLoaders(lessLoader),
              },
@@ -169,7 +193,7 @@ index 0579dd31..c77edf97 100644
              {
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
-@@ -331,12 +408,13 @@ module.exports = {
+@@ -331,12 +403,13 @@ module.exports = {
                  },
              },
              {
@@ -184,7 +208,7 @@ index 0579dd31..c77edf97 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -352,17 +430,160 @@ module.exports = {
+@@ -352,17 +425,160 @@ module.exports = {
                      },
                  ],
              },
