@@ -1168,12 +1168,16 @@ define(() => function ({
     };
 
     if (isAuthorized) {
-        const storageData = me.widgetSettings().storageData();
+        if (application == 'amocrmIframeContent') {
+            window.localStorage.setItem('token', me.oauthToken);
+        } else {
+            const storageData = me.widgetSettings().storageData();
 
-        areSettingsExpired && storageData.expired();
-        anotherWildcart && storageData.anotherWildcart();
+            areSettingsExpired && storageData.expired();
+            anotherWildcart && storageData.anotherWildcart();
 
-        storageData.receive();
+            storageData.receive();
+        }
     }
 
     me.page = {

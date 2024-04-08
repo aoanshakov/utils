@@ -2233,11 +2233,10 @@ tests.addTest(options => {
                 widgetSettings;
 
             beforeEach(function() {
-                window.localStorage.setItem('token', tester.oauthToken);
-
                 tester = new Tester({
                     application: 'amocrmIframeContent',
                     isIframe: true,
+                    isAuthorized: true,
                     softphoneHost: 'my.uiscom.ru',
                     ...options,
                 });
