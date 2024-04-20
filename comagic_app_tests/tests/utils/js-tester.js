@@ -3929,6 +3929,7 @@ function JsTester_Element ({
             result = (getElement() || new JsTester_NoElement()).querySelectorAll(selector);
 
         logEnabled && console.log({
+            selector,
             element,
             result
         });
@@ -3940,8 +3941,8 @@ function JsTester_Element ({
         return utils.getVisibleSilently(querySelectorAll(selector)) || new JsTester_NoElement();
     };
 
-    this.querySelectorAll = function (selector) {
-        return utils.getAllVisible(querySelectorAll(selector));
+    this.querySelectorAll = function (selector, logEnabled) {
+        return utils.getAllVisible(querySelectorAll(selector, logEnabled));
     };
 }
 

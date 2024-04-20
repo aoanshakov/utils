@@ -75,7 +75,9 @@ const {
     contactList,
     maleNames,
     testsEntripointSource,
-    testsEntripointTarget
+    testsEntripointTarget,
+    ui,
+    uiPatch,
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -83,6 +85,7 @@ const cda = `cd ${application} &&`,
     actions = {},
     packageJson = 'package.json',
     magicUiOverridenFiles = packageJson,
+    uiOverridenFiles = 'src/components/file-drop/file-drop.tsx src/components/file-drop/file-drop.helpers.ts',
     coreOverridenFiles = packageJson,
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
     contactsOverridenFiles = packageJson,
@@ -209,6 +212,16 @@ const overriding = [{
     test: {
         overridenFiles: magicUiOverridenFiles,
         applicationPatch: magicUiPatch
+    }
+}, {
+    application: ui,
+    dev: {
+        overridenFiles: uiOverridenFiles,
+        applicationPatch: uiPatch,
+    },
+    test: {
+        overridenFiles: uiOverridenFiles,
+        applicationPatch: uiPatch,
     }
 }, {
     application: logger,

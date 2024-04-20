@@ -1,0 +1,50 @@
+diff --git a/src/components/file-drop/file-drop.helpers.ts b/src/components/file-drop/file-drop.helpers.ts
+index 683042a..c4fce67 100644
+--- a/src/components/file-drop/file-drop.helpers.ts
++++ b/src/components/file-drop/file-drop.helpers.ts
+@@ -2,7 +2,7 @@ export const initInput = (accept: string, multiple?: boolean): HTMLInputElement
+     const inputElement = document.createElement('input');
+ 
+     inputElement.type = 'file';
+-    inputElement.accept = accept;
++    accept && (inputElement.accept = accept);
+ 
+     if (multiple) {
+         inputElement.multiple = multiple;
+diff --git a/src/components/file-drop/file-drop.tsx b/src/components/file-drop/file-drop.tsx
+index 3233408..da9f1e5 100644
+--- a/src/components/file-drop/file-drop.tsx
++++ b/src/components/file-drop/file-drop.tsx
+@@ -31,7 +31,7 @@ const FileDrop: FC<FileDropProps> = props => {
+         percent,
+         onReload,
+         onCancel,
+-        accept,
++        accept = [],
+         loadStatus = 'default',
+         multiple,
+         uploadSize = 104857,
+@@ -40,6 +40,7 @@ const FileDrop: FC<FileDropProps> = props => {
+         style,
+     } = props;
+ 
++    const isTest = process.env.REACT_APP_TEST_MODE === 'true';
+     const [isDrag, setDrag] = useState(false);
+     const [isErrorFileType, setErrorFileType] = useState(false);
+     const classNames = cn(`${PREFIX_CLS}-file-drop`, className);
+@@ -204,7 +205,14 @@ const FileDrop: FC<FileDropProps> = props => {
+     const handleClick = useCallback(() => {
+         if (isLoadDefault) {
+             const element = initInput(accept.join(','), multiple);
+-            element.click();
++
++            if (process.env.REACT_APP_TEST_MODE === 'true') {
++                document.body.appendChild(element);
++                console.log('FILEI NPUT', element);
++            } else {
++                element.click();
++            }
++
+             element.onchange = ({ target }: Event) => {
+                 beforeUpload((target as HTMLInputElement).files);
+             };

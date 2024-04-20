@@ -44,4 +44,6 @@ module.exports = {
     chats: `${misc}/chats`,
     corePatch: `${tests}/core-patch.diff`,
     core: `${misc}/core`,
+    ui: `${misc}/ui`,
+    uiPatch: `${tests}/ui-patch.diff`,
 };

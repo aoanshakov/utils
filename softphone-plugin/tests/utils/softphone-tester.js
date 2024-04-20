@@ -190,9 +190,24 @@ define(function () {
                         fill = tester.fill.bind(tester),
                         input = tester.input.bind(tester),
                         click = tester.click.bind(tester),
-                        pressEnter = tester.pressEnter.bind(tester),
-                        getUiInput = () => (getInput() || new JsTester_NoElement()).closest('.ui-input, .cmgui-input'),
-                        uiInputTester = testersFactory.createDomElementTester(getUiInput);
+                        pressEnter = tester.pressEnter.bind(tester);
+
+                    const getUiInput = () => {
+                        const domElement = (getInput() || new JsTester_NoElement()),
+                            textField = domElement.closest('.cmgui-text-field');
+
+                        if (textField) {
+                            return textField;
+                        }
+
+                        return domElement.closest('.ui-input, .cmgui-input');
+                    };
+
+                    const uiInputTester = testersFactory.createDomElementTester(getUiInput);
+
+                    const fieldNotificationTester = testersFactory.createDomElementTester(
+                        () => getUiInput().querySelector('.cmgui-text-field-notification')
+                    );
 
                     tester.clear = () => (clear(), spendTime(0), spendTime(0));
                     tester.click = () => (click(), spendTime(0), spendTime(0), tester);
@@ -202,13 +217,19 @@ define(function () {
 
                     tester.expectNotToHaveError = () => uiInputTester.expectToHaveNoneOfClasses([
                         'ui-input-error',
-                        'cmgui-input-error'
+                        'cmgui-input-error',
+                        'cmgui-text-field-error',
                     ]);
 
-                    tester.expectToHaveError = () => uiInputTester.expectToHaveAnyOfClasses([
-                        'ui-input-error',
-                        'cmgui-input-error'
-                    ]);
+                    tester.expectToHaveError = errorMessage => {
+                        uiInputTester.expectToHaveAnyOfClasses([
+                            'ui-input-error',
+                            'cmgui-input-error',
+                            'cmgui-text-field-error',
+                        ]);
+
+                        errorMessage !== undefined && fieldNotificationTester.expectToHaveTextContent(errorMessage);
+                    };
 
                     tester.clearIcon = (() => {
                         const tester = testersFactory.createDomElementTester(
@@ -270,6 +291,7 @@ define(function () {
                 '.cmg-switch-label, ' +
                 '.misc-core-src-component-styles-module__label, ' +
                 '.misc-core-src-components-menu-styles-module__label, ' +
+                '.cmgui-tab-title, ' +
                 '.cm-chats--tab-title, ' +
                 '.cm-chats--title, ' +
                 '.src-components-main-menu-nav-item-styles-module__label, ' +
@@ -357,6 +379,9 @@ define(function () {
 
                 const pressednessTester = testersFactory.createDomElementTester(getPressableElement);
 
+                tester.expectToBeActive = () => tester.expectToHaveClass('cmgui-button-active');
+                tester.expectToBeInactive = () => tester.expectNotToHaveClass('cmgui-button-active');
+
                 tester.counter = testersFactory.createDomElementTester(() => getPressableElement().querySelector(
                     '.cm-chats--new-messages-count, ' +
                     '.misc-core-src-component-styles-module__new-items-count'
@@ -375,6 +400,13 @@ define(function () {
                     fieldTester.expectToHaveAnyOfClasses(disabledClasses) :
                     tester.expectToHaveAttribute('disabled');
                 
+                const iconTester = testersFactory.createDomElementTester(() => domElement.querySelector('.cmgui-icon'));
+
+                tester.expectToHaveIcon = expectedValue => iconTester.expectAttributeToHaveValue(
+                    'data-component',
+                    expectedValue,
+                );
+
                 return tester;
             };
 
@@ -382,10 +414,17 @@ define(function () {
                 return getRootElement().querySelector('input[type=file]');
             });
 
-            me.button.atIndex = index => testersFactory.createDomElementTester(() => {
-                return utils.element(getRootElement()).querySelectorAll(buttonSelector)[index] ||
-                    new JsTester_NoElement();
-            });
+            me.button.atIndex = (index, logEnabled) => {
+                const tester = testersFactory.createDomElementTester(() => {
+                    return utils.element(getRootElement()).querySelectorAll(buttonSelector, logEnabled)[index] ||
+                        new JsTester_NoElement();
+                });
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), spendTime(0));
+
+                return tester;
+            };
 
             me.button.first = me.button.atIndex(0);
 

@@ -64,6 +64,8 @@ module.exports = {
     updaterPatch: `${tests}/updater-patch.diff`,
     misc,
     magicUi: `${misc}/magic_ui`,
+    ui: `${misc}/ui`,
+    uiPatch: `${tests}/ui-patch.diff`,
     logger: `${misc}/logger`,
     chats,
     employees,

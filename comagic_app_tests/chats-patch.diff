@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index ddbaee36..c6e1b171 100644
+index 5457b597..f561fdc6 100644
 --- a/package.json
 +++ b/package.json
 @@ -25,8 +25,6 @@
@@ -16,8 +16,8 @@ index ddbaee36..c6e1b171 100644
    "dependencies": {
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "^1.17.0",
--    "@comagic/ui": "1.72.2",
--    "@comagic/workplace-utils": "^1.0.25",
+-    "@comagic/ui": "1.88.1",
+-    "@comagic/workplace-utils": "0.0.0-int0",
      "@sentry/react": "^7.73.0",
      "async-mutex": "^0.3.2",
      "axios": "0.27.2",
@@ -25,7 +25,7 @@ index ddbaee36..c6e1b171 100644
      "history": "^5.3.0",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
--    "magic-ui": "^0.0.0-int1",
+-    "magic-ui": "0.0.0-int1",
 -    "mobx": "^6.6.1",
 -    "mobx-react-lite": "^3.4.0",
 -    "mobx-state-tree": "^5.1.6",

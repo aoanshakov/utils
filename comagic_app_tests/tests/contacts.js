@@ -3437,7 +3437,9 @@ tests.addTest(options => {
                     tester.softphone.expectTextContentToHaveSubstring('Используется на другом устройстве');
                 });
             });
-            it('', function() {
+            it(
+                'Отправка сообщений запрещена. Выбираю контакт. Нажимаю на канал связи. Ничего не происходит.',
+            function() {
                 employeeStatusesRequest.
                     unableToSendChatMessages().
                     receiveResponse();
@@ -3657,7 +3659,7 @@ tests.addTest(options => {
                     }
                 });
 
-                describe('Нажимаю на номер Telegram. Получен чужой чат.', function() {
+                describe('Нажимаю на номер Telegram.', function() {
                     beforeEach(function() {
                         tester.contactBar.
                             section('Каналы связи').
@@ -3668,14 +3670,114 @@ tests.addTest(options => {
                             anotherChannelType().
                             anotherChannelId().
                             thirdPhone().
-                            anotherEmployee().
                             expectToBeSent();
                     });
 
-                    it('Чат активен. Открыт раздел чатов.', function() {
-                        contactChatRequest.receiveResponse();
+                    describe('Получен чужой чат.', function() {
+                        beforeEach(function() {
+                            contactChatRequest.anotherEmployee();
+                        });
+
+                        it('Чат активен. Открыт раздел чатов.', function() {
+                            contactChatRequest.
+                                anotherEmployee().
+                                receiveResponse();
+
+                            tester.chatListRequest().receiveResponse();
+                            
+                            tester.chatListRequest().active().receiveResponse();
+                            tester.chatListRequest().closed().receiveResponse();
+                            tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
+
+                            tester.accountRequest().
+                                forChats().
+                                operatorWorkplaceAvailable().
+                                receiveResponse();
+
+                            tester.chatsWebSocket.connect();
+                            tester.chatsInitMessage().expectToBeSent();
+
+                            const requests = ajax.inAnyOrder();
+
+                            const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
+                            const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
+                            const listRequest = tester.listRequest().expectToBeSent(requests);
+                            const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
+                            const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
+
+                            const messageTemplateListRequest = tester.messageTemplateListRequest().
+                                expectToBeSent(requests);
+
+                            const accountRequest = tester.accountRequest().
+                                forChats().
+                                operatorWorkplaceAvailable().
+                                expectToBeSent(requests);
+
+                            requests.expectToBeSent();
+
+                            chatSettingsRequest.receiveResponse();
+                            chatChannelListRequest.receiveResponse();
+                            listRequest.receiveResponse();
+                            siteListRequest.receiveResponse();
+                            messageTemplateListRequest.receiveResponse();
+                            reportsListRequest.receiveResponse();
+                            accountRequest.receiveResponse();
+
+                            tester.chatListRequest().thirdChat().receiveResponse();
+                            tester.countersRequest().receiveResponse();
+                            tester.offlineMessageCountersRequest().receiveResponse();
+                            tester.chatChannelListRequest().receiveResponse();
+                            tester.siteListRequest().receiveResponse();
+                            tester.markListRequest().receiveResponse();
+
+                            tester.chatListRequest().
+                                forCurrentEmployee().
+                                secondPage().
+                                receiveResponse();
+
+                            tester.chatListRequest().
+                                forCurrentEmployee().
+                                secondPage().
+                                active().
+                                receiveResponse();
+
+                            tester.chatListRequest().
+                                forCurrentEmployee().
+                                secondPage().
+                                closed().
+                                receiveResponse();
+
+                            tester.chatChannelTypeListRequest().receiveResponse();
+
+                            tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                            tester.offlineMessageListRequest().processing().receiveResponse();
+                            tester.offlineMessageListRequest().processed().receiveResponse();
+
+                            tester.messageListRequest().receiveResponse();
+                            tester.visitorCardRequest().receiveResponse();
+                            tester.groupsContainingContactRequest().receiveResponse();
+                            tester.contactGroupsRequest().receiveResponse();
+                            tester.usersRequest().forContacts().receiveResponse();
+                            tester.contactGroupsRequest().receiveResponse();
+                            tester.usersRequest().forContacts().receiveResponse();
+
+                            tester.contactBar.
+                                section('Каналы связи').
+                                content.
+                                expectToHaveTextContent('Помакова Бисерка Драгановна (bot)');
+                        });
+                        it('Чат закрыт. Отображено сообщение о невозможности перейти в чат.', function() {
+                            contactChatRequest.closed().receiveResponse();
+
+                            tester.notificationWindow.expectToHaveTextContent(
+                                'Невозможно перейти в чат, посетитель участвует в чате с другим оператором'
+                            );
+                        });
+                    });
+                    it('Получен свой чат. Чат закрыт. Совершён переход в чат.', function() {
+                        contactChatRequest.closed().receiveResponse();
+
                         tester.chatListRequest().receiveResponse();
-                        
                         tester.chatListRequest().active().receiveResponse();
                         tester.chatListRequest().closed().receiveResponse();
                         tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
@@ -3695,7 +3797,9 @@ tests.addTest(options => {
                         const listRequest = tester.listRequest().expectToBeSent(requests);
                         const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
                         const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
-                        const messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
+
+                        const messageTemplateListRequest = tester.messageTemplateListRequest().
+                            expectToBeSent(requests);
 
                         const accountRequest = tester.accountRequest().
                             forChats().
@@ -3754,13 +3858,6 @@ tests.addTest(options => {
                             section('Каналы связи').
                             content.
                             expectToHaveTextContent('Помакова Бисерка Драгановна (bot)');
-                    });
-                    it('Чат закрыт. Отображено сообщение о невозможности перейти в чат.', function() {
-                        contactChatRequest.closed().receiveResponse();
-
-                        tester.notificationWindow.expectToHaveTextContent(
-                            'Невозможно перейти в чат, посетитель участвует в чате с другим оператором'
-                        );
                     });
                 });
                 describe('Нажимаю на номер WhatsApp.', function() {
@@ -4009,146 +4106,239 @@ tests.addTest(options => {
                     });
                 });
             });
-            it(
-                'Нет доступа к чужим чатам. Открываю раздел контактов. Открываю контакт. Нажимаю на номер WhatsApp. ' +
-                'Получен чужой чат.',
+            describe(
+                'Нет доступа к чужим чатам. Открываю раздел контактов. Открываю контакт. Нажимаю на номер WhatsApp.',
             function() {
-                accountRequest.receiveResponse();
+                let contactChatRequest;
 
-                const requests = ajax.inAnyOrder();
+                beforeEach(function() {
+                    accountRequest.receiveResponse();
 
-                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-                const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-                    ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
-                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
-                    employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
-                    employeeRequest = tester.employeeRequest().expectToBeSent(requests),
-                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-
-                requests.expectToBeSent();
-
-                ticketsContactsRequest.receiveResponse();
-                reportsListRequest.receiveResponse();
-                reportTypesRequest.receiveResponse();
-                reportGroupsRequest.receiveResponse();
-                employeeSettingsRequest.receiveResponse();
-                employeeStatusesRequest.receiveResponse();
-                employeeRequest.receiveResponse();
-
-                tester.masterInfoMessage().receive();
-                tester.slavesNotification().additional().expectToBeSent();
-                tester.slavesNotification().expectToBeSent();
-
-                tester.employeesWebSocket.connect();
-                tester.employeesInitMessage().expectToBeSent();
-
-                tester.notificationChannel().tellIsLeader().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
-
-                authCheckRequest.receiveResponse();
-                tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
-                tester.settingsRequest().receiveResponse();
-                
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
-                    expectToBeSent();
-
-                tester.connectEventsWebSocket();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
-                    softphoneServerConnected().
-                    expectToBeSent();
-
-                tester.connectSIPWebSocket();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    webRTCServerConnected().
-                    softphoneServerConnected().
-                    expectToBeSent();
-
-                notificationTester.grantPermission();
-
-                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-
-                registrationRequest = tester.registrationRequest().expectToBeSent();
-
-                tester.allowMediaInput();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    softphoneServerConnected().
-                    webRTCServerConnected().
-                    microphoneAccessGranted().
-                    expectToBeSent();
-
-                authenticatedUserRequest.receiveResponse();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    softphoneServerConnected().
-                    webRTCServerConnected().
-                    microphoneAccessGranted().
-                    userDataFetched().
-                    expectToBeSent();
-
-                registrationRequest.receiveResponse();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
-                    expectToBeSent();
-
-                tester.button('Контакты').click();
-
-                tester.contactsRequest().differentNames().receiveResponse();
-                tester.contactGroupsRequest().receiveResponse();
-
-                tester.contactList.item('Бележкова Грета Ервиновна').click();
-
-                {
                     const requests = ajax.inAnyOrder();
 
-                    const contactCommunicationsRequest = tester.
-                        contactCommunicationsRequest().
-                        expectToBeSent(requests);
-
-                    const contactRequest = tester.contactRequest().addTelegram().expectToBeSent(requests);
-                    const usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+                    reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                    const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                        ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                        reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                        employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
+                        employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                        employeeRequest = tester.employeeRequest().expectToBeSent(requests),
+                        authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
 
                     requests.expectToBeSent();
 
-                    usersRequest.receiveResponse();
-                    contactRequest.receiveResponse();
+                    ticketsContactsRequest.receiveResponse();
+                    reportsListRequest.receiveResponse();
+                    reportTypesRequest.receiveResponse();
+                    reportGroupsRequest.receiveResponse();
+                    employeeSettingsRequest.receiveResponse();
+                    employeeStatusesRequest.receiveResponse();
+                    employeeRequest.receiveResponse();
 
-                    tester.groupsContainingContactRequest().receiveResponse();
+                    tester.masterInfoMessage().receive();
+                    tester.slavesNotification().additional().expectToBeSent();
+                    tester.slavesNotification().expectToBeSent();
+
+                    tester.employeesWebSocket.connect();
+                    tester.employeesInitMessage().expectToBeSent();
+
+                    tester.notificationChannel().tellIsLeader().expectToBeSent();
+                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                    tester.notificationChannel().applyLeader().expectToBeSent();
+                    tester.notificationChannel().applyLeader().expectToBeSent();
+
+                    authCheckRequest.receiveResponse();
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.permissionsRequest().receiveResponse();
+                    tester.settingsRequest().receiveResponse();
+                    
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
+
+                    tester.connectEventsWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.connectSIPWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    notificationTester.grantPermission();
+
+                    authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+
+                    registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        expectToBeSent();
+
+                    authenticatedUserRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    registrationRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
+
+                    tester.button('Контакты').click();
+
+                    tester.contactsRequest().differentNames().receiveResponse();
                     tester.contactGroupsRequest().receiveResponse();
 
-                    contactCommunicationsRequest.receiveResponse();
-                }
+                    tester.contactList.item('Бележкова Грета Ервиновна').click();
 
-                tester.contactBar.
-                    section('Каналы связи').
-                    option('79218307632 (bot)').
-                    click();
+                    {
+                        const requests = ajax.inAnyOrder();
 
-                tester.contactChatRequest().
-                    anotherChannelType().
-                    anotherEmployee().
-                    anotherChannelId().
-                    thirdPhone().
-                    receiveResponse();
+                        const contactCommunicationsRequest = tester.
+                            contactCommunicationsRequest().
+                            expectToBeSent(requests);
 
-                tester.notificationWindow.expectToHaveTextContent(
-                    'Невозможно перейти в чат, посетитель участвует в чате с другим оператором'
-                );
+                        const contactRequest = tester.contactRequest().addTelegram().expectToBeSent(requests);
+                        const usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+
+                        requests.expectToBeSent();
+
+                        usersRequest.receiveResponse();
+                        contactRequest.receiveResponse();
+
+                        tester.groupsContainingContactRequest().receiveResponse();
+                        tester.contactGroupsRequest().receiveResponse();
+
+                        contactCommunicationsRequest.receiveResponse();
+                    }
+
+                    tester.contactBar.
+                        section('Каналы связи').
+                        option('79218307632 (bot)').
+                        click();
+
+                    contactChatRequest = tester.contactChatRequest().
+                        anotherChannelType().
+                        anotherChannelId().
+                        thirdPhone().
+                        expectToBeSent();
+                });
+
+                it('Получен свой чат.', function() {
+                    contactChatRequest.receiveResponse();
+
+                    tester.chatListRequest().receiveResponse();
+                    tester.chatListRequest().active().receiveResponse();
+                    tester.chatListRequest().closed().receiveResponse();
+                    tester.chatListRequest().isOtherEmployeesAppeals().active().receiveResponse();
+
+                    tester.accountRequest().
+                        forChats().
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.chatsWebSocket.connect();
+                    tester.chatsInitMessage().expectToBeSent();
+
+                    const requests = ajax.inAnyOrder();
+
+                    const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
+                    const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
+                    const listRequest = tester.listRequest().expectToBeSent(requests);
+                    const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
+                    const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
+                    const messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
+
+                    const accountRequest = tester.accountRequest().
+                        forChats().
+                        operatorWorkplaceAvailable().
+                        expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    chatSettingsRequest.receiveResponse();
+                    chatChannelListRequest.receiveResponse();
+                    listRequest.receiveResponse();
+                    siteListRequest.receiveResponse();
+                    messageTemplateListRequest.receiveResponse();
+                    reportsListRequest.receiveResponse();
+                    accountRequest.receiveResponse();
+
+                    tester.chatListRequest().thirdChat().receiveResponse();
+                    tester.countersRequest().receiveResponse();
+                    tester.offlineMessageCountersRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        active().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        secondPage().
+                        closed().
+                        receiveResponse();
+
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
+
+                    tester.messageListRequest().receiveResponse();
+                    tester.visitorCardRequest().receiveResponse();
+                    tester.groupsContainingContactRequest().receiveResponse();
+                    tester.contactGroupsRequest().receiveResponse();
+                    tester.usersRequest().forContacts().receiveResponse();
+                    tester.contactGroupsRequest().receiveResponse();
+                    tester.usersRequest().forContacts().receiveResponse();
+
+                    tester.contactBar.
+                        section('Каналы связи').
+                        content.
+                        expectToHaveTextContent('Помакова Бисерка Драгановна (bot)');
+                });
+                it(
+                    'Получен чужой чат. Отображено сообщение о невозможности перейти в чат другого оператора.',
+                function() {
+                    contactChatRequest.
+                        anotherEmployee().
+                        receiveResponse();
+
+                    tester.notificationWindow.expectToHaveTextContent(
+                        'Невозможно перейти в чат, посетитель участвует в чате с другим оператором'
+                    );
+                });
             });
             it('Софтфон недоступен. Открываю контакт. Нажимаю на номер телефона. Звонок не совершается.', function() {
                 accountRequest.softphoneUnavailable().receiveResponse();
@@ -4332,8 +4522,7 @@ tests.addTest(options => {
 
                     requests.expectToBeSent();
 
-                    contactRequest.receiveResponse();
-
+                    contactRequest.addTelegram().receiveResponse();
                     tester.groupsContainingContactRequest().receiveResponse();
                     tester.contactGroupsRequest().receiveResponse();
 
@@ -4369,6 +4558,16 @@ tests.addTest(options => {
             it('Кнопки добавления телефонов и E-Mail скрыты.', function() {
                 tester.contactBar.section('Телефоны').svg.expectNotToExist();
                 tester.contactBar.section('E-Mail').svg.expectNotToExist();
+            });
+            it('Нажимаю на канал Telegram. Отображено сообщение об отсутсвии прав.', function() {
+                tester.contactBar.
+                    section('Каналы связи').
+                    option('79218307632 (bot)').
+                    click();
+
+                tester.notificationWindow.expectToHaveTextContent(
+                    'Невозможно перейти в чат, отсутствуют права на "Чаты и заявки"'
+                );
             });
         });
         describe('Добавление каналов недоступно.', function() {

@@ -24,6 +24,7 @@ define(() => function ({
     triggerMutation,
     isIframe,
     active = false,
+    chatsPhoneNumbers = false,
     lang = 'ru',
 }) {
     let history,
@@ -35,7 +36,8 @@ define(() => function ({
     const mainTester = me;
 
     me.oauthToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6InBqeWNOMndxTkotbU1mcVpRSllIdHAtMGw0Uk1XNVNkUUF3N2JITmhjc00iLCJ0eXAiOiJKV1QifQ.eyJqdGkiOiI4NjZhZTFkZC02M2E2LTRhMTItOGVkZC1hODcyMmUwNjhlODAiLCJzaWQiOiJmYjZhYWJkMC05YjIzLTQzNDAtYjFkNC1hYTk4ZTIxYjAxYzciLCJpc3MiOiJodHRwczovL3Byb2QtbXNrLXVjLXNzby1hcGkubm92b2Zvbi5ydSIsImF1ZCI6WyJodHRwczovL3Byb2QtbXNrLWRhdGFhcGktanNvbnJwYy5ub3ZvZm9uLnJ1IiwiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJodHRwczovL3Byb2QtbXNrLXNvZnRwaG9uZS1yZXN0LWFwaS5ub3ZvZm9uLnJ1Il0sInN1YiI6IkNvbWFnaWNEQnxub3ZvZm9ufDEwNnw0NTEiLCJzdWJkIjp7ImFwcF9pZCI6MTA2LCJjdXN0b21lcl9pZCI6Mjg5MTU2NCwidXNlcl9pZCI6NDUxLCJsb2dpbiI6ImJpdHJpeHRlc3QiLCJpc19zeXN0ZW0iOmZhbHNlfSwiY2xpZW50X2lkIjoiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJpYXQiOjE3MDk2Mzg2MzR9.G3Irx8UHLLv1mGSnx_fpE-wZoaQud1Jh7hJQrg_17v1eKFQrrzBYD4s_PMUe_bso90c9ooWLudXMHuRrAfQzrJasaEFIkEtalKbnNAxwRac_sWdAUfr5-sxiUcJPPEkUWWxqD3fAAvuo-8lANps89W0f3DN_8WJ7lXUqEwZT8bftOOGcAthbkXKnVyzRUNJfkFnK3jV7qa6uwIbYOd0sJAXpc-rDyG_kWfnwZv-NYZinIHgk92kRT-tOiSnX6HAOKDQ3QbtKOCT-uJqAd78RKMjFcMAbbFRrQBr1q3s9OUJCArYi6wQcHkhiMuT0mXAPK-eAnaiKFfuuT9r1S0tPCKnnnyK6mUQo_K11Ne3kW1xShVYEhK7wtTn-BnJORF-Y0KHLI3Ndp6Jjs7Ak7nbQRztJ64buBpksI0PAKRc9euWdc04HmHxftCCgZ9uc2YjL77sqr_ExzJsMNJDNwEDrFsmMIHhpNvA19P1zuDaiCr2zja1HQEE3vyLr-JAjlYdCTOZkJ5dqRFAmCWBQ-12JJbRihB1kPyhrpbKcWg7Ry1RV47ghbgQ6igv-1BCelu9LT5IvSXLnhNxPLTdi17ukKFdS5V5XugryqFgDujSJiBCWLGAZ1mzT08BVK4yIeSo5GQhs8oNReNDmnDo33tfTzzpFDbQxHwHQAUG1oXYvuEI';
-    me.anotherOauthToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic3ViZCI6eyJsb2dpbiI6Im1hc2hhbF9tYXJvdW4iLCJkYXRhY2VudGVyIjoiZHViYWkifSwiaWF0IjoxNTE2MjM5MDIyfQ.cLg6DiiEmR0ZkuZoXaxPBGLSYLzSAn3B590LE5yyOAI';
+    me.anotherOauthToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic3ViZCI6eyJsb2dpbiI6Im1hc2hhbF9tYXJvdW4iLCJkYXRhX2NlbnRlciI6ImR1YmFpIn0sImlhdCI6MTUxNjIzOTAyMn0.wQZ-FOFf69mY6WN0o83cIrs71N5ulkvew-PkLT4_eYg';
+    me.thirdOauthToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic3ViZCI6eyJsb2dpbiI6InJlZGFfamFtYWlsIiwiZGF0YV9jZW50ZXIiOiJkdWJhaSJ9LCJpYXQiOjE1MTYyMzkwMjJ9.dPX4vrLO1akXs73wAwremBZ2PQxYX-PHQZrPrsq0QVY';
 
     const jwtToken = {
         jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
@@ -697,6 +699,7 @@ define(() => function ({
             host = 'my.uiscom.ru';
 
         const softphoneSettingsProcessors = [],
+            chatSettingsProcessors = [],
             settingsProcessors = [],
             storageDataProcessors = [],
             anotherStorageDataProcessors = [],
@@ -763,6 +766,24 @@ define(() => function ({
             return softphoneSettingsProcessors.reduce((value, process) => process(value), value);
         };
 
+        const getChatSettings = () => {
+            const value = {
+                handlers: [{
+                    elementSelector: '.chat-phone-number',
+                    tag: 'button',
+                    phoneXpath: './/text()',
+                    innerHTML: '<span class="chat-inner">' +
+                        'Channel ({{ channel_name }}): {{ phone }}' +
+                    '</span>',
+                    attributes: {
+                        class: 'chat-outer',
+                    },
+                }],
+            };
+
+            return chatSettingsProcessors.reduce((value, process) => process(value), value);
+        };
+
         const getSettings = () => {
             const isChrome = widget_id == 'chrome';
 
@@ -776,7 +797,9 @@ define(() => function ({
                 },
 
                 ...(isChrome ? {
-                    chats: {},
+                    chats: {
+                        [wildcart]: getChatSettings(),
+                    },
                 } : {}),
             };
 
@@ -985,6 +1008,7 @@ define(() => function ({
 
             me.emptyToken = () => {
                 softphoneSettingsProcessors.push(() => null);
+                chatSettingsProcessors.push(() => null);
                 settingsProcessors.push(() => null);
 
                 storageDataProcessors.push(storageData => {
@@ -1058,7 +1082,7 @@ define(() => function ({
             };
 
             me.noSettings = () => {
-                softphoneSettingsProcessors.push(() => null);
+                (chatsSettings ? chatSettingsProcessors : softphoneSettingsProcessors).push(() => null);
                 return me;
             };
 
@@ -1073,6 +1097,7 @@ define(() => function ({
                     padding: undefined,
                     button: undefined,
                     click2call: undefined,
+                    ...(getChatSettings() || {}),
                 } : (getSoftphoneSettings() || {})),
             },
         });
@@ -1243,43 +1268,51 @@ define(() => function ({
         };
 
         me.stateRequest = createRequest('get_state');
-        me.toggleWidgetVisibilityRequest = createRequest('toggle_widget_visibility');
-        me.toggleChatsVisibilityRequest = createRequest('toggle_chats_visibility');
+        me.toggleWidgetVisibilityRequest = createRequest('toggle_visibility', 'softphone');
+        me.toggleChatsVisibilityRequest = createRequest('toggle_visibility', 'chats');
     }
 
     {
-        const createRequest = params => () => {
-            const response = true;
+        const createRequest = params => {
+            const getMessage = () => ({
+                method: params.method,
+                data: params.data === undefined ? undefined : JSON.parse(JSON.stringify(params.data)),
+            });
 
-            const {
-                addResponseModifiers = me => me, 
-                script,
-                ...message
-            } = params;
+            return () => {
+                const response = true;
 
-            return addResponseModifiers({
-                expectResponseToBeSent() {
-                    me.chrome.
-                        runtime.
-                        receiveMessage(message).
-                        expectResponseToContain(response);
-                },
-                expectToBeSent: () => {
-                    const request = me.chrome.
-                        runtime[script].
-                        nextMessage().
-                        expectToContain(message);
+                const {
+                    addResponseModifiers = me => me, 
+                    script,
+                } = params;
 
-                    return addResponseModifiers({
-                        receiveResponse: () => {
-                            request.receiveResponse(response);
-                        },
-                    });
-                },
-                receiveResponse() {
-                    this.expectToBeSent().receiveResponse();
-                }
-            }, message);
+                const message = getMessage();
+
+                return addResponseModifiers({
+                    expectResponseToBeSent() {
+                        me.chrome.
+                            runtime.
+                            receiveMessage(message).
+                            expectResponseToContain(response);
+                    },
+                    expectToBeSent: () => {
+                        const request = me.chrome.
+                            runtime[script].
+                            nextMessage().
+                            expectToContain(message);
+
+                        return addResponseModifiers({
+                            receiveResponse: () => {
+                                request.receiveResponse(response);
+                            },
+                        });
+                    },
+                    receiveResponse() {
+                        this.expectToBeSent().receiveResponse();
+                    }
+                }, message);
+            };
         };
 
         me.popupStateSettingRequest = createRequest({
@@ -1557,7 +1590,29 @@ define(() => function ({
     };
 
     me.submoduleInitilizationEvent = () => {
-        const message = { method: 'submodule_initilized' };
+        const message = {
+            method: 'submodule_initilized',
+            data: 'chats',
+        };
+
+        return {
+            contacts() {
+                message.data = 'contacts';
+                return this;
+            },
+
+            operatorWorkplace() {
+                message.data = 'operator-workplace';
+                return this;
+            },
+
+            receive: () => postMessages.receive(message),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
+        };
+    };
+
+    me.notificationClickedEvent = () => {
+        const message = { method: 'notification_clicked' };
 
         return {
             receive: () => postMessages.receive(message),
@@ -1576,7 +1631,14 @@ define(() => function ({
                 'prompt=login'
         };
 
-        return {
+        let code = '28gjs8o24rfsd42';
+
+        const addResponseModifiers = me => {
+            me.anotherCode = () => (code = mainTester.thirdOauthToken, me);
+            return me;
+        };
+
+        return addResponseModifiers({
             logout() {
                 details.url = 'https://uc-sso-prod-api.uiscom.ru/ru/logout?' +
                     'response_type=code&' +
@@ -1600,21 +1662,21 @@ define(() => function ({
                     nextLaunching().
                     expectDetailsToContain(details);
 
-                return {
+                return addResponseModifiers({
                     fail: () => {
                         authFlow.fail('Failed to open authorization page');
                         spendTime(0);
                     },
 
                     receiveResponse: () => authFlow.receiveResponse(
-                        'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/?code=28gjs8o24rfsd42',
+                        `https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/?code=${code}`,
                     ),
-                };
+                });
             },
             receiveResponse() {
                 return this.expectToBeLaunched().receiveResponse();
             },
-        };
+        });
     };
 
     me.click2CallRequest = () => {
@@ -1646,6 +1708,9 @@ define(() => function ({
     };
 
     me.oauthRequest = () => {
+        let path = 'https://uc-sso-prod-api.uiscom.ru/oauth2/token',
+            code = '28gjs8o24rfsd42';
+
         const response = {
             access_token: mainTester.oauthToken,
             token_type: 'Bearer',
@@ -1657,10 +1722,17 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            dubai() {
+                path = 'https://uc-sso-dub-api.callgear.ae/oauth2/token';
+                code = mainTester.thirdOauthToken;
+
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : fetch.recentRequest()).
                     expectToHaveMethod('POST').
-                    expectToHavePath('https://uc-sso-prod-api.uiscom.ru/oauth2/token').
+                    expectToHavePath(path).
                     expectToHaveHeaders({
                         authorization: 'Basic aHR0cHMlM0ElMkYlMkZmYWFlb3BsbG1wZm9lb2JpaGtpb2prYmhubGZrbGVpay5jaHJvbW' +
                             'l1bWFwcC5vcmc6aHR0cHMlM0ElMkYlMkZmYWFlb3BsbG1wZm9lb2JpaGtpb2prYmhubGZrbGVpay5jaHJvbWl1b' +
@@ -1668,7 +1740,7 @@ define(() => function ({
                     }).
                     expectBodyToContain({
                         grant_type: 'authorization_code',
-                        code: '28gjs8o24rfsd42',
+                        code,
                         redirect_uri: 'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org',
                     });
 
@@ -1842,16 +1914,28 @@ define(() => function ({
 
                     '[+7 (495) 123-45-63]' +
                 '</span>' +
-            '</div>'
+            '</div>' +
+
+            (
+                chatsPhoneNumbers ? (
+                    '<div class="chat-phone-number">' +
+                    '<span>' + processPhone(74951234561) + '</span>' +
+                    '</div>' +
+
+                    '<div class="chat-phone-number">' +
+                    '<span>' + processPhone(74951234560) + '</span>' +
+                    '</div>'
+                ) : ''
+            )
         );
     };
 
-    if (application == 'softphone') {
-        Array.prototype.forEach.call(
-            document.querySelectorAll('.cmg-softphone-chrome-extension-visibility-button, #pages-container'),
-            element => element.remove(),
-        );
+    Array.prototype.forEach.call(
+        document.querySelectorAll('.cmg-softphone-chrome-extension-visibility-button, #pages-container'),
+        element => element.remove(),
+    );
 
+    if (application == 'softphone') {
         {
             const pagesContainer = document.createElement('div');
             pagesContainer.id = 'pages-container';
@@ -2865,6 +2949,9 @@ define(() => function ({
             () => getModalWindow().querySelector('.ui-modal-content, .cmgui-modal-content') 
         );
 
+        const endTransition = windowTester.endTransition.bind(windowTester);
+        windowTester.endTransition = eventName => (endTransition(eventName), spendTime(0));
+
         windowTester.expectToHaveWidth = windowContentTester.expectToHaveWidth.bind(windowContentTester);
 
         windowTester.finishHiding = () => {
@@ -2874,8 +2961,11 @@ define(() => function ({
         };
 
         windowTester.closeButton = (() => {
-            const tester = testersFactory.createDomElementTester(() =>
-                utils.element(getModalWindow()).querySelector('.ui-modal-close-x, .cmgui-modal-close-x'));
+            const tester = testersFactory.createDomElementTester(
+                () => utils.element(getModalWindow()).querySelector(
+                    '.ui-modal-close-x, .cmgui-modal-close-x, .cmgui-modal-header-close-x'
+                )
+            );
 
             const click = tester.click.bind(tester);
 
@@ -4076,6 +4166,11 @@ define(() => function ({
         const addResponseModifiers = me => {
             me.oauthToken = () => {
                 headers.Authorization = `Bearer ${mainTester.oauthToken}`;
+                return me;
+            };
+
+            me.anotherOauthToken = () => {
+                headers.Authorization = `Bearer ${mainTester.anotherOauthToken}`;
                 return me;
             };
 
@@ -7726,6 +7821,12 @@ define(() => function ({
             search_string: 'Сообщение #75'
         };
 
+        const headers = {
+            Authorization: undefined,
+            'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
         const response = {
             result: {
                 data: {
@@ -7748,6 +7849,7 @@ define(() => function ({
                         site_id: 4663,
                         status: 'new',
                         visitor_id: 16479303,
+                        name: 'Памакова Бисерка',
                         visitor_name: 'Помакова Бисерка Драгановна',
                         visitor_type: 'omni',
                         account_id: '425802',
@@ -7759,6 +7861,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.telegramPrivate = () => {
+                response.result.data.found_list[0].chat_channel_type = 'telegram_private';
+                return me;
+            };
+
             me.active = () => {
                 response.result.data.found_list[0].status = 'active';
                 return me;
@@ -7766,6 +7873,269 @@ define(() => function ({
 
             me.noVisitorType = () => {
                 response.result.data.found_list[0].visitor_type = null;
+                return me;
+            };
+
+            me.addNew = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189365,
+                    employee_id: null,
+                    last_message: {
+                        message: 'Сообщение в новом чате',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addNewChatOfCurrentEmployee = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189367,
+                    employee_id: 20816,
+                    last_message: {
+                        message: 'Сообщение в новом чате авторизованного сотрудника',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addActive = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189366,
+                    employee_id: 20816,
+                    last_message: {
+                        message: 'Сообщение в активном чате',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'active',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addActiveChatOfOtherEmployee = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189368,
+                    employee_id: 20817,
+                    last_message: {
+                        message: 'Сообщение в активном чате другого сотрудника',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'active',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addClosed = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189370,
+                    employee_id: 20816,
+                    last_message: {
+                        message: 'Сообщение в закрытом чате',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'closed',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addClosedChatOfOtherEmployee = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189369,
+                    employee_id: 20817,
+                    last_message: {
+                        message: 'Сообщение в закрытом чате дргугого сотрудника',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'closed',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+            
+            me.addNotStartedYetWaba = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'waba',
+                    date_time: '2020-02-20T17:26:23.98211',
+                    id: 7189364,
+                    employee_id: null,
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: null,
+                    visitor_id: 16479311,
+                    name: null,
+                    visitor_name: null,
+                    visitor_type: null,
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addNotStartedYetWabaWhatsApp = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'whatsapp',
+                    date_time: '2020-02-20T17:26:23.98211',
+                    id: 7189364,
+                    employee_id: null,
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: null,
+                    visitor_id: 16479311,
+                    name: null,
+                    visitor_name: null,
+                    visitor_type: null,
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addNotStartedYetWabaTelegram = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-02-20T17:26:23.98211',
+                    id: 7189364,
+                    employee_id: null,
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: null,
+                    visitor_id: 16479311,
+                    name: null,
+                    visitor_name: null,
+                    visitor_type: null,
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.waba = () => {
+                response.result.data.found_list[0].chat_channel_type = 'waba';
                 return me;
             };
 
@@ -7785,8 +8155,20 @@ define(() => function ({
                 return me;
             };
 
+            me.noVisitorName = () => {
+                response.result.data.found_list[0].visitor_name = null;
+                return me;
+            };
+
+            me.noName = () => {
+                response.result.data.found_list[0].name = null;
+                return me;
+            };
+
             me.newVisitor = () => {
                 response.result.data.found_list[0].visitor_id = 679729;
+                response.result.data.found_list[0].status = null;
+                response.result.data.found_list[0].name = null;
                 response.result.data.found_list[0].visitor_name = null;
                 response.result.data.found_list[0].visitor_type = null;
 
@@ -7820,18 +8202,34 @@ define(() => function ({
                 return me;
             };
 
+            me.noData = () => {
+                response.result.data.found_list = [];
+                return me;
+            };
+
             return me;
         };
 
         return addResponseModifiers({
-            onlyWhatsAppOut() {
-                params.is_only_whatsapp_out = true;
-                this.whatsApp();
+            anotherToken() {
+                headers.Authorization = `Bearer ${mainTester.oauthToken}`;
+                headers['X-Auth-Token'] = undefined;
+                headers['X-Auth-Type'] = undefined;
                 return this;
             },
 
-            channelSearch() {
+            onlyWhatsAppOut() {
+                params.is_only_whatsapp_out = true;
+                return this;
+            },
+
+            anotherSearchString() {
                 params.search_string = '79283810988';
+                return this;
+            },
+
+            thirdSearchString() {
+                params.search_string = '79283810989';
                 return this;
             },
 
@@ -7844,6 +8242,7 @@ define(() => function ({
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('BASE_URL').
                     expectToHaveMethod('POST').
+                    expectToHaveHeaders(headers).
                     expectBodyToContain({
                         method: 'get_search_results',
                         params,
@@ -8046,16 +8445,20 @@ define(() => function ({
     };
 
     me.chatInfoRequest = () => {
+        let chat_id = '7189362';
         const addResponseModifiers = me => me;
 
         return addResponseModifiers({
+            anotherChat() {
+                chat_id = '2718935';
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL/operator/chat/info').
                     expectToHaveMethod('GET').
-                    expectQueryToContain({
-                        chat_id: '7189362'
-                    });
+                    expectQueryToContain({ chat_id });
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -8965,6 +9368,48 @@ define(() => function ({
             return {
                 receiveResponse() {
                     request.respondSuccessfullyWith([]);
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
+    me.commonMessageTemplatesRequest = () => ({
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectPathToContain('$REACT_APP_BASE_URL/operator/common_message_templates').
+                expectToHaveMethod('GET');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith([]);
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
+    me.messageTemplatesSettingsRequest = () => ({
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectPathToContain('$REACT_APP_BASE_URL/settings/message_templates').
+                expectToHaveMethod('GET');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({});
 
                     Promise.runAll(false, true);
                     spendTime(0)
@@ -14168,6 +14613,8 @@ define(() => function ({
     };
 
     me.chatChannelSearchRequest = () => {
+        const processors = [];
+
         const params = {
             contact: {
                 phone: '79283810988',
@@ -14176,7 +14623,7 @@ define(() => function ({
 
         const data = [{
             channel_id: 216395,
-            channel_name: 'WhatsApp',
+            channel_name: 'Москва',
             channel_type: 'whatsapp',
             channel_ext_identity: '79283810988',
             chats: [{
@@ -14189,9 +14636,64 @@ define(() => function ({
         const addResponseModifiers = me => {
             me.anotherPhone = () => (data[0].channel_ext_identity = '79357818431', me);
             me.anotherEmployee = () => (data[0].chats[0].employee_id = 57292, me);
-            me.anotherChannelType = () => (data[0].channel_type = 'telegram', me);
-            me.noChat = () => (data[0].chats = [], me);
+
+            me.telegram = () => {
+                data[0].channel_type = 'telegram'; 
+                data[0].channel_name = 'Санкт-Петербург';
+                return me;
+            };
+
+            me.telegramPrivate = () => {
+                data[0].channel_type = 'telegram_private';
+                data[0].channel_name = 'Нижний Новгород';
+                return me;
+            };
+
+            me.noChat = () => (processors.push(() => data.forEach(item => item.chats = [])), me);
             me.closed = () => (data[0].chats[0].status = 'closed', me);
+
+            me.new = () => {
+                data[0].chats[0].status = 'new';
+                data[0].chats[0].employee_id = null;
+
+                return me;
+            };
+
+            me.addTelegramPrivate = () => (data.push({
+                channel_id: 216396,
+                channel_name: 'Белгород',
+                channel_type: 'telegram_private',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                }] 
+            }), me);
+
+            me.addTelegram = () => (data.push({
+                channel_id: 216396,
+                channel_name: 'Брянск',
+                channel_type: 'telegram',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                }] 
+            }), me);
+
+            me.addWhatsApp = () => (data.push({
+                channel_id: 216396,
+                channel_name: 'Якутск',
+                channel_type: 'whatsapp',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                }] 
+            }), me);
 
             return me;
         };
@@ -14201,6 +14703,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            anotherSearchString() {
+                params.contact.phone = '79283810989';
+                return this;
+            },
+            
             noPhone() {
                 params.contact.phone = null;
                 return this;
@@ -14208,7 +14715,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_CHAT_BASE_URL').
+                    expectToHavePath('$REACT_APP_BASE_URL/operator').
                     expectToHaveMethod('POST').
                     expectBodyToContain({
                         method: 'get_chat_start_chat_channel_search',
@@ -14217,6 +14724,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse: () => {
+                        processors.forEach(process => process());
                         request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
@@ -16163,7 +16671,8 @@ define(() => function ({
             method = 'getobj.account',
             path = '$REACT_APP_BASE_URL';
 
-        const requestProcessors = [];
+        const requestProcessors = [],
+            secondRequestProcessors = [];
 
         const response = {
             result: {
@@ -16527,6 +17036,15 @@ define(() => function ({
         });
 
         return addResponseModifiers({
+            dubai() {
+                requestProcessors.push(() => {
+                    path = 'https://chats-cg-logic.callgear.ae/v1/operator';
+                    token = mainTester.anotherOauthToken;
+                });
+
+                return this;
+            },
+
             forIframe() {
                 token = mainTester.oauthToken;
                 method = 'get_account';
@@ -16542,7 +17060,7 @@ define(() => function ({
             },
 
             fromIframe() {
-                requestProcessors.push(() => (path = '$REACT_APP_BASE_URL/operator'));
+                secondRequestProcessors.push(() => (path = '$REACT_APP_BASE_URL/operator'));
                 return this;
             },
 
@@ -16564,6 +17082,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 requestProcessors.forEach(process => process());
+                secondRequestProcessors.forEach(process => process());
 
                 let request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain(path).
@@ -17465,12 +17984,15 @@ define(() => function ({
 
     me.chatListItem = (text, getRootElement = () => document.body) => {
         const domElement = utils.descendantOf(getRootElement()).
-            matchesSelector('.cm-chats--chats-list-item').
+            matchesSelector(
+                '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-item-styles-module__root'
+            ).
             textContains(text).
             find();
 
         const tester = testersFactory.createDomElementTester(domElement);
 
+        /*
         const clickAreaTester = testersFactory.createDomElementTester(() => {
             const clickArea = domElement.querySelector('.cm-chats--chat-click-area');
 
@@ -17480,8 +18002,9 @@ define(() => function ({
 
             return clickArea;
         });
+        */
 
-        const click = clickAreaTester.click.bind(clickAreaTester),
+        const click = tester.click.bind(tester),
             scrollIntoView = tester.scrollIntoView.bind(tester),
             putMouseOver = tester.putMouseOver.bind(tester);
 
@@ -17525,8 +18048,12 @@ define(() => function ({
         const createTester = index => {
             const getDomElement = () => (
                 index === undefined ?
-                utils.querySelector('.cm-chats--chats-list-panel') :
-                document.querySelectorAll('.cm-chats--chats-list')?.[index]
+                utils.querySelector(
+                    '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-styles-module__root'
+                ) :
+                document.querySelectorAll(
+                    '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-styles-module__root'
+                )?.[index]
             );
 
             const tester = testersFactory.createDomElementTester(getDomElement);
@@ -17539,6 +18066,15 @@ define(() => function ({
 
         tester.atIndex = index => createTester(index);
         tester.first = createTester(0);
+
+        tester.header = (() => {
+            const getDomElement = () => utils.querySelector(
+                '.misc-chats-src-components-chats-chats-list-panel-styles-module__header'
+            );
+
+            const tester = testersFactory.createDomElementTester(getDomElement);
+            return addTesters(tester, getDomElement);
+        })();
 
         return tester;
     })();

@@ -378,9 +378,33 @@ define(function () {
                 return tester;
             };
 
-            me.fileField = testersFactory.createFileFieldTester(function () {
-                return getRootElement().querySelector('input[type=file]');
-            });
+            me.fileButton = testersFactory.createDomElementTester(
+                () => utils.element(getRootElement()).querySelector('.cmgui-file-drop-wrapper')
+            );
+
+            me.fileField = (() => {
+                const getFileFields = () => getRootElement().querySelectorAll('input[type=file]');
+
+                const tester = testersFactory.createFileFieldTester(() => {
+                    const fileFields = getFileFields();
+
+                    if (fileFields.length > 1) {
+                        throw new Error('Найдено более одного поля для загрузки файлов.');
+                    }
+
+                    return fileFields[0];
+                });
+
+                tester.atIndex = index => testersFactory.createFileFieldTester(() => getFileFields()[index]);
+                tester.first = tester.atIndex(0);
+
+                tester.last = testersFactory.createFileFieldTester(() => {
+                    const fileFields = getFileFields();
+                    return fileFields[fileFields.length - 1];
+                });
+
+                return tester;
+            })();
 
             me.button.atIndex = index => (() => {
                 const tester = testersFactory.createDomElementTester(() => {

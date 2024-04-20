@@ -218,8 +218,6 @@ define(() => function ({
         return tester;
     })();
 
-    me.fileField = testersFactory.createFileFieldTester(() => document.querySelector('input[type=file]'));
-
     me.redirectEmployeeSelectCover = testersFactory.
         createDomElementTester('.cm-chats--redirect-employee-select-cover');
 
@@ -298,6 +296,25 @@ define(() => function ({
 
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
+
+        me.sourceIcon = (() => {
+            const getIcons = () => utils.element(getRootElement()).querySelectorAll('.ui-icon-source-24');
+
+            const tester = testersFactory.createDomElementTester(() => {
+                const icons = getIcons();
+
+                if (icons.length > 1) {
+                    throw new Error('Найдено более одной иконки.');
+                }
+
+                return icons[0];
+            });
+
+            tester.atIndex = index => testersFactory.createDomElementTester(() => getIcons()[index]);
+            tester.first = tester.atIndex(0);
+
+            return tester;
+        })();
 
         me.copyIcon = (() => {
             const tester = testersFactory.createDomElementTester(
@@ -1058,6 +1075,32 @@ define(() => function ({
         return me;
     };
 
+    me.channelList = (() => {
+        const getChannelList = () => utils.querySelector('.cm-chats--start-channel-select'),
+            tester = testersFactory.createDomElementTester(() => getChannelList());
+
+        tester.item = text => {
+            const tester = testersFactory.createDomElementTester(
+                () => utils.descendantOf(getChannelList()).
+                    matchesSelector(
+                        '.misc-contacts-src-components-contact-bar-start-channel-select-styles-module__list-item'
+                    ).
+                    textEquals(text).
+                    find()
+            );
+
+            const putMouseOver = tester.putMouseOver.bind(tester),
+                click = tester.click.bind(tester);
+
+            tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        };
+
+        return addTesters(tester, getChannelList);
+    })();
+
     me.spendFiveSeconds = function (times = 1) {
         let i = 0;
 
@@ -1664,6 +1707,11 @@ define(() => function ({
         const addResponseModifiers = me => me;
 
         return addResponseModifiers({
+            anotherChannel() {
+                params.channel_id = 216396;
+                return this;
+            },
+
             noPhone() {
                 params.contact.phone = null;
                 return this;
@@ -6025,6 +6073,7 @@ define(() => function ({
                         site_id: 4663,
                         status: 'new',
                         visitor_id: 16479303,
+                        name: 'Памакова Бисерка',
                         visitor_name: 'Помакова Бисерка Драгановна',
                         visitor_type: 'omni',
                         account_id: '425802',
@@ -6036,6 +6085,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.telegramPrivate = () => {
+                response.result.data.found_list[0].chat_channel_type = 'telegram_private';
+                return me;
+            };
+
             me.active = () => {
                 response.result.data.found_list[0].status = 'active';
                 return me;
@@ -6043,6 +6097,300 @@ define(() => function ({
 
             me.noVisitorType = () => {
                 response.result.data.found_list[0].visitor_type = null;
+                return me;
+            };
+
+            me.addNew = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189365,
+                    employee_id: null,
+                    last_message: {
+                        message: 'Сообщение в новом чате',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addNew = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189365,
+                    employee_id: null,
+                    last_message: {
+                        message: 'Сообщение в новом чате',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addNewChatOfCurrentEmployee = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189367,
+                    employee_id: 20816,
+                    last_message: {
+                        message: 'Сообщение в новом чате авторизованного сотрудника',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addActive = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189366,
+                    employee_id: 20816,
+                    last_message: {
+                        message: 'Сообщение в активном чате',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'active',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addActiveChatOfOtherEmployee = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189368,
+                    employee_id: 20817,
+                    last_message: {
+                        message: 'Сообщение в активном чате другого сотрудника',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'active',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addClosed = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189370,
+                    employee_id: 20816,
+                    last_message: {
+                        message: 'Сообщение в закрытом чате',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'closed',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addClosedChatOfOtherEmployee = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189369,
+                    employee_id: 20817,
+                    last_message: {
+                        message: 'Сообщение в закрытом чате дргугого сотрудника',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'closed',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+            
+            me.addNewWaba = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'waba',
+                    date_time: '2020-02-20T17:26:23.98211',
+                    id: 7189364,
+                    employee_id: null,
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: null,
+                    visitor_id: 16479311,
+                    name: null,
+                    visitor_name: null,
+                    visitor_type: null,
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addNewWhatsApp = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'whatsapp',
+                    date_time: '2020-02-20T17:26:23.98211',
+                    id: 7189364,
+                    employee_id: null,
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: null,
+                    visitor_id: 16479311,
+                    name: null,
+                    visitor_name: null,
+                    visitor_type: null,
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addNewTelegram = () => {
+                response.result.data.found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-02-20T17:26:23.98211',
+                    id: 7189364,
+                    employee_id: null,
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: null,
+                    visitor_id: 16479311,
+                    name: null,
+                    visitor_name: null,
+                    visitor_type: null,
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.waba = () => {
+                response.result.data.found_list[0].chat_channel_type = 'waba';
                 return me;
             };
 
@@ -6062,8 +6410,20 @@ define(() => function ({
                 return me;
             };
 
+            me.noVisitorName = () => {
+                response.result.data.found_list[0].visitor_name = null;
+                return me;
+            };
+
+            me.noName = () => {
+                response.result.data.found_list[0].name = null;
+                return me;
+            };
+
             me.newVisitor = () => {
                 response.result.data.found_list[0].visitor_id = 679729;
+                response.result.data.found_list[0].status = null;
+                response.result.data.found_list[0].name = null;
                 response.result.data.found_list[0].visitor_name = null;
                 response.result.data.found_list[0].visitor_type = null;
 
@@ -6097,17 +6457,21 @@ define(() => function ({
                 return me;
             };
 
+            me.noData = () => {
+                response.result.data.found_list = [];
+                return me;
+            };
+
             return me;
         };
 
         return addResponseModifiers({
             onlyWhatsAppOut() {
                 params.is_only_whatsapp_out = true;
-                this.whatsApp();
                 return this;
             },
 
-            channelSearch() {
+            anotherSearchString() {
                 params.search_string = '79283810988';
                 return this;
             },
@@ -12198,6 +12562,11 @@ define(() => function ({
             secondProcessors = [];
 
         const addResponseModifiers = me => {
+            me.comagicChannel = () => {
+                processors.push(() => (response.chat_channel_list[0].type = 'comagic'));
+                return me;
+            },
+
             me.notFound = () => {
                 respond = request => request.respondSuccessfullyWith({
                     data: [],
@@ -12516,6 +12885,8 @@ define(() => function ({
     };
 
     me.chatChannelSearchRequest = () => {
+        const processors = [];
+
         const params = {
             contact: {
                 phone: '79283810988',
@@ -12537,9 +12908,57 @@ define(() => function ({
         const addResponseModifiers = me => {
             me.anotherPhone = () => (data[0].channel_ext_identity = '79357818431', me);
             me.anotherEmployee = () => (data[0].chats[0].employee_id = 57292, me);
-            me.anotherChannelType = () => (data[0].channel_type = 'telegram', me);
-            me.noChat = () => (data[0].chats = [], me);
+
+            me.telegram = () => {
+                data[0].channel_type = 'telegram'; 
+                data[0].channel_name = 'Telegram';
+                return me;
+            };
+
+            me.telegramPrivate = () => {
+                data[0].channel_type = 'telegram_private';
+                data[0].channel_name = 'Telegram private';
+                return me;
+            };
+
+            me.noChat = () => (processors.push(() => data.forEach(item => item.chats = [])), me);
             me.closed = () => (data[0].chats[0].status = 'closed', me);
+
+            me.addTelegramPrivate = () => (data.push({
+                channel_id: 216396,
+                channel_name: 'Telegram private',
+                channel_type: 'telegram_private',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                }] 
+            }), me);
+
+            me.addTelegram = () => (data.push({
+                channel_id: 216396,
+                channel_name: 'Telegram',
+                channel_type: 'telegram',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                }] 
+            }), me);
+
+            me.addWhatsApp = () => (data.push({
+                channel_id: 216396,
+                channel_name: 'WhatsApp',
+                channel_type: 'whatsapp',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                }] 
+            }), me);
 
             return me;
         };
@@ -12565,6 +12984,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse: () => {
+                        processors.forEach(process => process());
                         request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
@@ -15767,97 +16187,112 @@ define(() => function ({
         };
     })();
 
-    me.chatListItem = (text, getRootElement = () => document.body) => {
-        const domElement = utils.descendantOf(getRootElement()).
-            matchesSelector('.cm-chats--chats-list-item').
-            textContains(text).
-            find();
+    {
+        const getChatListItem = getDomElement => {
+            const tester = addTesters(
+                testersFactory.createDomElementTester(getDomElement),
+                getDomElement,
+            );
 
-        const tester = testersFactory.createDomElementTester(domElement);
+            const clickAreaTester = testersFactory.createDomElementTester(() => {
+                const clickArea = getDomElement().querySelector('.cm-chats--chat-click-area');
 
-        const clickAreaTester = testersFactory.createDomElementTester(() => {
-            const clickArea = domElement.querySelector('.cm-chats--chat-click-area');
+                if (!clickArea || clickArea instanceof JsTester_NoElement) {
+                    return getDomElement();
+                }
 
-            if (!clickArea || clickArea instanceof JsTester_NoElement) {
-                return domElement;
+                return clickArea;
+            });
+
+            const click = clickAreaTester.click.bind(clickAreaTester),
+                scrollIntoView = tester.scrollIntoView.bind(tester),
+                putMouseOver = tester.putMouseOver.bind(tester);
+
+            tester.putMouseOver = () => {
+                putMouseOver();
+                spendTime(100);
+                spendTime(0);
+                
+                hoverClass.add(getDomElement());
+            };
+
+            tester.expectToBeSelected = () => tester.expectToHaveClass('cm-chats--chats-list-item__selected');
+            tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-chats--chats-list-item__selected');
+
+            tester.click = () => (click(), spendTime(0));
+
+            tester.scrollIntoView = () => {
+                scrollIntoView();
+                maybeRunSpinWrapperIntersectionCallback(getChatListSpinWrapper());
+                spendTime(0);
+            };
+
+            {
+                tester.pin = testersFactory.createDomElementTester(() => utils.element(getDomElement()).querySelector(
+                    '.cm-chats--chat-pinned, ' +
+                    '.cm-chats--chat-not-pinned'
+                ));
+
+                const click = tester.pin.click.bind(tester.pin);
+
+                tester.pin.expectToBePinned = () => tester.pin.expectToHaveClass('cm-chats--chat-pinned');
+                tester.pin.expectNotToBePinned = () => tester.pin.expectToHaveClass('cm-chats--chat-not-pinned');
+
+                tester.pin.click = () => {
+                    click();
+                    hoverClass.remove();
+                };
             }
 
-            return clickArea;
-        });
-
-        const click = clickAreaTester.click.bind(clickAreaTester),
-            scrollIntoView = tester.scrollIntoView.bind(tester),
-            putMouseOver = tester.putMouseOver.bind(tester);
-
-        tester.putMouseOver = () => {
-            putMouseOver();
-            spendTime(100);
-            spendTime(0);
-            
-            hoverClass.add(domElement);
+            return tester;
         };
 
-        tester.expectToBeSelected = () => tester.expectToHaveClass('cm-chats--chats-list-item__selected');
-        tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-chats--chats-list-item__selected');
+        const listItemClass = '.cm-chats--chats-list-item, .cm-chats--chats-list-new-item';
 
-        tester.click = () => (click(), spendTime(0));
+        me.chatListItem = (text, getRootElement = () => document.body) =>
+            getChatListItem(
+                () => utils.descendantOf(getRootElement()).
+                    matchesSelector(listItemClass).
+                    textContains(text).
+                    find()
+            );
 
-        tester.scrollIntoView = () => {
-            scrollIntoView();
-            maybeRunSpinWrapperIntersectionCallback(getChatListSpinWrapper());
-            spendTime(0);
-        };
+        me.chatList = (() => {
+            const createTester = index => {
+                const getDomElement = () => (
+                    index === undefined ?
+                    utils.querySelector('.cm-chats--chats-list-panel') :
+                    document.querySelectorAll('.cm-chats--chats-list')?.[index]
+                );
 
-        {
-            tester.pin = testersFactory.createDomElementTester(() => utils.element(domElement).querySelector(
-                '.cm-chats--chat-pinned, ' +
-                '.cm-chats--chat-not-pinned'
-            ));
+                const tester = testersFactory.createDomElementTester(getDomElement);
+                tester.item = text => me.chatListItem(text, getDomElement);
 
-            const click = tester.pin.click.bind(tester.pin);
+                tester.item.atIndex = (index, isLogEnabled) => getChatListItem(
+                    () => utils.element(getDomElement()).querySelectorAll(listItemClass, isLogEnabled)[index]
+                );
 
-            tester.pin.expectToBePinned = () => tester.pin.expectToHaveClass('cm-chats--chat-pinned');
-            tester.pin.expectNotToBePinned = () => tester.pin.expectToHaveClass('cm-chats--chat-not-pinned');
-
-            tester.pin.click = () => {
-                click();
-                hoverClass.remove();
+                tester.item.first = tester.item.atIndex(0);
+                return addTesters(tester, getDomElement);
             };
-        }
 
-        return tester;
-    };
+            const tester = createTester();
 
-    me.chatList = (() => {
-        const createTester = index => {
-            const getDomElement = () => (
-                index === undefined ?
-                utils.querySelector('.cm-chats--chats-list-panel') :
-                document.querySelectorAll('.cm-chats--chats-list')?.[index]
-            );
+            tester.atIndex = index => createTester(index);
+            tester.first = createTester(0);
 
-            const tester = testersFactory.createDomElementTester(getDomElement);
+            tester.header = (() => {
+                const getDomElement = () => utils.querySelector(
+                    '.misc-chats-src-components-chats-chats-list-panel-styles-module__header'
+                );
 
-            tester.item = text => me.chatListItem(text, getDomElement);
-            return addTesters(tester, getDomElement);
-        };
+                const tester = testersFactory.createDomElementTester(getDomElement);
+                return addTesters(tester, getDomElement);
+            })();
 
-        const tester = createTester();
-
-        tester.atIndex = index => createTester(index);
-        tester.first = createTester(0);
-
-        tester.header = (() => {
-            const getDomElement = () => utils.querySelector(
-                '.misc-chats-src-components-chats-chats-list-panel-styles-module__header'
-            );
-
-            const tester = testersFactory.createDomElementTester(getDomElement);
-            return addTesters(tester, getDomElement);
+            return tester;
         })();
-
-        return tester;
-    })();
+    }
 
     me.contactList = (() => {
         const getDomElement = () => document.querySelector('.cm-contacts-list-wrapper'),

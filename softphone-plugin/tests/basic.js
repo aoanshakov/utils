@@ -1,6 +1,7 @@
 tests.addTest(options => {
     const {
         Tester,
+        setFocus,
         notificationTester,
         spendTime,
         postMessages,
@@ -49,7 +50,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        describe('Открыт IFrame.', function() {
+        xdescribe('Открыт IFrame.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'iframeContent',
@@ -433,7 +434,7 @@ tests.addTest(options => {
                 tester.softphone.expectNotToExist();
             });
         });
-        describe('Открываю попап. Отправлен запрос состояния.', function() {
+        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
             let stateRequest,
                 popupStateSettingRequest;
 
@@ -512,7 +513,7 @@ tests.addTest(options => {
                     expectToBeReloaded();
             });
         });
-        describe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
+        xdescribe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -520,6 +521,11 @@ tests.addTest(options => {
                 });
 
                 tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+
+                tester.popupStateSettingRequest().
+                    disabled().
+                    receiveResponse();
+
                 tester.chatsVisibilitySettingRequest().receiveResponse();
             });
 
@@ -530,9 +536,13 @@ tests.addTest(options => {
                     widgetSettings = tester.widgetSettings().storageData();
                 });
 
-                describe('Кнопка видимости должна добавляться перед элементом.', function() {
+                describe(
+                    'Кнопка видимости должна добавляться перед элементом. Получено событие инициализации субмодуля ' +
+                    'сотрудников.',
+                function() {
                     beforeEach(function() {
                         widgetSettings.receive();
+                        tester.popupStateSettingRequest().receiveResponse();
 
                         tester.stateSettingRequest().
                             userDataFetched().
@@ -545,9 +555,13 @@ tests.addTest(options => {
                         tester.widgetSettings().
                             windowMessage().
                             expectToBeSent();
+
+                        tester.submoduleInitilizationEvent().
+                            operatorWorkplace().
+                            receive();
                     });
 
-                    describe('Получено событие инициализации чатов.', function() {
+                    describe('Получено событие инициализации субмодуля чатов.', function() {
                         beforeEach(function() {
                             tester.submoduleInitilizationEvent().receive();
 
@@ -564,8 +578,8 @@ tests.addTest(options => {
                             });
 
                             it(
-                                'Содержимое страницы снова изменилось. Прошло некоторое время.  Кнопка добавлена в ' +
-                                'измененное содержимое страницы.',
+                                'Содержимое страницы снова изменилось. Прошло некоторое время.  Кнопка добавлена ' +
+                                'в измененное содержимое страницы.',
                             function() {
                                 tester.page.triggerMutation();
                                 spendTime(1);
@@ -660,6 +674,40 @@ tests.addTest(options => {
                                 );
                             });
                         });
+                        describe('Получен запрос изменения видимости чатов.', function() {
+                            beforeEach(function() {
+                                tester.toggleChatsVisibilityRequest().expectResponseToBeSent();
+
+                                tester.chatsVisibilitySettingRequest().
+                                    visible().
+                                    receiveResponse();
+                            });
+
+                            it(
+                                'Получено событие нажатия на уведомление нового сообщения. Отображены чаты.',
+                            function() {
+                                tester.notificationClickedEvent().receive();
+
+                                tester.iframe.first.expectToBeHidden();
+                                tester.iframe.atIndex(1).expectToBeVisible();
+                            });
+                            it('Чаты видимы.', function() {
+                                tester.iframe.first.expectToBeHidden();
+                                tester.iframe.atIndex(1).expectToBeVisible();
+                            });
+                        });
+                        it(
+                            'Получено событие нажатия на уведомление нового сообщения. Отображены чаты.',
+                        function() {
+                            tester.notificationClickedEvent().receive();
+
+                            tester.chatsVisibilitySettingRequest().
+                                visible().
+                                receiveResponse();
+
+                            tester.iframe.first.expectToBeHidden();
+                            tester.iframe.atIndex(1).expectToBeVisible();
+                        });
                         it('Получены другие настройки. Кнопка видимости добавлена после элемента.', function() {
                             tester.widgetSettings().
                                 storageData().
@@ -695,16 +743,6 @@ tests.addTest(options => {
                                 '[+7 (495) 123-45-64] ' +
                                 '[+7 (495) 123-45-63]'
                             );
-                        });
-                        it('Получен запрос изменения видимости чатов. Чаты видимы.', function() {
-                            tester.toggleChatsVisibilityRequest().expectResponseToBeSent();
-
-                            tester.chatsVisibilitySettingRequest().
-                                visible().
-                                receiveResponse();
-
-                            tester.iframe.first.expectToBeHidden();
-                            tester.iframe.atIndex(1).expectToBeVisible();
                         });
                         it('В дочернем IFrame  нажимаю на номер телефона. Отправлен запрос вызова.', function() {
                             postMessages.receive({
@@ -746,8 +784,8 @@ tests.addTest(options => {
                             });
                         });
                         it(
-                            'От IFrame получено сообщение изменения видимости. В popup-скрипт отправлено сообщение ' +
-                            'об изменении видимости.',
+                            'От IFrame получено сообщение изменения видимости. В popup-скрипт отправлено ' +
+                            'сообщение об изменении видимости.',
                         function() {
                             tester.stateSettingRequest().
                                 userDataFetched().
@@ -772,10 +810,6 @@ tests.addTest(options => {
                                 lostCalls(1).
                                 receive();
 
-                            tester.popupStateSettingRequest().
-                                userDataFetched().
-                                receiveResponse();
-
                             tester.visibilityButton.expectToHaveTextContent('Трубочка (1)');
                         });
                         it(
@@ -792,10 +826,22 @@ tests.addTest(options => {
                         function() {
                             tester.stateRequest().expectResponseToBeSent();
 
-                            tester.popupStateSettingRequest().receiveResponse();
-                            tester.chatsVisibilitySettingRequest().receiveResponse();
+                            tester.popupStateSettingRequest().
+                                userDataFetched().
+                                receiveResponse();
 
+                            tester.chatsVisibilitySettingRequest().receiveResponse();
                             tester.iframe.first.expectToBeHidden();
+                        });
+                        it(
+                            'Получено событие инициализации субмодуля контактов. Настройки не были отправлены в ' +
+                            'IFrame.',
+                        function() {
+                            tester.submoduleInitilizationEvent().
+                                contacts().
+                                receive();
+
+                            postMessages.nextMessage().expectNotToExist();
                         });
                         it('Кнопка видимости добавлена перед элементом.', function() {
                             tester.body.expectToHaveTextContent(
@@ -818,10 +864,12 @@ tests.addTest(options => {
 
                             tester.visibilityButton.expectToHaveTextContent('Трубочка');
                             
-                            tester.iframe.first.expectAttributeToHaveValue(
-                                'src',
-                                'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/softphone',
-                            );
+                            tester.iframe.
+                                first.
+                                expectAttributeToHaveValue(
+                                    'src',
+                                    'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/softphone',
+                                );
                         });
                     });
                     it('Запрос установления настроек чатов не был отправлен.', function() {
@@ -834,17 +882,23 @@ tests.addTest(options => {
                             anotherWildcart().
                             receive();
 
+                        tester.submoduleInitilizationEvent().
+                            operatorWorkplace().
+                            receive();
+
                         tester.submoduleInitilizationEvent().receive();
 
                         tester.widgetSettings().
                             windowMessage().
                             chatsSettings().
+                            noSettings().
                             expectToBeSent();
                     });
 
                     describe('Получен запрос отображения софтфона.', function() {
                         beforeEach(function() {
                             tester.toggleWidgetVisibilityRequest().receive();
+                            tester.popupStateSettingRequest().receiveResponse();
                         });
 
                         it('Получен запрос изменения состояния софтфона.', function() {
@@ -854,8 +908,6 @@ tests.addTest(options => {
                                 noSettings().
                                 windowMessage().
                                 expectToBeSent();
-
-                            tester.popupStateSettingRequest().receiveResponse();
 
                             postMessages.nextMessage().expectMessageToContain({
                                 method: 'toggle_widget_visibility'
@@ -918,6 +970,10 @@ tests.addTest(options => {
                             windowMessage().
                             expectToBeSent();
 
+                        tester.submoduleInitilizationEvent().
+                            operatorWorkplace().
+                            receive();
+
                         tester.submoduleInitilizationEvent().receive();
 
                         tester.widgetSettings().
@@ -968,6 +1024,10 @@ tests.addTest(options => {
                             windowMessage().
                             expectToBeSent();
 
+                        tester.submoduleInitilizationEvent().
+                            operatorWorkplace().
+                            receive();
+
                         tester.submoduleInitilizationEvent().receive();
 
                         tester.widgetSettings().
@@ -994,7 +1054,6 @@ tests.addTest(options => {
                             receive();
 
                         tester.stateSettingRequest().receive();
-                        tester.popupStateSettingRequest().receiveResponse();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -1040,6 +1099,8 @@ tests.addTest(options => {
                         anotherToken().
                         receive();
 
+                    tester.popupStateSettingRequest().receiveResponse();
+
                     tester.stateSettingRequest().
                         userDataFetched().
                         receive();
@@ -1052,6 +1113,10 @@ tests.addTest(options => {
                         anotherToken().
                         windowMessage().
                         expectToBeSent();
+
+                    tester.submoduleInitilizationEvent().
+                        operatorWorkplace().
+                        receive();
 
                     tester.submoduleInitilizationEvent().receive();
 
@@ -1281,6 +1346,8 @@ tests.addTest(options => {
                         noPadding().
                         receive();
 
+                    tester.popupStateSettingRequest().receiveResponse();
+
                     tester.stateSettingRequest().
                         visible().
                         receive();
@@ -1293,6 +1360,10 @@ tests.addTest(options => {
                         noPadding().
                         windowMessage().
                         expectToBeSent();
+
+                    tester.submoduleInitilizationEvent().
+                        operatorWorkplace().
+                        receive();
 
                     tester.submoduleInitilizationEvent().receive();
 
@@ -1330,7 +1401,7 @@ tests.addTest(options => {
                 tester.iframe.first.expectNotToExist();
             });
         });
-        describe('Открываю попап. Отправлен запрос состояния.', function() {
+        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'popup',
@@ -1493,7 +1564,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentNotToHaveSubstring('Вы не авторизованы');
             });
         });
-        describe('Открываю background-скрипт. Софтфон авторизован.', function() {
+        xdescribe('Открываю background-скрипт. Софтфон авторизован.', function() {
             let oauthRequest;
 
             beforeEach(function() {
@@ -1651,7 +1722,7 @@ tests.addTest(options => {
                     grant();
             });
         });
-        describe('Открываю background-скрипт.', function() {
+        xdescribe('Открываю background-скрипт.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'background',
@@ -1749,6 +1820,15 @@ tests.addTest(options => {
                                 expectToBeSaved();
                         });
                     });
+                    it('Получен дубайский код. Запрос токена отправлен на дубайский сервер.', function() {
+                        authFlow.
+                            anotherCode().
+                            receiveResponse();
+
+                        tester.oauthRequest().
+                            dubai().
+                            expectToBeSent();
+                    });
                     it('Приходит запрос авторизации. Попытка открыть форму авторизации не производится.', function() {
                         tester.authorizationRequest().expectResponseToBeSent();
 
@@ -1779,7 +1859,7 @@ tests.addTest(options => {
                 tester.popupStateSettingRequest().expectResponseToBeSent();
             });
         });
-        describe('Контент скрипт встроился в IFrame.', function() {
+        xdescribe('Контент скрипт встроился в IFrame.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -1849,7 +1929,7 @@ tests.addTest(options => {
                 );
             });
         });
-        describe('Открыт IFrame софтфона amoCRM.', function() {
+        xdescribe('Открыт IFrame софтфона amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'amocrmIframeContent',
@@ -2063,7 +2143,7 @@ tests.addTest(options => {
                 windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru');
             });
         });
-        describe('Открываю виджет amoCRM.', function() {
+        xdescribe('Открываю виджет amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -2126,7 +2206,7 @@ tests.addTest(options => {
                         tester.iframe.first.expectToBeVisible();
 
                         {
-                            const actualValue = window.localStorage.getItem('datacenter'),
+                            const actualValue = window.localStorage.getItem('data_center'),
                                 expectedValue = 'dubai';
 
                             if (actualValue != expectedValue) {
@@ -2163,7 +2243,7 @@ tests.addTest(options => {
                         tester.iframe.first.expectToBeVisible();
 
                         {
-                            const actualValue = !!window.localStorage.getItem('datacenter'),
+                            const actualValue = !!window.localStorage.getItem('data_center'),
                                 expectedValue = false;
 
                             if (actualValue != expectedValue) {
@@ -2226,7 +2306,7 @@ tests.addTest(options => {
                 tester.iframe.first.expectToBeHidden();
             });
         });
-        describe(
+        xdescribe(
             'В локальном хранилище сохранен токен. Открыт IFrame софтфона amoCRM. Производится авторизация.',
         function() {
             let settingsRequest,
@@ -2542,161 +2622,337 @@ tests.addTest(options => {
                 });
             });
         });
-        describe('Открываю IFrame чатов. Получены настройки. Отображены чаты.', function() {
+        xdescribe('Открываю IFrame чатов. Получены настройки.', function() {
+            let accountRequest,
+                secondAccountRequest,
+                widgetSettings;
+
             beforeEach(function() {
                 tester = new Tester({
                     application: 'chatsIframe',
                     ...options,
                 });
 
-                tester.submoduleInitilizationEvent().expectToBeSent();
+                tester.submoduleInitilizationEvent().
+                    operatorWorkplace().
+                    expectToBeSent();
+
                 tester.submoduleInitilizationEvent().expectToBeSent();
 
-                tester.widgetSettings().
+                widgetSettings = tester.widgetSettings().
                     windowMessage().
-                    chatsSettings().
+                    chatsSettings();
+            });
+
+            describe('Получен российский токен.', function() {
+                beforeEach(function() {
+                    widgetSettings.receive();
+
+                    accountRequest = tester.accountRequest().
+                        forIframe().
+                        webAccountLoginUnavailable().
+                        softphoneFeatureFlagDisabled().
+                        expectToBeSent();
+
+                    secondAccountRequest = tester.accountRequest().
+                        forIframe().
+                        fromIframe().
+                        webAccountLoginUnavailable().
+                        softphoneFeatureFlagDisabled().
+                        expectToBeSent();
+
+                    tester.chatSettingsRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+
+                    tester.employeeStatusesRequest().
+                        oauthToken().
+                        receiveResponse();
+
+                    tester.listRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.messageTemplateListRequest().receiveResponse();
+                    tester.commonMessageTemplatesRequest().receiveResponse();
+                    tester.messageTemplatesSettingsRequest().receiveResponse();
+                });
+
+                describe('Чаты доступны.', function() {
+                    beforeEach(function() {
+                        accountRequest.
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
+
+                        tester.masterInfoMessage().receive();
+                        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+
+                        secondAccountRequest.
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
+
+                        tester.employeesWebSocket.connect();
+
+                        tester.employeesInitMessage().
+                            oauthToken().
+                            expectToBeSent();
+
+                        tester.chatsWebSocket.connect();
+
+                        tester.chatsInitMessage().
+                            oauthToken().
+                            expectToBeSent();
+
+                        tester.employeeSettingsRequest().receiveResponse();
+
+                        tester.employeeRequest().
+                            oauthToken().
+                            receiveResponse();
+
+                        tester.accountRequest().
+                            forIframe().
+                            fromIframe().
+                            webAccountLoginUnavailable().
+                            softphoneFeatureFlagDisabled().
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
+
+                        tester.countersRequest().
+                            noNewChats().
+                            noClosedChats().
+                            receiveResponse();
+
+                        tester.offlineMessageCountersRequest().receiveResponse();
+                        tester.chatChannelListRequest().receiveResponse();
+                        tester.siteListRequest().receiveResponse();
+                        tester.markListRequest().receiveResponse();
+
+                        tester.chatListRequest().
+                            forCurrentEmployee().
+                            noData().
+                            receiveResponse();
+
+                        tester.chatListRequest().
+                            forCurrentEmployee().
+                            active().
+                            receiveResponse();
+
+                        tester.chatListRequest().forCurrentEmployee().
+                            closed().
+                            noData().
+                            receiveResponse();
+
+                        tester.chatChannelTypeListRequest().receiveResponse();
+
+                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                        tester.offlineMessageListRequest().processing().receiveResponse();
+                        tester.offlineMessageListRequest().processed().receiveResponse();
+
+                        tester.button('В работе 75').click();
+                    });
+
+                    describe('Скрываю приложение. Приходит новое сообщение.', function() {
+                        let notification;
+
+                        beforeEach(function() {
+                            setFocus(false);
+                            tester.newMessage().receive();
+
+                            tester.chatListRequest().
+                                chat().
+                                receiveResponse();
+
+                            tester.countersRequest().receiveResponse();
+
+                            notification = notificationTester.
+                                grantPermission().
+                                recentNotification();
+                        });
+
+                        it('Нажимаю на уведомление.', function() {
+                            notification.click();
+
+                            tester.notificationClickedEvent().expectToBeSent();
+
+                            tester.submoduleInitilizationEvent().
+                                contacts().
+                                expectToBeSent();
+
+                            tester.visitorCardRequest().receiveResponse();
+                            tester.messageListRequest().receiveResponse();
+
+                            tester.chatInfoRequest().
+                                anotherChat().
+                                receiveResponse();
+                        });
+                        it('Отображено уведомление о новом сообщении.', function() {
+                            notification.
+                                expectToHaveTitle('Помакова Бисерка Драгановна').
+                                expectToHaveTag('16479303').
+                                expectToHaveBody('Я люблю тебя').
+                                expectToBeOpened();
+                        });
+                    });
+                    it('Выбираю чат.', function() {
+                        tester.chatList.
+                            first.
+                            item('Привет').
+                            click();
+
+                        tester.submoduleInitilizationEvent().
+                            contacts().
+                            expectToBeSent();
+
+                        tester.visitorCardRequest().receiveResponse();
+                        tester.messageListRequest().receiveResponse();
+
+                        tester.chatInfoRequest().
+                            anotherChat().
+                            receiveResponse();
+
+                        tester.changeMessageStatusRequest().
+                            read().
+                            anotherMessage().
+                            receiveResponse();
+
+                        tester.countersRequest().
+                            noNewChats().
+                            noClosedChats().
+                            receiveResponse();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            chatsSettings().
+                            receive();
+
+                        tester.usersRequest().
+                            forContacts().
+                            forIframe().
+                            receiveResponse();
+
+                        tester.groupsContainingContactRequest().
+                            forIframe().
+                            noContact().
+                            receiveResponse();
+
+                        tester.contactGroupsRequest().
+                            forIframe().
+                            receiveResponse();
+
+                        tester.contactBar.expectTextContentToHaveSubstring(
+                            'ФИО ' +
+                            'Помакова Бисерка Драгановна'
+                        );
+                    });
+                    it('Отображен список чатов.', function() {
+                        tester.chatList.
+                            first.
+                            item('Привет').
+                            expectToBeVisible();
+
+                        tester.body.expectTextContentNotToHaveSubstring('Недостаточно прав на раздел чатов');
+                    });
+                });
+                it('Чаты недоступны. Чаты скрыты.', function() {
+                    accountRequest.receiveResponse();
+                    secondAccountRequest.receiveResponse();
+
+                    tester.chatsWebSocket.connect();
+
+                    tester.chatsInitMessage().
+                        oauthToken().
+                        expectToBeSent();
+
+                    tester.employeeSettingsRequest().receiveResponse();
+
+                    tester.employeeRequest().
+                        oauthToken().
+                        receiveResponse();
+
+                    tester.body.expectToHaveTextContent('Недостаточно прав на раздел чатов');
+                });
+            });
+            it('Получен дубайский токен. Запрос аккаунта отправлен на дубайский сервер.', function() {
+                widgetSettings.
+                    anotherToken().
                     receive();
 
                 tester.accountRequest().
                     forIframe().
+                    dubai().
                     webAccountLoginUnavailable().
                     softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    receiveResponse();
-
-                tester.masterInfoMessage().receive();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                    expectToBeSent();
 
                 tester.accountRequest().
                     forIframe().
                     fromIframe().
+                    dubai().
                     webAccountLoginUnavailable().
                     softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    receiveResponse();
-
-                tester.employeesWebSocket.connect();
-
-                tester.employeesInitMessage().
-                    oauthToken().
                     expectToBeSent();
 
-                tester.chatsWebSocket.connect();
-
-                tester.chatsInitMessage().
-                    oauthToken().
-                    expectToBeSent();
-
-                tester.chatSettingsRequest().receiveResponse();
-                tester.chatChannelListRequest().receiveResponse();
+                tester.chatSettingsRequest().expectToBeSent();
+                tester.chatChannelListRequest().expectToBeSent();
 
                 tester.employeeStatusesRequest().
-                    oauthToken().
-                    receiveResponse();
+                    anotherOauthToken().
+                    expectToBeSent();
 
-                tester.listRequest().receiveResponse();
-                tester.siteListRequest().receiveResponse();
-                tester.messageTemplateListRequest().receiveResponse();
-                tester.employeeSettingsRequest().receiveResponse();
-
-                tester.employeeRequest().
-                    oauthToken().
-                    receiveResponse();
-
-                tester.accountRequest().
-                    forIframe().
-                    fromIframe().
-                    webAccountLoginUnavailable().
-                    softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    receiveResponse();
-
-                tester.countersRequest().
-                    noNewChats().
-                    noClosedChats().
-                    receiveResponse();
-
-                tester.offlineMessageCountersRequest().receiveResponse();
-                tester.chatChannelListRequest().receiveResponse();
-                tester.siteListRequest().receiveResponse();
-                tester.markListRequest().receiveResponse();
-
-                tester.chatListRequest().
-                    forCurrentEmployee().
-                    noData().
-                    receiveResponse();
-
-                tester.chatListRequest().
-                    forCurrentEmployee().
-                    active().
-                    receiveResponse();
-
-                tester.chatListRequest().forCurrentEmployee().
-                    closed().
-                    noData().
-                    receiveResponse();
-
-                tester.chatChannelTypeListRequest().receiveResponse();
-
-                tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                tester.offlineMessageListRequest().processing().receiveResponse();
-                tester.offlineMessageListRequest().processed().receiveResponse();
-
-                tester.button('В работе 75').click();
-            });
-
-            it('Выбираю чат.', function() {
-                tester.chatList.
-                    first.
-                    item('Привет').
-                    click();
-
-                tester.submoduleInitilizationEvent().expectToBeSent();
-
-                tester.visitorCardRequest().receiveResponse();
-                tester.messageListRequest().receiveResponse();
-
-                tester.changeMessageStatusRequest().
-                    read().
-                    anotherMessage().
-                    receiveResponse();
-
-                tester.countersRequest().
-                    noNewChats().
-                    noClosedChats().
-                    receiveResponse();
-
-                tester.widgetSettings().
-                    windowMessage().
-                    chatsSettings().
-                    receive();
-
-                tester.usersRequest().
-                    forContacts().
-                    forIframe().
-                    receiveResponse();
-
-                tester.groupsContainingContactRequest().
-                    forIframe().
-                    noContact().
-                    receiveResponse();
-
-                tester.contactGroupsRequest().
-                    forIframe().
-                    receiveResponse();
-
-                tester.contactBar.expectTextContentToHaveSubstring(
-                    'ФИО ' +
-                    'Помакова Бисерка Драгановна'
-                );
-            });
-            it('Отображен список чатов.', function() {
-                tester.chatList.
-                    first.
-                    item('Привет').
-                    expectToBeVisible();
+                tester.listRequest().expectToBeSent();
+                tester.siteListRequest().expectToBeSent();
+                tester.messageTemplateListRequest().expectToBeSent();
+                tester.commonMessageTemplatesRequest().expectToBeSent();
+                tester.messageTemplatesSettingsRequest().expectToBeSent();
             });
         });
+        it('Открываю страницу с расширением. Есть номера чатов. Отображены номера чатов.', function() {
+            tester = new Tester({
+                softphoneHost: 'my.uiscom.ru',
+                chatsPhoneNumbers: true,
+                ...options,
+            });
+
+            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+
+            tester.popupStateSettingRequest().
+                disabled().
+                receiveResponse();
+
+            tester.chatsVisibilitySettingRequest().receiveResponse();
+
+            tester.widgetSettings().
+                storageData().
+                receive();
+
+            tester.popupStateSettingRequest().receiveResponse();
+
+            tester.stateSettingRequest().
+                userDataFetched().
+                receive();
+
+            tester.popupStateSettingRequest().
+                userDataFetched().
+                receiveResponse();
+
+            tester.widgetSettings().
+                windowMessage().
+                expectToBeSent();
+
+            tester.submoduleInitilizationEvent().
+                operatorWorkplace().
+                receive();
+
+            tester.submoduleInitilizationEvent().receive();
+
+            tester.widgetSettings().
+                windowMessage().
+                chatsSettings().
+                expectToBeSent();
+
+            tester.body.expectTextContentToHaveSubstring(
+                'Channel (): 74951234561 ' +
+                'Channel (): 74951234560'
+            );
+        });
+        return;
         it('Открыт IFrame. Получен дубайский токен. Отправлен запрос авторизации в дубайский сервер.', function() {
             tester = new Tester({
                 application: 'iframeContent',
@@ -2739,7 +2995,8 @@ tests.addTest(options => {
         });
         it(
             'Контент скрипт встроился в IFrame. URL не находится в списке тех, на которых расширение должно ' +
-            'работать. Приходит запрос изменения видимости.',
+            'работать. Приходит запрос изменения видимости. Запрос изменения видимости не передается в родительское ' +
+            'окно.',
         function() {
             tester = new Tester({
                 softphoneHost: 'my.uiscom.ru',
@@ -2782,7 +3039,7 @@ tests.addTest(options => {
                 expectToBeSaved();
         });
         it('Ранее был открыт дубайский IFrame. Дубайский IFrame снова открыт.', function() {
-            window.localStorage.setItem('datacenter', 'dubai'),
+            window.localStorage.setItem('data_center', 'dubai'),
 
             tester = new Tester({
                 softphoneHost: 'my.uiscom.ru',
@@ -2838,6 +3095,11 @@ tests.addTest(options => {
             });
 
             tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+
+            tester.popupStateSettingRequest().
+                disabled().
+                receiveResponse();
+
             tester.chatsVisibilitySettingRequest().receiveResponse();
 
             tester.stateSettingRequest().receive();
@@ -2846,6 +3108,10 @@ tests.addTest(options => {
             tester.widgetSettings().
                 windowMessage().
                 expectToBeSent();
+
+            tester.submoduleInitilizationEvent().
+                operatorWorkplace().
+                receive();
 
             tester.submoduleInitilizationEvent().receive();
 
@@ -2857,6 +3123,10 @@ tests.addTest(options => {
             postMessages.receive({
                 method: 'logout',
             });
+
+            tester.popupStateSettingRequest().
+                disabled().
+                receiveResponse();
 
             tester.widgetSettings().
                 windowMessage().

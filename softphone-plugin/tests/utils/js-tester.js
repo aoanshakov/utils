@@ -3937,8 +3937,8 @@ function JsTester_Element ({
         return utils.getVisibleSilently(querySelectorAll(selector)) || new JsTester_NoElement();
     };
 
-    this.querySelectorAll = function (selector) {
-        return utils.getAllVisible(querySelectorAll(selector));
+    this.querySelectorAll = function (selector, logEnabled) {
+        return utils.getAllVisible(querySelectorAll(selector, logEnabled));
     };
 }
 

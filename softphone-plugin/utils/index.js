@@ -42,6 +42,8 @@ const {
     chats,
     core,
     corePatch,
+    ui,
+    uiPatch,
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -95,6 +97,10 @@ const overriding = [{
     application: core,
     overridenFiles: packageJson,
     applicationPatch: corePatch,
+}, {
+    application: ui,
+    overridenFiles: packageJson,
+    applicationPatch: uiPatch,
 }];
 
 const getOverriding = () => overriding.map(overriding => ({
@@ -150,7 +156,8 @@ actions['initialize'] = params => [`git config --global --add safe.directory ${a
     ['lib/web/core', core, 'master', misc],
     ['web/magic_ui', magicUi, 'feature/softphone', misc],
     ['web/sip_lib', sipLib, 'stand-int0', misc],
-    ['web/uis_webrtc', uisWebRTC, 'stand-int0', sipLib]
+    ['web/uis_webrtc', uisWebRTC, 'stand-int0', sipLib],
+    ['lib/web/ui', ui, 'master', misc],
 ].map(([module, path, branch, misc]) => [].
     concat(!fs.existsSync(path) ? [
         () => mkdir(path),
@@ -163,8 +170,7 @@ actions['initialize'] = params => [`git config --global --add safe.directory ${a
     `${cda} npm install --verbose`
 ].concat(actions['patch-node-modules']).concat(actions['fix-permissions']) : []);
 
-actions['remove-node-modules'] = [uisWebRTC].map(application => ({ application })).
-    concat(overriding).
+actions['remove-node-modules'] = overriding.
     map(({ application }) => [
         rmVerbose(`${application}/node_modules`),
         rmVerbose(`${application}/package-lock.json`)

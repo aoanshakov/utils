@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index f3313de..4cb6975 100644
+index f3313de..aa55230 100644
 --- a/package.json
 +++ b/package.json
-@@ -11,9 +11,6 @@
+@@ -11,15 +11,11 @@
      "build-example": "webpack --mode development",
      "build": "webpack"
    },
@@ -12,3 +12,9 @@ index f3313de..4cb6975 100644
    "dependencies": {
      "@babel/core": "^7.1.2",
      "@babel/plugin-proposal-class-properties": "^7.8.3",
+     "@babel/plugin-proposal-private-methods": "7.13.0",
+     "@babel/preset-env": "^7.1.0",
+-    "axios": "^0.24.0",
+     "babel-loader": "^8.0.4",
+     "exports-loader": "2.0.0",
+     "janus-gateway": "1.1.4",
