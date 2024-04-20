@@ -15,7 +15,7 @@ module.exports.isOneOf = (...variants) => (key, value) => {
     variants = variants.map(variant => JSON.stringify(variant));
     variants = `${variants.slice(variants, lastIndex).join(', ')} or ${variants[lastIndex]}`;
 
-    throw new Error(`Value for argument "${key}" should be ${variants}`);
+    throw new Error(`Value for argument "${key}" should be ${variants}, instead of ${JSON.stringify(value)}`);
 };
 
 module.exports.isListOf = (...variants) => (key, value) => {

@@ -131,6 +131,7 @@ fi
 
 docker run -it --rm \
     -v $applicationDirectory:/usr/local/src \
+    --privileged=true \
     --mount type=bind,source=$HOME/.ssh/known_hosts,target=/root/.ssh/known_hosts \
     $dockerArguments \
     $imageTag \
