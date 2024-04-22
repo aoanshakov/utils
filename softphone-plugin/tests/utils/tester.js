@@ -772,9 +772,13 @@ define(() => function ({
                     elementSelector: '.chat-phone-number',
                     tag: 'button',
                     phoneXpath: './/text()',
-                    innerHTML: '<span class="chat-inner">' +
-                        'Channel ({{ channel_name }}): {{ phone }}' +
-                    '</span>',
+                    innerHTML: '<div class="chat-inner">' +
+                        '{{ phone }}'
+
+                        '{% for channel in channels %}' +
+                            '<div>Channel ({{ channel.channel_name }})</div>'
+                        '{% endfor %}'
+                    '</div>',
                     attributes: {
                         class: 'chat-outer',
                     },
@@ -1478,6 +1482,43 @@ define(() => function ({
         });
     };
 
+    me.channelsSearchingResponse = () => {
+        const processors = [];
+
+        const getMessage = () => {
+            const message = {
+                method: 'channels_searching_result',
+                data: {
+                    phone: '74951234561',
+                    channels: [{
+                        channel_id: 216395,
+                        channel_name: 'Нижний Новгород',
+                        channel_type: 'telegram_private',
+                        is_unavailable: false,
+                    }],
+                },
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        return {
+            anotherChannel() {
+                processors.push(message => {
+                    message.data.phone = '74951234560';
+                    message.data.channels[0].channel_id = 216397;
+                    message.data.channels[0].channel_name = 'Ереван';
+                });
+
+                return this;
+            },
+
+            receive: () => postMessages.receive(getMessage()),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+
     me.authorizednessSettingRequest = () => {
         const processors = [];
 
@@ -1498,6 +1539,34 @@ define(() => function ({
             },
 
             receive: () => postMessages.receive(getMessage()),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+
+    me.channelsSearchingRequest = () => {
+        const processors = [];
+
+        const getMessage = () => {
+            const message = {
+                method: 'search_channels',
+                data: '74951234561',
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        return {
+            anotherPhone() {
+                processors.push(message => (message.data = '74951234560'));
+                return this;
+            },
+
+            receive: () => {
+                postMessages.receive(getMessage());
+                spendTime(0);
+            },
+
             expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
         };
     };
@@ -8233,6 +8302,16 @@ define(() => function ({
                 return this;
             },
 
+            fourthSearchString() {
+                params.search_string = '74951234561';
+                return this;
+            },
+
+            fifthSearchString() {
+                params.search_string = '74951234560';
+                return this;
+            },
+
             noSearchString() {
                 params.search_string = null;
                 return this;
@@ -14649,6 +14728,18 @@ define(() => function ({
                 return me;
             };
 
+            me.anotherChannel = () => {
+                data[0].channel_id = 216397;
+                data[0].channel_name = 'Ереван';
+                return me;
+            };
+
+            me.thirdChannel = () => {
+                data[0].channel_id = 216398;
+                data[0].channel_name = 'Тбилиси';
+                return me;
+            };
+
             me.noChat = () => (processors.push(() => data.forEach(item => item.chats = [])), me);
             me.closed = () => (data[0].chats[0].status = 'closed', me);
 
@@ -14705,6 +14796,16 @@ define(() => function ({
         return addResponseModifiers({
             anotherSearchString() {
                 params.contact.phone = '79283810989';
+                return this;
+            },
+
+            thirdSearchString() {
+                params.contact.phone = '74951234561';
+                return this;
+            },
+
+            fourthSearchString() {
+                params.contact.phone = '74951234560';
                 return this;
             },
             

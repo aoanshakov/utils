@@ -40,16 +40,6 @@ const modules = [{
     repository: 'softphone/frontend',
     directory: 'softphone',
     param: 'REACT_APP_MODULE_SOFTPHONE',
-    linkedModules: [{
-        module: '@comagic/softphone-widget',
-        repository: 'web/sip_lib',
-        directory: 'softphone-widget',
-        linkedModules: [{
-            module: '@comagic/softphone-core',
-            repository: 'web/uis_webrtc',
-            directory: 'softphone-core',
-        }],
-    }],
 }, {
     repository: 'web/comagic_app_modules/contacts',
     directory: 'contacts',
@@ -73,6 +63,58 @@ const envParams = modules.filter(
     {},
 );
 
+const linkedModules = [{
+    module: '@comagic/softphone-widget',
+    repository: 'web/sip_lib',
+    directory: 'softphone-widget',
+}, {
+    module: '@comagic/softphone-core',
+    repository: 'web/uis_webrtc',
+    directory: 'softphone-core',
+}];
+
+actions['initialize'] = params => {
+    const clone = ({
+        path,
+        repository,
+        branch = 'stand-{stand}',
+    }) => !fs.existsSync(path) ? [
+        () => mkdir(path),
+
+        `cd ${path} && git clone${
+            params.stand ? ` --branch ${replaceWithStand({ value: branch, params })}` : ''
+        } git@gitlab.uis.dev:${repository}.git .`
+    ] : [];
+
+    return linkedModules.reduce((clones, { module, repository }) => {
+        const directory = (module => {
+            if (!module.length || module.length > 2) {
+                return '';
+            }
+
+            if (module.length == 1) {
+                return module[0];
+            }
+
+            if (module[0] !== '@comagic') {
+                return '';
+            }
+
+            return module[1];
+        })(module.split('/'));
+
+        if (!directory) {
+            return clones;
+        }
+
+        return clones.concat(clone({
+            path: modulePath(directory),
+            repository,
+        }));
+    }, []);
+};
+
+/*
 actions['initialize'] = params => modules.reduce(
     (result, {
         repository,
@@ -214,6 +256,7 @@ actions['initialize'] = params => modules.reduce(
     },
     [],
 );
+*/
 
 const local = params => 
     params.local ?

@@ -4,4 +4,6 @@
 /softphone
 /contacts
 /operator-workplace
+/softphone-core
+/softphone-widget
 *.swp
