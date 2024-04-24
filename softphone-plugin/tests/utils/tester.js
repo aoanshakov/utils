@@ -770,17 +770,27 @@ define(() => function ({
             const value = {
                 handlers: [{
                     elementSelector: '.chat-phone-number',
-                    tag: 'button',
+                    tag: 'div',
                     phoneXpath: './/text()',
-                    innerHTML: '<div class="chat-inner">' +
-                        '{{ phone }}'
 
-                        '{% for channel in channels %}' +
-                            '<div>Channel ({{ channel.channel_name }})</div>'
-                        '{% endfor %}'
+                    innerHTML: '<div class="chat-inner">' +
+                        'Каналы связанные с телефоном {{ phone }}: ' +
+
+                        '<ul>' +
+                            '{{ channels }}' +
+                        '</ul>' +
                     '</div>',
+
                     attributes: {
                         class: 'chat-outer',
+                    },
+
+                    channel: {
+                        tag: 'li',
+                        innerHTML: '<button>Канал "{{ channel_name }}"</button>',
+                        attributes: {
+                            class: 'chat-channel',
+                        },
                     },
                 }],
             };
@@ -1504,6 +1514,17 @@ define(() => function ({
         };
 
         return {
+            addChannel(message) {
+                processors.push(message => message.data.channels.push({
+                    channel_id: 216396,
+                    channel_name: 'Белгород',
+                    channel_type: 'telegram_private',
+                    is_unavailable: false,
+                }));
+
+                return this;
+            },
+
             anotherChannel() {
                 processors.push(message => {
                     message.data.phone = '74951234560';
@@ -1516,6 +1537,77 @@ define(() => function ({
 
             receive: () => postMessages.receive(getMessage()),
             expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+
+    me.initializednessEvent = () => {
+        const processors = [];
+
+        const getMessage = () => {
+            const message = {
+                method: 'initialized',
+                data: 'softphone',
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        return {
+            chats() {
+                processors.push(message => (message.data = 'chats'));
+                return this;
+            },
+
+            receive: () => postMessages.receive(getMessage()),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+
+    me.nestedContentScriptRegistrationRequest = () => {
+        const processors = [];
+
+        const getRequestMessage = () => {
+            const message = {
+                method: 'register_nested_content_script',
+                data: undefined,
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        const getResponseMessage = () => {
+            const message = {
+                method: 'nested_content_script_registered',
+                data: undefined,
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        const expectResponseToBeSent = () => postMessages.nextMessage().expectMessageToContain(getResponseMessage());
+
+        return {
+            expectToBeSent: () => {
+                postMessages.nextMessage().expectMessageToContain(getRequestMessage());
+
+                return {
+                    receiveResponse: () => postMessages.receive(getResponseMessage()),
+                    expectResponseToBeSent,
+                };
+            },
+            receive: () => {
+                postMessages.receive(getRequestMessage());
+                return { expectResponseToBeSent };
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            },
+            expectResponseToBeSent() {
+                this.receive().expectResponseToBeSent();
+            },
         };
     };
 
@@ -1559,6 +1651,48 @@ define(() => function ({
         return {
             anotherPhone() {
                 processors.push(message => (message.data = '74951234560'));
+                return this;
+            },
+
+            receive: () => {
+                postMessages.receive(getMessage());
+                spendTime(0);
+            },
+
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+
+    me.chatOpeningRequest = () => {
+        const processors = [];
+
+        const getMessage = () => {
+            const message = {
+                method: 'open_chat',
+                data: {
+                    phone: '74951234561',
+                    channel_id: 216395,
+                },
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        return {
+            anotherPhone() {
+                processors.push(message => {
+                    message.data.phone = '74951234560';
+                });
+
+                return this;
+            },
+
+            anotherChannel() {
+                processors.push(message => {
+                    message.data.channel_id = 216397;
+                });
+
                 return this;
             },
 
@@ -3170,6 +3304,17 @@ define(() => function ({
         return tester;
     })();
 
+    me.channelButton = (() => {
+        const selector = 'li.chat-channel',
+            tester = testersFactory.createDomElementTester(selector);
+
+        tester.atIndex = index =>
+            testersFactory.createDomElementTester(() => document.querySelectorAll(selector)[index]);
+
+        tester.first = tester.atIndex(0);
+        return tester;
+    })();
+
     me.ticketCreatingRequest = () => {
         const bodyParams = {
             context: 'Что-то нехорошее произошло',
@@ -3580,6 +3725,21 @@ define(() => function ({
         const addResponseModifiers = me => me;
 
         return addResponseModifiers({
+            anotherChannel() {
+                params.channel_id = 216397;
+                return this;
+            },
+
+            thirdPhone() {
+                params.contact.phone = '74951234560';
+                return this;
+            },
+
+            anotherPhone() {
+                params.contact.phone = '74951234561';
+                return this;
+            },
+
             noPhone() {
                 params.contact.phone = null;
                 return this;
