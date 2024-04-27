@@ -51,7 +51,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        xdescribe('Открыт IFrame.', function() {
+        describe('Открыт IFrame.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'iframeContent',
@@ -435,7 +435,7 @@ tests.addTest(options => {
                 tester.softphone.expectNotToExist();
             });
         });
-        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
+        describe('Открываю попап. Отправлен запрос состояния.', function() {
             let stateRequest,
                 popupStateSettingRequest;
 
@@ -555,7 +555,7 @@ tests.addTest(options => {
                             expectToBeSent();
                     });
 
-                    xdescribe('Получено событие инициализации субмодуля сотрудников.', function() {
+                    describe('Получено событие инициализации субмодуля сотрудников.', function() {
                         beforeEach(function() {
                             tester.submoduleInitilizationEvent().
                                 operatorWorkplace().
@@ -603,10 +603,10 @@ tests.addTest(options => {
                                         'Некий элемент #2 ' +
                                         'Последний элемент #2 ' +
 
-                                        'Телефон: 74951234576 ' +
-                                        'Телефон: 74951234578 ' +
-                                        'Номер телефона: +74951234580 (74951234579) ' +
-                                        'Номер телефона: +74951234582 (74951234581) ' +
+                                        'Телефон: 74951234577 ' +
+                                        'Телефон: 74951234579 ' +
+                                        'Номер телефона: +74951234581 (74951234580) ' +
+                                        'Номер телефона: +74951234583 (74951234582) ' +
                                         '[+7 (495) 123-45-64] ' +
                                         '[+7 (495) 123-45-63]'
                                     );
@@ -637,10 +637,10 @@ tests.addTest(options => {
                                         'Некий элемент #2 ' +
                                         'Последний элемент #2 ' +
 
-                                        'Телефон: 74951234576 ' +
-                                        'Телефон: 74951234578 ' +
-                                        'Номер телефона: +74951234580 (74951234579) ' +
-                                        'Номер телефона: +74951234582 (74951234581) ' +
+                                        'Телефон: 74951234577 ' +
+                                        'Телефон: 74951234579 ' +
+                                        'Номер телефона: +74951234581 (74951234580) ' +
+                                        'Номер телефона: +74951234583 (74951234582) ' +
                                         '[+7 (495) 123-45-64] ' +
                                         '[+7 (495) 123-45-63]'
                                     );
@@ -666,10 +666,10 @@ tests.addTest(options => {
                                         'Некий элемент #2 ' +
                                         'Последний элемент #2 ' +
 
-                                        '+74951234576 ' +
-                                        '+74951234578 ' +
-                                        '+74951234580 ' +
-                                        '+74951234582 ' +
+                                        '+74951234577 ' +
+                                        '+74951234579 ' +
+                                        '+74951234581 ' +
+                                        '+74951234583 ' +
                                         '[+7 (495) 123-45-64] ' +
                                         '[+7 (495) 123-45-63]'
                                     );
@@ -880,18 +880,44 @@ tests.addTest(options => {
                     describe('Получено запрос регистрации вложенного контент-скрипта.', function() {
                         beforeEach(function() {
                             tester.nestedContentScriptRegistrationRequest().expectResponseToBeSent();
+                            tester.initializednessEvent().expectToBeSent();
                         });
 
-                        it('Запрос установления настроек чатов не был отправлен.', function() {
+                        describe('Получено событие инициализации субмодуля сотрудников.', function() {
+                            beforeEach(function() {
+                                tester.submoduleInitilizationEvent().
+                                    operatorWorkplace().
+                                    receive();
+                            });
+
+                            it(
+                                'Получено событие инициализации субмодуля чатов. Был отправлен запрос инициализации ' +
+                                'чатов.',
+                            function() {
+                                tester.submoduleInitilizationEvent().receive();
+
+                                tester.widgetSettings().
+                                    windowMessage().
+                                    chatsSettings().
+                                    expectToBeSent();
+
+                                tester.initializednessEvent().
+                                    chats().
+                                    expectToBeSent();
+                            });
+                            it('Запрос инициализации чатов не был отправлен.', function() {
+                                postMessages.nextMessage().expectNotToExist();
+                            });
+                        });
+                        it('Запрос инициализации чатов не был отправлен.', function() {
                             postMessages.nextMessage().expectNotToExist();
                         });
                     });
                 });
-                return;
                 describe('URL страницы не соответствует wildcard.', function() {
                     beforeEach(function() {
                         widgetSettings.
-                            anotherWildcart().
+                            anotherSoftphoneWildcart().
                             receive();
 
                         tester.submoduleInitilizationEvent().
@@ -1409,7 +1435,6 @@ tests.addTest(options => {
                     tester.iframe.first.expectNotToExist();
                 });
             });
-            return;
             describe('Получен запрос регистрации вложенного контент-скрипта.', function() {
                 beforeEach(function() {
                     tester.nestedContentScriptRegistrationRequest().expectResponseToBeSent();
@@ -1472,7 +1497,6 @@ tests.addTest(options => {
                 tester.iframe.first.expectNotToExist();
             });
         });
-        return;
         describe('Открываю попап. Отправлен запрос состояния.', function() {
             beforeEach(function() {
                 tester = new Tester({
@@ -1965,14 +1989,6 @@ tests.addTest(options => {
                             data: '74951234571',
                         });
                     });
-                    it('Нажимаю на кнопку видимости. Отправлен запрос изменения видимости.', function() {
-                        tester.visibilityButton.click();
-                        tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-
-                        postMessages.nextMessage().expectMessageToContain({
-                            method: 'toggle_widget_visibility'
-                        });
-                    });
                     it('В дочернем IFrame  нажимаю на номер телефона. Отправлен запрос вызова.', function() {
                         postMessages.receive({
                             method: 'start_call',
@@ -2003,7 +2019,6 @@ tests.addTest(options => {
 
                         tester.body.expectToHaveTextContent(
                             'Первый элемент #1 ' +
-                            'Трубочка ' +
                             'Некий элемент #1 ' +
                             'Последний элемент #1 ' +
 
@@ -2655,7 +2670,7 @@ tests.addTest(options => {
             function() {
                 beforeEach(function() {
                     widgetSettings.
-                        anotherWildcart().
+                        anotherSoftphoneWildcart().
                         receiveResponse();
 
                     settingsRequest.
@@ -2755,6 +2770,7 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.submoduleInitilizationEvent().expectToBeSent();
+                tester.unreadMessagesCountSettingRequest().expectToBeSent();
 
                 widgetSettings = tester.widgetSettings().
                     windowMessage().
@@ -2835,6 +2851,10 @@ tests.addTest(options => {
                             noNewChats().
                             noClosedChats().
                             receiveResponse();
+
+                        tester.unreadMessagesCountSettingRequest().
+                            value(75).
+                            expectToBeSent();
 
                         tester.offlineMessageCountersRequest().receiveResponse();
                         tester.chatChannelListRequest().receiveResponse();
@@ -3138,7 +3158,10 @@ tests.addTest(options => {
                                 chat().
                                 receiveResponse();
 
-                            tester.countersRequest().receiveResponse();
+                            tester.countersRequest().
+                                noNewChats().
+                                noClosedChats().
+                                receiveResponse();
 
                             notification = notificationTester.
                                 grantPermission().
@@ -3147,7 +3170,6 @@ tests.addTest(options => {
 
                         it('Нажимаю на уведомление. Открыт чат.', function() {
                             notification.click();
-
                             tester.notificationClickedEvent().expectToBeSent();
 
                             tester.submoduleInitilizationEvent().
@@ -3358,18 +3380,178 @@ tests.addTest(options => {
                         receive();
                 });
 
+                describe('Содержимое страницы изменилось.', function() {
+                    beforeEach(function() {
+                        tester.page.duplicate();
+
+                        spendTime(1000);
+                        spendTime(0);
+
+                        tester.channelsSearchingRequest().expectToBeSent();
+
+                        tester.channelsSearchingRequest().
+                            anotherPhone().
+                            expectToBeSent();
+
+                        tester.channelsSearchingRequest().
+                            thirdPhone().
+                            expectToBeSent();
+
+                        tester.channelsSearchingRequest().
+                            fourthPhone().
+                            expectToBeSent();
+                    });
+
+                    it('Получен список каналов. Отображены каналы.', function() {
+                        tester.channelsSearchingResponse().
+                            addChannel().
+                            receive();
+
+                        tester.channelsSearchingResponse().
+                            anotherChannel().
+                            receive();
+
+                        tester.channelsSearchingResponse().
+                            thirdChannel().
+                            receive();
+
+                        tester.channelsSearchingResponse().
+                            fourthChannel().
+                            receive();
+
+                        tester.body.expectToHaveTextContent(
+                            'Первый элемент #1 ' +
+                            'Трубочка ' +
+
+                            'Некий элемент #1 ' +
+                            'Последний элемент #1 ' +
+
+                            'Чаты ' +
+                            'Ещё один элемент #1 ' +
+
+                            'Телефон: 74951234568 ' +
+                            'Телефон: 74951234570 ' +
+                            'Номер телефона: +74951234572 (74951234571) ' +
+                            'Номер телефона: +74951234574 (74951234573) ' +
+                            '[+7 (495) 123-45-64] ' +
+                            '[+7 (495) 123-45-63] ' +
+
+                            'Каналы связанные с телефоном 74951234575: ' +
+
+                                'Канал "Нижний Новгород" ' +
+                                'Канал "Белгород" ' +
+
+                            'Каналы связанные с телефоном 74951234576: ' +
+
+                                'Канал "Ереван" ' +
+
+                            'Первый элемент #2 ' +
+                            'Трубочка ' +
+
+                            'Некий элемент #2 ' +
+                            'Последний элемент #2 ' +
+
+                            'Чаты ' +
+                            'Ещё один элемент #2 ' +
+
+                            'Телефон: 74951234577 ' +
+                            'Телефон: 74951234579 ' +
+                            'Номер телефона: +74951234581 (74951234580) ' +
+                            'Номер телефона: +74951234583 (74951234582) ' +
+                            '[+7 (495) 123-45-64] ' +
+                            '[+7 (495) 123-45-63] ' +
+
+                            'Каналы связанные с телефоном 74951234584: ' +
+
+                                'Канал "Тбилиси" ' +
+
+                            'Каналы связанные с телефоном 74951234585: ' +
+
+                                'Канал "Белград"'
+                        );
+                    });
+                    it('Каналы скрыты.', function() {
+                        tester.body.expectToHaveTextContent(
+                            'Первый элемент #1 ' +
+                            'Трубочка ' +
+
+                            'Некий элемент #1 ' +
+                            'Последний элемент #1 ' +
+
+                            'Чаты ' +
+                            'Ещё один элемент #1 ' +
+
+                            'Телефон: 74951234568 ' +
+                            'Телефон: 74951234570 ' +
+                            'Номер телефона: +74951234572 (74951234571) ' +
+                            'Номер телефона: +74951234574 (74951234573) ' +
+                            '[+7 (495) 123-45-64] ' +
+                            '[+7 (495) 123-45-63] ' +
+
+                            'Каналы связанные с телефоном 74951234575: ' +
+                            'Каналы связанные с телефоном 74951234576: ' +
+
+                            'Первый элемент #2 ' +
+                            'Трубочка ' +
+
+                            'Некий элемент #2 ' +
+                            'Последний элемент #2 ' +
+
+                            'Чаты ' +
+                            'Ещё один элемент #2 ' +
+
+                            'Телефон: 74951234577 ' +
+                            'Телефон: 74951234579 ' +
+                            'Номер телефона: +74951234581 (74951234580) ' +
+                            'Номер телефона: +74951234583 (74951234582) ' +
+                            '[+7 (495) 123-45-64] ' +
+                            '[+7 (495) 123-45-63] ' +
+
+                            'Каналы связанные с телефоном 74951234584: ' +
+                            'Каналы связанные с телефоном 74951234585:'
+                        );
+                    });
+                });
+                it('Нажимаю на кнопку "Чаты". Отображен IFrame чатов.', function() {
+                    tester.button('Чаты').click();
+
+                    tester.chatsVisibilitySettingRequest().
+                        visible().
+                        receiveResponse();
+
+                    tester.iframe.first.expectToBeHidden();
+
+                    tester.iframe.atIndex(1).
+                        expectToBeVisible().
+                        expectAttributeToHaveValue(
+                            'src',
+                            'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats',
+                        );
+                });
+                it(
+                    'Получено сообщение о количестве пропущенных сообщений. Отображено количество пропущенных ' +
+                    'сообщений.',
+                function() {
+                    tester.unreadMessagesCountSettingRequest().
+                        value(75).
+                        receive();
+
+                    tester.button('Чаты (75)').expectToBeVisible();
+                });
                 it('Нажимаю на кнопку канала. Отправлен запрос открытия чата.', function() {
                     tester.channelButton.first.click();
+
+                    tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
                     tester.chatOpeningRequest().expectToBeSent();
                 });
                 it('Отображён непустой список каналов.', function() {
                     tester.body.expectTextContentToHaveSubstring(
-                        'Каналы связанные с телефоном 74951234561: ' +
+                        'Каналы связанные с телефоном 74951234575: ' +
 
                             'Канал "Нижний Новгород" ' +
                             'Канал "Белгород" ' +
 
-                        'Каналы связанные с телефоном 74951234560: ' +
+                        'Каналы связанные с телефоном 74951234576: ' +
 
                             'Канал "Ереван"'
                     );
@@ -3377,8 +3559,8 @@ tests.addTest(options => {
             });
             it('Отображён пустой список каналов.', function() {
                 tester.body.expectTextContentToHaveSubstring(
-                    'Каналы связанные с телефоном 74951234561: ' +
-                    'Каналы связанные с телефоном 74951234560:'
+                    'Каналы связанные с телефоном 74951234575: ' +
+                    'Каналы связанные с телефоном 74951234576:'
                 );
             });
         });
@@ -3447,6 +3629,188 @@ tests.addTest(options => {
             });
             it('Запрос регистрации вложенного контент-скрипта не был отправлен.', function() {
                 postMessages.nextMessage().expectNotToExist();
+            });
+        });
+        describe('Контент-скрипт встроился в IFrame. Есть номера чатов.', function() {
+            let widgetSettings;
+
+            beforeEach(function() {
+                tester = new Tester({
+                    softphoneHost: 'my.uiscom.ru',
+                    isIframe: true,
+                    chatsPhoneNumbers: true,
+                    ...options,
+                });
+
+                tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+                widgetSettings = tester.widgetSettings().storageData();
+            });
+
+            describe('Получены настройки чатов. Отправлен запрос регистрации вложенного контент-скрипта.', function() {
+                beforeEach(function() {
+                    widgetSettings.receive();
+
+                    tester.nestedContentScriptRegistrationRequest().receiveResponse();
+                    tester.initializednessEvent().receive();
+                });
+
+                describe('Получен запрос регистрации вложенного контент-скрипта.', function() {
+                    let nestedContentScriptRegistrationRequest,
+                        anotherNestedContentScriptRegistrationRequest;
+
+                    beforeEach(function() {
+                        anotherNestedContentScriptRegistrationRequest = tester.nestedContentScriptRegistrationRequest().
+                            receive();
+     
+                        nestedContentScriptRegistrationRequest = tester.nestedContentScriptRegistrationRequest().
+                            expectToBeSent();
+                    });
+
+                    it(
+                        'Было получено событие инициализации чатов. Найдены каналы. Отображён список каналов.',
+                    function() {
+                        tester.initializednessEvent().
+                            chats().
+                            receive();
+
+                        tester.initializednessEvent().
+                            chats().
+                            expectToBeSent();
+
+                        tester.channelsSearchingRequest().expectToBeSent();
+
+                        tester.channelsSearchingRequest().
+                            anotherPhone().
+                            expectToBeSent();
+
+                        tester.channelsSearchingResponse().
+                            addChannel().
+                            receive();
+
+                        tester.channelsSearchingResponse().
+                            addChannel().
+                            expectToBeSent();
+
+                        tester.channelsSearchingResponse().
+                            anotherChannel().
+                            receive();
+
+                        tester.channelsSearchingResponse().
+                            anotherChannel().
+                            expectToBeSent();
+
+                        tester.body.expectTextContentToHaveSubstring(
+                            'Каналы связанные с телефоном 74951234575: ' +
+
+                                'Канал "Нижний Новгород" ' +
+                                'Канал "Белгород" ' +
+
+                            'Каналы связанные с телефоном 74951234576: ' +
+
+                                'Канал "Ереван"'
+                        );
+                    });
+                    it('Ответ на запрос передан другим вложенным контент-скриптам.', function() {
+                        nestedContentScriptRegistrationRequest.receiveResponse();
+                        anotherNestedContentScriptRegistrationRequest.expectResponseToBeSent();
+                    });
+                });
+                describe('Было получено событие инициализации чатов. Найдены каналы.', function() {
+                    beforeEach(function() {
+                        tester.initializednessEvent().
+                            chats().
+                            receive();
+
+                        tester.channelsSearchingRequest().expectToBeSent();
+
+                        tester.channelsSearchingRequest().
+                            anotherPhone().
+                            expectToBeSent();
+
+                        tester.channelsSearchingResponse().
+                            addChannel().
+                            receive();
+
+                        tester.channelsSearchingResponse().
+                            anotherChannel().
+                            receive();
+                    });
+
+                    it('Нажимаю на кнопку канала. Отправлен запрос открытия чата.', function() {
+                        tester.channelButton.first.click();
+
+                        tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+                        tester.chatOpeningRequest().expectToBeSent();
+                    });
+                    it('Отображён список каналов.', function() {
+                        tester.body.expectTextContentToHaveSubstring(
+                            'Каналы связанные с телефоном 74951234575: ' +
+
+                                'Канал "Нижний Новгород" ' +
+                                'Канал "Белгород" ' +
+
+                            'Каналы связанные с телефоном 74951234576: ' +
+
+                                'Канал "Ереван"'
+                        );
+                    });
+                });
+                it('Получен запрос поиска каналов. Отправлен запрос поиска каналов.', function() {
+                    tester.channelsSearchingRequest().receive();
+                    tester.channelsSearchingRequest().expectToBeSent();
+                });
+                it('Получен запрос открытия чата. Отправлен запрос открытия чата.', function() {
+                    tester.chatOpeningRequest().receive();
+                    tester.chatOpeningRequest().expectToBeSent();
+                });
+                it('Кнопки чатов не были добавлены.', function() {
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Некий элемент #1 ' +
+                        'Последний элемент #1 ' +
+                        'Ещё один элемент #1 ' +
+
+                        'Телефон: 74951234568 ' +
+                        'Телефон: 74951234570 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573) ' +
+                        '[+7 (495) 123-45-64] ' +
+                        '[+7 (495) 123-45-63] ' +
+                        '74951234575 ' +
+                        '74951234576'
+                    );
+                });
+            });
+            it(
+                'Настройки чатов не получены. Было получено событие инициализации чатов. Кнопки чатов не были ' +
+                'добавлены.',
+            function() {
+                widgetSettings.
+                    anotherChatsWildcart().
+                    receive();
+
+                tester.nestedContentScriptRegistrationRequest().receiveResponse();
+                tester.initializednessEvent().receive();
+
+                tester.initializednessEvent().
+                    chats().
+                    receive();
+
+                tester.body.expectToHaveTextContent(
+                    'Первый элемент #1 ' +
+                    'Некий элемент #1 ' +
+                    'Последний элемент #1 ' +
+                    'Ещё один элемент #1 ' +
+
+                    'Телефон: 74951234568 ' +
+                    'Телефон: 74951234570 ' +
+                    'Номер телефона: +74951234572 (74951234571) ' +
+                    'Номер телефона: +74951234574 (74951234573) ' +
+                    '[+7 (495) 123-45-64] ' +
+                    '[+7 (495) 123-45-63] ' +
+                    '74951234575 ' +
+                    '74951234576'
+                );
             });
         });
         it('Открыт IFrame. Получен дубайский токен. Отправлен запрос авторизации в дубайский сервер.', function() {

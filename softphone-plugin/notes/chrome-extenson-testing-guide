@@ -1,0 +1,47 @@
+Для того, чтобы запустить расширение понадобится само расширение и три субмодуля, которые оно использует
+
+Нужно склонировать определенную ветку репозитория расширения
+
+git clone --branch feature/chats git@gitlab.uis.dev:softphone/widget-iframe.git
+
+Нужно склонировать определенную ветку репозиториев субмодулей:
+
+git clone --branch feature/chrome-extension git@gitlab.uis.dev:chats/frontend.git
+git clone --branch feature/chrome-extension git@gitlab.uis.dev:web/comagic_app_modules/operator-workplace.git
+git clone --branch feature/chrome-extension git@gitlab.uis.dev:web/comagic_app_modules/contacts.git
+
+Я не знаю пользовался ли ты здесь npm, у тебя наверное не было такой необходимости. Нужно указать наш локальный
+репозиторий:
+
+npm set registry http://npm.dev.uis.st:80
+
+Он доступен через VPN
+
+В каждом склонированном репозитории нужно установить зависимости
+
+npm install
+
+В каждом склонированном репозитории нужно скопировать файл с переменными для стенда int0, чтобы при запуске dev-серверов
+он именно с сервисами int0 взаимодействовал
+
+cp .env-int0 env.local
+
+Нужно указать такой хост в качестве локального go.localhost.uis.st. Я не знаю, какую ОС ты используешь, но в любом
+случае, ты, я думаю знаешь, как это делается. У меня в Ubuntu я просто добавляю строку
+
+127.0.0.1       go.localhost.uis.st
+
+В /etc/hosts
+
+Dev-сервера субмодулей можено запустить командой npm run start в папках, куда были склонированы репозитории
+chats/frontend, operator-workplace, contacts.
+
+Dev-сервер расширения можно запустить командой npm run dev в папке, куда был склонирован репозиторий
+softphone/widget-iframe.
+
+Сборку расширения можно запустить командой npm run build:dev в папке, куда был склонирован репозиторий
+softphone/widget-iframe. Расшрение соберется в папке build/chrome. Эту папку нужно указать в Chrome при установке
+расширения, нажав на кнопку "Load unpacked" на странице chrome://extensions. Расширение будет называться "UIS
+Softphone". Можно открыть любую страницу в Chrome и открыть popup расширения через кнопку в списке расширения,
+открывающемся при нажатии на иконку расширений справа от адресной строки. Там дальше всё понятно, авторизовываешься и
+должны через какое-то время полететь запросы в сервис чатов

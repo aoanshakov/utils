@@ -1,5 +1,5 @@
 define(() => function ({
-    origin = 'https://app.uiscom.ru',
+    url = 'https://app.uiscom.ru',
     testersFactory,
     utils,
     triggerResize,
@@ -52,13 +52,14 @@ define(() => function ({
     window.resetElectronCookiesManager?.();
 
     window.isIframe = !!isIframe;
-    window.getOrigin = () => origin;
+    window.getOrigin = () => url;
     window.stores = null;
     window.contactStore = null;
     window.chatsStore = null;
     window.employeesStore = null;
     window.softphoneBroadcastChannelCache = {};
     window.destroyMethodCaller?.();
+    window.resetChannels?.();
 
     {
 
@@ -693,7 +694,8 @@ define(() => function ({
     me.popupLogoutButton = testersFactory.createDomElementTester('.cmg-chrome-extension-logout');
 
     me.widgetSettings = () => {
-        let wildcart = 'https://*.uiscom.ru/**',
+        let softphoneWildcart = 'https://*.uiscom.ru/**',
+            chatsWildcart = softphoneWildcart,
             widget_id = 'chrome',
             chatsSettings = false,
             host = 'my.uiscom.ru';
@@ -768,6 +770,24 @@ define(() => function ({
 
         const getChatSettings = () => {
             const value = {
+                button: {
+                    elementSelector: '.another-element',
+                    mode: 'insertBefore',
+                    tag: 'button',
+
+                    innerHTML: '<span class="visibility-button-inner">' +
+                        'Чаты ' +
+
+                        '{% if missedEventsCount > 0 %}' +
+                            '({{ missedEventsCount }}) ' +
+                        '{% endif %}' +
+                    '</span>',
+
+                    attributes: {
+                        class: 'visibility-button',
+                    },
+                },
+
                 handlers: [{
                     elementSelector: '.chat-phone-number',
                     tag: 'div',
@@ -777,7 +797,7 @@ define(() => function ({
                         'Каналы связанные с телефоном {{ phone }}: ' +
 
                         '<ul>' +
-                            '{{ channels }}' +
+                            '{{ items }}' +
                         '</ul>' +
                     '</div>',
 
@@ -785,9 +805,9 @@ define(() => function ({
                         class: 'chat-outer',
                     },
 
-                    channel: {
+                    item: {
                         tag: 'li',
-                        innerHTML: '<button>Канал "{{ channel_name }}"</button>',
+                        innerHTML: '<button>{{ icon }} Канал "{{ name }}"</button>',
                         attributes: {
                             class: 'chat-channel',
                         },
@@ -803,7 +823,7 @@ define(() => function ({
 
             const value = {
                 softphone: {
-                    [wildcart]: isChrome ? getSoftphoneSettings() : {
+                    [softphoneWildcart]: isChrome ? getSoftphoneSettings() : {
                         click2call: {
                             callapi: getCallapi(),
                         },
@@ -812,7 +832,7 @@ define(() => function ({
 
                 ...(isChrome ? {
                     chats: {
-                        [wildcart]: getChatSettings(),
+                        [chatsWildcart]: getChatSettings(),
                     },
                 } : {}),
             };
@@ -902,8 +922,13 @@ define(() => function ({
                 return me;
             },
 
-            me.anotherWildcart = () => {
-                wildcart = 'https://*.comagic.ru/**';
+            me.anotherSoftphoneWildcart = () => {
+                softphoneWildcart = 'https://*.comagic.ru/**';
+                return me;
+            };
+
+            me.anotherChatsWildcart = () => {
+                chatsWildcart = 'https://*.comagic.ru/**';
                 return me;
             };
 
@@ -1109,10 +1134,12 @@ define(() => function ({
                 token: getStorageData().token,
                 ...(chatsSettings ? {
                     padding: undefined,
-                    button: undefined,
                     click2call: undefined,
                     ...(getChatSettings() || {}),
-                } : (getSoftphoneSettings() || {})),
+                } : {
+                    handlers: undefined,
+                    ...(getSoftphoneSettings() || {})
+                }),
             },
         });
 
@@ -1492,6 +1519,30 @@ define(() => function ({
         });
     };
 
+    me.unreadMessagesCountSettingRequest = () => {
+        const processors = [];
+
+        const getMessage = () => {
+            const message = {
+                method: 'set_unread_messages_count',
+                data: 0,
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        return {
+            value(value) {
+                processors.push(message => message.data = value);
+                return this;
+            },
+
+            receive: () => postMessages.receive(getMessage()),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+
     me.channelsSearchingResponse = () => {
         const processors = [];
 
@@ -1499,11 +1550,13 @@ define(() => function ({
             const message = {
                 method: 'channels_searching_result',
                 data: {
-                    phone: '74951234561',
+                    phone: '74951234575',
                     channels: [{
-                        channel_id: 216395,
-                        channel_name: 'Нижний Новгород',
-                        channel_type: 'telegram_private',
+                        id: 216395,
+                        name: 'Нижний Новгород',
+                        type: 'telegram_private',
+                        type_name: 'Telegram',
+                        icon: 'SourceTelegram20',
                         is_unavailable: false,
                     }],
                 },
@@ -1516,9 +1569,11 @@ define(() => function ({
         return {
             addChannel(message) {
                 processors.push(message => message.data.channels.push({
-                    channel_id: 216396,
-                    channel_name: 'Белгород',
-                    channel_type: 'telegram_private',
+                    id: 216396,
+                    name: 'Белгород',
+                    type: 'telegram_private',
+                    type_name: 'Telegram',
+                    icon: 'SourceTelegram20',
                     is_unavailable: false,
                 }));
 
@@ -1527,9 +1582,29 @@ define(() => function ({
 
             anotherChannel() {
                 processors.push(message => {
-                    message.data.phone = '74951234560';
-                    message.data.channels[0].channel_id = 216397;
-                    message.data.channels[0].channel_name = 'Ереван';
+                    message.data.phone = '74951234576';
+                    message.data.channels[0].id = 216397;
+                    message.data.channels[0].name = 'Ереван';
+                });
+
+                return this;
+            },
+
+            thirdChannel() {
+                processors.push(message => {
+                    message.data.phone = '74951234584';
+                    message.data.channels[0].id = 216398;
+                    message.data.channels[0].name = 'Тбилиси';
+                });
+
+                return this;
+            },
+
+            fourthChannel() {
+                processors.push(message => {
+                    message.data.phone = '74951234585';
+                    message.data.channels[0].id = 216399;
+                    message.data.channels[0].name = 'Белград';
                 });
 
                 return this;
@@ -1641,7 +1716,7 @@ define(() => function ({
         const getMessage = () => {
             const message = {
                 method: 'search_channels',
-                data: '74951234561',
+                data: '74951234575',
             };
 
             processors.forEach(process => process(message));
@@ -1649,8 +1724,18 @@ define(() => function ({
         };
 
         return {
+            fourthPhone() {
+                processors.push(message => (message.data = '74951234585'));
+                return this;
+            },
+
+            thirdPhone() {
+                processors.push(message => (message.data = '74951234584'));
+                return this;
+            },
+
             anotherPhone() {
-                processors.push(message => (message.data = '74951234560'));
+                processors.push(message => (message.data = '74951234576'));
                 return this;
             },
 
@@ -1670,7 +1755,7 @@ define(() => function ({
             const message = {
                 method: 'open_chat',
                 data: {
-                    phone: '74951234561',
+                    phone: '74951234575',
                     channel_id: 216395,
                 },
             };
@@ -1682,7 +1767,7 @@ define(() => function ({
         return {
             anotherPhone() {
                 processors.push(message => {
-                    message.data.phone = '74951234560';
+                    message.data.phone = '74951234576';
                 });
 
                 return this;
@@ -1712,7 +1797,7 @@ define(() => function ({
             const message = {
                 method: 'set_amocrm_state',
                 data: {
-                    origin: 'https://app.uiscom.ru',
+                    url: 'https://app.uiscom.ru',
                     locale: lang,
                 },
             };
@@ -2087,14 +2172,19 @@ define(() => function ({
         pageContainer.classList.add('page-container');
 
         document.getElementById('pages-container').appendChild(pageContainer);
-
-        const processPhone = value => value + (number - 1) * 8;
+        const processPhone = value => value + (number - 1) * 9;
 
         pageContainer.innerHTML = (
             '<div class="elements-groups">' +
                 '<div class="first-element">Первый элемент #' + number + '</div>' + 
                 '<div class="some-element">Некий элемент #' + number + '</div>' +
                 '<div class="last-element">Последний элемент #' + number + '</div>' +
+
+                (
+                    chatsPhoneNumbers ? (
+                        '<div class="another-element">Ещё один элемент #' + number + '</div>'
+                    ) : ''
+                ) +
             '</div>' +
 
             '<div class="phone-number-source" data-phone="' + processPhone(74951234565) + '"></div>' +
@@ -2122,11 +2212,11 @@ define(() => function ({
             (
                 chatsPhoneNumbers ? (
                     '<div class="chat-phone-number">' +
-                    '<span>' + processPhone(74951234561) + '</span>' +
+                    '<span>' + processPhone(74951234575) + '</span>' +
                     '</div>' +
 
                     '<div class="chat-phone-number">' +
-                    '<span>' + processPhone(74951234560) + '</span>' +
+                    '<span>' + processPhone(74951234576) + '</span>' +
                     '</div>'
                 ) : ''
             )
@@ -3731,12 +3821,12 @@ define(() => function ({
             },
 
             thirdPhone() {
-                params.contact.phone = '74951234560';
+                params.contact.phone = '74951234576';
                 return this;
             },
 
             anotherPhone() {
-                params.contact.phone = '74951234561';
+                params.contact.phone = '74951234575';
                 return this;
             },
 
@@ -8463,12 +8553,12 @@ define(() => function ({
             },
 
             fourthSearchString() {
-                params.search_string = '74951234561';
+                params.search_string = '74951234575';
                 return this;
             },
 
             fifthSearchString() {
-                params.search_string = '74951234560';
+                params.search_string = '74951234576';
                 return this;
             },
 
@@ -14960,12 +15050,12 @@ define(() => function ({
             },
 
             thirdSearchString() {
-                params.contact.phone = '74951234561';
+                params.contact.phone = '74951234575';
                 return this;
             },
 
             fourthSearchString() {
-                params.contact.phone = '74951234560';
+                params.contact.phone = '74951234576';
                 return this;
             },
             

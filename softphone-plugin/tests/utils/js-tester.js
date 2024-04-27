@@ -6351,6 +6351,8 @@ function JsTester_DomElement (
                 utils.capitalize(getNominativeDescription()) + ' ' + gender.should + ' быть ' + gender.visible + '.'
             );
         }
+
+        return this;
     };
     this.expectToBeHidden = function () {
         this.expectToExist();
