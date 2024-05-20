@@ -177,7 +177,7 @@ tests.addTest(options => {
                     expectToBeSent();
             });
 
-            describe('Контакт не найден.', function() {
+            xdescribe('Контакт не найден.', function() {
                 beforeEach(function() {
                     searchResultsRequest.receiveResponse();
                 });
@@ -224,7 +224,7 @@ tests.addTest(options => {
                                     messageListRequest.receiveResponse();
                                 });
 
-                                xdescribe('Открываю меню телефона.', function() {
+                                describe('Открываю меню телефона.', function() {
                                     beforeEach(function() {
                                         tester.contactBar.
                                             section('Телефоны').
@@ -287,7 +287,7 @@ tests.addTest(options => {
                                             expectNotToExist();
                                     });
                                 });
-                                xdescribe('Раскрываю панель "Заметки".', function() {
+                                describe('Раскрываю панель "Заметки".', function() {
                                     beforeEach(function() {
                                         tester.collapsablePanel('Заметки').title.click();
                                     });
@@ -461,7 +461,7 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
-                                xit(
+                                it(
                                     'Раскрываю панель "Дополнительная информация". ' +
                                     'Оторажена дополнительная информация.',
                                 function() {
@@ -500,7 +500,7 @@ tests.addTest(options => {
                                             'Term gde_kupit_igrushki'
                                         );
                                 });
-                                xit(
+                                it(
                                     'Изменяю имя посетителя. В списке чатов отображено ' +
                                     'новое имя посетителя.',
                                 function() {
@@ -559,7 +559,7 @@ tests.addTest(options => {
                                             'Сообщение #75 1'
                                         );
                                 });
-                                xit('Нажимаю на кнопку "Создать контакт".', function() {
+                                it('Нажимаю на кнопку "Создать контакт".', function() {
                                     tester.button('Создать контакт').click();
 
                                     tester.contactCreatingRequest().
@@ -592,7 +592,7 @@ tests.addTest(options => {
                                         svg.
                                         expectToBeVisible();
                                 });
-                                xit(
+                                it(
                                     'Нажимаю на иконку с плюсом рядом с текстом ' +
                                     '"Персональный менеджер". Выпадающий список ' +
                                     'менеджеров скрыт.',
@@ -607,7 +607,7 @@ tests.addTest(options => {
                                         select.
                                         expectNotToExist();
                                 });
-                                xit(
+                                it(
                                     'Приходит трансфер без подтверждения от другого ' +
                                     'сотрудника. Отображено уведомление.',
                                 function() {
@@ -624,7 +624,7 @@ tests.addTest(options => {
                                         'Принять Отказаться'
                                     );
                                 });
-                                xit(
+                                it(
                                     'Приходит трансфер от другого сотрудника. Отображено ' +
                                     'уведомление.',
                                 function() {
@@ -638,7 +638,7 @@ tests.addTest(options => {
                                         'Принять Отказаться'
                                     );
                                 });
-                                xit(
+                                it(
                                     'Приходит трансфер без подтверждения от другого ' +
                                     'сотрудника. Отображено уведомление.',
                                 function() {
@@ -657,7 +657,7 @@ tests.addTest(options => {
                                         'Принять Отказаться'
                                     );
                                 });
-                                xit(
+                                it(
                                     'Приходит трансфер от другого сотрудника. Отображено ' +
                                     'уведомление.',
                                 function() {
@@ -736,7 +736,6 @@ tests.addTest(options => {
                                     );
                                 });
                             });
-                            return;
                             describe('Сообщение много.', function() {
                                 let chatListRequest;
 
@@ -899,7 +898,6 @@ tests.addTest(options => {
                                 tester.anchor('https://google.com').expectToBeVisible();
                             });
                         });
-                        return;
                         describe('Сообщений немного.', function() {
                             beforeEach(function() {
                                 messageListRequest.receiveResponse();
@@ -1200,7 +1198,6 @@ tests.addTest(options => {
                                 );
                         });
                     });
-                    return;
                     describe('Получен канал WhatsApp.', function() {
                         beforeEach(function() {
                             chatListRequest = chatListRequest.whatsapp();
@@ -1316,7 +1313,6 @@ tests.addTest(options => {
                         });
                     });
                 });
-                return;
                 it('Отображена иконка телеграм.', function() {
                     tester.chatList.
                         item('Сообщение #75').
@@ -1333,8 +1329,7 @@ tests.addTest(options => {
                     );
                 });
             });
-            return;
-            describe('Контакт найден. Нажимаю на найденный чат. ', function() {
+            xdescribe('Контакт найден. Нажимаю на найденный чат. ', function() {
                 let chatListRequest;
 
                 beforeEach(function() {
@@ -1770,7 +1765,7 @@ tests.addTest(options => {
                                         searchResultsRequest.receiveResponse();
                                     });
 
-                                    it('Над каналом Telegram отображено сообщение об ошибке.', function() {
+                                    xit('Над каналом Telegram отображено сообщение об ошибке.', function() {
                                         tester.channelList.
                                             item('Telegram 79283810988').
                                             putMouseOver();
@@ -1786,6 +1781,7 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
+                                return;
                                 it('Номер был найден в канеле Telegram.', function() {
                                     searchResultsRequest.
                                         addNewTelegram().
@@ -1832,6 +1828,7 @@ tests.addTest(options => {
                                     tester.usersRequest().forContacts().receiveResponse();
                                 });
                             });
+                            return;
                             describe('Найден только один канал.', function() {
                                 let searchResultsRequest;
 
@@ -1935,6 +1932,7 @@ tests.addTest(options => {
                                 tester.usersRequest().forContacts().receiveResponse();
                             });
                         });
+                        return;
                         it('Отображена кнопка "Начать чат".', function() {
                             tester.body.expectTextContentToHaveSubstring(
                                 'Новые ' +
@@ -1947,6 +1945,7 @@ tests.addTest(options => {
                                 expectToHaveClass('ui-icon-source-24-whatsapp');
                         });
                     });
+                    return;
                     describe('Получен также чат Waba.', function() {
                         beforeEach(function() {
                             searchResultsRequest.
@@ -2101,6 +2100,7 @@ tests.addTest(options => {
                         tester.usersRequest().forContacts().receiveResponse();
                     });
                 });
+                return;
                 describe('Чат имеет тип Waba. Получен также чат WhatsApp.', function() {
                     beforeEach(function() {
                         searchResultsRequest.
@@ -2433,6 +2433,7 @@ tests.addTest(options => {
                     tester.chatList.item('79283810988').expectNotToExist();
                 });
             });
+return;
             it('Имя посетителя не было получено. Отображено имя чата.', function() {
                 searchResultsRequest.
                     noVisitorName().

@@ -227,8 +227,13 @@ define(() => function ({
     me.callsHistoryButton = me.createBottomButtonTester('.cmg-calls-history-button');
 
     me.chatMessageSendingButton = (() => {
-        const tester = testersFactory.createDomElementTester('.cm-chats--chat-panel-footer-toolbar-send-button'),
-            click = tester.click.bind(tester);
+        const tester = testersFactory.createDomElementTester(
+            () => utils.
+                querySelector('.cmgui-icon[data-component=SendFilled20]').
+                closest('.cmgui-button')
+        );
+
+        const click = tester.click.bind(tester);
 
         tester.click = () => (click(), spendTime(0));
         tester.expectToBeDisabled = () => tester.expectToHaveAttribute('disabled');
@@ -1587,6 +1592,10 @@ define(() => function ({
     };
 
     me.messageAddingRequest = () => {
+        const headers = {
+            'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+        };
+
         const params = {
             chat_id: 7189362,
             chat_channel_id: null,
@@ -1609,6 +1618,9 @@ define(() => function ({
         let respond = request => request.respondSuccessfullyWith(response);
 
         const addResponseModifiers = me => {
+            me.anotherAuthorizationToken = () =>
+                ((headers['X-Auth-Token'] = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), me);
+
             me.anotherMessage = () => {
                 response.result.id = 234253;
                 return me;
@@ -1625,6 +1637,16 @@ define(() => function ({
                 response = {
                     error: {
                         message: 'access_token_expired',
+                    },
+                };
+
+                return me;
+            };
+
+            me.accessTokenInvalid = () => {
+                response = {
+                    error: {
+                        message: 'access_token_invalid',
                     },
                 };
 
@@ -1673,6 +1695,7 @@ define(() => function ({
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
                     expectPathToContain('$REACT_APP_BASE_URL').
+                    expectToHaveHeaders(headers).
                     expectBodyToContain({
                         method: 'add_message',
                         params
@@ -2016,6 +2039,33 @@ define(() => function ({
         });
     };
 
+    me.employeesBroadcastChannel = () => {
+        const tester = me.createBroadcastChannelTester('employees');
+
+        return {
+            applyLeader: () => ({
+                expectToBeSent: () => {
+                    tester.applyLeader();
+                    spendTime(0);
+
+                    return {
+                        waitForSecond: () => {
+                            spendTime(1000);
+                            spendTime(0);
+                        },
+                    };
+                },
+            }),
+
+            tellIsLeader: () => ({
+                expectToBeSent: () => {
+                    tester.tellIsLeader();
+                    spendTime(0);
+                },
+            }),
+        };
+    };
+
     me.employeeSettingsRequest = () => {
         const addResponseModifiers = me => me;
 
@@ -2101,6 +2151,16 @@ define(() => function ({
                 respond = request => request.respondUnauthorizedWith([{
                     loc: ['__root__'],
                     msg: 'Token has been expired',
+                    type: 'value_error.auth',
+                }]);
+
+                return me;
+            };
+            
+            me.accessTokenInvalid = () => {
+                respond = request => request.respondUnauthorizedWith([{
+                    loc: ['__root__'],
+                    msg: 'Token is not active or invalid',
                     type: 'value_error.auth',
                 }]);
 
@@ -7630,6 +7690,48 @@ define(() => function ({
                                 data: true,
                             },
                         });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
+    me.commonMessageTemplatesRequest = () => ({
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectPathToContain('$REACT_APP_BASE_URL/operator/common_message_templates').
+                expectToHaveMethod('GET');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith([]);
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
+    me.messageTemplatesSettingsRequest = () => ({
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectPathToContain('$REACT_APP_BASE_URL/settings/message_templates').
+                expectToHaveMethod('GET');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith({});
 
                     Promise.runAll(false, true);
                     spendTime(0)
@@ -14050,7 +14152,7 @@ define(() => function ({
             from_id: undefined,
             from_full_name: undefined,
             scroll_direction: 'forward',
-            search: undefined
+            search: utils.expectToBeEmpty(),
         };
 
         const initialData = [{
@@ -14172,6 +14274,16 @@ define(() => function ({
                 respond = request => request.respond({
                     status: 401,
                     statusText: 'access_token_expired',
+                    responseText: ''
+                });
+
+                return me;
+            };
+
+            me.accessTokenInvalid = () => {
+                respond = request => request.respond({
+                    status: 401,
+                    statusText: 'access_token_invalid',
                     responseText: ''
                 });
 
@@ -16187,112 +16299,102 @@ define(() => function ({
         };
     })();
 
-    {
-        const getChatListItem = getDomElement => {
-            const tester = addTesters(
-                testersFactory.createDomElementTester(getDomElement),
-                getDomElement,
-            );
+    me.chatListItem = (text, getRootElement = () => document.body) => {
+        const domElement = utils.descendantOf(getRootElement()).
+            matchesSelector(
+                '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-item-styles-module__root'
+            ).
+            textContains(text).
+            find();
 
-            const clickAreaTester = testersFactory.createDomElementTester(() => {
-                const clickArea = getDomElement().querySelector('.cm-chats--chat-click-area');
+        const tester = testersFactory.createDomElementTester(domElement);
 
-                if (!clickArea || clickArea instanceof JsTester_NoElement) {
-                    return getDomElement();
-                }
+        /*
+        const clickAreaTester = testersFactory.createDomElementTester(() => {
+            const clickArea = domElement.querySelector('.cm-chats--chat-click-area');
 
-                return clickArea;
-            });
-
-            const click = clickAreaTester.click.bind(clickAreaTester),
-                scrollIntoView = tester.scrollIntoView.bind(tester),
-                putMouseOver = tester.putMouseOver.bind(tester);
-
-            tester.putMouseOver = () => {
-                putMouseOver();
-                spendTime(100);
-                spendTime(0);
-                
-                hoverClass.add(getDomElement());
-            };
-
-            tester.expectToBeSelected = () => tester.expectToHaveClass('cm-chats--chats-list-item__selected');
-            tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-chats--chats-list-item__selected');
-
-            tester.click = () => (click(), spendTime(0));
-
-            tester.scrollIntoView = () => {
-                scrollIntoView();
-                maybeRunSpinWrapperIntersectionCallback(getChatListSpinWrapper());
-                spendTime(0);
-            };
-
-            {
-                tester.pin = testersFactory.createDomElementTester(() => utils.element(getDomElement()).querySelector(
-                    '.cm-chats--chat-pinned, ' +
-                    '.cm-chats--chat-not-pinned'
-                ));
-
-                const click = tester.pin.click.bind(tester.pin);
-
-                tester.pin.expectToBePinned = () => tester.pin.expectToHaveClass('cm-chats--chat-pinned');
-                tester.pin.expectNotToBePinned = () => tester.pin.expectToHaveClass('cm-chats--chat-not-pinned');
-
-                tester.pin.click = () => {
-                    click();
-                    hoverClass.remove();
-                };
+            if (!clickArea || clickArea instanceof JsTester_NoElement) {
+                return domElement;
             }
 
-            return tester;
+            return clickArea;
+        });
+        */
+
+        const click = tester.click.bind(tester),
+            scrollIntoView = tester.scrollIntoView.bind(tester),
+            putMouseOver = tester.putMouseOver.bind(tester);
+
+        tester.putMouseOver = () => {
+            putMouseOver();
+            spendTime(100);
+            spendTime(0);
+            
+            hoverClass.add(domElement);
         };
 
-        const listItemClass = '.cm-chats--chats-list-item, .cm-chats--chats-list-new-item';
+        tester.expectToBeSelected = () => tester.expectToHaveClass('cm-chats--chats-list-item__selected');
+        tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-chats--chats-list-item__selected');
 
-        me.chatListItem = (text, getRootElement = () => document.body) =>
-            getChatListItem(
-                () => utils.descendantOf(getRootElement()).
-                    matchesSelector(listItemClass).
-                    textContains(text).
-                    find()
+        tester.click = () => (click(), spendTime(0));
+
+        tester.scrollIntoView = () => {
+            scrollIntoView();
+            maybeRunSpinWrapperIntersectionCallback(getChatListSpinWrapper());
+            spendTime(0);
+        };
+
+        {
+            tester.pin = testersFactory.createDomElementTester(() => utils.element(domElement).querySelector(
+                '.cm-chats--chat-pinned, ' +
+                '.cm-chats--chat-not-pinned'
+            ));
+
+            const click = tester.pin.click.bind(tester.pin);
+
+            tester.pin.click = () => {
+                click();
+                hoverClass.remove();
+            };
+        }
+
+        return tester;
+    };
+
+    me.chatList = (() => {
+        const createTester = index => {
+            const getDomElement = () => (
+                index === undefined ?
+                utils.querySelector(
+                    '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-styles-module__root'
+                ) :
+                document.querySelectorAll(
+                    '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-styles-module__root'
+                )?.[index]
             );
 
-        me.chatList = (() => {
-            const createTester = index => {
-                const getDomElement = () => (
-                    index === undefined ?
-                    utils.querySelector('.cm-chats--chats-list-panel') :
-                    document.querySelectorAll('.cm-chats--chats-list')?.[index]
-                );
+            const tester = testersFactory.createDomElementTester(getDomElement);
 
-                const tester = testersFactory.createDomElementTester(getDomElement);
-                tester.item = text => me.chatListItem(text, getDomElement);
+            tester.item = text => me.chatListItem(text, getDomElement);
+            return addTesters(tester, getDomElement);
+        };
 
-                tester.item.atIndex = (index, isLogEnabled) => getChatListItem(
-                    () => utils.element(getDomElement()).querySelectorAll(listItemClass, isLogEnabled)[index]
-                );
+        const tester = createTester();
 
-                tester.item.first = tester.item.atIndex(0);
-                return addTesters(tester, getDomElement);
-            };
+        tester.atIndex = index => createTester(index);
+        tester.first = createTester(0);
 
-            const tester = createTester();
+        tester.header = (() => {
+            const getDomElement = () => utils.querySelector(
+                '.misc-chats-src-components-chats-chats-list-panel-styles-module__header'
+            );
 
-            tester.atIndex = index => createTester(index);
-            tester.first = createTester(0);
-
-            tester.header = (() => {
-                const getDomElement = () => utils.querySelector(
-                    '.misc-chats-src-components-chats-chats-list-panel-styles-module__header'
-                );
-
-                const tester = testersFactory.createDomElementTester(getDomElement);
-                return addTesters(tester, getDomElement);
-            })();
-
-            return tester;
+            const tester = testersFactory.createDomElementTester(getDomElement);
+            return addTesters(tester, getDomElement);
         })();
-    }
+
+        return tester;
+    })();
 
     me.contactList = (() => {
         const getDomElement = () => document.querySelector('.cm-contacts-list-wrapper'),

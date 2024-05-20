@@ -1524,8 +1524,11 @@ define(() => function ({
 
         const getMessage = () => {
             const message = {
-                method: 'set_unread_messages_count',
-                data: 0,
+                method: 'set_state',
+                data: {
+                    type: 'chats',
+                    data: { missedEventsCount: 0 },
+                },
             };
 
             processors.forEach(process => process(message));
@@ -1534,7 +1537,7 @@ define(() => function ({
 
         return {
             value(value) {
-                processors.push(message => message.data = value);
+                processors.push(message => message.data.data.missedEventsCount = value);
                 return this;
             },
 
@@ -1567,10 +1570,28 @@ define(() => function ({
         };
 
         return {
+            unavailable() {
+                processors.push(message => message.data.channels[0].is_unavailable = true);
+                return this;
+            },
+
             addChannel(message) {
                 processors.push(message => message.data.channels.push({
                     id: 216396,
                     name: 'Белгород',
+                    type: 'telegram_private',
+                    type_name: 'Telegram',
+                    icon: 'SourceTelegram20',
+                    is_unavailable: false,
+                }));
+
+                return this;
+            },
+            
+            addThirdChannel(message) {
+                processors.push(message => message.data.channels.push({
+                    id: 216402,
+                    name: 'Астана',
                     type: 'telegram_private',
                     type_name: 'Telegram',
                     icon: 'SourceTelegram20',
@@ -1611,7 +1632,12 @@ define(() => function ({
             },
 
             receive: () => postMessages.receive(getMessage()),
-            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+            expectToBeSent: () => {
+                const message = getMessage();
+
+                message.data.channels.push(undefined);
+                postMessages.nextMessage().expectMessageToContain(message);
+            },
         };
     };
 
@@ -1773,6 +1799,14 @@ define(() => function ({
                 return this;
             },
 
+            thirdChannel() {
+                processors.push(message => {
+                    message.data.channel_id = 216396;
+                });
+
+                return this;
+            },
+
             anotherChannel() {
                 processors.push(message => {
                     message.data.channel_id = 216397;
@@ -1821,24 +1855,27 @@ define(() => function ({
             const message = {
                 method: 'set_state',
                 data: {
-                    userName: '',
-                    lostCallsCount: 0,
-                    visible: false,
-                    size: expanded ?
-                        noIdleChannels ? {
-                            width: 340,
-                            height: 632,
-                        } : {
-                            width: 340,
-                            height: 568,
-                        } :
-                        noIdleChannels ? {
-                            width: 340,
-                            height: 276,
-                        } : {
-                            width: 340,
-                            height: 212,
-                        },
+                    type: 'softphone',
+                    data: {
+                        userName: '',
+                        missedEventsCount: 0,
+                        visible: false,
+                        size: expanded ?
+                            noIdleChannels ? {
+                                width: 340,
+                                height: 632,
+                            } : {
+                                width: 340,
+                                height: 568,
+                            } :
+                            noIdleChannels ? {
+                                width: 340,
+                                height: 276,
+                            } : {
+                                width: 340,
+                                height: 212,
+                            },
+                    },
                 },
             };
 
@@ -1848,7 +1885,7 @@ define(() => function ({
 
         return {
             userDataFetched() {
-                processors.push(message => (message.data.userName = 'Ганева Стефка'));
+                processors.push(message => (message.data.data.userName = 'Ганева Стефка'));
                 return this;
             },
             
@@ -1863,12 +1900,12 @@ define(() => function ({
             },
 
             lostCalls(value) {
-                processors.push(message => (message.data.lostCallsCount = value));
+                processors.push(message => (message.data.data.missedEventsCount = value));
                 return this;
             },
 
             visible() {
-                processors.push(message => (message.data.visible = true));
+                processors.push(message => (message.data.data.visible = true));
                 return this;
             },
 
@@ -2416,6 +2453,10 @@ define(() => function ({
 
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
+
+        me.div = testersFactory.createDomElementTester(
+            () => utils.element(getRootElement()).querySelector('div')
+        );
 
         me.span = text => testersFactory.createDomElementTester(
             () => utils.descendantOf(getRootElement()).
@@ -3027,7 +3068,13 @@ define(() => function ({
                 const selectTester = testersFactory.createDomElementTester(() =>
                     getSelectField(filter).closest('.ui-select, .cmgui-select'));
 
-                tester.click = () => (click(), spendTime(0), spendTime(0));
+                tester.click = () => {
+                    click();
+                    spendTime(0);
+                    spendTime(0);
+                    spendTime(0);
+                    spendTime(0);
+                };
 
                 tester.arrow = (tester => {
                     const click = tester.click.bind(tester);
@@ -4132,6 +4179,33 @@ define(() => function ({
                 this.expectToBeSent().receiveResponse();
             }
         });
+    };
+
+    me.employeesBroadcastChannel = () => {
+        const tester = me.createBroadcastChannelTester('employees');
+
+        return {
+            applyLeader: () => ({
+                expectToBeSent: () => {
+                    tester.applyLeader();
+                    spendTime(0);
+
+                    return {
+                        waitForSecond: () => {
+                            spendTime(1000);
+                            spendTime(0);
+                        },
+                    };
+                },
+            }),
+
+            tellIsLeader: () => ({
+                expectToBeSent: () => {
+                    tester.tellIsLeader();
+                    spendTime(0);
+                },
+            }),
+        };
     };
 
     me.employeeSettingsRequest = () => {
@@ -8096,42 +8170,72 @@ define(() => function ({
         }
     });
 
-    me.chatChannelListRequest = () => ({
-        expectToBeSent(requests) {
-            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/operator/chat/channel/list').
-                expectToHaveMethod('GET');
+    me.chatChannelListRequest = () => {
+        const data = [{
+            id: 101,
+            is_removed: false,
+            name: 'mrDDosT',
+            status: 'active',
+            status_reason: 'omni_request',
+            type: 'telegram'
+        }, {
+            id: 216395,
+            is_removed: false,
+            name: 'whatsapp',
+            status: 'active',
+            status_reason: '',
+            type: 'whatsapp'
+        }, {
+            id: 216400,
+            is_removed: false,
+            name: 'Whats App Waba',
+            status: 'active',
+            status_reason: '',
+            type: 'waba',
+        }, {
+            id: 216401,
+            is_removed: false,
+            name: 'Telegram Private',
+            status: 'active',
+            status_reason: '',
+            type: 'telegram_private',
+        }];
 
-            return {
-                receiveResponse() {
-                    request.respondSuccessfullyWith({
-                        data: [{
-                            id: 101,
-                            is_removed: false,
-                            name: 'mrDDosT',
-                            status: 'active',
-                            status_reason: 'omni_request',
-                            type: 'telegram'
-                        }, {
-                            id: 216395,
-                            is_removed: true,
-                            name: 'whatsapp',
-                            status: 'active',
-                            status_reason: '',
-                            type: 'whatsapp'
-                        }]
-                    });
-
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                }
+        const addResponseModifiers = me => {
+            me.wabaInactive = () => {
+                data[2].status = 'inactive';
+                return me;
             };
-        },
 
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        }
-    });
+            me.telegramInactive = () => {
+                data[3].status = 'inactive';
+                return me;
+            };
+            
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/chat/channel/list').
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({ data });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     me.searchResultsRequest = () => {
         const processors = [];
@@ -8783,6 +8887,11 @@ define(() => function ({
                 return this;
             },
 
+            thirdChat() {
+                chat_id = '7189371';
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL/operator/chat/info').
@@ -9317,6 +9426,43 @@ define(() => function ({
 
             fourthChat() {
                 chat(582103);
+                return this;
+            },
+
+            eleventhChat() {
+                chat(7189371);
+
+                getData = () => [{
+                    context: {
+                        phone: '79283810928'
+                    },
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189371,
+                    employee_id: null,
+                    is_chat_channel_active: false,
+                    last_message: {
+                        message: 'Я люблю тебя',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: null,
+                    name: 'Помакова Бисерка Драгановна',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479303,
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: null,
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                }];
+
                 return this;
             },
             
@@ -14959,12 +15105,47 @@ define(() => function ({
                 id: 7189362,
                 status: 'active',
                 employee_id: 20816,
+                is_available_for_current_employee: true,
             }] 
         }];
 
         const addResponseModifiers = me => {
             me.anotherPhone = () => (data[0].channel_ext_identity = '79357818431', me);
             me.anotherEmployee = () => (data[0].chats[0].employee_id = 57292, me);
+            me.chatUnavailable = () => (data[0].chats[0].is_available_for_current_employee = false, me);
+
+            me.addClosedChat = () => {
+                data[0].chats.push({
+                    id: 7189371,
+                    status: 'closed',
+                    employee_id: 20816,
+                    is_available_for_current_employee: true,
+                });
+
+                return me;
+            };
+
+            me.addAnotherEmployeeUnavailableClosedChat = () => {
+                data[0].chats.push({
+                    id: 7189371,
+                    status: 'closed',
+                    employee_id: 57292,
+                    is_available_for_current_employee: false,
+                });
+
+                return me;
+            };
+
+            me.addAnotherEmployeeUnavailableActiveChat = () => {
+                data[0].chats.push({
+                    id: 7189371,
+                    status: 'active',
+                    employee_id: 57292,
+                    is_available_for_current_employee: false,
+                });
+
+                return me;
+            };
 
             me.telegram = () => {
                 data[0].channel_type = 'telegram'; 
@@ -15009,6 +15190,7 @@ define(() => function ({
                     id: 7189363,
                     status: 'active',
                     employee_id: 20816,
+                    is_available_for_current_employee: true,
                 }] 
             }), me);
 
@@ -15021,6 +15203,7 @@ define(() => function ({
                     id: 7189363,
                     status: 'active',
                     employee_id: 20816,
+                    is_available_for_current_employee: true,
                 }] 
             }), me);
 
@@ -15033,6 +15216,7 @@ define(() => function ({
                     id: 7189363,
                     status: 'active',
                     employee_id: 20816,
+                    is_available_for_current_employee: true,
                 }] 
             }), me);
 

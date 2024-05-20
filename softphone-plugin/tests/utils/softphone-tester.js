@@ -583,7 +583,11 @@ define(function () {
                     const selectTester = testersFactory.createDomElementTester(() =>
                         getSelectField(filter).closest('.ui-select, .cmgui-select'));
 
-                    tester.click = () => (click(), spendTime(0), spendTime(0));
+                    tester.click = () => {
+                        click();
+                        spendTime(0);
+                        spendTime(0);
+                    };
 
                     tester.arrow = (tester => {
                         const click = tester.click.bind(tester);
@@ -6312,6 +6316,8 @@ define(function () {
                 })
             };
         };
+
+        this.createBroadcastChannelTester = createBroadcastChannelTester;
 
         {
             const {

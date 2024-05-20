@@ -3385,9 +3385,10 @@ function JsTester_BroadcastChannelMessage (args) {
 
     this.expectNotToExist = function (exceptions) {
         var exception = new Error(
-            'Ни одно сообщение не должно быть отправлено, тогда как было отправлено сообщение ' +
-                (typeof actualMessage == 'string' ? actualMessage : JSON.stringify(actualMessage)) +
-            '.' + "\n\n" + callStack
+            'Ни одно сообщение не должно быть отправлено, тогда как в канал "' + actualChannelName + '" было ' + 
+            'отправлено сообщение ' + (
+                typeof actualMessage == 'string' ? actualMessage : JSON.stringify(actualMessage)
+            ) + '.' + "\n\n" + callStack
         );
 
         if (exceptions) {
@@ -3466,7 +3467,7 @@ function JsTester_BroadcastChannelsTester (args) {
         broadcastChannelMessageEventFirers = args.broadcastChannelMessageEventFirers,
         broadcastChannelsToIgnore = args.broadcastChannelsToIgnore;
 
-    this.recentMessage = function () {
+    this.nextMessage = function () {
         return broadcastChannelMessages.pop();
     };
 
@@ -4025,6 +4026,10 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
 
     this.expectNotToBeEmpty = function () {
         return new JsTests_NotEmptyExpectaion();
+    };
+
+    this.expectToBeEmpty = function () {
+        return new JsTests_EmptyExpectaion();
     };
 
     this.expectToHavePrefix = function (expectedPrefix) {
@@ -6616,6 +6621,17 @@ function JsTests_NotEmptyExpectaion () {
     };
 }
 
+function JsTests_EmptyExpectaion () {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (actualValue) {
+            throw new Error(
+                'Значение параметра ' + keyDescription + ' должно быть пустым, тогда как параметр имеет ' + 
+                'значение "' + actualValue + '".'
+            );
+        }
+    };
+}
+
 function JsTests_LengthExpectaion (expectedLength) {
     this.maybeThrowError = function (actualValue, keyDescription) {
         (new JsTests_StringExpectaion()).maybeThrowError(actualValue, keyDescription);
@@ -6708,6 +6724,7 @@ JsTests_PrefixExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_StringExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_SetInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
 JsTests_NotEmptyExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_EmptyExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_LengthExpectaion.prototype = JsTests_ParamExpectationPrototype;
 
 function JsTester_ParamsContainingExpectation (actualParams, paramsDescription) {
@@ -7971,7 +7988,7 @@ function JsTester_Tests (factory) {
             spendTime,
             args,
         }),
-        broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage(), true),
+        broadcastChannelMessages = new JsTester_Stack(new JsTester_NoBroadcastChannelMessage(), true),
         broadcastChannelHandlers = {},
         broadcastChannelShortcutHandlers = {},
         broadcastChannelMessageEventFirers = {},
@@ -8504,7 +8521,7 @@ function JsTester_Tests (factory) {
 
         this.restoreRealDelayedTasks();
         downloadPreventer.resume();
-        broadcastChannelTester.recentMessage().expectNotToExist(exceptions);
+        broadcastChannelTester.nextMessage().expectNotToExist(exceptions);
         windowSize.reset();
         broadcastChannelMocker.restoreReal();
         postMessages.pop().expectNotToExist(exceptions);

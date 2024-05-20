@@ -2814,18 +2814,29 @@ tests.addTest(options => {
                             operatorWorkplaceAvailable().
                             receiveResponse();
 
-                        tester.masterInfoMessage().receive();
-                        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                        tester.employeesBroadcastChannel().
+                            applyLeader().
+                            expectToBeSent().
+                            waitForSecond();
 
-                        secondAccountRequest.
-                            operatorWorkplaceAvailable().
-                            receiveResponse();
+                        tester.employeesBroadcastChannel().
+                            applyLeader().
+                            expectToBeSent().
+                            waitForSecond();
+
+                        tester.employeesBroadcastChannel().
+                            tellIsLeader().
+                            expectToBeSent();
 
                         tester.employeesWebSocket.connect();
 
                         tester.employeesInitMessage().
                             oauthToken().
                             expectToBeSent();
+
+                        secondAccountRequest.
+                            operatorWorkplaceAvailable().
+                            receiveResponse();
 
                         tester.chatsWebSocket.connect();
 
@@ -2902,249 +2913,277 @@ tests.addTest(options => {
                             chatChannelSearchRequest = tester.chatChannelSearchRequest().
                                 thirdSearchString().
                                 telegramPrivate().
-                                noChat().
+                                addTelegramPrivate().
                                 expectToBeSent();
                         });
 
-                        describe('Поиск каналов завершен. Ответ отправлен в родительское окно.', function() {
+                        describe('В канале есть чужие чаты.', function() {
                             beforeEach(function() {
-                                searchResultsRequest.receiveResponse();
-                                chatChannelSearchRequest.receiveResponse();
-
-                                tester.channelsSearchingResponse().expectToBeSent();
+                                chatChannelSearchRequest.anotherEmployee();
                             });
 
-                            it(
-                                'Получен запрос открытия чата с номером по которому не производился поиск. Чат открыт.',
-                            function() {
-                                tester.chatOpeningRequest().
-                                    anotherPhone().
-                                    anotherChannel().
-                                    receive();
+                            describe('Поиск каналов завершен. Ответ отправлен в родительское окно.', function() {
+                                beforeEach(function() {
+                                    searchResultsRequest.receiveResponse();
+                                    chatChannelSearchRequest.receiveResponse();
 
-                                tester.searchResultsRequest().
-                                    anotherToken().
-                                    fifthSearchString().
-                                    newVisitor().
-                                    telegramPrivate().
-                                    receiveResponse();
+                                    tester.channelsSearchingResponse().
+                                        addChannel().
+                                        unavailable().
+                                        expectToBeSent();
+                                });
 
-                                tester.chatChannelSearchRequest().
-                                    fourthSearchString().
-                                    telegramPrivate().
-                                    anotherChannel().
-                                    noChat().
-                                    receiveResponse();
+                                it(
+                                    'Получен запрос открытия чата с номером по которому не производился поиск. Чат ' +
+                                    'открыт.',
+                                function() {
+                                    tester.chatOpeningRequest().
+                                        anotherPhone().
+                                        anotherChannel().
+                                        receive();
 
-                                tester.chatListRequest().
-                                    forCurrentEmployee().
-                                    noData().
-                                    receiveResponse();
+                                    tester.searchResultsRequest().
+                                        anotherToken().
+                                        fifthSearchString().
+                                        newVisitor().
+                                        telegramPrivate().
+                                        receiveResponse();
 
-                                tester.chatListRequest().
-                                    active().
-                                    secondPage().
-                                    forCurrentEmployee().
-                                    receiveResponse();
+                                    tester.chatChannelSearchRequest().
+                                        fourthSearchString().
+                                        telegramPrivate().
+                                        anotherChannel().
+                                        noChat().
+                                        receiveResponse();
 
-                                tester.chatListRequest().
-                                    closed().
-                                    noData().
-                                    forCurrentEmployee().
-                                    receiveResponse();
+                                    tester.chatListRequest().
+                                        forCurrentEmployee().
+                                        noData().
+                                        receiveResponse();
 
-                                tester.chatListRequest().
-                                    active().
-                                    noData().
-                                    forCurrentEmployee().
-                                    isOtherEmployeesAppeals().
-                                    receiveResponse();
+                                    tester.chatListRequest().
+                                        active().
+                                        secondPage().
+                                        forCurrentEmployee().
+                                        receiveResponse();
 
-                                tester.chatStartingRequest().
-                                    thirdPhone().
-                                    anotherChannel().
-                                    receiveResponse();
+                                    tester.chatListRequest().
+                                        closed().
+                                        noData().
+                                        forCurrentEmployee().
+                                        receiveResponse();
 
-                                tester.chatListRequest().
-                                    thirdChat().
-                                    receiveResponse();
+                                    tester.chatListRequest().
+                                        active().
+                                        noData().
+                                        forCurrentEmployee().
+                                        isOtherEmployeesAppeals().
+                                        receiveResponse();
 
-                                tester.submoduleInitilizationEvent().
-                                    contacts().
-                                    expectToBeSent();
+                                    tester.chatStartingRequest().
+                                        thirdPhone().
+                                        anotherChannel().
+                                        receiveResponse();
 
-                                tester.visitorCardRequest().receiveResponse();
-                                tester.chatInfoRequest().receiveResponse();
+                                    tester.chatListRequest().
+                                        thirdChat().
+                                        receiveResponse();
 
-                                tester.usersRequest().
-                                    forContacts().
-                                    forIframe().
-                                    receiveResponse();
+                                    tester.submoduleInitilizationEvent().
+                                        contacts().
+                                        expectToBeSent();
 
-                                tester.groupsContainingContactRequest().
-                                    forIframe().
-                                    noContact().
-                                    receiveResponse();
+                                    tester.visitorCardRequest().receiveResponse();
+                                    tester.chatInfoRequest().receiveResponse();
 
-                                tester.contactGroupsRequest().
-                                    forIframe().
-                                    receiveResponse();
+                                    tester.usersRequest().
+                                        forContacts().
+                                        forIframe().
+                                        receiveResponse();
 
-                                tester.groupsContainingContactRequest().
-                                    forIframe().
-                                    noContact().
-                                    receiveResponse();
+                                    tester.groupsContainingContactRequest().
+                                        forIframe().
+                                        noContact().
+                                        receiveResponse();
 
-                                tester.contactGroupsRequest().
-                                    forIframe().
-                                    receiveResponse();
+                                    tester.contactGroupsRequest().
+                                        forIframe().
+                                        receiveResponse();
 
-                                tester.usersRequest().
-                                    forContacts().
-                                    forIframe().
-                                    receiveResponse();
+                                    tester.groupsContainingContactRequest().
+                                        forIframe().
+                                        noContact().
+                                        receiveResponse();
 
-                                tester.contactBar.expectTextContentToHaveSubstring(
-                                    'ФИО ' +
-                                    'Помакова Бисерка Драгановна'
-                                );
+                                    tester.contactGroupsRequest().
+                                        forIframe().
+                                        receiveResponse();
+
+                                    tester.usersRequest().
+                                        forContacts().
+                                        forIframe().
+                                        receiveResponse();
+
+                                    tester.contactBar.expectTextContentToHaveSubstring(
+                                        'ФИО ' +
+                                        'Помакова Бисерка Драгановна'
+                                    );
+                                });
+                                it(
+                                    'Получен такой же запрос поиска каналов. Ответ отправлен в родительское окно.',
+                                function() {
+                                    tester.channelsSearchingRequest().receive();
+
+                                    tester.channelsSearchingResponse().
+                                        addChannel().
+                                        unavailable().
+                                        expectToBeSent();
+                                });
+                                it('Ничего не произошло.', function() {
+                                    postMessages.nextMessage().expectNotToExist();
+                                    ajax.expectNoRequestsToBeSent();
+                                });
+                            });
+                            describe('Получен другой запрос поиска каналов.', function() {
+                                beforeEach(function() {
+                                    tester.channelsSearchingRequest().
+                                        anotherPhone().
+                                        receive();
+                                });
+
+                                it(
+                                    'Поиск каналов завершен. Отправлен запрос в сервер. Ответы отправлены в ' +
+                                    'родительское окно.',
+                                function() {
+                                    searchResultsRequest.receiveResponse();
+                                    chatChannelSearchRequest.receiveResponse();
+                                   
+                                    tester.searchResultsRequest().
+                                        anotherToken().
+                                        fifthSearchString().
+                                        newVisitor().
+                                        telegramPrivate().
+                                        receiveResponse();
+
+                                    tester.chatChannelSearchRequest().
+                                        fourthSearchString().
+                                        telegramPrivate().
+                                        anotherChannel().
+                                        noChat().
+                                        receiveResponse();
+
+                                    tester.channelsSearchingResponse().
+                                        addChannel().
+                                        unavailable().
+                                        expectToBeSent();
+
+                                    tester.channelsSearchingResponse().
+                                        anotherChannel().
+                                        expectToBeSent();
+                                });
+                                it('Запрос в сервер не был отправлен.', function() {
+                                    ajax.expectNoRequestsToBeSent();
+                                });
                             });
                             it(
-                                'Получен запрос открытия чата с номером по которому производился поиск. Чат открыт.',
-                            function() {
-                                tester.chatOpeningRequest().receive();
-
-                                tester.chatListRequest().
-                                    forCurrentEmployee().
-                                    noData().
-                                    receiveResponse();
-
-                                tester.chatListRequest().
-                                    active().
-                                    secondPage().
-                                    forCurrentEmployee().
-                                    receiveResponse();
-
-                                tester.chatListRequest().
-                                    closed().
-                                    noData().
-                                    forCurrentEmployee().
-                                    receiveResponse();
-
-                                tester.chatListRequest().
-                                    active().
-                                    noData().
-                                    forCurrentEmployee().
-                                    isOtherEmployeesAppeals().
-                                    receiveResponse();
-
-                                tester.chatStartingRequest().
-                                    anotherPhone().
-                                    receiveResponse();
-
-                                tester.chatListRequest().
-                                    thirdChat().
-                                    receiveResponse();
-
-                                tester.submoduleInitilizationEvent().
-                                    contacts().
-                                    expectToBeSent();
-
-                                tester.visitorCardRequest().receiveResponse();
-                                tester.chatInfoRequest().receiveResponse();
-
-                                tester.usersRequest().
-                                    forContacts().
-                                    forIframe().
-                                    receiveResponse();
-
-                                tester.groupsContainingContactRequest().
-                                    forIframe().
-                                    noContact().
-                                    receiveResponse();
-
-                                tester.contactGroupsRequest().
-                                    forIframe().
-                                    receiveResponse();
-
-                                tester.groupsContainingContactRequest().
-                                    forIframe().
-                                    noContact().
-                                    receiveResponse();
-
-                                tester.contactGroupsRequest().
-                                    forIframe().
-                                    receiveResponse();
-
-                                tester.usersRequest().
-                                    forContacts().
-                                    forIframe().
-                                    receiveResponse();
-
-                                tester.contactBar.expectTextContentToHaveSubstring(
-                                    'ФИО ' +
-                                    'Помакова Бисерка Драгановна'
-                                );
-                            });
-                            it(
-                                'Получен такой же запрос поиска каналов. Ответ отправлен в родительское окно.',
+                                'Получен такой же запрос поиска каналов. Ответ отправелен в родительское окно только ' +
+                                'один раз.',
                             function() {
                                 tester.channelsSearchingRequest().receive();
-                                tester.channelsSearchingResponse().expectToBeSent();
-                            });
-                            it('Ничего не произошло.', function() {
-                                postMessages.nextMessage().expectNotToExist();
-                                ajax.expectNoRequestsToBeSent();
-                            });
-                        });
-                        describe('Получен другой запрос поиска каналов.', function() {
-                            beforeEach(function() {
-                                tester.channelsSearchingRequest().
-                                    anotherPhone().
-                                    receive();
-                            });
 
-                            it(
-                                'Поиск каналов завершен. Отправлен запрос в сервер. Ответы отправлены в родительское ' +
-                                'окно.',
-                            function() {
                                 searchResultsRequest.receiveResponse();
                                 chatChannelSearchRequest.receiveResponse();
-                               
-                                tester.searchResultsRequest().
-                                    anotherToken().
-                                    fifthSearchString().
-                                    newVisitor().
-                                    telegramPrivate().
-                                    receiveResponse();
-
-                                tester.chatChannelSearchRequest().
-                                    fourthSearchString().
-                                    telegramPrivate().
-                                    anotherChannel().
-                                    noChat().
-                                    receiveResponse();
-
-                                tester.channelsSearchingResponse().expectToBeSent();
 
                                 tester.channelsSearchingResponse().
-                                    anotherChannel().
+                                    addChannel().
+                                    unavailable().
                                     expectToBeSent();
-                            });
-                            it('Запрос в сервер не был отправлен.', function() {
-                                ajax.expectNoRequestsToBeSent();
                             });
                         });
                         it(
-                            'Получен такой же запрос поиска каналов. Ответ отправелен в родительское окно только ' +
-                            'один раз.',
+                            'В канале нет чатов. Получен запрос открытия чата с номером по которому производился ' +
+                            'поиск. Чат начат.',
                         function() {
-                            tester.channelsSearchingRequest().receive();
-
+                            chatChannelSearchRequest.noChat().receiveResponse();
                             searchResultsRequest.receiveResponse();
-                            chatChannelSearchRequest.receiveResponse();
 
-                            tester.channelsSearchingResponse().expectToBeSent();
+                            tester.channelsSearchingResponse().
+                                addChannel().
+                                expectToBeSent();
+
+                            tester.chatOpeningRequest().receive();
+
+                            tester.chatListRequest().
+                                forCurrentEmployee().
+                                noData().
+                                receiveResponse();
+
+                            tester.chatListRequest().
+                                active().
+                                secondPage().
+                                forCurrentEmployee().
+                                receiveResponse();
+
+                            tester.chatListRequest().
+                                closed().
+                                noData().
+                                forCurrentEmployee().
+                                receiveResponse();
+
+                            tester.chatListRequest().
+                                active().
+                                noData().
+                                forCurrentEmployee().
+                                isOtherEmployeesAppeals().
+                                receiveResponse();
+
+                            tester.chatStartingRequest().
+                                anotherPhone().
+                                receiveResponse();
+
+                            tester.chatListRequest().
+                                thirdChat().
+                                receiveResponse();
+
+                            tester.submoduleInitilizationEvent().
+                                contacts().
+                                expectToBeSent();
+
+                            tester.visitorCardRequest().receiveResponse();
+                            tester.chatInfoRequest().receiveResponse();
+
+                            tester.usersRequest().
+                                forContacts().
+                                forIframe().
+                                receiveResponse();
+
+                            tester.groupsContainingContactRequest().
+                                forIframe().
+                                noContact().
+                                receiveResponse();
+
+                            tester.contactGroupsRequest().
+                                forIframe().
+                                receiveResponse();
+
+                            tester.groupsContainingContactRequest().
+                                forIframe().
+                                noContact().
+                                receiveResponse();
+
+                            tester.contactGroupsRequest().
+                                forIframe().
+                                receiveResponse();
+
+                            tester.usersRequest().
+                                forContacts().
+                                forIframe().
+                                receiveResponse();
+
+                            tester.contactBar.expectTextContentToHaveSubstring(
+                                'ФИО ' +
+                                'Помакова Бисерка Драгановна'
+                            );
                         });
                     });
                     describe('Скрываю приложение. Приходит новое сообщение.', function() {
@@ -3284,6 +3323,146 @@ tests.addTest(options => {
                     tester.body.expectToHaveTextContent('Недостаточно прав на раздел чатов');
                 });
             });
+            describe('Получен запрос поиска каналов.', function() {
+                beforeEach(function() {
+                    tester.channelsSearchingRequest().receive();
+                });
+
+                it('Получен российский токен. Совершён поиск каналов. Отправлен результат поиска.', function() {
+                    widgetSettings.receive();
+
+                    accountRequest = tester.accountRequest().
+                        forIframe().
+                        webAccountLoginUnavailable().
+                        softphoneFeatureFlagDisabled().
+                        expectToBeSent();
+
+                    secondAccountRequest = tester.accountRequest().
+                        forIframe().
+                        fromIframe().
+                        webAccountLoginUnavailable().
+                        softphoneFeatureFlagDisabled().
+                        expectToBeSent();
+
+                    tester.chatSettingsRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+
+                    tester.employeeStatusesRequest().
+                        oauthToken().
+                        receiveResponse();
+
+                    tester.listRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.messageTemplateListRequest().receiveResponse();
+                    tester.commonMessageTemplatesRequest().receiveResponse();
+                    tester.messageTemplatesSettingsRequest().receiveResponse();
+
+                    accountRequest.
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.employeesWebSocket.connect();
+
+                    tester.employeesInitMessage().
+                        oauthToken().
+                        expectToBeSent();
+
+                    secondAccountRequest.
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.chatsWebSocket.connect();
+
+                    tester.chatsInitMessage().
+                        oauthToken().
+                        expectToBeSent();
+
+                    tester.searchResultsRequest().
+                        anotherToken().
+                        fourthSearchString().
+                        newVisitor().
+                        telegramPrivate().
+                        receiveResponse();
+
+                    tester.chatChannelSearchRequest().
+                        thirdSearchString().
+                        telegramPrivate().
+                        addTelegramPrivate().
+                        noChat().
+                        receiveResponse();
+
+                    tester.channelsSearchingResponse().
+                        addChannel().
+                        expectToBeSent();
+
+                    tester.employeeSettingsRequest().receiveResponse();
+
+                    tester.employeeRequest().
+                        oauthToken().
+                        receiveResponse();
+
+                    tester.accountRequest().
+                        forIframe().
+                        fromIframe().
+                        webAccountLoginUnavailable().
+                        softphoneFeatureFlagDisabled().
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.countersRequest().
+                        noNewChats().
+                        noClosedChats().
+                        receiveResponse();
+
+                    tester.unreadMessagesCountSettingRequest().
+                        value(75).
+                        expectToBeSent();
+
+                    tester.offlineMessageCountersRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        noData().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        active().
+                        receiveResponse();
+
+                    tester.chatListRequest().forCurrentEmployee().
+                        closed().
+                        noData().
+                        receiveResponse();
+
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
+                });
+                it('Ничего не происходит.', function() {
+                    postMessages.nextMessage().expectNotToExist();
+                    ajax.expectNoRequestsToBeSent();
+                });
+            });
             it('Получен дубайский токен. Запрос аккаунта отправлен на дубайский сервер.', function() {
                 widgetSettings.
                     anotherToken().
@@ -3369,10 +3548,12 @@ tests.addTest(options => {
                     expectToBeSent();
             });
 
-            describe('Получен список каналов.', function() {
+            describe('Получен список каналов. Для всех номеров есть доступные каналы.', function() {
                 beforeEach(function() {
                     tester.channelsSearchingResponse().
                         addChannel().
+                        addThirdChannel().
+                        unavailable().
                         receive();
 
                     tester.channelsSearchingResponse().
@@ -3542,20 +3723,42 @@ tests.addTest(options => {
                     tester.channelButton.first.click();
 
                     tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-                    tester.chatOpeningRequest().expectToBeSent();
+
+                    tester.chatOpeningRequest().
+                        thirdChannel().
+                        expectToBeSent();
                 });
                 it('Отображён непустой список каналов.', function() {
                     tester.body.expectTextContentToHaveSubstring(
                         'Каналы связанные с телефоном 74951234575: ' +
 
-                            'Канал "Нижний Новгород" ' +
                             'Канал "Белгород" ' +
+                            'Канал "Астана" ' +
 
                         'Каналы связанные с телефоном 74951234576: ' +
 
                             'Канал "Ереван"'
                     );
                 });
+            });
+            it(
+                'Получен список каналов. Не для всех номеров есть доступные каналы. Отображены каналы тех номеров, ' +
+                'где каналы есть.',
+            function() {
+                tester.channelsSearchingResponse().
+                    unavailable().
+                    receive();
+
+                tester.channelsSearchingResponse().
+                    anotherChannel().
+                    receive();
+
+                tester.body.expectTextContentToHaveSubstring(
+                    'Каналы связанные с телефоном 74951234575: ' +
+                    'Каналы связанные с телефоном 74951234576: ' +
+
+                        'Канал "Ереван"'
+                );
             });
             it('Отображён пустой список каналов.', function() {
                 tester.body.expectTextContentToHaveSubstring(

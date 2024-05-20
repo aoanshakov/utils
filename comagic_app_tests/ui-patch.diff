@@ -1,8 +1,8 @@
 diff --git a/src/components/file-drop/file-drop.helpers.ts b/src/components/file-drop/file-drop.helpers.ts
-index 683042a..c4fce67 100644
+index e331fde..989140c 100644
 --- a/src/components/file-drop/file-drop.helpers.ts
 +++ b/src/components/file-drop/file-drop.helpers.ts
-@@ -2,7 +2,7 @@ export const initInput = (accept: string, multiple?: boolean): HTMLInputElement
+@@ -4,7 +4,7 @@ export const initInput = (accept: string, multiple?: boolean): HTMLInputElement
      const inputElement = document.createElement('input');
  
      inputElement.type = 'file';
@@ -12,28 +12,19 @@ index 683042a..c4fce67 100644
      if (multiple) {
          inputElement.multiple = multiple;
 diff --git a/src/components/file-drop/file-drop.tsx b/src/components/file-drop/file-drop.tsx
-index 3233408..da9f1e5 100644
+index cc0fc9d..9a4787e 100644
 --- a/src/components/file-drop/file-drop.tsx
 +++ b/src/components/file-drop/file-drop.tsx
-@@ -31,7 +31,7 @@ const FileDrop: FC<FileDropProps> = props => {
-         percent,
-         onReload,
-         onCancel,
--        accept,
-+        accept = [],
-         loadStatus = 'default',
-         multiple,
-         uploadSize = 104857,
-@@ -40,6 +40,7 @@ const FileDrop: FC<FileDropProps> = props => {
-         style,
+@@ -50,6 +50,7 @@ const FileDrop: React.ForwardRefRenderFunction<unknown, FileDropProps> = (props,
+         onRemove,
      } = props;
  
 +    const isTest = process.env.REACT_APP_TEST_MODE === 'true';
      const [isDrag, setDrag] = useState(false);
      const [isErrorFileType, setErrorFileType] = useState(false);
-     const classNames = cn(`${PREFIX_CLS}-file-drop`, className);
-@@ -204,7 +205,14 @@ const FileDrop: FC<FileDropProps> = props => {
-     const handleClick = useCallback(() => {
+ 
+@@ -235,7 +236,14 @@ const FileDrop: React.ForwardRefRenderFunction<unknown, FileDropProps> = (props,
+     const handleClick = () => {
          if (isLoadDefault) {
              const element = initInput(accept.join(','), multiple);
 -            element.click();
@@ -48,3 +39,17 @@ index 3233408..da9f1e5 100644
              element.onchange = ({ target }: Event) => {
                  beforeUpload((target as HTMLInputElement).files);
              };
+diff --git a/src/components/icon/icon.tsx b/src/components/icon/icon.tsx
+index 8e24390..574a415 100644
+--- a/src/components/icon/icon.tsx
++++ b/src/components/icon/icon.tsx
+@@ -115,6 +115,9 @@ const Icon: React.ForwardRefRenderFunction<unknown, PropsWithChildren<IconProps>
+             onMouseLeave={onMouseLeave}
+             test-id={testId}
+             ref={ref as React.MutableRefObject<HTMLSpanElement>}
++            {...(process.env.REACT_APP_TEST_MODE === 'true' ? {
++                ['data-component']: component,
++            } : {})}
+         >
+             <Component {...nestProps} />
+         </span>

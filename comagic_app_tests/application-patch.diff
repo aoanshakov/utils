@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0579dd31..c02ae8f8 100644
+index 0579dd31..24ceafce 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -208,7 +208,7 @@ index 0579dd31..c02ae8f8 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -352,17 +425,161 @@ module.exports = {
+@@ -352,17 +425,166 @@ module.exports = {
                      },
                  ],
              },
@@ -259,6 +259,7 @@ index 0579dd31..c02ae8f8 100644
 +            'contacts/ContactBar': `${miscDirectory}/contacts/src/components/contact-bar/ContactBarWrapper.tsx`,
 +            'contacts/ContactSelect':
 +                `${miscDirectory}/contacts/src/components/contact-bar/start-channel-select/ContactSelectWrapper.tsx`,
++            'contacts/ContactSettings': `${miscDirectory}/contacts/src/components/settings`,
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'leadgen/TemplatesSettings': `${miscDirectory}/Stub.js`,
 +            'softphone/Root': 'softphone/src/Root.tsx',
@@ -274,10 +275,10 @@ index 0579dd31..c02ae8f8 100644
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
 +            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
 +            'chats/HistoryLogWrapped': 'chats/src/components/chats/chat-panel/HistoryLogWrapped.tsx',
-+            'chats/AudioPlayerWrapped': 'chats/src/components/chats/chat-panel/AudioPlayerWrapped.tsx',
++            'chats/AudioPlayerWrapped': 'chats/src/components/chats/chat-panel/AudioContentWrapped.tsx',
 +            'chats/MessageWrapped': 'chats/src/components/chats/chat-panel/MessageWrapped.tsx',
 +            'chats/QuoteWrapped': 'chats/src/components/chats/chat-panel/QuoteWrapped.tsx',
-+            'chats/HistoryItemWrapped': 'chats/src/components/offline-messages/panel/HistoryItemWrapped.tsx',
++            'chats/HistoryItemWrapped': 'chats/src/components/offline-messages/components/panel/components/history-item-wrapped/index.tsx',
 +            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
 +            'chats/NotificationWrapper': `${miscDirectory}/Stub.js`,
 +            'chats/Counter': 'chats/src/components/chats/chat-panel/Counter.tsx',
@@ -329,11 +330,15 @@ index 0579dd31..c02ae8f8 100644
 +                    requestPath = request.request,
 +                    splitted = requestPath.split('/');
 +
-+                if (['@comagic/ui', 'magic-ui'].some(path => requestPath.indexOf(`${path}/lib`) === 0)) {
-+                    splitted[1] = 'src';
-+                } else if (['~magic-ui/lib/styles.css', '~@comagic/core/lib/styles.css'].includes(requestPath)) {
++                if (['~magic-ui/lib/styles.css', '~@comagic/core/lib/styles.css'].includes(requestPath)) {
 +                    splitted.splice(0, splitted.length);
 +                    splitted.push(miscDirectory, 'stub.css');
++                } else if ([
++                    '@comagic/ui',
++                    'magic-ui',
++                    '@comagic/core',
++                ].some(path => requestPath.includes(`${path}/lib`))) {
++                    splitted[splitted.indexOf('lib')] = 'src';
 +                } else {
 +                    const {
 +                        directory,
@@ -375,7 +380,7 @@ index 0579dd31..c02ae8f8 100644
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 911d3426..c388d714 100644
+index 911d3426..6a4aca02 100644
 --- a/package.json
 +++ b/package.json
 @@ -22,7 +22,6 @@
@@ -386,7 +391,7 @@ index 911d3426..c388d714 100644
      "@svgr/webpack": "^5.1.0",
      "@trivago/prettier-plugin-sort-imports": "^3.3.0",
      "@types/classnames": "^2.2.9",
-@@ -67,37 +66,54 @@
+@@ -67,37 +66,55 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -429,6 +434,7 @@ index 911d3426..c388d714 100644
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
      "moment": "^2.29.4",
++    "dayjs": "1.11.11",
      "nanoid": "^3.2.0",
 +    "node-polyfill-webpack-plugin": "2.0.1",
 +    "opus-recorder": "8.0.5",

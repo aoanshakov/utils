@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 5457b597..f561fdc6 100644
+index 82de7e61..c02d81c7 100644
 --- a/package.json
 +++ b/package.json
 @@ -25,8 +25,6 @@
@@ -11,17 +11,19 @@ index 5457b597..f561fdc6 100644
      "@types/react-window": "^1.8.5",
      "@types/uuid": "^8.3.1",
      "@types/yup": "^0.29.11",
-@@ -60,9 +58,6 @@
+@@ -60,11 +58,8 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "^1.17.0",
--    "@comagic/ui": "1.88.1",
+     "@comagic/crud": "2.42.1",
+     "@comagic/reports": "2.5.0",
+-    "@comagic/ui": "2.5.4",
 -    "@comagic/workplace-utils": "0.0.0-int0",
      "@sentry/react": "^7.73.0",
      "async-mutex": "^0.3.2",
      "axios": "0.27.2",
-@@ -75,16 +70,7 @@
+@@ -77,17 +72,8 @@
      "history": "^5.3.0",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
@@ -33,8 +35,10 @@ index 5457b597..f561fdc6 100644
      "opus-recorder": "^8.0.5",
 -    "react": "^18.2.0",
 -    "react-dom": "^18.2.0",
+-    "react-hook-form": "7.46.1",
 -    "react-intl": "^6.5.5",
 -    "react-router-dom": "6.9.0",
++    "react-hook-form": "7.51.1",
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
      "yup": "^0.32.9"

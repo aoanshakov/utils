@@ -85,7 +85,6 @@ const cda = `cd ${application} &&`,
     actions = {},
     packageJson = 'package.json',
     magicUiOverridenFiles = packageJson,
-    uiOverridenFiles = 'src/components/file-drop/file-drop.tsx src/components/file-drop/file-drop.helpers.ts',
     coreOverridenFiles = packageJson,
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
     contactsOverridenFiles = packageJson,
@@ -94,6 +93,11 @@ const cda = `cd ${application} &&`,
     employeesOverridenFiles = packageJson,
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
+
+const uiOverridenFiles =
+    'src/components/file-drop/file-drop.tsx ' +
+    'src/components/file-drop/file-drop.helpers.ts ' +
+    'src/components/icon/icon.tsx';
 
 const chatOverridenFiles = 'package.json ' +
     'src/App.tsx ' +

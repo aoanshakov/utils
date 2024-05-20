@@ -1,4 +1,5 @@
 # HSTS 1.0 Known Hosts database for GNU Wget.
 # Edit at your own risk.
 # <hostname>	<port>	<incl. subdomains>	<created>	<max-age>
+dev-int0-softphone-server-widget-iframe.uis.st	0	1	1715958994	15724800
 bitrix-webrtc-lg0.uis.st	0	1	1676897277	15724800

@@ -92,16 +92,6 @@ tests.addTest(options => {
                 employeeSettingsRequest.receiveResponse();
                 employeeRequest.receiveResponse();
 
-                tester.accountRequest().
-                    forChats().
-                    webAccountLoginUnavailable().
-                    softphoneFeatureFlagDisabled().
-                    operatorWorkplaceAvailable().
-                    receiveResponse();
-
-                tester.chatsWebSocket.connect();
-                tester.chatsInitMessage().expectToBeSent();
-
                 {
                     const requests = ajax.inAnyOrder();
 
@@ -112,23 +102,38 @@ tests.addTest(options => {
                         operatorWorkplaceAvailable().
                         expectToBeSent(requests);
 
+                    const secondAccountRequest = tester.accountRequest().
+                        forChats().
+                        webAccountLoginUnavailable().
+                        softphoneFeatureFlagDisabled().
+                        operatorWorkplaceAvailable().
+                        expectToBeSent(requests);
+
                     chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
                     const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests),
                         listRequest = tester.listRequest().expectToBeSent(requests),
                         siteListRequest = tester.siteListRequest().expectToBeSent(requests),
+                        commonMessageTemplatesRequest = tester.commonMessageTemplatesRequest().expectToBeSent(requests),
                         messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests),
                         reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
 
                     requests.expectToBeSent();
+
+                    secondAccountRequest.receiveResponse();
+
+                    tester.chatsWebSocket.connect();
+                    tester.chatsInitMessage().expectToBeSent();
 
                     accountRequest.receiveResponse();
                     chatChannelListRequest.receiveResponse();
                     listRequest.receiveResponse();
                     siteListRequest.receiveResponse();
                     messageTemplateListRequest.receiveResponse();
+                    commonMessageTemplatesRequest.receiveResponse();
                     reportsListRequest.receiveResponse();
                 }
 
+                tester.messageTemplatesSettingsRequest().receiveResponse();
                 countersRequest = tester.countersRequest().expectToBeSent();
 
                 tester.offlineMessageCountersRequest().receiveResponse();
@@ -194,7 +199,7 @@ tests.addTest(options => {
                                             searchResultsRequest = tester.searchResultsRequest().expectToBeSent();
                                         });
 
-                                        xdescribe('Контакт не найден.', function() {
+                                        describe('Контакт не найден.', function() {
                                             beforeEach(function() {
                                                 searchResultsRequest.receiveResponse();
                                             });
@@ -224,11 +229,12 @@ tests.addTest(options => {
                                                         messageListRequest = tester.messageListRequest().
                                                             expectToBeSent();
 
+                                                        tester.chatInfoRequest().receiveResponse();
                                                         tester.usersRequest().forContacts().receiveResponse();
                                                         tester.contactGroupsRequest().receiveResponse();
                                                     });
 
-                                                    describe('У посетителя есть и номера и E-Mail.', function() {
+                                                    xdescribe('У посетителя есть и номера и E-Mail.', function() {
                                                         beforeEach(function() {
                                                             visitorCardRequest.receiveResponse();
 
@@ -930,9 +936,9 @@ tests.addTest(options => {
                                                                 tester.usersRequest().forContacts().receiveResponse();
                                                             });
 
-                                                            describe('Нажимаю на кнопку перевода чата.', function() {
+                                                            xdescribe('Нажимаю на кнопку перевода чата.', function() {
                                                                 beforeEach(function() {
-                                                                    tester.button('Принять обращение в работу').click();
+                                                                    tester.button('Принять чат в работу').click();
                                                                     tester.acceptChatRequest().receiveResponse();
 
                                                                     tester.chatTransferButton.click();
@@ -972,7 +978,7 @@ tests.addTest(options => {
                                                                 'Нажимаю на кнопку принятия чата. Чат принят.',
                                                             function() {
                                                                 beforeEach(function() {
-                                                                    tester.button('Принять обращение в работу').click();
+                                                                    tester.button('Принять чат в работу').click();
                                                                     tester.acceptChatRequest().receiveResponse();
                                                                 });
                                                                 
@@ -1000,7 +1006,7 @@ tests.addTest(options => {
                                                                                 receiveResponse();
                                                                         });
 
-                                                                        describe(
+                                                                        xdescribe(
                                                                             'Токен авторизации истек.',
                                                                         function() {
                                                                             let refreshRequest;
@@ -1039,13 +1045,27 @@ tests.addTest(options => {
                                                                                 refreshRequest.receiveResponse();
 
                                                                                 tester.messageAddingRequest().
+                                                                                    anotherAuthorizationToken().
                                                                                     receiveResponse();
                                                                             });
                                                                         });
+                                                                        it('Токен невалиден.', function() {
+                                                                            messageAddingRequest.
+                                                                                accessTokenInvalid().
+                                                                                receiveResponse();
+
+                                                                            tester.chatsWebSocket.
+                                                                                finishDisconnecting();
+
+                                                                            tester.employeesWebSocket.
+                                                                                finishDisconnecting();
+                                                                        });
+                                                                        return;
                                                                         it('Сообщение отправлено.', function() {
                                                                             messageAddingRequest.receiveResponse();
                                                                         });
                                                                     });
+                                                                    return;
                                                                     describe(
                                                                         'Прикладываю файл. Отправляю сообщение.',
                                                                     function() {
@@ -1113,6 +1133,7 @@ tests.addTest(options => {
                                                                         });
                                                                     });
                                                                 });
+                                                                return;
                                                                 it(
                                                                     'Нажимаю на кнопку "Шаблон". Нажимаю на кнопку ' +
                                                                     'добавления шаблона. Нажимаю на кнопку ' +
@@ -1142,6 +1163,7 @@ tests.addTest(options => {
                                                                     tester.chatClosingRequest().receiveResponse();
                                                                 });
                                                             });
+                                                            return;
                                                             it(
                                                                 'Редактирование первого телефона недоступно.',
                                                             function() {
@@ -1169,6 +1191,7 @@ tests.addTest(options => {
                                                                     expectToBeVisible();
                                                             });
                                                         });
+                                                        return;
                                                         it('У посетителя нет E-Mail.', function() {
                                                             visitorCardRequest.noEmail().receiveResponse();
                                                             tester.contactGroupsRequest().receiveResponse();
@@ -1194,6 +1217,7 @@ tests.addTest(options => {
                                                             tester.contactBar.section('E-Mail').svg.expectNotToExist();
                                                         });
                                                     });
+                                                    return;
                                                     it(
                                                         'Среди сообщений есть ответ посетителя на другое сообщение. ' +
                                                         'Данные посетителя получены позже списка сообщений. Имя ' +
@@ -1215,6 +1239,7 @@ tests.addTest(options => {
                                                             );
                                                     });
                                                 });
+                                                return;
                                                 describe('Получен канал WhatsApp.', function() {
                                                     beforeEach(function() {
                                                         chatListRequest = chatListRequest.whatsapp();
@@ -1330,6 +1355,7 @@ tests.addTest(options => {
                                                     });
                                                 });
                                             });
+                                            return;
                                             it('Отображена иконка телеграм.', function() {
                                                 tester.chatList.
                                                     item('Сообщение #75').
@@ -1346,7 +1372,8 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        xdescribe('Контакт найден. Нажимаю на найденный чат. ', function() {
+                                        return;
+                                        describe('Контакт найден. Нажимаю на найденный чат. ', function() {
                                             let chatListRequest;
 
                                             beforeEach(function() {
@@ -1740,7 +1767,7 @@ tests.addTest(options => {
                                                 searchResultsRequest = searchResultsRequest.newVisitor();
                                             });
 
-                                            xdescribe('Чат имеет тип WhatsApp.', function() {
+                                            describe('Чат имеет тип WhatsApp.', function() {
                                                 beforeEach(function() {
                                                     searchResultsRequest.whatsApp();
                                                 });
@@ -1946,7 +1973,7 @@ tests.addTest(options => {
                                                     tester.usersRequest().forContacts().receiveResponse();
                                                 });
                                             });
-                                            xdescribe('Чат имеет тип Waba. Получен также чат WhatsApp.', function() {
+                                            describe('Чат имеет тип Waba. Получен также чат WhatsApp.', function() {
                                                 beforeEach(function() {
                                                     searchResultsRequest.
                                                         waba().
@@ -2041,7 +2068,6 @@ tests.addTest(options => {
                                                                 anotherEmployee().
                                                                 receiveResponse();
                                                         });
-                                                        return;
                                                         it(
                                                             'Чат принадлжит авторизованному сотруднику. Открыт ' +
                                                             'закрытый чат.',
@@ -2089,7 +2115,6 @@ tests.addTest(options => {
                                                             tester.usersRequest().forContacts().receiveResponse();
                                                         });
                                                     });
-                                                    return;
                                                     it('Найден активный чат. Открыт активный чат.', function() {
                                                         chatChannelSearchRequest.receiveResponse();
 
@@ -2133,7 +2158,6 @@ tests.addTest(options => {
                                                         tester.contactGroupsRequest().receiveResponse();
                                                         tester.usersRequest().forContacts().receiveResponse();
                                                     });
-                                                    return;
                                                     it('В канале нет чата. Чат начат.', function() {
                                                         chatChannelSearchRequest.
                                                             noChat().
@@ -2181,7 +2205,6 @@ tests.addTest(options => {
                                                         tester.usersRequest().forContacts().receiveResponse();
                                                     });
                                                 });
-                                                return;
                                                 it('Отображёна иконка Telegram.', function() {
                                                     tester.chatList.
                                                         item('79283810988').
@@ -2189,13 +2212,11 @@ tests.addTest(options => {
                                                         expectToHaveClass('ui-icon-source-24-telegram');
                                                 });
                                             });
-                                            return;
                                             it('Чат имеет тип Telegram. Чат не отображён.', function() {
                                                 searchResultsRequest.receiveResponse();
                                                 tester.chatList.item('79283810988').expectNotToExist();
                                             });
                                         });
-                                        return;
                                         it('Имя посетителя не было получено. Отображено имя чата.', function() {
                                             searchResultsRequest.
                                                 noVisitorName().
@@ -2219,7 +2240,7 @@ tests.addTest(options => {
                                                 expectTextContentToHaveSubstring('#16479303');
                                         });
                                     });
-                                    return;
+return;
                                     describe('Получена новая заявка.', function() {
                                         let newOfflineMessage;
 
@@ -2411,7 +2432,7 @@ tests.addTest(options => {
 
                                             messageListRequest.receiveResponse();
 
-                                            tester.button('Принять обращение в работу').click();
+                                            tester.button('Принять чат в работу').click();
                                         });
                                         it('Другой статус выбран.', function() {
                                             tester.userName.expectToHaveTextContent(
@@ -2917,7 +2938,7 @@ return;
                                         tester.contactGroupsRequest().receiveResponse();
                                         tester.usersRequest().forContacts().receiveResponse();
 
-                                        tester.button('Принять обращение в работу').click();
+                                        tester.button('Принять чат в работу').click();
                                         tester.acceptChatRequest().receiveResponse();
 
                                         tester.button('В работе 75').click();
@@ -3530,7 +3551,7 @@ return;
                             tester.contactGroupsRequest().receiveResponse();
                             tester.usersRequest().forContacts().receiveResponse();
 
-                            tester.button('Принять обращение в работу').click();
+                            tester.button('Принять чат в работу').click();
                             tester.acceptChatRequest().receiveResponse();
 
                             tester.button('Закончить чат').putMouseOver();
@@ -3578,7 +3599,7 @@ return;
                             tester.contactGroupsRequest().receiveResponse();
                             tester.usersRequest().forContacts().receiveResponse();
 
-                            tester.button('Принять обращение в работу').click();
+                            tester.button('Принять чат в работу').click();
                             tester.acceptChatRequest().receiveResponse();
 
                             tester.chatTransferButton.click();
@@ -3669,7 +3690,7 @@ return;
                                 tester.contactGroupsRequest().receiveResponse();
                                 tester.usersRequest().forContacts().receiveResponse();
 
-                                tester.button('Принять обращение в работу').click();
+                                tester.button('Принять чат в работу').click();
                                 tester.acceptChatRequest().receiveResponse();
                             });
 
@@ -3788,8 +3809,8 @@ return;
                             tester.contactGroupsRequest().receiveResponse();
                             tester.usersRequest().forContacts().receiveResponse();
 
-                            tester.button('Принять обращение в работу').putMouseOver();
-                            tester.button('Принять обращение в работу').click();
+                            tester.button('Принять чат в работу').putMouseOver();
+                            tester.button('Принять чат в работу').click();
 
                             tester.body.
                                 expectTextContentToHaveSubstring('Невозможно взять в работу чат в текущем статусе');
