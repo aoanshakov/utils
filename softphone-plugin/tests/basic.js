@@ -1685,6 +1685,11 @@ tests.addTest(options => {
                     widgetSettings = tester.widgetSettings().
                         request().
                         expectToBeSent();
+
+                    tester.widgetSettings().
+                        chatsSettings().
+                        request().
+                        receiveResponse();
                 });
 
                 describe('Не удалось получить настройки.', function() {
@@ -1703,6 +1708,11 @@ tests.addTest(options => {
                             grant();
 
                         tester.widgetSettings().
+                            request().
+                            receiveResponse();
+
+                        tester.widgetSettings().
+                            chatsSettings().
                             request().
                             receiveResponse();
 
@@ -1738,6 +1748,11 @@ tests.addTest(options => {
                         receiveResponse();
 
                     tester.widgetSettings().
+                        chatsSettings().
+                        request().
+                        receiveResponse();
+
+                    tester.widgetSettings().
                         storageData().
                         expectToBeSaved();
                 });
@@ -1753,6 +1768,11 @@ tests.addTest(options => {
                         grant();
 
                     tester.widgetSettings().
+                        request().
+                        expectToBeSent();
+
+                    tester.widgetSettings().
+                        chatsSettings().
                         request().
                         expectToBeSent();
                 });
@@ -1786,6 +1806,11 @@ tests.addTest(options => {
                     oauthRequest.receiveResponse();
 
                     tester.widgetSettings().
+                        request().
+                        receiveResponse();
+
+                    tester.widgetSettings().
+                        chatsSettings().
                         request().
                         receiveResponse();
 
@@ -1836,7 +1861,10 @@ tests.addTest(options => {
                         expectHostPermissionToBeRequested('https://uc-sso-prod-api.uiscom.ru/*').
                         expectHostPermissionToBeRequested('https://my.uiscom.ru/*').
                         expectHostPermissionToBeRequested('https://my.callgear.ae/*').
-                        expectHostPermissionToBeRequested('https://my.comagic.com/*');
+                        expectHostPermissionToBeRequested('https://my.comagic.com/*').
+                        expectHostPermissionToBeRequested('https://dev-int0-chats-logic.uis.st/v1/*').
+                        expectHostPermissionToBeRequested('https://chats-cg-logic.callgear.ae/v1/*').
+                        expectHostPermissionToBeRequested('https://chats-cg-logic.callgear.com/v1/*');
                 });
 
                 describe('Права предоставлены. Производится попытка открыть форму авторизации.', function() {
@@ -1855,6 +1883,45 @@ tests.addTest(options => {
                             oauthRequest = tester.oauthRequest().expectToBeSent();
                         });
 
+                        describe('Получен авторизационный токен. Отправлены запросы настроек.', function() {
+                            let softphoneWidgetSettingsRequest,
+                                chatsWidgetSettingsRequest;
+
+                            beforeEach(function() {
+                                oauthRequest.receiveResponse();
+
+                                softphoneWidgetSettingsRequest = tester.widgetSettings().
+                                    request().
+                                    expectToBeSent();
+                                
+                                chatsWidgetSettingsRequest = tester.widgetSettings().
+                                    chatsSettings().
+                                    request().
+                                    expectToBeSent();
+                            });
+
+                            it('Один из запросов завершился ошибкой. Сообщение об ошибке сохранено.', function() {
+                                chatsWidgetSettingsRequest.receiveResponse();
+
+                                softphoneWidgetSettingsRequest.
+                                    failedToGetSettings().
+                                    receiveResponse();
+
+                                tester.widgetSettings().
+                                    failedToGetSettings().
+                                    noSoftphoneSettings().
+                                    storageData().
+                                    expectToBeSaved();
+                            });
+                            it('Получены ответы на запрос настроек. Настройки сохранены в хранилище.', function() {
+                                softphoneWidgetSettingsRequest.receiveResponse();
+                                chatsWidgetSettingsRequest.receiveResponse();
+
+                                tester.widgetSettings().
+                                    storageData().
+                                    expectToBeSaved();
+                            });
+                        });
                         it('Получен дубайский токен. Отправлен запрос настроек в дубайский сервер.', function() {
                             oauthRequest.
                                 anotherToken().
@@ -1866,21 +1933,13 @@ tests.addTest(options => {
                                 receiveResponse();
 
                             tester.widgetSettings().
+                                chatsSettings().
                                 anotherToken().
-                                storageData().
-                                expectToBeSaved();
-                        });
-                        it(
-                            'Получен авторизационный токен. В текущей вкладке установлен авторизационный токен. В ' +
-                            'хранилище сохранено состояние вкладки.',
-                        function() {
-                            oauthRequest.receiveResponse();
-
-                            tester.widgetSettings().
                                 request().
                                 receiveResponse();
 
                             tester.widgetSettings().
+                                anotherToken().
                                 storageData().
                                 expectToBeSaved();
                         });
@@ -1902,6 +1961,11 @@ tests.addTest(options => {
                             tester.oauthRequest().receiveResponse();
 
                             tester.widgetSettings().
+                                request().
+                                receiveResponse();
+
+                            tester.widgetSettings().
+                                chatsSettings().
                                 request().
                                 receiveResponse();
 
@@ -2858,6 +2922,15 @@ tests.addTest(options => {
                             operatorWorkplaceAvailable().
                             receiveResponse();
 
+                        tester.searchResultsRequest().
+                            anotherToken().
+                            emptySearchString().
+                            receiveResponse();
+
+                        tester.chatChannelSearchRequest().
+                            emptySearchString().
+                            receiveResponse();
+
                         tester.countersRequest().
                             noNewChats().
                             noClosedChats().
@@ -3001,18 +3074,8 @@ tests.addTest(options => {
                                         forIframe().
                                         receiveResponse();
 
-                                    tester.groupsContainingContactRequest().
-                                        forIframe().
-                                        noContact().
-                                        receiveResponse();
-
                                     tester.contactGroupsRequest().
                                         forIframe().
-                                        receiveResponse();
-
-                                    tester.groupsContainingContactRequest().
-                                        forIframe().
-                                        noContact().
                                         receiveResponse();
 
                                     tester.contactGroupsRequest().
@@ -3157,18 +3220,8 @@ tests.addTest(options => {
                                 forIframe().
                                 receiveResponse();
 
-                            tester.groupsContainingContactRequest().
-                                forIframe().
-                                noContact().
-                                receiveResponse();
-
                             tester.contactGroupsRequest().
                                 forIframe().
-                                receiveResponse();
-
-                            tester.groupsContainingContactRequest().
-                                forIframe().
-                                noContact().
                                 receiveResponse();
 
                             tester.contactGroupsRequest().
@@ -3227,11 +3280,6 @@ tests.addTest(options => {
                                 forIframe().
                                 receiveResponse();
 
-                            tester.groupsContainingContactRequest().
-                                forIframe().
-                                noContact().
-                                receiveResponse();
-
                             tester.contactGroupsRequest().
                                 forIframe().
                                 receiveResponse();
@@ -3269,11 +3317,6 @@ tests.addTest(options => {
                         tester.usersRequest().
                             forContacts().
                             forIframe().
-                            receiveResponse();
-
-                        tester.groupsContainingContactRequest().
-                            forIframe().
-                            noContact().
                             receiveResponse();
 
                         tester.contactGroupsRequest().
@@ -3421,6 +3464,15 @@ tests.addTest(options => {
                         webAccountLoginUnavailable().
                         softphoneFeatureFlagDisabled().
                         operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.searchResultsRequest().
+                        anotherToken().
+                        emptySearchString().
+                        receiveResponse();
+
+                    tester.chatChannelSearchRequest().
+                        emptySearchString().
                         receiveResponse();
 
                     tester.countersRequest().
@@ -4075,6 +4127,11 @@ tests.addTest(options => {
                 grant();
 
             tester.widgetSettings().
+                request().
+                receiveResponse();
+
+            tester.widgetSettings().
+                chatsSettings().
                 request().
                 receiveResponse();
 

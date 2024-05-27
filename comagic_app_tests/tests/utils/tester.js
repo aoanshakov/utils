@@ -15,6 +15,7 @@ define(() => function ({
     intersectionObservable,
     image,
     softphoneHost,
+    hasSSOAuth,
 }) {
     let history,
         eventBus,
@@ -58,8 +59,9 @@ define(() => function ({
     window.chatsStore = null;
     window.contactStore = null;
     window.softphoneBroadcastChannelCache = {};
+    window.hasSSOAuth = hasSSOAuth || false;
 
-    me.getUserAgent = softphoneType => 'UIS Softphone ' + softphoneType;
+    me.getUserAgent = softphoneType => 'comagic Softphone ' + softphoneType;
 
     me.ReactDOM = {
         flushSync: () => null
@@ -1080,6 +1082,13 @@ define(() => function ({
         return me;
     };
 
+    me.header = (() => {
+        const getHeader = () => utils.querySelector('.src-components-main-menu-styles-module__header'),
+            tester = testersFactory.createDomElementTester(getHeader);
+
+        return addTesters(tester, getHeader);
+    })();
+
     me.channelList = (() => {
         const getChannelList = () => utils.querySelector('.cm-chats--start-channel-select'),
             tester = testersFactory.createDomElementTester(() => getChannelList());
@@ -1344,6 +1353,34 @@ define(() => function ({
                     receiveResponse() {
                         request.respondSuccessfullyWith({
                             data: true,
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.authTokenRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHaveMethod('GET').
+                    expectToHavePath('$REACT_APP_NEW_SOFTPHONE_BACKEND_HOST/sup/auth/token');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            data: {
+                                token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                            },
                         });
 
                         Promise.runAll(false, true);
@@ -5818,6 +5855,8 @@ define(() => function ({
         };
 
         const request = addResponseModifiers({
+            ssoAuth: () => (headers['X-Auth-Type'] = undefined, request),
+
             anotherAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
@@ -5917,6 +5956,14 @@ define(() => function ({
             respond = request => request.respondSuccessfullyWith(response),
             xWidgetId = utils.expectToBeString();
 
+        const processors = [];
+
+        const getHeaders = () => ({
+            Authorization: `Bearer ${token}`,
+            'X-Auth-Type': 'jwt',
+            'X-Widget-Id': xWidgetId,
+        });
+
         const addResponseModifiers = me => {
             me.invalidToken = () => {
                 response = {
@@ -5949,6 +5996,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            ssoAuth() {
+                processors.push(headers => (headers['X-Auth-Type'] = undefined));
+                return this;
+            },
+            
             anotherAuthorizationToken() {
                 token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
                 return this;
@@ -5960,13 +6012,12 @@ define(() => function ({
             },
 
             expectToBeSent(requests) {
+                const headers = getHeaders();
+                processors.forEach(process => process(headers));
+
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath(`https://${softphoneHost}/sup/auth/check`).
-                    expectToHaveHeaders({
-                        Authorization: `Bearer ${token}`,
-                        'X-Auth-Type': 'jwt',
-                        'X-Widget-Id': xWidgetId,
-                    });
+                    expectToHaveHeaders(headers);
 
                 return addResponseModifiers({
                     receiveResponse: () => {
@@ -15149,6 +15200,7 @@ define(() => function ({
                     ],
                     user_login: 'karadimova',
                     customer_id: 183510,
+                    limits: [],
                     permissions: [
                         {
                             'unit_id': 'call_recordings',

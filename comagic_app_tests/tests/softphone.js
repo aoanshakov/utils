@@ -74,15 +74,39 @@ tests.addTest(options => {
             describe('Вкладка является ведущей.', function() {
                 beforeEach(function() {
                     tester.masterInfoMessage().receive();
-                    tester.slavesNotification().additional().expectToBeSent();
-                    tester.slavesNotification().expectToBeSent();
 
-                    tester.notificationChannel().tellIsLeader().expectToBeSent();
-                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                    tester.notificationChannel().applyLeader().expectToBeSent();
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.notificationChannel().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.notificationChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        tellIsLeader().
+                        expectToBeSent();
 
                     tester.employeesWebSocket.connect();
                     tester.employeesInitMessage().expectToBeSent();
+
+                    tester.slavesNotification().expectToBeSent();
+
+                    tester.slavesNotification().
+                        additional().
+                        expectToBeSent();
                 });
 
                 describe('Авторизцацие прошла удачно.', function() {
@@ -169,7 +193,13 @@ tests.addTest(options => {
                                         describe('Нажимаю на иконку с телефоном.', function() {
                                             beforeEach(function() {
                                                 tester.button('Софтфон').click();
-                                                tester.slavesNotification().additional().visible().expectToBeSent();
+
+                                                tester.accountRequest().receiveResponse();
+
+                                                tester.slavesNotification().
+                                                    additional().
+                                                    visible().
+                                                    expectToBeSent();
                                             });
 
                                             describe('SIP-регистрация завершена.', function() {
@@ -498,11 +528,10 @@ tests.addTest(options => {
                                                 });
                                                 describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
                                                     beforeEach(function() {
-                                                        tester.userName.click();
+                                                        tester.header.userName.click();
                                                         tester.logoutButton.click();
 
                                                         tester.userLogoutRequest().receiveResponse();
-                                                        tester.masterInfoMessage().leaderDeath().expectToBeSent();
 
                                                         tester.slavesNotification().
                                                             userDataFetched().
@@ -511,6 +540,8 @@ tests.addTest(options => {
                                                             destroyed().
                                                             enabled().
                                                             expectToBeSent();
+
+                                                        tester.masterInfoMessage().leaderDeath().expectToBeSent();
 
                                                         Promise.runAll(false, true);
                                                         spendTime(0);
@@ -578,13 +609,16 @@ tests.addTest(options => {
 
                                                         tester.masterInfoMessage().receive();
 
+                                                        tester.masterInfoMessage().
+                                                            tellIsLeader().
+                                                            expectToBeSent();
+
+                                                        tester.slavesNotification().expectToBeSent();
+
                                                         tester.slavesNotification().
                                                             additional().
                                                             visible().
                                                             expectToBeSent();
-
-                                                        tester.slavesNotification().expectToBeSent();
-                                                        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
 
                                                         tester.talkOptionsRequest().receiveResponse();
                                                         tester.permissionsRequest().receiveResponse();

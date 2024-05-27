@@ -213,7 +213,7 @@ define(function () {
                     tester.click = () => (click(), spendTime(0), spendTime(0), tester);
                     tester.fill = value => (clear(), spendTime(0), fill(value), spendTime(0), spendTime(0), tester);
                     tester.input = value => (input(value), spendTime(0), spendTime(0), tester); 
-                    tester.pressEnter = () => (pressEnter(), spendTime(0), tester);
+                    tester.pressEnter = () => (pressEnter(), spendTime(0), spendTime(0), tester);
 
                     tester.expectNotToHaveError = () => uiInputTester.expectToHaveNoneOfClasses([
                         'ui-input-error',

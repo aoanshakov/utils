@@ -541,7 +541,7 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 32137f8d..1dab5c24 100644
+index 32137f8d..1881d4b6 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,16 @@
@@ -572,7 +572,24 @@ index 32137f8d..1dab5c24 100644
  
  if (sentryDSN) {
      Sentry.init({
-@@ -80,6 +83,96 @@ const Root: React.FC<Props> = observer(props => {
+@@ -48,7 +51,7 @@ if (sentryDSN) {
+ }
+ 
+ const Root: React.FC<Props> = observer(props => {
+-    const { accountStore, notificationStore, isGodMode } = rootStore;
++    const { accountStore, notificationStore, isGodMode, authStore } = rootStore;
+     const {
+         projectData: { locale },
+     } = accountStore;
+@@ -63,6 +66,7 @@ const Root: React.FC<Props> = observer(props => {
+         <HistoryRouter history={history}>
+             <CoreProvider
+                 isHostApp
++                isSSOAuth={authStore.hasSSOAuth()}
+                 isGodMode={isGodMode}
+                 accountStore={accountStore}
+                 locale={locale}
+@@ -80,6 +84,96 @@ const Root: React.FC<Props> = observer(props => {
  });
  
  const container = document.getElementById('root');
@@ -853,7 +870,7 @@ index 8ae6e87b..c7a3cd72 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index fa214b30..0fa4adb7 100644
+index fa214b30..12efe486 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -93,7 +93,7 @@ const removeToken = (skipLocalStorage = false) => {
@@ -874,6 +891,13 @@ index fa214b30..0fa4adb7 100644
              window.addEventListener('doLogoutUser', (event: CustomEvent) => {
                  const eventWindowId = event.detail;
                  if (eventWindowId !== authStore.windowId) {
+@@ -238,5 +240,6 @@ export const AuthStore = Loader.named('AuthStore')
+             logout,
+             setIsTokenRefreshing,
+             afterCreate,
++            hasSSOAuth: () => window.hasSSOAuth || false,
+         };
+     });
 diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts
 index 8c0a28d7..ce190fe9 100644
 --- a/src/rpc/httpRpc.ts

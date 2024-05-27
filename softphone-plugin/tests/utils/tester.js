@@ -697,8 +697,12 @@ define(() => function ({
         let softphoneWildcart = 'https://*.uiscom.ru/**',
             chatsWildcart = softphoneWildcart,
             widget_id = 'chrome',
-            chatsSettings = false,
-            host = 'my.uiscom.ru';
+            chatsSettings = false;
+        
+        let hosts = {
+            softphone: 'my.uiscom.ru',
+            chats: 'dev-int0-chats-logic.uis.st/v1',
+        };
 
         const softphoneSettingsProcessors = [],
             chatSettingsProcessors = [],
@@ -855,7 +859,12 @@ define(() => function ({
             return anotherStorageDataProcessors.reduce((value, process) => process(value), value);
         };
 
-        let respond = request => request.respondSuccessfullyWith(getSettings());
+        let respond = request => {
+            const settings = getSettings();
+            delete(settings[chatsSettings ? 'softphone' : 'chats'])
+
+            request.respondSuccessfullyWith(settings);
+        };
 
         const addResponseModifiers = me => {
             me.failedToGetSettings = () => {
@@ -1029,6 +1038,15 @@ define(() => function ({
                 return me;
             };
 
+            me.noSoftphoneSettings = () => {
+                storageDataProcessors.push(storageData => {
+                    storageData.settings.softphone = undefined;
+                    return storageData;
+                });
+
+                return me;
+            };
+
             me.noData = () => {
                 softphoneSettingsProcessors.push(() => null);
                 settingsProcessors.push(() => null);
@@ -1065,7 +1083,11 @@ define(() => function ({
                     storageData => (storageData.token = mainTester.anotherOauthToken, storageData)
                 );
 
-                host = 'my.callgear.ae';
+                hosts = {
+                    softphone: 'my.callgear.ae',
+                    chats: 'chats-cg-logic.callgear.ae/v1',
+                };
+
                 return me;
             };
 
@@ -1205,7 +1227,11 @@ define(() => function ({
                             authorization: `Bearer ${getStorageData().token}`,
                             'x-auth-type': 'jwt',
                         }).
-                        expectToHavePath(`https://${host}/extension/uc_flow/installment_settings`);
+                        expectToHavePath(
+                            `https://${hosts[chatsSettings ? 'chats' : 'softphone']}/${
+                                chatsSettings ? 'settings' : 'extension'
+                            }/uc_flow/installment_settings`
+                        );
 
                     return addResponseModifiers({
                         receiveResponse() {
@@ -2454,6 +2480,21 @@ define(() => function ({
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
 
+        me.icon = (() => {
+            const tester = testersFactory.createDomElementTester(() => {
+                return utils.element(getRootElement()).querySelector('.cmgui-icon');
+            });
+
+            tester.expectToHaveIcon = expectedIcon =>
+                tester.expectAttributeToHaveValue('data-component', expectedIcon);
+
+            return tester;
+        })();
+
+        me.tooltipTrigger = testersFactory.createDomElementTester(
+            () => utils.element(getRootElement()).querySelector('.cmg-tooltip-trigger')
+        );
+
         me.div = testersFactory.createDomElementTester(
             () => utils.element(getRootElement()).querySelector('div')
         );
@@ -2663,6 +2704,7 @@ define(() => function ({
 
         (() => {
             const selector =
+                '.cmgui-spin, ' +
                 '.ui-spin-icon-default, ' +
                 '.cmgui-spin-icon-default, ' +
                 '.clct-spinner, ' +
@@ -3275,6 +3317,15 @@ define(() => function ({
 
         return addTesters(tester, getDomElement);
     })();
+
+    me.waitForTooltip = () => {
+        spendTime(100);
+        spendTime(0);
+        spendTime(0);
+        spendTime(0);
+
+        return me.tooltip;
+    };
 
     me.statusesDurationItem = text => testersFactory.createDomElementTester(() => utils.descendantOfBody().
         textEquals(text).
@@ -8666,8 +8717,18 @@ define(() => function ({
                 return this;
             },
 
+            sixthSearchString() {
+                params.search_string = '79164725823';
+                return this;
+            },
+
             noSearchString() {
                 params.search_string = null;
+                return this;
+            },
+
+            emptySearchString() {
+                params.search_string = '';
                 return this;
             },
 
@@ -9238,6 +9299,24 @@ define(() => function ({
                 processors.push(data => {
                     data.chats[0].phone = '79283810928';
                     data.chats[0].context = null; 
+                });
+
+                return me;
+            };
+            
+            me.telegramPrivate = () => {
+                processors.push(data => {
+                    data.chats[0].chat_channel_id = 216395;
+                    data.chats[0].chat_channel_type = 'telegram_private'; 
+                });
+
+                return me;
+            };
+
+            me.whatsApp = () => {
+                processors.push(data => {
+                    data.chats[0].chat_channel_id = 216395;
+                    data.chats[0].chat_channel_type = 'whatsapp'; 
                 });
 
                 return me;
@@ -15089,6 +15168,7 @@ define(() => function ({
 
     me.chatChannelSearchRequest = () => {
         const processors = [];
+        let path = '$REACT_APP_BASE_URL/operator';
 
         const params = {
             contact: {
@@ -15096,7 +15176,7 @@ define(() => function ({
             },
         };
 
-        const data = [{
+        let data = [{
             channel_id: 216395,
             channel_name: 'Москва',
             channel_type: 'whatsapp',
@@ -15110,6 +15190,7 @@ define(() => function ({
         }];
 
         const addResponseModifiers = me => {
+            me.noData = () => (data = [], me);
             me.anotherPhone = () => (data[0].channel_ext_identity = '79357818431', me);
             me.anotherEmployee = () => (data[0].chats[0].employee_id = 57292, me);
             me.chatUnavailable = () => (data[0].chats[0].is_available_for_current_employee = false, me);
@@ -15220,6 +15301,58 @@ define(() => function ({
                 }] 
             }), me);
 
+            me.addWaba = () => (data.push({
+                channel_id: 216396,
+                channel_name: 'Южно-Сахалинск',
+                channel_type: 'waba',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                    is_available_for_current_employee: true,
+                }] 
+            }), me);
+
+            me.addAnotherWhatsApp = () => (data.push({
+                channel_id: 216399,
+                channel_name: 'Белград',
+                channel_type: 'whatsapp',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                    is_available_for_current_employee: true,
+                }] 
+            }), me);
+
+            me.addAnotherTelegram = () => (data.push({
+                channel_id: 216399,
+                channel_name: 'Тула',
+                channel_type: 'telegram',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                    is_available_for_current_employee: true,
+                }] 
+            }), me);
+
+            me.addThirdTelegramPrivate = () => (data.push({
+                channel_id: 216403,
+                channel_name: 'Мурманск',
+                channel_type: 'telegram_private',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                    is_available_for_current_employee: true,
+                }] 
+            }), me);
+
             return me;
         };
 
@@ -15228,6 +15361,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            forContacts() {
+                path = '$REACT_APP_CHAT_BASE_URL';
+                return this;
+            },
+
             anotherSearchString() {
                 params.contact.phone = '79283810989';
                 return this;
@@ -15242,6 +15380,16 @@ define(() => function ({
                 params.contact.phone = '74951234576';
                 return this;
             },
+
+            fifthSearchString() {
+                params.contact.phone = '79164725823';
+                return this;
+            },
+            
+            emptySearchString() {
+                params.contact.phone = '';
+                return this;
+            },
             
             noPhone() {
                 params.contact.phone = null;
@@ -15250,7 +15398,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/operator').
+                    expectToHavePath(path).
                     expectToHaveMethod('POST').
                     expectBodyToContain({
                         method: 'get_chat_start_chat_channel_search',
@@ -18043,8 +18191,10 @@ define(() => function ({
             const createTester = (filter = () => true) => {
                 const tester = testersFactory.createDomElementTester(() => getMessageElement(filter)),
                     putMouseOver = tester.putMouseOver.bind(tester);
+                    click = tester.click.bind(tester);
 
                 tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+                tester.click = () => (click(), spendTime(0), spendTime(0));
 
                 tester.inner = (() => {
                     const tester = testersFactory.createDomElementTester(
@@ -18191,7 +18341,11 @@ define(() => function ({
 
             atTime: desiredTime => createMessageTester((filter = () => true) => {
                 const domElements = utils.descendantOf(getDomElement()).
-                    matchesSelector('.cm-chats--chat-history-message-time').
+                    matchesSelector(
+                        '.cm-chats--chat-history-message-time, ' +
+                        '.cm-chats--chat-history-message-info > ' +
+                        '.cmgui-typography-display-inline'
+                    ).
                     textEquals(desiredTime).
                     findAll().
                     filter(domElement => {
@@ -18350,7 +18504,7 @@ define(() => function ({
                 const click = clickTester.click.bind(clickTester),
                     putMouseOver = tester.putMouseOver.bind(tester);
 
-                tester.click = () => (click(), spendTime(0));
+                tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
                 tester.putMouseOver = () => (putMouseOver(), spendTime(0));
 
                 tester.toolsIcon = (() => {

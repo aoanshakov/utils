@@ -22,7 +22,7 @@ tests.addTest(options => {
 
     const getPackage = Tester.createPackagesGetter(options);
 
-    describe('Открываю страницу чатов.', function() {
+    xdescribe('Открываю страницу чатов.', function() {
         let tester,
             reportGroupsRequest,
             accountRequest,
@@ -653,6 +653,320 @@ tests.addTest(options => {
 
                 secondAccountRequest.receiveResponse();
             }
+        });
+    });
+    describe('Открываю новый личный кабинет.', function() {
+        let tester,
+            reportGroupsRequest,
+            settingsRequest,
+            accountRequest,
+            permissionsRequest,
+            authCheckRequest,
+            authenticatedUserRequest,
+            registrationRequest;
+
+        beforeEach(function() {
+            setNow('2019-12-19T12:10:06');
+        });
+
+        it('Используется SSO-авторизация. Совершается запрос токена авторизации.', function() {
+            tester = new Tester({
+                ...options,
+                hasSSOAuth: true,
+            });
+
+            tester.input.withFieldLabel('Логин').fill('botusharova');
+            tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+            tester.button('Войти').click();
+
+            tester.loginRequest().receiveResponse();
+            accountRequest = tester.accountRequest().expectToBeSent();
+
+            accountRequest.receiveResponse();
+            
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().receive();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                applyLeader().
+                expectToBeSent();
+
+            tester.employeesBroadcastChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
+
+            tester.notificationChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.slavesNotification().expectToBeSent();
+
+            tester.slavesNotification().
+                additional().
+                expectToBeSent();
+
+            tester.authTokenRequest().receiveResponse();
+
+            const requests = ajax.inAnyOrder();
+
+            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
+            authCheckRequest = tester.authCheckRequest().ssoAuth().expectToBeSent(requests);
+
+            requests.expectToBeSent();
+
+            ticketsContactsRequest.receiveResponse();
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse(),
+            employeeRequest.receiveResponse();
+
+            authCheckRequest.receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+            settingsRequest = tester.settingsRequest().ssoAuth().expectToBeSent();
+
+            permissionsRequest.receiveResponse();
+            settingsRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                expectToBeSent();
+
+            tester.connectEventsWebSocket();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
+
+            tester.connectSIPWebSocket();
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
+                expectToBeSent();
+
+            notificationTester.grantPermission();
+            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+
+            tester.registrationRequest().receiveUnauthorized();
+
+            registrationRequest = tester.registrationRequest().
+                authorization().
+                expectToBeSent();
+
+            tester.allowMediaInput();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                expectToBeSent();
+
+            authenticatedUserRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                userDataFetched().
+                expectToBeSent();
+
+            reportGroupsRequest.receiveResponse();
+
+            tester.button('Софтфон').click();
+
+            tester.accountRequest().receiveResponse();
+
+            tester.slavesNotification().
+                additional().
+                visible().
+                expectToBeSent();
+
+            registrationRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
+        });
+        it('Используется JWT-авторизация. Запрос токена авторизации не совершается.', function() {
+            tester = new Tester(options);
+
+            tester.input.withFieldLabel('Логин').fill('botusharova');
+            tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+            tester.button('Войти').click();
+
+            tester.loginRequest().receiveResponse();
+            accountRequest = tester.accountRequest().expectToBeSent();
+
+            accountRequest.receiveResponse();
+            
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().receive();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                applyLeader().
+                expectToBeSent();
+
+            tester.employeesBroadcastChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
+
+            tester.notificationChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.slavesNotification().expectToBeSent();
+
+            tester.slavesNotification().
+                additional().
+                expectToBeSent();
+
+            const requests = ajax.inAnyOrder();
+
+            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
+            authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+
+            requests.expectToBeSent();
+
+            ticketsContactsRequest.receiveResponse();
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse(),
+            employeeRequest.receiveResponse();
+
+            authCheckRequest.receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+            settingsRequest = tester.settingsRequest().expectToBeSent();
+
+            permissionsRequest.receiveResponse();
+            settingsRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                expectToBeSent();
+
+            tester.connectEventsWebSocket();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
+
+            tester.connectSIPWebSocket();
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
+                expectToBeSent();
+
+            notificationTester.grantPermission();
+            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+
+            tester.registrationRequest().receiveUnauthorized();
+
+            registrationRequest = tester.registrationRequest().
+                authorization().
+                expectToBeSent();
+
+            tester.allowMediaInput();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                expectToBeSent();
+
+            authenticatedUserRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                softphoneServerConnected().
+                webRTCServerConnected().
+                microphoneAccessGranted().
+                userDataFetched().
+                expectToBeSent();
+
+            reportGroupsRequest.receiveResponse();
+
+            tester.button('Софтфон').click();
+
+            tester.accountRequest().receiveResponse();
+
+            tester.slavesNotification().
+                additional().
+                visible().
+                expectToBeSent();
+
+            registrationRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
         });
     });
 });

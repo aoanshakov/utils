@@ -1,17 +1,15 @@
 diff --git a/package.json b/package.json
-index 2f94447..1335560 100644
+index df0a9ec..1335560 100644
 --- a/package.json
 +++ b/package.json
-@@ -22,8 +22,6 @@
-   },
-   "homepage": "https://gitlab.uis.dev/web/sip_lib",
-   "peerDependencies": {
+@@ -32,14 +32,11 @@
+     "@types/react": "^18.0.28",
+     "@typescript-eslint/eslint-plugin": "^5.31.0",
+     "@typescript-eslint/parser": "^5.31.0",
 -    "@comagic/softphone-core": "0.0.0-int0",
 -    "@comagic/workplace-utils": "0.0.0-int0",
-     "axios": "^0.24.0"
-   },
-   "dependencies": {
-@@ -39,7 +37,6 @@
+     "babel-loader": "^8.0.4",
+     "classnames": "^2.2.6",
      "exports-loader": "2.0.0",
      "history": "^5.3.0",
      "jssip": "3.3.4",
