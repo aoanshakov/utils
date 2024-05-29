@@ -161,10 +161,6 @@ tests.addTest(options => {
                         emptySearchString().
                         receiveResponse();
 
-                    tester.chatChannelSearchRequest().
-                        emptySearchString().
-                        receiveResponse();
-
                     tester.countersRequest().
                         noNewChats().
                         noClosedChats().
@@ -200,6 +196,10 @@ tests.addTest(options => {
                     tester.offlineMessageListRequest().notProcessed().receiveResponse();
                     tester.offlineMessageListRequest().processing().receiveResponse();
                     tester.offlineMessageListRequest().processed().receiveResponse();
+
+                    tester.chatChannelSearchRequest().
+                        emptySearchString().
+                        receiveResponse();
                 });
 
                 describe('Один из чатов имеет канал типа Telegram Private.', function() {
@@ -213,6 +213,17 @@ tests.addTest(options => {
                         beforeEach(function() {
                             tester.button('Написать новому клиенту').click();
                             tester.modalWindow.endTransition('transform');
+
+                            tester.searchResultsRequest().
+                                anotherToken().
+                                emptySearchString().
+                                receiveResponse();
+
+                            tester.chatChannelSearchRequest().
+                                emptySearchString().
+                                addWaba().
+                                addThirdTelegramPrivate().
+                                receiveResponse();
                         });
 
                         describe('Ввожу номер нового клиента.', function() {
@@ -233,8 +244,7 @@ tests.addTest(options => {
                                     expectToBeSent();
 
                                 chatChannelSearchRequest = tester.chatChannelSearchRequest().
-                                    telegramPrivate().
-                                    expectToBeSent();
+                                    telegramPrivate();
                             });
 
                             describe('Чаты не найдены.', function() {
@@ -313,15 +323,6 @@ tests.addTest(options => {
                                             tester.contactGroupsRequest().
                                                 forIframe().
                                                 receiveResponse();
-
-                                            tester.contactGroupsRequest().
-                                                forIframe().
-                                                receiveResponse();
-
-                                            tester.usersRequest().
-                                                forContacts().
-                                                forIframe().
-                                                receiveResponse();
                                         });
                                         it('В списке отображёны каналы Telegram Private.', function() {
                                             tester.select.
@@ -341,6 +342,17 @@ tests.addTest(options => {
 
                                             tester.button('Написать новому клиенту').click();
                                             tester.modalWindow.endTransition('transform');
+
+                                            tester.searchResultsRequest().
+                                                anotherToken().
+                                                emptySearchString().
+                                                receiveResponse();
+
+                                            tester.chatChannelSearchRequest().
+                                                emptySearchString().
+                                                addWaba().
+                                                addThirdTelegramPrivate().
+                                                receiveResponse();
                                         });
 
                                         it(
@@ -364,7 +376,7 @@ tests.addTest(options => {
                                                 expectToHaveTextContent('Нет данных');
                                         });
                                         it('Отображены все три типа канала.', function() {
-                                            tester.modalWindow.button('WhatsApp').expectToBeActive();
+                                            tester.modalWindow.button('WhatsApp').expectToBeInactive();
                                             tester.modalWindow.button('WABA').expectToBeActive();
                                             tester.modalWindow.button('Telegram').expectToBeActive();
 
@@ -552,6 +564,17 @@ tests.addTest(options => {
 
                                         tester.button('Написать новому клиенту').click();
                                         tester.modalWindow.endTransition('transform');
+
+                                        tester.searchResultsRequest().
+                                            anotherToken().
+                                            emptySearchString().
+                                            receiveResponse();
+
+                                        tester.chatChannelSearchRequest().
+                                            emptySearchString().
+                                            addWaba().
+                                            addThirdTelegramPrivate().
+                                            receiveResponse();
 
                                         tester.input.
                                             withPlaceholder('Введите номер').
@@ -957,7 +980,7 @@ tests.addTest(options => {
                                 expectToHaveTextContent('Нет данных');
                         });
                         it('Отображены все три типа канала.', function() {
-                            tester.modalWindow.button('WhatsApp').expectToBeActive();
+                            tester.modalWindow.button('WhatsApp').expectToBeInactive();
                             tester.modalWindow.button('WABA').expectToBeActive();
                             tester.modalWindow.button('Telegram').expectToBeActive();
 
@@ -1251,7 +1274,8 @@ tests.addTest(options => {
                     'Один из чатов имеет канал типа WhatsApp. Открываю чат. Нажимаю на опцию канала. Найдены каналы ' +
                     'типов Waba и WhatsApp.',
                 function() {
-                    let searchResultsRequest;
+                    let searchResultsRequest,
+                        chatChannelSearchRequest;
 
                     beforeEach(function() {
                         chatListRequest.
@@ -1305,13 +1329,12 @@ tests.addTest(options => {
                             newVisitor().
                             expectToBeSent();
 
-                        tester.chatChannelSearchRequest().
+                        chatChannelSearchRequest = tester.chatChannelSearchRequest().
                             fifthSearchString().
                             telegramPrivate().
                             addWaba().
                             addAnotherWhatsApp().
-                            addThirdTelegramPrivate().
-                            receiveResponse();
+                            addThirdTelegramPrivate();
                     });
                     
                     describe('Найден чат WhatsApp.', function() {
@@ -1322,6 +1345,7 @@ tests.addTest(options => {
                         describe('Не найден чат Waba.', function() {
                             beforeEach(function() {
                                 searchResultsRequest.receiveResponse();
+                                chatChannelSearchRequest.receiveResponse();
                             });
 
                             it('Помещаю курсор над опцией канала Waba. Отобржено сообщение об ошибке.', function() {
@@ -1348,6 +1372,8 @@ tests.addTest(options => {
                                 addNotStartedYetWaba().
                                 receiveResponse();
 
+                            chatChannelSearchRequest.receiveResponse();
+
                             tester.select.
                                 option('Южно-Сахалинск 79283810988').
                                 expectToBeEnabled();
@@ -1359,6 +1385,8 @@ tests.addTest(options => {
                     });
                     it('Не найден ни чат WhatsApp ни чат Waba. Отображено сообщение об отсутвии каналов.', function() {
                         searchResultsRequest.receiveResponse();
+                        chatChannelSearchRequest.receiveResponse();
+
                         tester.notificationWindow.expectToHaveTextContent('Нет активных каналов');
                     });
                 });
@@ -1420,10 +1448,6 @@ tests.addTest(options => {
                     emptySearchString().
                     receiveResponse();
 
-                tester.chatChannelSearchRequest().
-                    emptySearchString().
-                    receiveResponse();
-
                 tester.countersRequest().
                     noNewChats().
                     noClosedChats().
@@ -1459,8 +1483,23 @@ tests.addTest(options => {
                 tester.offlineMessageListRequest().processing().receiveResponse();
                 tester.offlineMessageListRequest().processed().receiveResponse();
 
+                tester.chatChannelSearchRequest().
+                    emptySearchString().
+                    receiveResponse();
+
                 tester.button('Написать новому клиенту').click();
                 tester.modalWindow.endTransition('transform');
+
+                tester.searchResultsRequest().
+                    anotherToken().
+                    emptySearchString().
+                    receiveResponse();
+
+                tester.chatChannelSearchRequest().
+                    emptySearchString().
+                    addWaba().
+                    addThirdTelegramPrivate().
+                    receiveResponse();
 
                 tester.input.
                     withPlaceholder('Введите номер').
@@ -1562,10 +1601,6 @@ tests.addTest(options => {
                 emptySearchString().
                 receiveResponse();
 
-            tester.chatChannelSearchRequest().
-                emptySearchString().
-                receiveResponse();
-
             tester.countersRequest().
                 noNewChats().
                 noClosedChats().
@@ -1601,10 +1636,23 @@ tests.addTest(options => {
             tester.offlineMessageListRequest().processing().receiveResponse();
             tester.offlineMessageListRequest().processed().receiveResponse();
 
+            tester.chatChannelSearchRequest().
+                emptySearchString().
+                receiveResponse();
+
             tester.button('Написать новому клиенту').click();
             tester.modalWindow.endTransition('transform');
 
-            tester.modalWindow.button('WhatsApp').expectToBeActive();
+            tester.searchResultsRequest().
+                anotherToken().
+                emptySearchString().
+                receiveResponse();
+
+            tester.chatChannelSearchRequest().
+                emptySearchString().
+                receiveResponse();
+
+            tester.modalWindow.button('WhatsApp').expectToBeInactive();
             tester.modalWindow.button('WABA').expectNotToExist();
             tester.modalWindow.button('Telegram').expectNotToExist();
         });

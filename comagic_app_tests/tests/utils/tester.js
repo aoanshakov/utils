@@ -1268,6 +1268,74 @@ define(() => function ({
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
     };
 
+    me.apiLogoutRequest = () => {
+        let respond = request => request.respondSuccessfullyWith({
+            data: {},
+        });
+
+        const addResponseModifiers = me => {
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath('$REACT_APP_SSO_AUTH_URL/api-logout').
+                    expectToHaveMethod('POST');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        respond(request);
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.apiLoginRequest = () => {
+        let respond = request => request.respondSuccessfullyWith({
+            data: {},
+        });
+
+        const addResponseModifiers = me => {
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath('$REACT_APP_SSO_AUTH_URL/api-login').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        username: 'botusharova',
+                        password: '8Gls8h31agwLf5k',
+                        project: 'comagic',
+                        identity_provider: 'comagic_db',
+                        sliding_expiration: true,
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        respond(request);
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.ticketsContactsRequest = () => {
         let respond = request => request.respondSuccessfullyWith({
             data: {
@@ -1373,7 +1441,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectToHavePath('$REACT_APP_NEW_SOFTPHONE_BACKEND_HOST/sup/auth/token');
+                    expectToHavePath('https://$REACT_APP_SOFTPHONE_BACKEND_HOST/sup/auth/token');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -2080,6 +2148,9 @@ define(() => function ({
         const tester = me.createBroadcastChannelTester('employees');
 
         return {
+            nextMessage: tester.nextMessage.bind(tester),
+            receiveMessage: tester.receiveMessage.bind(tester),
+
             applyLeader: () => ({
                 expectToBeSent: () => {
                     tester.applyLeader();
@@ -2138,13 +2209,20 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
-            me.anotherAuthorizationToken = () =>
-                ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), me);
-
             return me;
         };
 
         return addResponseModifiers({
+            noAuthorizationHeader() {
+                headers.Authorization = undefined;
+                return this;
+            },
+
+            anotherAuthorizationToken() {
+                headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
@@ -3165,6 +3243,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            noAuthorizationHeader() {
+                headers.Authorization = undefined;
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL/api/v1/statuses').
@@ -3820,6 +3903,11 @@ define(() => function ({
         let jwt = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
 
         return {
+            ssoAuth() {
+                jwt = undefined;
+                return this;
+            },
+
             anotherAuthorizationToken() {
                 jwt = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
                 return this;
@@ -4025,9 +4113,9 @@ define(() => function ({
                 return {
                     expectToBeSent: () => {
                         const notification = createNotification();
-                        me.recentCrosstabMessage().expectToContain(notification);
+                        me.employeesBroadcastChannel().nextMessage().expectToContain(notification);
                     },
-                    receive: () => (me.receiveCrosstabMessage(createNotification()), spendTime(0)),
+                    receive: () => (me.employeesBroadcastChannel().receiveMessage(createNotification()), spendTime(0)),
                 };
             },
 
@@ -4038,127 +4126,6 @@ define(() => function ({
             }
         }
     };
-
-/*
-    me.statusChangedEvent = () => {
-        const params = {
-            name: 'status',
-            action: 'insert',
-            data: [{
-                id: 848593,
-                data: [{
-                    id: 848593,
-                    icon: 'funnel',
-                    name: 'Воронка',
-                    color: '#ff8f00',
-                    comment: null,
-                    mnemonic: null,
-                    priority: 18,
-                    is_removed: false,
-                    description: '',
-                    is_worktime: true,
-                    is_different: true,
-                    is_select_allowed: true,
-                    allowed_phone_protocols: [
-                        'PSTN',
-                        'SIP',
-                        'SIP_TRUNK',
-                        'FMC'
-                    ],
-                    is_auto_out_calls_ready: true,
-                    is_use_availability_in_group: true,
-                    in_external_allowed_call_directions: [
-                        'in',
-                        'out'
-                    ],
-                    in_internal_allowed_call_directions: [
-                        'in',
-                        'out'
-                    ],
-                    out_external_allowed_call_directions: [
-                        'in',
-                        'out'
-                    ],
-                    out_internal_allowed_call_directions: [
-                        'in',
-                        'out'
-                    ]
-                }],
-                app_id: 4735
-            }]
-        };
-
-        const createMessage = () => ({
-            type: 'event',
-            id: 'e24bcc05529d4ae19674bd4163f0b6a7',
-            name: 'entity_changed',
-            params
-        });
-
-        return {
-            updateRemoved() {
-                params.action = 'update';
-
-                params.data = [{
-                    id: 7,
-                    data: [{
-                        id: 7,
-                        name: 'Ненужный'
-                    }]
-                }];
-
-                return this;
-            },
-
-            update() {
-                params.action = 'update';
-
-                params.data = [{
-                    id: 2,
-                    data: [{
-                        id: 2,
-                        name: 'Пауза'
-                    }]
-                }];
-
-                return this;
-            },
-
-            remove() {
-                params.action = 'delete';
-
-                params.data = [{
-                    id: 2,
-                    data: [{
-                        id: 2,
-                        is_removed: true
-                    }]
-                }];
-
-                return this;
-            },
-
-            slavesNotification: function () {
-                return {
-                    expectToBeSent: function () {
-                        me.recentCrosstabMessage().expectToContain({
-                            type: 'message',
-                            data: {
-                                type: 'employees_websocket_message',
-                                data: createMessage(),
-                            }
-                        });
-                    }
-                };
-            },
-
-            receive: () => {
-                me.employeesWebSocket.receive(createMessage());
-                spendTime(0);
-            }
-        }
-    };
-    */
 
     me.chatsInitMessage = () => {
         let access_token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
@@ -5344,7 +5311,7 @@ define(() => function ({
                         'calling_phone_number'
                     ].forEach(param => (message.params[param] = params[param].slice(1)));
 
-                    me.recentCrosstabMessage().expectToContain({
+                    me.nextCrosstabMessage().expectToContain({
                         type: 'message',
                         data: {
                             type: 'notify_slaves',
@@ -5507,7 +5474,7 @@ define(() => function ({
                 };
 
                 return {
-                    expectToBeSent: () => me.recentCrosstabMessage().expectToContain(notification),
+                    expectToBeSent: () => me.nextCrosstabMessage().expectToContain(notification),
                     receive: () => (me.receiveCrosstabMessage(notification), spendTime(0))
                 };
             },
@@ -5556,7 +5523,7 @@ define(() => function ({
                 };
 
                 return {
-                    expectToBeSent: () => me.recentCrosstabMessage().expectToContain(notification),
+                    expectToBeSent: () => me.nextCrosstabMessage().expectToContain(notification),
                     receive: () => (me.receiveCrosstabMessage(notification), spendTime(0))
                 };
             },
@@ -5893,6 +5860,11 @@ define(() => function ({
 
         let respond = request => request.respondSuccessfullyWith(response);
 
+        const headers = {
+            Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
         const addResponseModifiers = me => {
             me.invalidToken = () => {
                 response = {
@@ -5926,13 +5898,15 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            ssoAuth() {
+                headers['X-Auth-Type'] = undefined;
+                return this;
+            },
+            
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('/sup/auth/logout').
-                    expectToHaveHeaders({
-                        Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                        'X-Auth-Type': 'jwt'
-                    });
+                    expectToHaveHeaders(headers);
 
                 return addResponseModifiers({
                     receiveResponse: () => {
@@ -12639,6 +12613,13 @@ define(() => function ({
         };
 
         const request = addAuthErrorResponseModifiers({
+            noAuthorizationHeader: () => {
+                headers.Authorization = undefined;
+                headers['X-Auth-Type'] = undefined;
+
+                return request;
+            },
+
             anotherAuthorizationToken: () =>
                 ((headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'), request),
 
@@ -15435,6 +15416,16 @@ define(() => function ({
         });
 
         return addResponseModifiers({
+            noAuthorizationHeader() {
+                getAuthorizationHeader = () => ({
+                    Authorization: undefined,
+                    'X-Auth-Token': undefined,
+                    'X-Auth-Type': undefined,
+                });
+
+                return this;
+            },
+            
             forChats() {
                 getAuthorizationHeader = () => ({
                     Authorization: undefined,

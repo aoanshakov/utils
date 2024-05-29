@@ -4448,6 +4448,7 @@ define(function () {
                     expectSomeStatus(response);
                     Promise.runAll(false, true);
                     spendTime(0);
+                    spendTime(0);
 
                     return {
                         expectOkToBeSent: function () {
@@ -6533,6 +6534,7 @@ define(function () {
                     receive: function () {
                         receiveMessage(createNotification());
                         spendTime(0);
+                        spendTime(0);
                     }
                 }, data);
 
@@ -7197,7 +7199,16 @@ define(function () {
                         } 
                     }),
                     applyLeader: () => ({
-                        expectToBeSent: applyLeader,
+                        expectToBeSent: () => {
+                            applyLeader();
+
+                            return {
+                                waitForSecond: () => {
+                                    spendTime(1000);
+                                    spendTime(0);
+                                },
+                            };
+                        },
                         receive: () => {
                             const message = applyMessage();
                             message.data.token = 'i9js2l68w8';

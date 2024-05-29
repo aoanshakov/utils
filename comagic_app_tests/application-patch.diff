@@ -870,32 +870,407 @@ index 8ae6e87b..c7a3cd72 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index fa214b30..12efe486 100644
+index fa214b30..fccb8a61 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -93,7 +93,7 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -1,19 +1,51 @@
+ import { eventBus } from '@comagic/core';
+ import axios from 'axios';
+-import { flow, getEnv, getParent, getRoot, types } from 'mobx-state-tree';
++import { flow, getEnv, getRoot, types } from 'mobx-state-tree';
+ 
+ import { getProject } from '@/i18n';
+ import { cancelPendingRequests } from '@/rpc/httpRpc';
+-import { deleteCookie, generateTraceId, getCookie, setCookie } from '@/utils';
++import { deleteCookie, getCookie, getIpcRender, setCookie } from '@/utils';
++import { generateTraceId } from '@/utils';
+ import { Options } from '@/utils/cookie';
+ 
+-import { RootInstance, RootStore } from '../RootStore';
++import { RootStore } from '../RootStore';
+ import { Loader } from '../shared';
+ 
+ export type LoginUser = {
+     login: string;
+     password: string;
+-    dont_keep_me_signed_in: boolean;
++    is_checked: boolean;
++};
++
++export type RecoverParams = {
++    login: string;
++};
++
++export type ResetPasswordTypes = 'phone' | 'email';
++
++export type SendCodeParamsToRecoveryPassword = {
++    email: string | null;
++    phone: string | null;
++};
++
++export type SendCodeResponse = {
++    id: string | number;
++};
++
++export type SendCodeResponseToRecoveryPassword = {
++    email: string | null;
++    phone: string | null;
++    expire: number;
++    success: boolean;
++    comment: string | null;
++};
++
++export type CheckCodeParamsToRecoveryPassword = {
++    secret: string;
++};
++
++export type UpdatePasswordParams = {
++    password: string;
+ };
+ 
+ type Auth = {
+@@ -21,7 +53,30 @@ type Auth = {
+     refresh: string;
+ };
+ 
+-const AUTH_KEY = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_COOKIE';
++export type RecoveryPasswordResponse = {
++    email: string | null;
++    phone: string | null;
++};
++
++type ResponseCheckData = {
++    success: boolean;
++};
++
++const ssoAuthUrl: string = process.env.REACT_APP_SSO_AUTH_URL || '$REACT_APP_SSO_AUTH_URL';
++
++const httpSSOClient = async <D>(method: string, data?: D) => {
++    return await axios.post(method, data, { baseURL: ssoAuthUrl, withCredentials: true });
++};
++
++const isApp2 = ['analytics2.comagic.ru', 'go2.comagic.ru', 'analytics2.uiscom.ru', 'go2.uiscom.ru'].includes(
++    window.location.hostname
++);
++
++let AUTH_KEY = process.env.REACT_APP_AUTH_COOKIE || '$REACT_APP_AUTH_COOKIE';
++
++if (isApp2) {
++    AUTH_KEY += '_pp';
++}
+ 
+ const getCookieDomain = () => {
+     return window.location.hostname.split('.').slice(-2).join('.');
+@@ -35,17 +90,17 @@ export const getToken = (): Auth => {
+     return JSON.parse(token);
+ };
+ 
+-const setToken = (auth: Auth, dontKeepMeSignedIn = false) => {
++const setToken = (auth: Auth | string, remember_me = false) => {
+     const options = {
+         secure: true,
+         domain: getCookieDomain(),
+     } as Options;
+-    if (!dontKeepMeSignedIn) {
+-        const twoWeeks = new Date(Date.now() + 2 * 7 * 24 * 60 * 60 * 1000);
+-        options.expires = twoWeeks;
++
++    if (remember_me) {
++        options.expires = new Date(Date.now() + 2 * 7 * 24 * 60 * 60 * 1000);
+     }
+-    setCookie(AUTH_KEY, JSON.stringify(auth), options);
+ 
++    setCookie(AUTH_KEY, JSON.stringify(auth), options);
+     window.dispatchEvent(new Event('tokenChange'));
+ };
+ 
+@@ -80,6 +135,7 @@ const getJwtPayload = (): JwtPayload => {
+ const removeToken = (skipLocalStorage = false) => {
+     if (!skipLocalStorage) {
+         deleteCookie(AUTH_KEY, { secure: true, domain: getCookieDomain() });
++        localStorage.removeItem(AUTH_KEY);
+         sessionStorage.removeItem(AUTH_KEY);
+         sessionStorage.removeItem('access_token');
+     }
+@@ -92,10 +148,13 @@ const removeToken = (skipLocalStorage = false) => {
+ 
  export const AuthStore = Loader.named('AuthStore')
      .props({
-         dontKeepMeSignedIn: types.optional(types.boolean, false),
+-        dontKeepMeSignedIn: types.optional(types.boolean, false),
 -        isAuthorized: types.optional(types.boolean, Boolean(getToken())),
-+        isAuthorized: types.optional(types.boolean, false),
++        isAuthorized: types.optional(types.maybeNull(types.boolean), null),
          isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
++        isConfirmLoginRequired: types.optional(types.maybeNull(types.boolean), false),
++        login: types.optional(types.string, ''),
++        password: types.optional(types.string, ''),
++        isChecked: types.optional(types.boolean, false),
      })
-@@ -196,6 +196,8 @@ export const AuthStore = Loader.named('AuthStore')
+     .views(self => ({
+         get token(): Auth {
+@@ -106,14 +165,27 @@ export const AuthStore = Loader.named('AuthStore')
+         const { httpRpcAuth } = getEnv(self);
+         const { authStore, accountStore, notificationStore, resetStore } = getRoot<typeof RootStore>(self);
+ 
++        const broadcastAuthorizedness = () => eventBus.broadcast('set_authorized', self.isAuthorized);
++
+         const setAuthorized = (isAuthorized: boolean) => {
+             self.isAuthorized = isAuthorized;
++            broadcastAuthorizedness();
++        };
++
++        const setIsConfirmLoginRequired = (isConfirmLoginRequired: boolean) => {
++            self.isConfirmLoginRequired = isConfirmLoginRequired;
+         };
+ 
+         const setIsTokenRefreshing = (value: boolean) => {
+             self.isTokenRefreshing = value;
+         };
+ 
++        const setLoginFormValues = (login: string, password: string, isChecked: boolean) => {
++            self.login = login;
++            self.password = password;
++            self.isChecked = isChecked;
++        };
++
+         const cancelNotifications = () => {
+             notificationStore.stackingNotificationInstance?.destroyAll();
+             notificationStore.cancelNotifications();
+@@ -125,19 +197,33 @@ export const AuthStore = Loader.named('AuthStore')
+             setAuthorized(false);
+             cancelPendingRequests('canceled by logout');
+             eventBus.broadcast('logout');
++            getIpcRender().send('logout');
+             removeToken(skipLocalStorage);
+             self.setLoading(false);
+         };
+ 
+-        const fetchLoginUser = flow(function* ({
+-            login,
+-            password,
+-            dont_keep_me_signed_in: dontKeepMeSignedIn,
+-        }: LoginUser) {
+-            self.setLoading(true);
+-            self.dontKeepMeSignedIn = dontKeepMeSignedIn;
++        const loginSSO = flow(function* (username: string, password: string, is_checked: boolean) {
++            try {
++                yield httpSSOClient('api-login', {
++                    username,
++                    password,
++                    project: getProject(),
++                    identity_provider: 'comagic_db',
++                    sliding_expiration: !is_checked,
++                });
+ 
+-            getParent<RootInstance>(self).setAuthError('');
++                setAuthorized(true);
++                window.dispatchEvent(new Event('loginSSO'));
++                // setToken({ jwt: localStorage.getItem('auth'), refresh: 'sso' }, is_checked);
++            } catch (e) {
++                return Promise.reject(e);
++            } finally {
++                self.setLoading(false);
++            }
++        });
++
++        const loginJWT = flow(function* (login: string, password: string, is_checked: boolean, confirmCode?: string) {
++            self.setLoading(true);
+ 
+             try {
+                 const token = getToken();
+@@ -148,10 +234,18 @@ export const AuthStore = Loader.named('AuthStore')
+                     password,
+                     project: getProject(),
+                     old_jwt,
++                    code: confirmCode,
+                 });
+ 
+-                setToken(auth, dontKeepMeSignedIn);
+-                setAuthorized(true);
++                if (auth.is_2fa_enabled) {
++                    setIsConfirmLoginRequired(true);
++                    setLoginFormValues(login, password, is_checked);
++                } else {
++                    setToken(auth, is_checked);
++                    setIsConfirmLoginRequired(false);
++                    setLoginFormValues('', '', false);
++                    setAuthorized(true);
++                }
+             } catch (e) {
+                 removeToken();
+ 
+@@ -161,7 +255,19 @@ export const AuthStore = Loader.named('AuthStore')
+             }
          });
  
++        const hasSSOAuth = () => process.env.REACT_APP_TEST_MODE == 'true'
++            ? window.hasSSOAuth
++            : !ssoAuthUrl.endsWith('REACT_APP_SSO_AUTH_URL') && Boolean(ssoAuthUrl);
++
++        const fetchLoginUser = flow(function* ({ login, password, is_checked }: LoginUser) {
++            hasSSOAuth() ? yield loginSSO(login, password, is_checked) : yield loginJWT(login, password, is_checked);
++        });
++
+         const fetchRefresh = flow(function* () {
++            if (hasSSOAuth()) {
++                return;
++            }
++
+             try {
+                 setIsTokenRefreshing(true);
+ 
+@@ -178,16 +284,29 @@ export const AuthStore = Loader.named('AuthStore')
+             }
+         });
+ 
++        const fetchResendConfirmationCode = flow(function* () {
++            yield loginJWT(self.login, self.password, self.isChecked);
++        });
++
++        const fetchConfirmLogin = flow(function* (code: string) {
++            yield loginJWT(self.login, self.password, self.isChecked, code);
++        });
++
+         const fetchLogoutUser = flow(function* () {
+             self.setLoading(true);
+ 
+             try {
+-                const token = getToken();
+-                const jwt = token?.jwt;
+-
+-                yield httpRpcAuth('logout', {
+-                    jwt,
+-                });
++                if (hasSSOAuth()) {
++                    yield httpSSOClient('api-logout');
++                    window.dispatchEvent(new Event('logoutSSO'));
++                } else {
++                    const token = getToken();
++                    const jwt = token?.jwt;
++
++                    yield httpRpcAuth('logout', {
++                        jwt,
++                    });
++                }
+             } catch (e) {
+                 return Promise.reject(e);
+             } finally {
+@@ -195,11 +314,86 @@ export const AuthStore = Loader.named('AuthStore')
+             }
+         });
+ 
++        const checkAuth = flow(function* () {
++            if (!hasSSOAuth()) {
++                setAuthorized(Boolean(getToken()));
++                return;
++            }
++
++            try {
++                yield axios.get('sso/check', {
++                    baseURL: ssoAuthUrl,
++                    withCredentials: true,
++                });
++
++                setAuthorized(true);
++            } catch (e) {
++                setAuthorized(false);
++
++                return Promise.reject(e);
++            }
++        });
++
++        const getRecoveryPasswordInfo = flow(function* ({ login }: RecoverParams) {
++            try {
++                const response: { data: RecoveryPasswordResponse } = yield httpSSOClient(
++                    'api-recovery-password/comagic_db/sid/login',
++                    {
++                        login,
++                        project: 'megafon',
++                    }
++                );
++                return response.data;
++            } catch (e) {
++                return Promise.reject(e);
++            }
++        });
++
++        const fetchSendCodeToRecoveryPassword = flow(function* ({ email, phone }: SendCodeParamsToRecoveryPassword) {
++            try {
++                const response: { data: SendCodeResponseToRecoveryPassword } = yield httpSSOClient(
++                    'api-recovery-password/comagic_db/sid/send',
++                    {
++                        email,
++                        phone,
++                    }
++                );
++                return response.data;
++            } catch (e) {
++                return Promise.reject(e);
++            }
++        });
++
++        const fetchCheckCodeToRecoveryPassword = flow(function* ({ secret }: CheckCodeParamsToRecoveryPassword) {
++            try {
++                const response: { data: ResponseCheckData } = yield httpSSOClient(
++                    'api-recovery-password/comagic_db/sid/check',
++                    { secret }
++                );
++                return response.data;
++            } catch (e) {
++                return Promise.reject(e);
++            }
++        });
++
++        const fetchUpdatePassword = flow(function* ({ password }: UpdatePasswordParams) {
++            try {
++                yield httpSSOClient('api-recovery-password/comagic_db/sid/password', {
++                    new_password1: password,
++                    new_password2: password,
++                });
++            } catch (e) {
++                return Promise.reject(e);
++            }
++        });
++
          const afterCreate = () => {
-+            setAuthorized(Boolean(getToken()));
++            eventBus.subscribe('get_authorized', broadcastAuthorizedness);
 +
              window.addEventListener('doLogoutUser', (event: CustomEvent) => {
                  const eventWindowId = event.detail;
                  if (eventWindowId !== authStore.windowId) {
-@@ -238,5 +240,6 @@ export const AuthStore = Loader.named('AuthStore')
+-                    void authStore.logout(true);
++                    void authStore.fetchLogoutUser();
+                 }
+             });
+             window.addEventListener('doRefreshToken', (event: CustomEvent) => {
+@@ -226,6 +420,8 @@ export const AuthStore = Loader.named('AuthStore')
+                         if (accountStoreUserId !== null && jwtUserId !== accountStoreUserId) {
+                             window.location.href = '/';
+                         }
++                    } else if (accountStore.account.project === 'novofon') {
++                        window.location.reload();
+                     }
+                 }
+             }, 1000);
+@@ -233,10 +429,20 @@ export const AuthStore = Loader.named('AuthStore')
+ 
+         return {
+             fetchLoginUser,
++            fetchResendConfirmationCode,
++            fetchConfirmLogin,
+             fetchLogoutUser,
+             fetchRefresh,
              logout,
              setIsTokenRefreshing,
              afterCreate,
-+            hasSSOAuth: () => window.hasSSOAuth || false,
++            setIsConfirmLoginRequired,
++            setLoginFormValues,
++            fetchUpdatePassword,
++            checkAuth,
++            getRecoveryPasswordInfo,
++            fetchSendCodeToRecoveryPassword,
++            fetchCheckCodeToRecoveryPassword,
++            hasSSOAuth,
          };
      });
 diff --git a/src/rpc/httpRpc.ts b/src/rpc/httpRpc.ts

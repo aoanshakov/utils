@@ -32,6 +32,7 @@ tests.addTest(options => {
             authCheckRequest;
 
         beforeEach(function() {
+            localStorage.setItem('softphone-position-x', '174');
             setNow('2019-12-19T12:10:06');
 
             tester = new Tester(options);
@@ -193,7 +194,6 @@ tests.addTest(options => {
                                         describe('Нажимаю на иконку с телефоном.', function() {
                                             beforeEach(function() {
                                                 tester.button('Софтфон').click();
-
                                                 tester.accountRequest().receiveResponse();
 
                                                 tester.slavesNotification().
@@ -369,6 +369,10 @@ tests.addTest(options => {
                                                                 name.
                                                                 click();
 
+                                                            tester.usersRequest().
+                                                                forContacts().
+                                                                receiveResponse();
+
                                                             tester.contactsRequest().
                                                                 differentNames().
                                                                 receiveResponse();
@@ -394,8 +398,8 @@ tests.addTest(options => {
                                                             contactRequest.receiveResponse();
                                                             contactCommunicationsRequest.receiveResponse();
 
-                                                            tester.groupsContainingContactRequest().receiveResponse();
                                                             tester.contactGroupsRequest().receiveResponse();
+                                                            tester.groupsContainingContactRequest().receiveResponse();
                                                         });
                                                         it(
                                                             'Нажимаю на кнопку сворачивания софтфона. Отображено ' +
@@ -486,6 +490,10 @@ tests.addTest(options => {
                                                             name.
                                                             click();
 
+                                                        tester.usersRequest().
+                                                            forContacts().
+                                                            receiveResponse();
+
                                                         tester.contactsRequest().
                                                             differentNames().
                                                             receiveResponse();
@@ -542,14 +550,6 @@ tests.addTest(options => {
                                                             expectToBeSent();
 
                                                         tester.masterInfoMessage().leaderDeath().expectToBeSent();
-
-                                                        Promise.runAll(false, true);
-                                                        spendTime(0);
-                                                        Promise.runAll(false, true);
-                                                        spendTime(0);
-                                                        Promise.runAll(false, true);
-                                                        spendTime(0);
-
                                                         tester.authLogoutRequest().receiveResponse();
 
                                                         tester.employeesWebSocket.finishDisconnecting();
@@ -661,6 +661,11 @@ tests.addTest(options => {
                                                             receiveResponse();
 
                                                         tester.ticketsContactsRequest().receiveResponse();
+
+                                                        tester.accountRequest().
+                                                            anotherAuthorizationToken().
+                                                            receiveResponse();
+
                                                         tester.authenticatedUserRequest().receiveResponse();
 
                                                         tester.slavesNotification().
@@ -694,7 +699,7 @@ tests.addTest(options => {
                                                         tester.callStartingButton.expectNotToHaveAttribute('disabled');
                                                         tester.button('Софтфон').expectToBeVisible();
 
-                                                        tester.userName.click();
+                                                        tester.softphone.userName.click();
 
                                                         tester.statusesList.
                                                             item('Исходящий обзвон').
@@ -979,10 +984,13 @@ tests.addTest(options => {
                                                     it('Диалпад открыт.', function() {
                                                         tester.dialpadVisibilityButton.
                                                             expectNotToHaveClass('cmg-button-disabled');
+
                                                         tester.dialpadVisibilityButton.
                                                             expectToHaveClass('cmg-button-pressed');
+
                                                         tester.addressBookButton.
                                                             expectNotToHaveClass('cmg-button-pressed');
+
                                                         tester.digitRemovingButton.expectToBeVisible();
                                                         tester.softphone.expectToBeExpanded();
 
@@ -996,14 +1004,16 @@ tests.addTest(options => {
                                                 });
                                                 describe('Нажимаю на кнопку аккаунта.', function() {
                                                     beforeEach(function() {
-                                                        tester.userName.click();
+                                                        tester.header.userName.click();
                                                     });
 
                                                     describe('Выбираю другой статус.', function() {
                                                         let employeeUpdatingRequest;
 
                                                         beforeEach(function() {
-                                                            tester.statusesList.item('Нет на месте').click();
+                                                            tester.statusesList.
+                                                                item('Нет на месте').
+                                                                click();
 
                                                             employeeUpdatingRequest = tester.employeeUpdatingRequest().
                                                                 expectToBeSent();
@@ -1022,7 +1032,6 @@ tests.addTest(options => {
                                                                 receiveResponse();
 
                                                             tester.userLogoutRequest().receiveResponse();
-                                                            tester.masterInfoMessage().leaderDeath().expectToBeSent();
 
                                                             tester.slavesNotification().
                                                                 userDataFetched().
@@ -1032,12 +1041,18 @@ tests.addTest(options => {
                                                                 enabled().
                                                                 expectToBeSent();
 
+                                                            tester.masterInfoMessage().
+                                                                leaderDeath().
+                                                                expectToBeSent();
+
                                                             tester.authLogoutRequest().receiveResponse();
 
                                                             tester.employeesWebSocket.finishDisconnecting();
                                                             tester.eventsWebSocket.finishDisconnecting();
 
-                                                            tester.registrationRequest().expired().receiveResponse();
+                                                            tester.registrationRequest().
+                                                                expired().
+                                                                receiveResponse();
 
                                                             spendTime(2000);
                                                             tester.webrtcWebsocket.finishDisconnecting();
@@ -1062,13 +1077,20 @@ tests.addTest(options => {
 
                                                             tester.masterInfoMessage().receive();
 
+                                                            tester.masterInfoMessage().
+                                                                tellIsLeader().
+                                                                expectToBeSent();
+
+                                                            tester.slavesNotification().expectToBeSent();
+
                                                             tester.slavesNotification().
                                                                 additional().
                                                                 visible().
                                                                 expectToBeSent();
 
-                                                            tester.slavesNotification().expectToBeSent();
-                                                            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                                                            broadcastChannels.
+                                                                nextMessage().
+                                                                expectNotToExist();
 
                                                             tester.employeesWebSocket.connect();
                                                             tester.employeesInitMessage().expectToBeSent();
@@ -1102,6 +1124,7 @@ tests.addTest(options => {
                                                             tester.employeeSettingsRequest().receiveResponse();
                                                             tester.employeeRequest().receiveResponse();
                                                             tester.ticketsContactsRequest().receiveResponse();
+                                                            tester.accountRequest().receiveResponse();
                                                             tester.authenticatedUserRequest().receiveResponse();
 
                                                             tester.slavesNotification().
@@ -1142,15 +1165,15 @@ tests.addTest(options => {
                                                                 secondStatus().
                                                                 receive();
 
-                                                            tester.employeeChangedEvent().
-                                                                secondStatus().
-                                                                slavesNotification().
-                                                                expectToBeSent();
-
                                                             tester.slavesNotification().
                                                                 twoChannels().
                                                                 available().
                                                                 anotherStatus().
+                                                                expectToBeSent();
+
+                                                            tester.employeeChangedEvent().
+                                                                secondStatus().
+                                                                slavesNotification().
                                                                 expectToBeSent();
 
                                                             tester.entityChangeEvent().
@@ -1574,7 +1597,10 @@ tests.addTest(options => {
                                                         expectToBeSent();
 
                                                     tester.authLogoutRequest().receiveResponse();
-                                                    tester.registrationRequest().expired().receiveResponse();
+
+                                                    tester.registrationRequest().
+                                                        expired().
+                                                        receiveResponse();
                                                     
                                                     spendTime(2000);
                                                     tester.webrtcWebsocket.finishDisconnecting();
@@ -1590,14 +1616,16 @@ tests.addTest(options => {
                                                     tester.eventsWebSocket.disconnect(4404);
                                                     tester.authLogoutRequest().receiveResponse();
 
-                                                    tester.masterInfoMessage().leaderDeath().expectToBeSent();
-
                                                     tester.slavesNotification().
                                                         userDataFetched().
                                                         enabled().
                                                         twoChannels().
                                                         destroyed().
                                                         microphoneAccessGranted().
+                                                        expectToBeSent();
+
+                                                    tester.masterInfoMessage().
+                                                        leaderDeath().
                                                         expectToBeSent();
 
                                                     tester.registrationRequest().
@@ -1669,13 +1697,10 @@ tests.addTest(options => {
                                                         available().
                                                         expectToBeSent();
 
-                                                    tester.userName.click();
+                                                    tester.header.userName.click();
                                                     tester.logoutButton.click();
 
                                                     tester.userLogoutRequest().receiveResponse();
-                                                    tester.masterInfoMessage().leaderDeath().expectToBeSent();
-                                                    
-                                                    tester.employeesWebSocket.finishDisconnecting();
 
                                                     tester.slavesNotification().
                                                         userDataFetched().
@@ -1686,22 +1711,28 @@ tests.addTest(options => {
                                                         enabled().
                                                         expectToBeSent();
 
-                                                    Promise.runAll(false, true);
-                                                    spendTime(0);
-                                                    Promise.runAll(false, true);
-                                                    spendTime(0);
-                                                    Promise.runAll(false, true);
-                                                    spendTime(0);
-
+                                                    tester.masterInfoMessage().
+                                                        leaderDeath().
+                                                        expectToBeSent();
+                                                    
+                                                    tester.employeesWebSocket.finishDisconnecting();
                                                     tester.authLogoutRequest().receiveResponse();
                                                     tester.eventsWebSocket.finishDisconnecting();
-                                                    tester.registrationRequest().expired().receiveResponse();
+
+                                                    tester.registrationRequest().
+                                                        expired().
+                                                        receiveResponse();
 
                                                     spendTime(2000);
                                                     tester.webrtcWebsocket.finishDisconnecting();
 
-                                                    tester.input.withFieldLabel('Логин').fill('botusharova');
-                                                    tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+                                                    tester.input.
+                                                        withFieldLabel('Логин').
+                                                        fill('botusharova');
+
+                                                    tester.input.
+                                                        withFieldLabel('Пароль').
+                                                        fill('8Gls8h31agwLf5k');
 
                                                     tester.button('Войти').click();
 
@@ -1732,13 +1763,20 @@ tests.addTest(options => {
 
                                                     tester.masterInfoMessage().receive();
 
+                                                    tester.masterInfoMessage().
+                                                        tellIsLeader().
+                                                        expectToBeSent();
+
+                                                    tester.slavesNotification().expectToBeSent();
+
                                                     tester.slavesNotification().
                                                         additional().
                                                         visible().
                                                         expectToBeSent();
 
-                                                    tester.slavesNotification().expectToBeSent();
-                                                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                                                    broadcastChannels.
+                                                        nextMessage().
+                                                        expectNotToExist();
 
                                                     tester.talkOptionsRequest().receiveResponse();
                                                     tester.permissionsRequest().receiveResponse();
@@ -1779,6 +1817,11 @@ tests.addTest(options => {
                                                         receiveResponse();
 
                                                     tester.ticketsContactsRequest().receiveResponse();
+
+                                                    tester.accountRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
+
                                                     tester.authenticatedUserRequest().receiveResponse();
 
                                                     tester.slavesNotification().
@@ -1826,7 +1869,9 @@ tests.addTest(options => {
                                                     tester.firstConnection.connectWebRTC();
                                                     tester.allowMediaInput();
 
-                                                    const outgoingCall = tester.outgoingCall().intercept().start();
+                                                    const outgoingCall = tester.outgoingCall().
+                                                        intercept().
+                                                        start();
 
                                                     tester.slavesNotification().
                                                         available().
@@ -1845,7 +1890,10 @@ tests.addTest(options => {
                                                         expectToBeSent();
 
                                                     tester.firstConnection.callTrackHandler();
-                                                    tester.numaRequest().intercept().receiveResponse();
+
+                                                    tester.numaRequest().
+                                                        intercept().
+                                                        receiveResponse();
                                                 });
                                                 it('Нажимаю на кнпоку вызова. Ничего не проиcходит.', function() {
                                                     tester.callStartingButton.click();
@@ -1854,22 +1902,26 @@ tests.addTest(options => {
                                                     'Открывается новая вкладка. Отправляется запрос обновления ' +
                                                     'состояния.',
                                                 function() {
-                                                    tester.masterNotification().tabOpened().receive();
-
-                                                    tester.slavesNotification().
-                                                        additional().
-                                                        visible().
-                                                        expectToBeSent();
+                                                    tester.masterNotification().
+                                                        tabOpened().
+                                                        receive();
 
                                                     tester.slavesNotification().
                                                         twoChannels().
                                                         available().
                                                         expectToBeSent();
+
+                                                    tester.slavesNotification().
+                                                        additional().
+                                                        visible().
+                                                        expectToBeSent();
                                                 });
                                                 it(
                                                     'На ведомой вкладке была нажата кнопка вызова. Совершается вызов.',
                                                 function() {
-                                                    tester.masterNotification().call().receive();
+                                                    tester.masterNotification().
+                                                        call().
+                                                        receive();
 
                                                     tester.firstConnection.connectWebRTC();
                                                     tester.allowMediaInput();
@@ -1884,39 +1936,31 @@ tests.addTest(options => {
 
                                                     tester.numaRequest().receiveResponse();
 
-                                                    spendTime(0);
-                                                    spendTime(0);
-                                                    spendTime(0);
-                                                    spendTime(0);
-
                                                     tester.outgoingIcon.expectToBeVisible();
+
                                                     tester.softphone.expectTextContentToHaveSubstring(
-                                                        '+7 (916) 123-45-67 Поиск контакта... 00:00'
+                                                        '+7 (916) 123-45-67 ' +
+                                                        'Поиск контакта... 00:00'
                                                     );
                                                 });
                                                 it(
                                                     'От ведомой вкладки получен токен. Ничего не сломалось.',
                                                 function() {
-                                                    tester.masterInfoMessage().applyLeader().receive();
-                                                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                                                    tester.masterInfoMessage().
+                                                        applyLeader().
+                                                        receive();
+
+                                                    tester.masterInfoMessage().
+                                                        tellIsLeader().
+                                                        expectToBeSent();
                                                 });
                                                 it(
                                                     'Получен запрос на выход из софтфона. Отображена форма ' +
                                                     'авторизации.',
                                                 function() {
-                                                    tester.masterNotification().destroy().receive();
-                                                    tester.masterInfoMessage().leaderDeath().expectToBeSent();
-
-                                                    tester.authLogoutRequest().receiveResponse();
-                                                    tester.userLogoutRequest().receiveResponse();
-
-                                                    tester.employeesWebSocket.finishDisconnecting();
-                                                    tester.eventsWebSocket.finishDisconnecting();
-
-                                                    tester.registrationRequest().expired().receiveResponse();
-
-                                                    spendTime(2000);
-                                                    tester.webrtcWebsocket.finishDisconnecting();
+                                                    tester.masterNotification().
+                                                        destroy().
+                                                        receive();
 
                                                     tester.slavesNotification().
                                                         userDataFetched().
@@ -1925,6 +1969,23 @@ tests.addTest(options => {
                                                         microphoneAccessGranted().
                                                         enabled().
                                                         expectToBeSent();
+
+                                                    tester.masterInfoMessage().
+                                                        leaderDeath().
+                                                        expectToBeSent();
+
+                                                    tester.authLogoutRequest().receiveResponse();
+                                                    tester.userLogoutRequest().receiveResponse();
+
+                                                    tester.employeesWebSocket.finishDisconnecting();
+                                                    tester.eventsWebSocket.finishDisconnecting();
+
+                                                    tester.registrationRequest().
+                                                        expired().
+                                                        receiveResponse();
+
+                                                    spendTime(2000);
+                                                    tester.webrtcWebsocket.finishDisconnecting();
 
                                                     tester.input.withFieldLabel('Логин').expectToBeVisible();
                                                 });
@@ -1933,18 +1994,10 @@ tests.addTest(options => {
                                                     'софтфона. Отображена форма авторизации.',
                                                 function() {
                                                     document.cookie = '';
-                                                    tester.masterNotification().destroy().receive();
-                                                    tester.masterInfoMessage().leaderDeath().expectToBeSent();
 
-                                                    tester.authLogoutRequest().receiveResponse();
-
-                                                    tester.employeesWebSocket.finishDisconnecting();
-                                                    tester.eventsWebSocket.finishDisconnecting();
-
-                                                    tester.registrationRequest().expired().receiveResponse();
-
-                                                    spendTime(2000);
-                                                    tester.webrtcWebsocket.finishDisconnecting();
+                                                    tester.masterNotification().
+                                                        destroy().
+                                                        receive();
 
                                                     tester.slavesNotification().
                                                         userDataFetched().
@@ -1954,7 +2007,29 @@ tests.addTest(options => {
                                                         enabled().
                                                         expectToBeSent();
 
-                                                    tester.input.withFieldLabel('Логин').expectToBeVisible();
+                                                    tester.masterInfoMessage().
+                                                        leaderDeath().
+                                                        expectToBeSent();
+
+                                                    broadcastChannels.
+                                                        nextMessage().
+                                                        expectNotToExist();
+
+                                                    tester.authLogoutRequest().receiveResponse();
+
+                                                    tester.employeesWebSocket.finishDisconnecting();
+                                                    tester.eventsWebSocket.finishDisconnecting();
+
+                                                    tester.registrationRequest().
+                                                        expired().
+                                                        receiveResponse();
+
+                                                    spendTime(2000);
+                                                    tester.webrtcWebsocket.finishDisconnecting();
+
+                                                    tester.input.
+                                                        withFieldLabel('Логин').
+                                                        expectToBeVisible();
                                                 });
                                                 it(
                                                     'Прошло некоторое время. Проверка наличия ведущей вкладки не ' +
@@ -2068,9 +2143,17 @@ tests.addTest(options => {
                                         it(
                                             'От ведомой вкладки пришел запрос отображения софтфона. Софтфон отображен.',
                                         function() {
-                                            tester.masterNotification().toggleWidgetVisiblity().receive();
+                                            tester.masterNotification().
+                                                toggleWidgetVisiblity().
+                                                receive();
+
+                                            tester.accountRequest().receiveResponse();
                                             tester.callStartingButton.expectToBeVisible();
-                                            tester.slavesNotification().additional().visible().expectToBeSent();
+
+                                            tester.slavesNotification().
+                                                additional().
+                                                visible().
+                                                expectToBeSent();
                                         });
                                         it(
                                             'Отображен пункт меню. Софтфон скрыт. Отображается статус сотрудника.',
@@ -2116,11 +2199,18 @@ tests.addTest(options => {
                                 describe('SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном.', function() {
                                     beforeEach(function() {
                                         tester.button('Софтфон').click();
-                                        tester.slavesNotification().additional().visible().expectToBeSent();
+                                        tester.accountRequest().receiveResponse();
+
+                                        tester.slavesNotification().
+                                            additional().
+                                            visible().
+                                            expectToBeSent();
 
                                         tester.phoneField.fill('79161234567');
 
-                                        authenticatedUserRequest.sipIsOffline().receiveResponse();
+                                        authenticatedUserRequest.
+                                            sipIsOffline().
+                                            receiveResponse();
 
                                         tester.slavesNotification().
                                             userDataFetched().
@@ -2154,17 +2244,19 @@ tests.addTest(options => {
                                             isSipOnline().
                                             receive();
 
-                                        tester.employeeChangedEvent().
-                                            isSipOnline().
-                                            slavesNotification().
-                                            expectToBeSent();
-                                         
                                         tester.slavesNotification().
                                             available().
                                             twoChannels().
                                             expectToBeSent();
 
-                                        tester.callStartingButton.expectNotToHaveAttribute('disabled');
+                                        tester.employeeChangedEvent().
+                                            isSipOnline().
+                                            slavesNotification().
+                                            expectToBeSent();
+                                         
+                                        tester.callStartingButton.
+                                            expectNotToHaveAttribute('disabled');
+
                                         tester.softphone.
                                             expectTextContentNotToHaveSubstring('Sip-линия не зарегистрирована');
                                     });
@@ -2182,8 +2274,12 @@ tests.addTest(options => {
                                 beforeEach(function() {
                                     tester.disallowMediaInput();
 
-                                    tester.slavesNotification().twoChannels().webRTCServerConnected().
-                                        microphoneAccessDenied().softphoneServerConnected().expectToBeSent();
+                                    tester.slavesNotification().
+                                        twoChannels().
+                                        webRTCServerConnected().
+                                        microphoneAccessDenied().
+                                        softphoneServerConnected().
+                                        expectToBeSent();
 
                                     authenticatedUserRequest.receiveResponse();
 
@@ -2209,7 +2305,12 @@ tests.addTest(options => {
                                         expectToBeSent();
 
                                     tester.button('Софтфон').click();
-                                    tester.slavesNotification().additional().visible().expectToBeSent();
+                                    tester.accountRequest().receiveResponse();
+
+                                    tester.slavesNotification().
+                                        additional().
+                                        visible().
+                                        expectToBeSent();
                                 });
 
                                 it('Нажимаю на кнопку второй линии. Происходит переход на вторую линию.', function() {
@@ -2310,6 +2411,7 @@ tests.addTest(options => {
                                         expectToBeSent();
 
                                     numaRequest = tester.numaRequest().expectToBeSent();
+                                    tester.accountRequest().receiveResponse();
                                 });
 
                                 describe('Позвонивший не является сотрудником.', function() {
@@ -2380,6 +2482,7 @@ tests.addTest(options => {
                             });
                             it('Открываю историю звонков.', function() {
                                 tester.button('Софтфон').click();
+                                tester.accountRequest().receiveResponse();
 
                                 tester.slavesNotification().
                                     additional().
@@ -2402,36 +2505,66 @@ tests.addTest(options => {
                             'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                             'авторизации. Отправлен только один запрос обновления токена.',
                         function() {
-                            reportGroupsRequest.accessTokenExpired().receiveResponse();
+                            reportGroupsRequest.
+                                accessTokenExpired().
+                                receiveResponse();
 
                             tester.refreshRequest().receiveResponse();
 
-                            settingsRequest.accessTokenExpired().receiveResponse();
-                            tester.reportGroupsRequest().anotherAuthorizationToken().expectToBeSent();
+                            settingsRequest.
+                                accessTokenExpired().
+                                receiveResponse();
+                            
+                            tester.reportGroupsRequest().
+                                anotherAuthorizationToken().
+                                expectToBeSent();
 
-                            tester.refreshRequest().anotherAuthorizationToken().receiveResponse();
-                            tester.settingsRequest().thirdAuthorizationToken().expectToBeSent();
+                            tester.refreshRequest().
+                                anotherAuthorizationToken().
+                                receiveResponse();
+
+                            tester.settingsRequest().
+                                thirdAuthorizationToken().
+                                expectToBeSent();
                         });
                         it(
                             'Сначала запрос от софтфона, а потом и запрос от лк завершился ошибкой истечения токена ' +
                             'авторизации. Отправлен только один запрос обновления токена.',
                         function() {
-                            settingsRequest.accessTokenExpired().receiveResponse();
+                            settingsRequest.
+                                accessTokenExpired().
+                                receiveResponse();
+
                             tester.refreshRequest().receiveResponse();
 
-                            reportGroupsRequest.accessTokenExpired().receiveResponse();
-                            tester.settingsRequest().anotherAuthorizationToken().expectToBeSent();
+                            reportGroupsRequest.
+                                accessTokenExpired().
+                                receiveResponse();
 
-                            tester.refreshRequest().anotherAuthorizationToken().receiveResponse();
-                            tester.reportGroupsRequest().thirdAuthorizationToken().expectToBeSent();
+                            tester.settingsRequest().
+                                anotherAuthorizationToken().
+                                expectToBeSent();
+
+                            tester.refreshRequest().
+                                anotherAuthorizationToken().
+                                receiveResponse();
+
+                            tester.reportGroupsRequest().
+                                thirdAuthorizationToken().
+                                expectToBeSent();
                         });
                         it(
                             'Срок действия токена авторизации истек. Токен авторизации обновлен. Софтфон подключен.',
                         function() {
-                            settingsRequest.accessTokenExpired().receiveResponse();
+                            settingsRequest.
+                                accessTokenExpired().
+                                receiveResponse();
+
                             tester.refreshRequest().receiveResponse();
 
-                            tester.settingsRequest().anotherAuthorizationToken().receiveResponse();
+                            tester.settingsRequest().
+                                anotherAuthorizationToken().
+                                receiveResponse();
 
                             tester.slavesNotification().
                                 twoChannels().
@@ -2489,7 +2622,10 @@ tests.addTest(options => {
                                 expectToBeSent();
                         });
                         it('Токен невалиден. Отображена форма аутентификации.', function() {
-                            settingsRequest.accessTokenInvalid().receiveResponse();
+                            settingsRequest.
+                                accessTokenInvalid().
+                                receiveResponse();
+
                             notificationTester.grantPermission();
 
                             const requests = ajax.inAnyOrder();
@@ -2504,13 +2640,23 @@ tests.addTest(options => {
 
                             tester.employeesWebSocket.finishDisconnecting();
 
-                            tester.masterInfoMessage().leaderDeath().expectToBeSent();
-                            tester.slavesNotification().destroyed().expectToBeSent();
+                            tester.slavesNotification().
+                                destroyed().
+                                expectToBeSent();
 
-                            tester.input.withFieldLabel('Логин').expectToBeVisible();
+                            tester.masterInfoMessage().
+                                leaderDeath().
+                                expectToBeSent();
+
+                            tester.input.
+                                withFieldLabel('Логин').
+                                expectToBeVisible();
                         });
                         it('Получен абсолютный URL сервера. Открыт веб-сокет.', function() {
-                            settingsRequest.anotherWsUrl().receiveResponse();
+                            settingsRequest.
+                                anotherWsUrl().
+                                receiveResponse();
+
                             notificationTester.grantPermission();
 
                             tester.slavesNotification().
@@ -2572,7 +2718,12 @@ tests.addTest(options => {
                             reportGroupsRequest.receiveResponse();
 
                             tester.button('Софтфон').click();
-                            tester.slavesNotification().additional().visible().expectToBeSent();
+                            tester.accountRequest().receiveResponse();
+
+                            tester.slavesNotification().
+                                additional().
+                                visible().
+                                expectToBeSent();
                         });
 
                         describe('Пользователь имеет права на список номеров.', function() {
@@ -2598,7 +2749,9 @@ tests.addTest(options => {
                                         numberCapacityRequest;
 
                                     beforeEach(function() {
-                                        permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
+                                        permissionsRequest.
+                                            allowNumberCapacityUpdate().
+                                            receiveResponse();
 
                                         tester.connectEventsWebSocket();
 
@@ -2846,7 +2999,9 @@ tests.addTest(options => {
                                     tester.select.arrow.click();
                                     tester.numberCapacityRequest().receiveResponse();
 
-                                    tester.select.option('+7 (916) 123-89-29 Некий номер').click();
+                                    tester.select.
+                                        option('+7 (916) 123-89-29 Некий номер').
+                                        click();
                                 });
                             });
                             describe(
@@ -2945,7 +3100,9 @@ tests.addTest(options => {
                                     'SIP-линия не зарегистрирована. Отображено сообщение о том, что SIP-линия не ' +
                                     'зарегистрирована.',
                                 function() {
-                                    authenticatedUserRequest.sipIsOffline().receiveResponse();
+                                    authenticatedUserRequest.
+                                        sipIsOffline().
+                                        receiveResponse();
 
                                     tester.slavesNotification().
                                         userDataFetched().
@@ -2967,7 +3124,9 @@ tests.addTest(options => {
                             });
                             describe('В качестве устройства для приема звонков исползуется IP-телефон.', function() {
                                 beforeEach(function() {
-                                    settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
+                                    settingsRequest.
+                                        callsAreManagedByAnotherDevice().
+                                        receiveResponse();
 
                                     tester.slavesNotification().
                                         twoChannels().
@@ -2975,7 +3134,10 @@ tests.addTest(options => {
                                         expectToBeSent();
 
                                     notificationTester.grantPermission();
-                                    permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
+
+                                    permissionsRequest.
+                                        allowNumberCapacityUpdate().
+                                        receiveResponse();
 
                                     tester.connectEventsWebSocket();
 
@@ -3015,8 +3177,14 @@ tests.addTest(options => {
                                     it(
                                         'Получена окончательная информация о звонке. Отображена информация о звонке.',
                                     function() {
-                                        tester.outCallEvent().needAutoAnswer().receive();
-                                        tester.outCallEvent().needAutoAnswer().slavesNotification().expectToBeSent();
+                                        tester.outCallEvent().
+                                            needAutoAnswer().
+                                            receive();
+
+                                        tester.outCallEvent().
+                                            needAutoAnswer().
+                                            slavesNotification().
+                                            expectToBeSent();
 
                                         tester.incomingIcon.expectToBeVisible();
 
@@ -3040,8 +3208,14 @@ tests.addTest(options => {
                                     'Получена окончательная информация о звонке. Имя длинное. Отображена информация ' +
                                     'о звонке.',
                                 function() {
-                                    tester.outCallEvent().longName().receive();
-                                    tester.outCallEvent().longName().slavesNotification().expectToBeSent();
+                                    tester.outCallEvent().
+                                        longName().
+                                        receive();
+
+                                    tester.outCallEvent().
+                                        longName().
+                                        slavesNotification().
+                                        expectToBeSent();
 
                                     tester.incomingIcon.expectToBeVisible();
 
@@ -3055,12 +3229,22 @@ tests.addTest(options => {
                                 it(
                                     'Получена окончательная информация о звонке. Отображена информация о звонке.',
                                 function() {
+
                                     tester.outCallEvent().receive();
-                                    tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                                    tester.outCallEvent().
+                                        slavesNotification().
+                                        expectToBeSent();
 
                                     tester.incomingIcon.expectToBeVisible();
+
                                     tester.softphone.
-                                        expectTextContentToHaveSubstring('Шалева Дора +7 (916) 123-45-67 Путь лида');
+                                        expectTextContentToHaveSubstring(
+                                            'Шалева Дора ' +
+                                            '+7 (916) 123-45-67 ' +
+
+                                            'Путь лида'
+                                        );
                                 });
                                 it('Совершается исходящий звонок. Отображена информация о звонке.', function() {
                                     tester.outCallSessionEvent().receive();
@@ -3135,8 +3319,13 @@ tests.addTest(options => {
                                 });
 
                                 it('Открываю список номеров.', function() {
-                                    tester.select.arrow.click();
-                                    tester.numberCapacityRequest().withLongComment().receiveResponse();
+                                    tester.select.
+                                        arrow.
+                                        click();
+
+                                    tester.numberCapacityRequest().
+                                        withLongComment().
+                                        receiveResponse();
                                 });
                                 it('Открываю диалпад. Отображен длинный комментарий.', function() {
                                     tester.dialpadVisibilityButton.click();
@@ -3191,7 +3380,7 @@ tests.addTest(options => {
                                     it(
                                         'Нажимаю на кнопку аккаунта. Выбираю другой статус. Другой статус выбран.',
                                     function() {
-                                        tester.userName.click();
+                                        tester.header.userName.click();
                                         tester.statusesList.item('Нет на месте').click();
 
                                         tester.employeeUpdatingRequest().receiveResponse();
@@ -3200,6 +3389,11 @@ tests.addTest(options => {
                                             anotherStatus().
                                             receive();
 
+                                        tester.entityChangeEvent().
+                                            anotherStatus().
+                                            slavesNotification().
+                                            expectToBeSent();
+                                            
                                         tester.slavesNotification().
                                             userDataFetched().
                                             twoChannels().
@@ -3209,13 +3403,13 @@ tests.addTest(options => {
                                             softphoneServerConnected().
                                             expectToBeSent();
 
-                                        tester.entityChangeEvent().
-                                            anotherStatus().
-                                            slavesNotification().
-                                            expectToBeSent();
+                                        tester.statusesList.
+                                            item('Не беспокоить').
+                                            expectNotToBeSelected();
 
-                                        tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
-                                        tester.statusesList.item('Нет на месте').expectToBeSelected();
+                                        tester.statusesList.
+                                            item('Нет на месте').
+                                            expectToBeSelected();
 
                                         tester.body.expectTextContentToHaveSubstring('Гонева Стевка Нет на месте');
                                     });
@@ -3248,12 +3442,13 @@ tests.addTest(options => {
                                         noTelephony().
                                         receiveResponse();
 
+                                    tester.slavesNotification().expectToBeSent();
+
                                     tester.slavesNotification().
                                         twoChannels().
                                         disabled().
                                         expectToBeSent();
 
-                                    tester.slavesNotification().expectToBeSent();
                                     tester.connectEventsWebSocket();
 
                                     tester.slavesNotification().
@@ -3275,6 +3470,10 @@ tests.addTest(options => {
                                 
                                 it('Нажимаю на кнопку контактов.', function() {
                                     tester.contactsButton.click();
+
+                                    tester.usersRequest().
+                                        forContacts().
+                                        expectToBeSent();
 
                                     tester.contactsRequest().
                                         differentNames().
@@ -3504,17 +3703,20 @@ tests.addTest(options => {
                                     expectToBeSent();
                             });
                             it('Выбран кастомный рингтон. Сигнал завершения звонка включен.', function() {
-                                settingsRequest.secondRingtone().isNeedDisconnectSignal().receiveResponse();
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    enabled().
-                                    expectToBeSent();
+                                settingsRequest.
+                                    secondRingtone().
+                                    isNeedDisconnectSignal().
+                                    receiveResponse();
 
                                 tester.othersNotification().
                                     updateSettings().
                                     shouldPlayCallEndingSignal().
                                     incomingRingtone().
+                                    expectToBeSent();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    enabled().
                                     expectToBeSent();
 
                                 notificationTester.grantPermission();
@@ -3660,8 +3862,17 @@ tests.addTest(options => {
             });
             describe('Вкладка является ведомой. Открываю софтфон.', function() {
                 beforeEach(function() {
-                    tester.masterInfoMessage().isNotMaster().receive();
-                    tester.masterNotification().tabOpened().expectToBeSent();
+                    tester.masterInfoMessage().
+                        isNotMaster().
+                        receive();
+
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.masterNotification().
+                        tabOpened().
+                        expectToBeSent();
 
                     authCheckRequest.receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();
@@ -3698,6 +3909,8 @@ tests.addTest(options => {
                         additional().
                         visible().
                         receive();
+
+                    tester.accountRequest().receiveResponse();
                 });
 
                 describe('Скрываю окно.', function() {
@@ -3713,20 +3926,40 @@ tests.addTest(options => {
                             tester.employeesWebSocket.connect();
                             tester.employeesInitMessage().expectToBeSent();
 
-                            tester.slavesNotification().
-                                additional().
-                                visible().
+                            tester.notificationChannel().
+                                applyLeader().
                                 expectToBeSent();
 
-                            tester.slavesNotification().
-                                tabsVisibilityRequest().
+                            tester.masterInfoMessage().
+                                applyLeader().
+                                expectToBeSent();
+
+                            tester.employeesBroadcastChannel().
+                                tellIsLeader().
+                                expectToBeSent();
+                                
+                            tester.notificationChannel().
+                                tellIsLeader().
+                                expectToBeSent();
+
+                            tester.masterInfoMessage().
+                                tellIsLeader().
                                 expectToBeSent();
 
                             tester.slavesNotification().
                                 userDataFetched().
                                 twoChannels().
-                                hidden().
                                 enabled().
+                                hidden().
+                                expectToBeSent();
+
+                            tester.slavesNotification().
+                                tabsVisibilityRequest().
+                                expectToBeSent();
+                                
+                            tester.slavesNotification().
+                                additional().
+                                visible().
                                 expectToBeSent();
 
                             tester.connectEventsWebSocket();
@@ -3734,9 +3967,9 @@ tests.addTest(options => {
                             tester.slavesNotification().
                                 userDataFetched().
                                 twoChannels().
-                                hidden().
                                 enabled().
                                 softphoneServerConnected().
+                                hidden().
                                 expectToBeSent();
 
                             tester.connectSIPWebSocket();
@@ -3745,13 +3978,9 @@ tests.addTest(options => {
                                 userDataFetched().
                                 twoChannels().
                                 webRTCServerConnected().
-                                hidden().
                                 softphoneServerConnected().
+                                hidden().
                                 expectToBeSent();
-
-                            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                            tester.notificationChannel().tellIsLeader().expectToBeSent();
-                            tester.notificationChannel().applyLeader().expectToBeSent();
 
                             tester.allowMediaInput();
 
@@ -3759,9 +3988,9 @@ tests.addTest(options => {
                                 userDataFetched().
                                 twoChannels().
                                 webRTCServerConnected().
-                                hidden().
                                 softphoneServerConnected().
                                 microphoneAccessGranted().
+                                hidden().
                                 expectToBeSent();
 
                             tester.authenticatedUserRequest().receiveResponse();
@@ -3800,12 +4029,9 @@ tests.addTest(options => {
                                 expectToHaveBody('Шалева Дора, +7 (916) 123-45-67, somesite.com').
                                 expectToBeOpened();
                         });
-                        it(
-                            'Прошло некоторое время. Проверка наличия ведущей вкладки не ' +
-                            'совершается.',
-                        function() {
+                        it( 'Прошло некоторое время. Проверка наличия ведущей вкладки не совершается.', function() {
                             spendTime(3000);
-                            Promise.runAll(false, true);
+                            spendTime(0);
                         });
                         it(
                             'Существует другая открытая вкладка. Поступил входящий звонок. Браузерное ' +
@@ -3834,7 +4060,9 @@ tests.addTest(options => {
                         });
                     });
                     it('Получен запрос видимости окна. Ничего не происходит.', function() {
-                        tester.slavesNotification().tabsVisibilityRequest().receive();
+                        tester.slavesNotification().
+                            tabsVisibilityRequest().
+                            receive();
                     });
                     it('Поступил входящий звонок. Отображена информация о звонке.', function() {
                         tester.slavesNotification().
@@ -3861,19 +4089,39 @@ tests.addTest(options => {
                     tester.employeesWebSocket.connect();
                     tester.employeesInitMessage().expectToBeSent();
 
-                    tester.slavesNotification().
-                        additional().
-                        visible().
+                    tester.notificationChannel().
+                        applyLeader().
                         expectToBeSent();
 
-                    tester.slavesNotification().
-                        tabsVisibilityRequest().
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+                        
+                    tester.notificationChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        tellIsLeader().
                         expectToBeSent();
 
                     tester.slavesNotification().
                         userDataFetched().
                         twoChannels().
                         enabled().
+                        expectToBeSent();
+
+                    tester.slavesNotification().
+                        tabsVisibilityRequest().
+                        expectToBeSent();
+                        
+                    tester.slavesNotification().
+                        additional().
+                        visible().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket();
@@ -3893,10 +4141,6 @@ tests.addTest(options => {
                         webRTCServerConnected().
                         softphoneServerConnected().
                         expectToBeSent();
-
-                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                    tester.notificationChannel().tellIsLeader().expectToBeSent();
-                    tester.notificationChannel().applyLeader().expectToBeSent();
 
                     tester.allowMediaInput();
 
@@ -3976,23 +4220,46 @@ tests.addTest(options => {
                     tester.loginRequest().receiveResponse();
                     tester.accountRequest().receiveResponse();
 
+                    tester.masterInfoMessage().receive();
+
+                    tester.notificationChannel().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.employeesWebSocket.connect();
+                    tester.employeesInitMessage().expectToBeSent();
+
+                    tester.notificationChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.slavesNotification().expectToBeSent();
+
+                    tester.slavesNotification().
+                        additional().
+                        visible().
+                        expectToBeSent();
+
                     tester.authCheckRequest().receiveResponse();
                     tester.reportGroupsRequest().receiveResponse();
                     tester.reportsListRequest().receiveResponse();
                     tester.reportTypesRequest().receiveResponse();
 
-                    tester.masterInfoMessage().receive();
-                    tester.slavesNotification().additional().visible().expectToBeSent();
-                    tester.slavesNotification().expectToBeSent();
-
-                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                    tester.notificationChannel().tellIsLeader().expectToBeSent();
-                    tester.notificationChannel().applyLeader().expectToBeSent();
-
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
                     tester.settingsRequest().receiveResponse();
-                    tester.employeeStatusesRequest().receiveResponse();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -4017,9 +4284,11 @@ tests.addTest(options => {
 
                     notificationTester.grantPermission();
 
+                    tester.employeeStatusesRequest().receiveResponse();
                     tester.employeeSettingsRequest().receiveResponse();
                     tester.employeeRequest().receiveResponse();
                     tester.ticketsContactsRequest().receiveResponse();
+                    tester.accountRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
                     tester.slavesNotification().
@@ -4077,12 +4346,36 @@ tests.addTest(options => {
                     tester.accountRequest().receiveResponse();
 
                     tester.masterInfoMessage().receive();
-                    tester.slavesNotification().additional().visible().expectToBeSent();
+
+                    tester.notificationChannel().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.employeesWebSocket.connect();
+                    tester.employeesInitMessage().expectToBeSent();
+
+                    tester.notificationChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        tellIsLeader().
+                        expectToBeSent();
+
                     tester.slavesNotification().expectToBeSent();
 
-                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                    tester.notificationChannel().tellIsLeader().expectToBeSent();
-                    tester.notificationChannel().applyLeader().expectToBeSent();
+                    tester.slavesNotification().
+                        additional().
+                        visible().
+                        expectToBeSent();
 
                     tester.authCheckRequest().receiveResponse();
                     tester.reportGroupsRequest().receiveResponse();
@@ -4120,6 +4413,7 @@ tests.addTest(options => {
                     tester.employeeSettingsRequest().receiveResponse();
                     tester.employeeRequest().receiveResponse();
                     tester.ticketsContactsRequest().receiveResponse();
+                    tester.accountRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
                     tester.slavesNotification().
@@ -4173,7 +4467,10 @@ tests.addTest(options => {
                     tester.phoneField.expectToHaveValue('79161234567');
                 });
                 it('С другой ведомой вкладки поступил запрос скрытия виджета. Виджет остался видимым.', function() {
-                    tester.masterNotification().toggleWidgetVisiblity().receive();
+                    tester.masterNotification().
+                        toggleWidgetVisiblity().
+                        receive();
+
                     tester.phoneField.expectToBeVisible();
                 });
                 it('Получен запрос выбора номера от другой вкладки.', function() {
@@ -4194,34 +4491,56 @@ tests.addTest(options => {
                 });
                 it('Окно свернуто. В ведущую вкладку отправлено сообщение о том, что окно свернуто.', function() {
                     setDocumentVisible(false);
-                    tester.masterNotification().tabBecameHidden().expectToBeSent();
+
+                    tester.masterNotification().
+                        tabBecameHidden().
+                        expectToBeSent();
                 });
                 it('Закрываю окно. Отправляется сообщение о скрытии окна.', function() {
                     unload();
-                    tester.masterNotification().tabBecameHidden().expectToBeSent();
+
+                    tester.masterNotification().
+                        tabBecameHidden().
+                        expectToBeSent();
                 });
                 it('Получен запрос видимости окна. Отправлено сообщение о видимости вкладки.', function() {
-                    tester.slavesNotification().tabsVisibilityRequest().receive();
-                    tester.masterNotification().tabBecameVisible().expectToBeSent();
+                    tester.slavesNotification().
+                        tabsVisibilityRequest().
+                        receive();
+
+                    tester.masterNotification().
+                        tabBecameVisible().
+                        expectToBeSent();
                 });
                 it(
                     'Нажимаю на кнпоку выход. Софтфон разлогинивается. Отправлен запрос выключения софтфона в мастер ' +
                     'вкладку.',
                 function() {
-                    tester.userName.click();
+                    tester.header.userName.click();
                     tester.logoutButton.click();
 
                     tester.userLogoutRequest().receiveResponse();
                     tester.authLogoutRequest().receiveResponse();
 
-                    tester.masterInfoMessage().leaderDeath().expectToBeSent();
-                    tester.masterNotification().destroy().expectToBeSent();
+                    tester.masterNotification().
+                        destroy().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        leaderDeath().
+                        expectToBeSent();
                 });
                 it('Прошло некоторое время. Проверяется наличие ведущей вкладки.', function() {
                     spendTime(2000);
-                    Promise.runAll(false, true);
+                    spendTime(0);
 
-                    tester.masterInfoMessage().applyLeader().expectToBeSent();
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.notificationChannel().
+                        applyLeader().
+                        expectToBeSent();
                 });
                 it('Попытка восстановления соединения не совершается.', function() {
                     tester.expectNoWebsocketConnecting();
@@ -4236,8 +4555,17 @@ tests.addTest(options => {
                 beforeEach(function() {
                     setDocumentVisible(false);
 
-                    tester.masterInfoMessage().isNotMaster().receive();
-                    tester.masterNotification().tabOpenedInBackground().expectToBeSent();
+                    tester.masterInfoMessage().
+                        isNotMaster().
+                        receive();
+
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.masterNotification().
+                        tabOpenedInBackground().
+                        expectToBeSent();
 
                     authCheckRequest.receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();
@@ -4265,7 +4593,10 @@ tests.addTest(options => {
                 });
                 it('Окно развернуто. В ведущую вкладку отправлено сообщение о том, что окно развернуто.', function() {
                     setDocumentVisible(true);
-                    tester.masterNotification().tabBecameVisible().expectToBeSent();
+
+                    tester.masterNotification().
+                        tabBecameVisible().
+                        expectToBeSent();
                 });
             });
         });
@@ -4277,17 +4608,44 @@ tests.addTest(options => {
             it('Фичефлаг софтфона включен. Кнопка софтфона отображена.', function() {
                 accountRequest.receiveResponse();
 
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
+
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().additional().expectToBeSent();
-                tester.slavesNotification().expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
 
                 tester.employeesWebSocket.connect();
                 tester.employeesInitMessage().expectToBeSent();
 
-                tester.notificationChannel().tellIsLeader().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.slavesNotification().expectToBeSent();
+
+                tester.slavesNotification().
+                    additional().
+                    expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
 
@@ -4394,17 +4752,44 @@ tests.addTest(options => {
                 employeeSettingsRequest.receiveResponse();
                 employeeRequest.receiveResponse();
 
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
+
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().additional().expectToBeSent();
-                tester.slavesNotification().expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
 
                 tester.employeesWebSocket.connect();
                 tester.employeesInitMessage().expectToBeSent();
 
-                tester.notificationChannel().tellIsLeader().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.slavesNotification().expectToBeSent();
+
+                tester.slavesNotification().
+                    additional().
+                    expectToBeSent();
 
                 authCheckRequest.receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
@@ -4465,8 +4850,13 @@ tests.addTest(options => {
                     expectToBeSent();
             });
             it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
-                accountRequest.softphoneFeatureFlagDisabled().receiveResponse();
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                accountRequest.
+                    softphoneFeatureFlagDisabled().
+                    receiveResponse();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
 
                 tester.ticketsContactsRequest().receiveResponse(),
                 tester.reportGroupsRequest().receiveResponse();
@@ -4479,7 +4869,9 @@ tests.addTest(options => {
         });
         describe('Раздел контактов недоступен.', function() {
             beforeEach(function() {
-                accountRequest.contactsFeatureFlagDisabled().receiveResponse();
+                accountRequest.
+                    contactsFeatureFlagDisabled().
+                    receiveResponse();
 
                 const requests = ajax.inAnyOrder();
 
@@ -4502,17 +4894,44 @@ tests.addTest(options => {
                 employeeSettingsRequest.receiveResponse();
                 employeeRequest.receiveResponse();
 
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
+
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().additional().expectToBeSent();
-                tester.slavesNotification().expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
 
                 tester.employeesWebSocket.connect();
                 tester.employeesInitMessage().expectToBeSent();
 
-                tester.notificationChannel().tellIsLeader().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.slavesNotification().expectToBeSent();
+
+                tester.slavesNotification().
+                    additional().
+                    expectToBeSent();
 
                 authCheckRequest.receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
@@ -4578,6 +4997,10 @@ tests.addTest(options => {
             function() {
                 tester.button('Софтфон').click();
 
+                tester.accountRequest().
+                    contactsFeatureFlagDisabled().
+                    receiveResponse();
+
                 tester.slavesNotification().
                     additional().
                     visible().
@@ -4603,6 +5026,10 @@ tests.addTest(options => {
 
                 tester.numaRequest().receiveResponse();
 
+                tester.accountRequest().
+                    contactsFeatureFlagDisabled().
+                    receiveResponse();
+
                 tester.outCallEvent().knownContact().receive();
                 tester.outCallEvent().knownContact().slavesNotification().expectToBeSent();
 
@@ -4621,18 +5048,44 @@ tests.addTest(options => {
             beforeEach(function() {
                 accountRequest.callGear().receiveResponse();
 
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
 
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().additional().expectToBeSent();
-                tester.slavesNotification().expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
 
                 tester.employeesWebSocket.connect();
                 tester.employeesInitMessage().expectToBeSent();
 
-                tester.notificationChannel().tellIsLeader().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.slavesNotification().expectToBeSent();
+
+                tester.slavesNotification().
+                    additional().
+                    expectToBeSent();
 
                 tester.ticketsContactsRequest().receiveResponse();
 
@@ -4661,6 +5114,10 @@ tests.addTest(options => {
                 settingsRequest = tester.settingsRequest().expectToBeSent();
 
                 tester.button('Софтфон').click();
+
+                tester.accountRequest().
+                    callGear().
+                    receiveResponse();
 
                 tester.slavesNotification().
                     additional().
@@ -4868,7 +5325,13 @@ tests.addTest(options => {
             let settingsRequest;
 
             beforeEach(function() {
-                accountRequest.shouldHideNumbersInContactName().receiveResponse();
+                accountRequest.
+                    shouldHideNumbersInContactName().
+                    receiveResponse();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
 
@@ -4892,16 +5355,39 @@ tests.addTest(options => {
                 employeeRequest.receiveResponse();
 
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().additional().expectToBeSent();
-                tester.slavesNotification().expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
 
                 tester.employeesWebSocket.connect();
                 tester.employeesInitMessage().expectToBeSent();
 
-                tester.notificationChannel().tellIsLeader().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.slavesNotification().expectToBeSent();
+
+                tester.slavesNotification().
+                    additional().
+                    expectToBeSent();
 
                 authCheckRequest.receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
@@ -4976,6 +5462,10 @@ tests.addTest(options => {
 
                     tester.numaRequest().receiveResponse();
 
+                    tester.accountRequest().
+                        shouldHideNumbersInContactName().
+                        receiveResponse();
+
                     tester.outCallEvent().
                         contactNameWithWithDigits().
                         receive();
@@ -5010,7 +5500,9 @@ tests.addTest(options => {
             });
             describe('Номера телефонов должны быть скрыты.', function() {
                 beforeEach(function() {
-                    settingsRequest.shouldHideNumbers().receiveResponse();
+                    settingsRequest.
+                        shouldHideNumbers().
+                        receiveResponse();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -5068,6 +5560,10 @@ tests.addTest(options => {
                 it('Открываю историю звонков. Цифры в имени контакта скрыты.', function() {
                     tester.button('Софтфон').click();
 
+                    tester.accountRequest().
+                        shouldHideNumbersInContactName().
+                        receiveResponse();
+
                     tester.slavesNotification().
                         additional().
                         visible().
@@ -5092,6 +5588,10 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.numaRequest().receiveResponse();
+
+                    tester.accountRequest().
+                        shouldHideNumbersInContactName().
+                        receiveResponse();
 
                     tester.outCallEvent().
                         contactNameWithWithDigits().
