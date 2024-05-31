@@ -26,6 +26,8 @@ define(() => function ({
     active = false,
     chatsPhoneNumbers = false,
     lang = 'ru',
+    amocrmLead,
+    renderAmocrmLead,
 }) {
     let history,
         eventBus,
@@ -867,6 +869,51 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.amocrmExtension = () => {
+                chatSettingsProcessors.push(settings => {
+                    settings.handlers = [{
+                        elementSelector: '.linked-form__field.linked-form__field-name',
+                        tag: 'div',
+                        mode: 'insertAfter',
+                        phoneXpath: '//input[contains(@class, "control-phone__formatted")]/@value',
+
+                        innerHTML: '{{ items }}',
+
+                        attributes: {
+                            style: 'margin: 10px 0 0;',
+                        },
+
+                        item: {
+                            tag: 'div',
+
+                            innerHTML: '<button ' +
+                                'type="button" ' +
+                                'style="' +
+                                    'cursor: pointer; ' +
+                                    'background: #fff; ' +
+                                    'border: 1px solid #b1b1b1;' +
+                                    'color: #363b44;' +
+                                    'border-radius: 12px;' +
+                                    'display: flex;' +
+                                    'align-items: center;' +
+                                    'padding: 1px 8px 0px 2px;' +
+                                '"' +
+                            '>' +
+                                '{{ icon }} {{ name }}' +
+                            '</button>',
+
+                            attributes: {
+                                style: 'margin-bottom: 10px;',
+                            },
+                        },
+                    }];
+                    
+                    return settings;
+                });
+
+                return me;
+            };
+
             me.failedToGetSettings = () => {
                 respond = request =>
                     request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
@@ -1267,6 +1314,7 @@ define(() => function ({
 
             areSettingsExpired && storageData.expired();
             anotherWildcart && storageData.anotherWildcart();
+            renderAmocrmLead && storageData.amocrmExtension();
 
             storageData.receive();
         }
@@ -2237,7 +2285,7 @@ define(() => function ({
         document.getElementById('pages-container').appendChild(pageContainer);
         const processPhone = value => value + (number - 1) * 9;
 
-        pageContainer.innerHTML = (
+        pageContainer.innerHTML = renderAmocrmLead ? amocrmLead : (
             '<div class="elements-groups">' +
                 '<div class="first-element">Первый элемент #' + number + '</div>' + 
                 '<div class="some-element">Некий элемент #' + number + '</div>' +
@@ -15387,7 +15435,7 @@ define(() => function ({
             },
             
             emptySearchString() {
-                params.contact.phone = '';
+                params.contact = null;
                 return this;
             },
             

@@ -56,8 +56,9 @@ define(function () {
 
             this.expectNotToBeSent = function () {
                 throw new Error(
-                    'Ни одно сообщение не должно быть отправлено, тогда как было отправлено сообщение в канал "' +
-                    actualChannel + '".' + "\n\n" + callStack
+                    'Ни одно сообщение не должно быть отправлено, тогда как сообщение ' +
+                    JSON.stringify(actualArguments) + ' было отправлено в канал "' + actualChannel + '".' + "\n\n" +
+                    callStack
                 );
             };
         }
@@ -166,8 +167,10 @@ define(function () {
 
                         spendTime(0);
                         spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
                     },
-                    recentlySentMessage: function () {
+                    nextSentMessage: function () {
                         return messages.pop();
                     },
                     expectNoMessageToBeSent: function () {
@@ -177,7 +180,7 @@ define(function () {
             },
             replaceByFake: function () {
                 opened = {};
-                messages = new JsTester_Queue(new NoMessage());
+                messages = new JsTester_Stack(new NoMessage());
 
                 window.require = function (name) {
                     var packages = {

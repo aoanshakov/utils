@@ -234,11 +234,19 @@ define(function () {
                 me.input.withFieldLabel = label => {
                     const labelEl = utils.descendantOf(getRootElement()).
                         textEquals(label).
-                        matchesSelector('.ui-label-content-field-label, .cmgui-label-content-field-label').
+                        matchesSelector(
+                            '.ui-label-content-field-label, ' +
+                            '.cmgui-label-content-field-label, ' +
+                            '.cmgui-text-field-label'
+                        ).
                         find();
 
                     const row = labelEl.closest('.ant-row'),
-                        input = (row || labelEl.closest('.ui-label, .cmgui-label')).querySelector('input');
+                        input = (row || labelEl.closest(
+                            '.ui-label, ' +
+                            '.cmgui-label, ' +
+                            '.cmgui-text-field-wrapper'
+                        )).querySelector('input');
 
                     return addMethods(() => input);
                 };
@@ -270,6 +278,7 @@ define(function () {
                 '.cmg-switch-label, ' +
                 '.misc-core-src-component-styles-module__label, ' +
                 '.misc-core-src-components-menu-styles-module__label, ' +
+                '.cmgui-tab-title, ' +
                 '.cm-chats--tab-title, ' +
                 '.cm-chats--title, ' +
                 '.src-components-main-menu-nav-item-styles-module__label, ' +

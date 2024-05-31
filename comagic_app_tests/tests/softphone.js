@@ -708,6 +708,8 @@ tests.addTest(options => {
                                                         tester.statusesList.
                                                             item('Нет на месте').
                                                             expectNotToExist();
+
+                                                        tester.statusesList.expectHeightToBeMoreThan(172);
                                                     });
                                                 });
                                                 describe('Нажимаю на кнопку открытия диалпада.', function() {
@@ -1309,137 +1311,6 @@ tests.addTest(options => {
                                                         );
                                                     });
                                                 });
-                                                /*
-                                                describe(
-                                                    'Получено сообщение о том, что другая вкладка стала ведущей. ' +
-                                                    'Разрывается соединение с вебсокетами. Получено оповещение о ' +
-                                                    'состоянии ведущей вкладки.',
-                                                function() {
-                                                    beforeEach(function() {
-                                                        tester.masterInfoMessage().tellIsLeader().receive();
-                                                        tester.masterNotification().tabOpened().expectToBeSent();
-
-                                                        tester.authenticatedUserRequest().receiveResponse();
-
-                                                        tester.eventsWebSocket.finishDisconnecting();
-                                                        tester.registrationRequest().expired().receiveResponse();
-
-                                                        spendTime(2000);
-                                                        tester.webrtcWebsocket.finishDisconnecting();
-
-                                                        tester.slavesNotification().
-                                                            available().
-                                                            twoChannels().
-                                                            receive();
-                                                    });
-
-                                                    describe(
-                                                        'Вкладка снова становится ведущей. Устанавливается соединение.',
-                                                    function() {
-                                                        beforeEach(function() {
-                                                            tester.masterInfoMessage().receive();
-
-                                                            tester.slavesNotification().
-                                                                tabsVisibilityRequest().
-                                                                expectToBeSent();
-
-                                                            tester.slavesNotification().
-                                                                userDataFetched().
-                                                                enabled().
-                                                                twoChannels().
-                                                                expectToBeSent();
-
-                                                            tester.slavesNotification().
-                                                                additional().
-                                                                visible().
-                                                                expectToBeSent();
-
-                                                            tester.masterInfoMessage().
-                                                                tellIsLeader().
-                                                                expectToBeSent();
-
-                                                            tester.connectSIPWebSocket(1);
-
-                                                            tester.slavesNotification().
-                                                                userDataFetched().
-                                                                enabled().
-                                                                twoChannels().
-                                                                webRTCServerConnected().
-                                                                expectToBeSent();
-
-                                                            tester.allowMediaInput();
-
-                                                            tester.slavesNotification().
-                                                                userDataFetched().
-                                                                enabled().
-                                                                twoChannels().
-                                                                webRTCServerConnected().
-                                                                microphoneAccessGranted().
-                                                                expectToBeSent();
-
-                                                            tester.registrationRequest().receiveResponse();
-
-                                                            tester.slavesNotification().
-                                                                userDataFetched().
-                                                                enabled().
-                                                                twoChannels().
-                                                                webRTCServerConnected().
-                                                                microphoneAccessGranted().
-                                                                registered().
-                                                                expectToBeSent();
-                                                            
-                                                            tester.getEventsWebSocket(1).expectToBeConnecting();
-                                                        });
-                                                            
-                                                        describe('Соединение установлено.', function() {
-                                                            beforeEach(function() {
-                                                                tester.connectEventsWebSocket(1);
-                                                                tester.authenticatedUserRequest().receiveResponse();
-
-                                                                tester.slavesNotification().
-                                                                    twoChannels().
-                                                                    available().
-                                                                    expectToBeSent();
-                                                            });
-
-                                                            it(
-                                                                'Прошло некоторое время. Проверка наличия ведущей ' +
-                                                                'вкладки не совершается.',
-                                                            function() {
-                                                                spendTime(3000);
-                                                                Promise.runAll(false, true);
-                                                            });
-                                                            it('Софтфон доступен.', function() {
-                                                                tester.callButton.expectNotToHaveAttribute('disabled');
-
-                                                                tester.softphone.expectTextContentNotToHaveSubstring(
-                                                                    'Устанавливается соединение...'
-                                                                );
-                                                            });
-                                                        });
-                                                        it('Отображено сообщение об установке соедниния.', function() {
-                                                            tester.softphone.expectToHaveTextContent(
-                                                                'Устанавливается соединение...'
-                                                            );
-                                                        });
-                                                    });
-                                                    it(
-                                                        'Прошло некоторое время. Проверяется наличие ведущей вкладки.',
-                                                    function() {
-                                                        spendTime(1000);
-                                                        Promise.runAll(false, true);
-
-                                                        tester.masterInfoMessage().applyLeader().expectToBeSent();
-                                                    });
-                                                    it('Софтфон приведен в актуальное состояние.', function() {
-                                                        tester.callButton.expectNotToHaveAttribute('disabled');
-
-                                                        tester.softphone.expectTextContentNotToHaveSubstring(
-                                                            'Устанавливается соединение...'
-                                                        );
-                                                    });
-                                                });
-                                                */
                                                 describe('Нажимаю на кнопку таблицы сотрудников.', function() {
                                                     beforeEach(function() {
                                                         tester.addressBookButton.click();
@@ -2867,16 +2738,27 @@ tests.addTest(options => {
                                                     });
                                                 });
                                                 it('Ввожу комментарий в поле поиска. Номер найден.', function() {
-                                                    tester.input.withPlaceholder('Найти').fill('один');
-                                                    tester.select.popup.
+                                                    tester.input.
+                                                        withPlaceholder('Найти').
+                                                        fill('один');
+
+                                                    tester.select.
+                                                        popup.
                                                         expectToHaveTextContent('+7 (916) 123-89-35 Еще один номер');
                                                 });
                                                 it('Выбранный номер выделен.', function() {
-                                                    tester.select.option('+7 (916) 123-89-27').
+                                                    tester.select.
+                                                        option('+7 (916) 123-89-27').
                                                         expectNotToHaveClass('ui-list-option-selected');
 
-                                                    tester.select.option('+7 (495) 021-68-06').
+                                                    tester.select.
+                                                        option('+7 (495) 021-68-06').
                                                         expectToHaveClass('ui-list-option-selected');
+
+                                                    tester.select.popup.expectNotToHaveTopOffset(4);
+                                                    tester.select.popup.expectToHaveHeight(331);
+
+                                                    tester.button('Отменить').expectNotToExist();
                                                 });
                                             });
                                             it(

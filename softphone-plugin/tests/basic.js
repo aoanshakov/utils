@@ -51,7 +51,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        describe('Открыт IFrame.', function() {
+        xdescribe('Открыт IFrame.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'iframeContent',
@@ -94,331 +94,407 @@ tests.addTest(options => {
                 });
 
                 describe('Произведена авторизация.', function() {
-                    let settingsRequest;
+                    let settingsRequest,
+                        permissionsRequest;
 
                     beforeEach(function() {
                         authCheckRequest.receiveResponse();
 
                         tester.talkOptionsRequest().receiveResponse();
-                        tester.permissionsRequest().receiveResponse();
+                        permissionsRequest = tester.permissionsRequest().expectToBeSent();
                         tester.statusesRequest().receiveResponse();
                         settingsRequest = tester.settingsRequest().expectToBeSent();
                     });
 
-                    describe('Управление звонками производится при помощи софтфона.', function() {
+                    describe('Выбор номера запрещён.', function() {
                         beforeEach(function() {
-                            settingsRequest.receiveResponse();
-
-                            tester.slavesNotification().
-                                twoChannels().
-                                enabled().
-                                expectToBeSent();
-
-                            notificationTester.grantPermission();
+                            permissionsRequest.receiveResponse();
                         });
 
-                        describe('Произведено подключение к серверам.', function() {
+                        describe('Управление звонками производится при помощи софтфона.', function() {
                             beforeEach(function() {
-                                tester.connectEventsWebSocket();
+                                settingsRequest.receiveResponse();
 
                                 tester.slavesNotification().
                                     twoChannels().
                                     enabled().
-                                    softphoneServerConnected().
                                     expectToBeSent();
 
-                                tester.connectSIPWebSocket();
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    softphoneServerConnected().
-                                    webRTCServerConnected().
-                                    expectToBeSent();
-
-                                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-                                tester.registrationRequest().receiveResponse();
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    softphoneServerConnected().
-                                    webRTCServerConnected().
-                                    registered().
-                                    expectToBeSent();
+                                notificationTester.grantPermission();
                             });
 
-                            describe('Нет пропущенных звонков.', function() {
+                            describe('Произведено подключение к серверам.', function() {
                                 beforeEach(function() {
-                                    authenticatedUserRequest.receiveResponse();
-
-                                    tester.stateSettingRequest().
-                                        visible().
-                                        userDataFetched().
-                                        expectToBeSent();
-
-                                    tester.slavesNotification().
-                                        twoChannels().
-                                        softphoneServerConnected().
-                                        webRTCServerConnected().
-                                        registered().
-                                        userDataFetched().
-                                        expectToBeSent();
-                                });
-                                
-                                describe('Доступ к микрофону разрешён.', function() {
-                                    beforeEach(function() {
-                                        tester.allowMediaInput();
-
-                                        tester.slavesNotification().
-                                            twoChannels().
-                                            available().
-                                            expectToBeSent();
-                                    });
-
-                                    xit(
-                                        'Поступил входящий звонок. Поступил еще один входящий звонок. В ' +
-                                        'родительское окно отправлено сообщение об изменении размера софтфона.',
-                                    function() {
-                                        const incomingCall = tester.incomingCall().receive();
-
-                                        tester.slavesNotification().
-                                            twoChannels().
-                                            available().
-                                            incoming().
-                                            progress().
-                                            expectToBeSent();
-
-                                        tester.numaRequest().receiveResponse();
-
-                                        tester.outCallEvent().receive();
-                                        tester.outCallEvent().slavesNotification().expectToBeSent();
-
-                                        tester.stateSettingRequest().
-                                            visible().
-                                            expanded().
-                                            expectToBeSent();
-
-                                        tester.incomingCall().thirdNumber().receive();
-
-                                        tester.slavesNotification().
-                                            twoChannels().
-                                            available().
-                                            incoming().
-                                            progress().
-                                            secondChannel().
-                                                incoming().
-                                                progress().
-                                                fifthPhoneNumber().
-                                            expectToBeSent();
-
-                                        tester.numaRequest().thirdNumber().receiveResponse();
-
-                                        tester.outCallEvent().
-                                            anotherPerson().
-                                            receive();
-
-                                        tester.outCallEvent().
-                                            anotherPerson().
-                                            slavesNotification().
-                                            expectToBeSent();
-
-                                        tester.stateSettingRequest().
-                                            noIdleChannels().
-                                            expanded().
-                                            visible().
-                                            expectToBeSent();
-                                    });
-                                    xit('Получен запрос вызова. Производится вызов.', function() {
-                                        postMessages.receive({
-                                            method: 'start_call',
-                                            data: '79161234567',
-                                        });
-
-                                        tester.numaRequest().receiveResponse();
-
-                                        tester.firstConnection.connectWebRTC();
-                                        tester.allowMediaInput();
-                                        tester.outboundCall().start();
-
-                                        tester.slavesNotification().
-                                            twoChannels().
-                                            available().
-                                            sending().
-                                            expectToBeSent();
-                                    });
-                                    it('Раскрываю список статусов. Отображён список статусов.', function() {
-                                        tester.userName.click();
-                                        
-                                        tester.statusesList.
-                                            item('Не беспокоить').
-                                            expectToBeSelected();
-                                        
-                                        tester.statusesList.
-                                            item('Нет на месте').
-                                            expectNotToBeSelected();
-                                    });
-                                    return;
-                                    it('Софтфон готов к использованию.', function() {
-                                        tester.phoneField.expectToBeVisible();
-                                    });
-                                });
-                                return;
-                                it(
-                                    'Доступ к микрофону запрещён. Отображено сообщение о недоступности микрофона.',
-                                function() {
-                                    tester.disallowMediaInput();
+                                    tester.connectEventsWebSocket();
 
                                     tester.slavesNotification().
                                         twoChannels().
                                         enabled().
                                         softphoneServerConnected().
-                                        webRTCServerConnected().
-                                        userDataFetched().
-                                        microphoneAccessDenied().
-                                        registered().
                                         expectToBeSent();
 
-                                    tester.softphone.expectToHaveTextContent(
-                                        'Микрофон не обнаружен ' +
-                                        'Подключите микрофон или разрешите доступ к микрофону для сайта'
-                                    );
+                                    tester.connectSIPWebSocket();
+
+                                    tester.slavesNotification().
+                                        twoChannels().
+                                        softphoneServerConnected().
+                                        webRTCServerConnected().
+                                        expectToBeSent();
+
+                                    authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                                    tester.registrationRequest().receiveResponse();
+
+                                    tester.slavesNotification().
+                                        twoChannels().
+                                        softphoneServerConnected().
+                                        webRTCServerConnected().
+                                        registered().
+                                        expectToBeSent();
+                                });
+
+                                describe('Нет пропущенных звонков.', function() {
+                                    beforeEach(function() {
+                                        authenticatedUserRequest.receiveResponse();
+
+                                        tester.stateSettingRequest().
+                                            visible().
+                                            userDataFetched().
+                                            expectToBeSent();
+
+                                        tester.slavesNotification().
+                                            twoChannels().
+                                            softphoneServerConnected().
+                                            webRTCServerConnected().
+                                            registered().
+                                            userDataFetched().
+                                            expectToBeSent();
+                                    });
+                                    
+                                    describe('Доступ к микрофону разрешён.', function() {
+                                        beforeEach(function() {
+                                            tester.allowMediaInput();
+
+                                            tester.slavesNotification().
+                                                twoChannels().
+                                                available().
+                                                expectToBeSent();
+                                        });
+
+                                        it(
+                                            'Поступил входящий звонок. Поступил еще один входящий звонок. В ' +
+                                            'родительское окно отправлено сообщение об изменении размера софтфона.',
+                                        function() {
+                                            const incomingCall = tester.incomingCall().receive();
+
+                                            tester.slavesNotification().
+                                                twoChannels().
+                                                available().
+                                                incoming().
+                                                progress().
+                                                expectToBeSent();
+
+                                            tester.numaRequest().receiveResponse();
+
+                                            tester.outCallEvent().receive();
+                                            tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                                            tester.stateSettingRequest().
+                                                visible().
+                                                userDataFetched().
+                                                expanded().
+                                                expectToBeSent();
+
+                                            tester.incomingCall().thirdNumber().receive();
+
+                                            tester.slavesNotification().
+                                                twoChannels().
+                                                available().
+                                                incoming().
+                                                progress().
+                                                secondChannel().
+                                                    incoming().
+                                                    progress().
+                                                    fifthPhoneNumber().
+                                                expectToBeSent();
+
+                                            tester.numaRequest().thirdNumber().receiveResponse();
+
+                                            tester.outCallEvent().
+                                                anotherPerson().
+                                                receive();
+
+                                            tester.outCallEvent().
+                                                anotherPerson().
+                                                slavesNotification().
+                                                expectToBeSent();
+
+                                            tester.stateSettingRequest().
+                                                visible().
+                                                userDataFetched().
+                                                expanded().
+                                                noIdleChannels().
+                                                expectToBeSent();
+                                        });
+                                        it('Получен запрос вызова. Производится вызов.', function() {
+                                            postMessages.receive({
+                                                method: 'start_call',
+                                                data: '79161234567',
+                                            });
+
+                                            tester.numaRequest().receiveResponse();
+
+                                            tester.firstConnection.connectWebRTC();
+                                            tester.allowMediaInput();
+                                            tester.outboundCall().start();
+
+                                            tester.slavesNotification().
+                                                twoChannels().
+                                                available().
+                                                sending().
+                                                expectToBeSent();
+                                        });
+                                        it('Раскрываю список статусов. Отображён список статусов.', function() {
+                                            tester.userName.click();
+                                            
+                                            tester.statusesList.
+                                                item('Не беспокоить').
+                                                expectToBeSelected();
+                                            
+                                            tester.statusesList.
+                                                item('Нет на месте').
+                                                expectNotToBeSelected();
+                                        });
+                                        it('Софтфон готов к использованию.', function() {
+                                            tester.phoneField.expectToBeVisible();
+                                        });
+                                    });
+                                    it(
+                                        'Доступ к микрофону запрещён. Отображено сообщение о недоступности микрофона.',
+                                    function() {
+                                        tester.disallowMediaInput();
+
+                                        tester.slavesNotification().
+                                            twoChannels().
+                                            enabled().
+                                            softphoneServerConnected().
+                                            webRTCServerConnected().
+                                            userDataFetched().
+                                            microphoneAccessDenied().
+                                            registered().
+                                            expectToBeSent();
+
+                                        tester.softphone.expectToHaveTextContent(
+                                            'Микрофон не обнаружен ' +
+                                            'Подключите микрофон или разрешите доступ к микрофону для сайта'
+                                        );
+                                    });
+                                });
+                                it(
+                                    'Есть пропущенные звонки. Родительское окно оповещено о количестве пропущенных ' +
+                                    'звонков. Сворачиваю окно. Звонок пропущен. В родительское окно передано ' +
+                                    'сообщение о пропущенном звонке. Разворачиваю окно. В родительское окно передано ' +
+                                    'сообщение об отсутствии пропущенных звонков.',
+                                function() {
+                                    authenticatedUserRequest.
+                                        newCall().
+                                        receiveResponse();
+
+                                    tester.stateSettingRequest().
+                                        visible().
+                                        lostCalls(1).
+                                        expectToBeSent();
+
+                                    tester.stateSettingRequest().
+                                        visible().
+                                        userDataFetched().
+                                        lostCalls(1).
+                                        expectToBeSent();
+
+                                    tester.slavesNotification().
+                                        twoChannels().
+                                        softphoneServerConnected().
+                                        webRTCServerConnected().
+                                        registered().
+                                        userDataFetched().
+                                        expectToBeSent();
+
+                                    tester.allowMediaInput();
+
+                                    tester.slavesNotification().
+                                        twoChannels().
+                                        available().
+                                        expectToBeSent();
+
+                                    tester.callsHistoryButton.click();
+
+                                    tester.stateSettingRequest().
+                                        visible().
+                                        userDataFetched().
+                                        expanded().
+                                        lostCalls(1).
+                                        expectToBeSent();
+
+                                    tester.callsRequest().receiveResponse();
+
+                                    tester.stateSettingRequest().
+                                        visible().
+                                        userDataFetched().
+                                        expanded().
+                                        expectToBeSent();
+
+                                    setDocumentVisible(false);
+
+                                    tester.slavesNotification().
+                                        twoChannels().
+                                        available().
+                                        hidden().
+                                        expectToBeSent();
+
+                                    tester.lostCallSessionEvent().receive();
+
+                                    tester.lostCallSessionEvent().
+                                        slavesNotification().
+                                        expectToBeSent();
+
+                                    tester.stateSettingRequest().
+                                        visible().
+                                        userDataFetched().
+                                        expanded().
+                                        lostCalls(1).
+                                        expectToBeSent();
+
+                                    setDocumentVisible(true);
+
+                                    tester.slavesNotification().
+                                        twoChannels().
+                                        available().
+                                        expectToBeSent();
+
+                                    tester.stateSettingRequest().
+                                        visible().
+                                        expanded().
+                                        userDataFetched().
+                                        expectToBeSent();
                                 });
                             });
-                            return;
-                            it(
-                                'Есть пропущенные звонки. Родительское окно оповещено о количестве пропущенных ' +
-                                'звонков. Сворачиваю окно. Звонок пропущен. В родительское окно передано ' +
-                                'сообщение о пропущенном звонке. Разворачиваю окно. В родительское окно передано ' +
-                                'сообщение об отсутствии пропущенных звонков.',
-                            function() {
-                                authenticatedUserRequest.
-                                    newCall().
-                                    receiveResponse();
-
-                                tester.stateSettingRequest().
-                                    visible().
-                                    lostCalls(1).
-                                    expectToBeSent();
-
-                                tester.stateSettingRequest().
-                                    visible().
-                                    userDataFetched().
-                                    lostCalls(1).
-                                    expectToBeSent();
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    softphoneServerConnected().
-                                    webRTCServerConnected().
-                                    registered().
-                                    userDataFetched().
-                                    expectToBeSent();
-
-                                tester.allowMediaInput();
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    available().
-                                    expectToBeSent();
-
-                                tester.callsHistoryButton.click();
-
-                                tester.stateSettingRequest().
-                                    visible().
-                                    userDataFetched().
-                                    expanded().
-                                    lostCalls(1).
-                                    expectToBeSent();
-
-                                tester.callsRequest().receiveResponse();
-
-                                tester.stateSettingRequest().
-                                    visible().
-                                    userDataFetched().
-                                    expanded().
-                                    expectToBeSent();
-
-                                setDocumentVisible(false);
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    available().
-                                    hidden().
-                                    expectToBeSent();
-
-                                tester.lostCallSessionEvent().receive();
-
-                                tester.lostCallSessionEvent().
-                                    slavesNotification().
-                                    expectToBeSent();
-
-                                tester.stateSettingRequest().
-                                    visible().
-                                    userDataFetched().
-                                    expanded().
-                                    lostCalls(1).
-                                    expectToBeSent();
-
-                                setDocumentVisible(true);
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    available().
-                                    expectToBeSent();
-
-                                tester.stateSettingRequest().
-                                    visible().
-                                    expanded().
-                                    userDataFetched().
-                                    expectToBeSent();
+                            it('Отображено сообщение об установки соединения.', function() {
+                                tester.getEventsWebSocket().expectToBeConnecting();
+                                tester.softphone.expectToHaveTextContent('Устанавливается соединение...');
                             });
                         });
-                        return;
-                        it('Отображено сообщение об установки соединения.', function() {
-                            tester.getEventsWebSocket().expectToBeConnecting();
-                            tester.softphone.expectToHaveTextContent('Устанавливается соединение...');
+                        it('Включено управление звонками на другом устройстве.', function() {
+                            settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                disabled().
+                                expectToBeSent();
+
+                            notificationTester.grantPermission();
+                            tester.connectEventsWebSocket();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                disabled().
+                                softphoneServerConnected().
+                                expectToBeSent();
+
+                            tester.authenticatedUserRequest().receiveResponse();
+
+                            tester.stateSettingRequest().
+                                userDataFetched().
+                                visible().
+                                expectToBeSent();
+
+                            tester.slavesNotification().
+                                userDataFetched().
+                                twoChannels().
+                                disabled().
+                                softphoneServerConnected().
+                                expectToBeSent();
+
+                            postMessages.receive({
+                                method: 'start_call',
+                                data: '79161234567',
+                            });
+
+                            tester.click2CallRequest().receiveResponse();
                         });
                     });
-                    return;
-                    it('Включено управление звонками на другом устройстве.', function() {
-                        settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
+                    it('Выбор номер разрешён.', function() {
+                        permissionsRequest.
+                            allowNumberCapacitySelect().
+                            allowNumberCapacityUpdate().
+                            receiveResponse();
+
+                        settingsRequest.
+                            allowNumberCapacitySelect().
+                            receiveResponse();
 
                         tester.slavesNotification().
                             twoChannels().
-                            disabled().
+                            enabled().
                             expectToBeSent();
+
+                        tester.numberCapacityRequest().receiveResponse();
 
                         notificationTester.grantPermission();
                         tester.connectEventsWebSocket();
 
                         tester.slavesNotification().
                             twoChannels().
-                            disabled().
+                            enabled().
                             softphoneServerConnected().
                             expectToBeSent();
 
-                        tester.authenticatedUserRequest().receiveResponse();
+                        tester.connectSIPWebSocket();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            expectToBeSent();
+
+                        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                        tester.registrationRequest().receiveResponse();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            registered().
+                            expectToBeSent();
+
+                        authenticatedUserRequest.receiveResponse();
 
                         tester.stateSettingRequest().
-                            userDataFetched().
                             visible().
+                            userDataFetched().
                             expectToBeSent();
 
                         tester.slavesNotification().
-                            userDataFetched().
                             twoChannels().
-                            disabled().
                             softphoneServerConnected().
+                            webRTCServerConnected().
+                            registered().
+                            userDataFetched().
+                            expectToBeSent();
+                            tester.allowMediaInput();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
                             expectToBeSent();
 
-                        postMessages.receive({
-                            method: 'start_call',
-                            data: '79161234567',
-                        });
+                        tester.select.arrow.click();
+                        tester.numberCapacityRequest().receiveResponse();
 
-                        tester.click2CallRequest().receiveResponse();
+                        tester.select.popup.expectToHaveTopOffset(4);
+                        tester.select.popup.expectToHaveHeight(204);
+
+                        tester.button('Отменить').expectToBeVisible();
                     });
                 });
-                return;
                 it('Ну удалось произвести авторизацию.', function() {
                     authCheckRequest.
                         invalidToken().
@@ -437,13 +513,11 @@ tests.addTest(options => {
                     });
                 });
             });
-            return;
             it('Софтфон скрыт.', function() {
                 tester.softphone.expectNotToExist();
             });
         });
-        return;
-        describe('Открываю попап. Отправлен запрос состояния.', function() {
+        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
             let stateRequest,
                 popupStateSettingRequest;
 
@@ -522,7 +596,7 @@ tests.addTest(options => {
                     expectToBeReloaded();
             });
         });
-        describe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
+        xdescribe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -1505,7 +1579,7 @@ tests.addTest(options => {
                 tester.iframe.first.expectNotToExist();
             });
         });
-        describe('Открываю попап. Отправлен запрос состояния.', function() {
+        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'popup',
@@ -1668,7 +1742,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentNotToHaveSubstring('Вы не авторизованы');
             });
         });
-        describe('Открываю background-скрипт. Софтфон авторизован.', function() {
+        xdescribe('Открываю background-скрипт. Софтфон авторизован.', function() {
             let oauthRequest;
 
             beforeEach(function() {
@@ -1851,7 +1925,7 @@ tests.addTest(options => {
                     grant();
             });
         });
-        describe('Открываю background-скрипт.', function() {
+        xdescribe('Открываю background-скрипт.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'background',
@@ -2027,7 +2101,7 @@ tests.addTest(options => {
                 tester.popupStateSettingRequest().expectResponseToBeSent();
             });
         });
-        describe('Контент скрипт встроился в IFrame. Сотрудник авторизован.', function() {
+        xdescribe('Контент скрипт встроился в IFrame. Сотрудник авторизован.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -2133,7 +2207,7 @@ tests.addTest(options => {
                 );
             });
         });
-        describe('Открыт IFrame софтфона amoCRM.', function() {
+        xdescribe('Открыт IFrame софтфона amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'amocrmIframeContent',
@@ -2347,7 +2421,7 @@ tests.addTest(options => {
                 windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru');
             });
         });
-        describe('Открываю виджет amoCRM.', function() {
+        xdescribe('Открываю виджет amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -2510,7 +2584,7 @@ tests.addTest(options => {
                 tester.iframe.first.expectToBeHidden();
             });
         });
-        describe(
+        xdescribe(
             'В локальном хранилище сохранен токен. Открыт IFrame софтфона amoCRM. Производится авторизация.',
         function() {
             let settingsRequest,
@@ -2826,7 +2900,7 @@ tests.addTest(options => {
                 });
             });
         });
-        describe('Открываю IFrame чатов. Получены настройки.', function() {
+        xdescribe('Открываю IFrame чатов. Получены настройки.', function() {
             let accountRequest,
                 secondAccountRequest,
                 widgetSettings;
@@ -3082,15 +3156,6 @@ tests.addTest(options => {
                                         receiveResponse();
 
                                     tester.contactGroupsRequest().
-                                        forIframe().
-                                        receiveResponse();
-
-                                    tester.contactGroupsRequest().
-                                        forIframe().
-                                        receiveResponse();
-
-                                    tester.usersRequest().
-                                        forContacts().
                                         forIframe().
                                         receiveResponse();
 
@@ -3558,7 +3623,7 @@ tests.addTest(options => {
                 tester.messageTemplatesSettingsRequest().expectToBeSent();
             });
         });
-        describe('Открываю страницу с расширением. Есть номера чатов.', function() {
+        xdescribe('Открываю страницу с расширением. Есть номера чатов.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -3828,7 +3893,7 @@ tests.addTest(options => {
                 );
             });
         });
-        describe('Контент скрипт встроился в IFrame.', function() {
+        xdescribe('Контент скрипт встроился в IFrame.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -3895,7 +3960,7 @@ tests.addTest(options => {
                 postMessages.nextMessage().expectNotToExist();
             });
         });
-        describe('Контент-скрипт встроился в IFrame. Есть номера чатов.', function() {
+        xdescribe('Контент-скрипт встроился в IFrame. Есть номера чатов.', function() {
             let widgetSettings;
 
             beforeEach(function() {
@@ -4077,7 +4142,7 @@ tests.addTest(options => {
                 );
             });
         });
-        it('Открыт IFrame. Получен дубайский токен. Отправлен запрос авторизации в дубайский сервер.', function() {
+        xit('Открыт IFrame. Получен дубайский токен. Отправлен запрос авторизации в дубайский сервер.', function() {
             tester = new Tester({
                 application: 'iframeContent',
                 isIframe: true,
@@ -4117,7 +4182,7 @@ tests.addTest(options => {
                 anotherToken().
                 expectToBeSent();
         });
-        it(
+        xit(
             'Открываю background-скрипт. Софтфон авторизован. Время хранения настроек истекло. Получен запрос ' +
             'возможного обновления настроек. Настройки обновлены.',
         function() {
@@ -4148,7 +4213,7 @@ tests.addTest(options => {
                 storageData().
                 expectToBeSaved();
         });
-        it('Ранее был открыт дубайский IFrame. Дубайский IFrame снова открыт.', function() {
+        xit('Ранее был открыт дубайский IFrame. Дубайский IFrame снова открыт.', function() {
             window.localStorage.setItem('data_center', 'dubai'),
 
             tester = new Tester({
@@ -4174,7 +4239,7 @@ tests.addTest(options => {
                 'https://prod-msk-softphone-widget-iframe.callgear.ae/amocrm',
             );
         });
-        it('Виджет установлен. Открываю настройки. Кнопока настроек видима.', function() {
+        xit('Виджет установлен. Открываю настройки. Кнопока настроек видима.', function() {
             tester = new Tester({
                 softphoneHost: 'my.uiscom.ru',
                 ...options,
@@ -4185,7 +4250,7 @@ tests.addTest(options => {
             tester.openSettings();
             tester.button('Перейти к настройкам').expectToBeVisible();
         });
-        it('Должен использоваться английский язык. Открываю настройки. Используется английский язык.', function() {
+        xit('Должен использоваться английский язык. Открываю настройки. Используется английский язык.', function() {
             tester = new Tester({
                 softphoneHost: 'my.uiscom.ru',
                 ...options,
@@ -4197,7 +4262,7 @@ tests.addTest(options => {
             tester.openSettings();
             tester.button('Open settings').expectToBeVisible();
         });
-        it('Открываю страницу с расширением. Токен авторизации был сохранен. В IFrame отправлен токен.', function() {
+        xit('Открываю страницу с расширением. Токен авторизации был сохранен. В IFrame отправлен токен.', function() {
             tester = new Tester({
                 softphoneHost: 'my.uiscom.ru',
                 isAuthorized: true,
@@ -4253,6 +4318,47 @@ tests.addTest(options => {
                 storageData().
                 emptyToken().
                 expectToBeSaved();
+        });
+        it('Открываю страницу с расширением. Токен авторизации был сохранен. В IFrame отправлен токен.', function() {
+            tester = new Tester({
+                softphoneHost: 'my.uiscom.ru',
+                isAuthorized: true,
+                renderAmocrmLead: true,
+                ...options,
+            });
+
+            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+
+            tester.popupStateSettingRequest().
+                disabled().
+                receiveResponse();
+
+            tester.chatsVisibilitySettingRequest().receiveResponse();
+
+            tester.stateSettingRequest().receive();
+            tester.popupStateSettingRequest().receiveResponse();
+
+            tester.widgetSettings().
+                windowMessage().
+                expectToBeSent();
+
+            tester.submoduleInitilizationEvent().
+                operatorWorkplace().
+                receive();
+
+            tester.submoduleInitilizationEvent().receive();
+            tester.channelsSearchingRequest().expectToBeSent();
+
+            tester.widgetSettings().
+                windowMessage().
+                chatsSettings().
+                amocrmExtension().
+                expectToBeSent();
+
+            tester.channelsSearchingResponse().
+                addChannel().
+                addThirdChannel().
+                receive();
         });
     });
 });

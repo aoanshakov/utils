@@ -455,13 +455,21 @@ define(() => function ({
 
         me.collapsablePanel = title => {
             const getTitle = () => utils.descendantOf(getRootElement()).
-                matchesSelector('.cm-chats--title').
+                matchesSelector(
+                    '.misc-chats-src-components-lib-form-collapsible2-styles-module__titleLarge'
+                ).
                 textEquals(title).
                 find();
 
-            const getPanel = () => getTitle().closest('.cm-chats--collapse'),
-                getContent = () => getPanel().querySelector('.cm-chats--collapse-content'),
-                tester = testersFactory.createDomElementTester(getPanel);
+            const getPanel = () => getTitle().closest(
+                '.misc-chats-src-components-lib-form-collapsible2-styles-module__container'
+            ) || new JsTester_NoElement();
+            
+            const getContent = () => getPanel().querySelector(
+                '.misc-chats-src-components-lib-form-collapsible2-styles-module__content'
+            );
+
+            const tester = testersFactory.createDomElementTester(getPanel);
 
             tester.title = (() => {
                 const tester = testersFactory.createDomElementTester(getTitle),
@@ -6773,16 +6781,20 @@ define(() => function ({
     };
 
     me.chatInfoRequest = () => {
+        let chat_id = '7189362';
         const addResponseModifiers = me => me;
 
         return addResponseModifiers({
+            anotherChat() {
+                chat_id = '2718935';
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL/operator/chat/info').
                     expectToHaveMethod('GET').
-                    expectQueryToContain({
-                        chat_id: '7189362'
-                    });
+                    expectQueryToContain({ chat_id });
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -16345,7 +16357,9 @@ define(() => function ({
     me.chatListItem = (text, getRootElement = () => document.body) => {
         const domElement = utils.descendantOf(getRootElement()).
             matchesSelector(
-                '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-item-styles-module__root'
+                '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-item-styles-module__root, ' +
+                '.misc-chats-src-components-offline-messages-components-list-panel-components-offline-message-item-' +
+                    'styles-module__root'
             ).
             textContains(text).
             find();
@@ -16376,8 +16390,11 @@ define(() => function ({
             hoverClass.add(domElement);
         };
 
-        tester.expectToBeSelected = () => tester.expectToHaveClass('cm-chats--chats-list-item__selected');
-        tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-chats--chats-list-item__selected');
+        const selectedClass = 'misc-chats-src-components-chats-chats-list-panel-components-chat-list-item-styles-' +
+            'module__selected';
+
+        tester.expectToBeSelected = () => tester.expectToHaveClass(selectedClass);
+        tester.expectNotToBeSelected = () => tester.expectNotToHaveClass(selectedClass);
 
         tester.click = () => (click(), spendTime(0));
 
@@ -16406,15 +16423,18 @@ define(() => function ({
 
     me.chatList = (() => {
         const createTester = index => {
-            const getDomElement = () => (
-                index === undefined ?
-                utils.querySelector(
-                    '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-styles-module__root'
-                ) :
-                document.querySelectorAll(
-                    '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-styles-module__root'
-                )?.[index]
-            );
+            const getDomElement = () => {
+                const selector =
+                    '.misc-chats-src-components-offline-messages-components-list-panel-components-' +
+                        'offline-message-list-styles-module__root, ' +
+                    '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-styles-module__root';
+
+                return (
+                    index === undefined ?
+                    utils.querySelector(selector) :
+                    document.querySelectorAll(selector)?.[index]
+                );
+            };
 
             const tester = testersFactory.createDomElementTester(getDomElement);
 

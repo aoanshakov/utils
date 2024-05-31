@@ -541,10 +541,10 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 32137f8d..1881d4b6 100644
+index 32137f8d..3283a63c 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,13 +1,16 @@
+@@ -1,13 +1,17 @@
 -import { CoreProvider } from '@comagic/core';
 +import { CoreProvider, eventBus } from '@comagic/core';
  import * as Sentry from '@sentry/react';
@@ -556,6 +556,7 @@ index 32137f8d..1881d4b6 100644
  import { IntlProvider } from 'react-intl';
  import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 +import { notification, Modal } from 'magic-ui';
++import { notification as newNotification } from '@comagic/ui';
 +import createIconFactory from '@/utils/createIcon';
  
 -import { Provider, rootStore } from '@models/RootStore';
@@ -563,7 +564,7 @@ index 32137f8d..1881d4b6 100644
  
  import history from '@/history';
  
-@@ -15,7 +18,7 @@ import App, { Props } from './App';
+@@ -15,7 +19,7 @@ import App, { Props } from './App';
  import './global';
  import { getIntlLocale, getIntlMessages, getProject } from './i18n';
  
@@ -572,7 +573,7 @@ index 32137f8d..1881d4b6 100644
  
  if (sentryDSN) {
      Sentry.init({
-@@ -48,7 +51,7 @@ if (sentryDSN) {
+@@ -48,7 +52,7 @@ if (sentryDSN) {
  }
  
  const Root: React.FC<Props> = observer(props => {
@@ -581,7 +582,7 @@ index 32137f8d..1881d4b6 100644
      const {
          projectData: { locale },
      } = accountStore;
-@@ -63,6 +66,7 @@ const Root: React.FC<Props> = observer(props => {
+@@ -63,6 +67,7 @@ const Root: React.FC<Props> = observer(props => {
          <HistoryRouter history={history}>
              <CoreProvider
                  isHostApp
@@ -589,7 +590,7 @@ index 32137f8d..1881d4b6 100644
                  isGodMode={isGodMode}
                  accountStore={accountStore}
                  locale={locale}
-@@ -80,6 +84,96 @@ const Root: React.FC<Props> = observer(props => {
+@@ -80,6 +85,101 @@ const Root: React.FC<Props> = observer(props => {
  });
  
  const container = document.getElementById('root');
@@ -663,7 +664,12 @@ index 32137f8d..1881d4b6 100644
 +            setEventBus(eventBus);
 +            createRootStore();
 +            setHistory(history);
-+            setNotification(notification);
++            setNotification({
++                destroyAll: () => [
++                    notification,
++                    newNotification,
++                ].forEach(notification => notification.destroyAll()),
++            });
 +            setModal(Modal);
 +        }
 +         
@@ -689,7 +695,7 @@ index 32137f8d..1881d4b6 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 8ae6e87b..c7a3cd72 100644
+index 8ae6e87b..2c023818 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -5,6 +5,7 @@ import * as fileSaver from 'file-saver';
@@ -755,15 +761,18 @@ index 8ae6e87b..c7a3cd72 100644
          authStore: types.optional(AuthStore, {}),
          accountStore: types.optional(AccountStore, {}),
          menuStore: types.optional(MenuStore, {}),
-@@ -160,7 +160,6 @@ export const RootStore = types
+@@ -158,9 +158,9 @@ export const RootStore = types
+                 : new LoggerStrategy();
+ 
          const logger = new Logger(loggerStrategy);
++        localStorage.getItem('debugMode') === '1' && logger.enableDebugMode();
  
          logger.filter(filterPassword);
 -        logger.applyToAxios(axios);
  
          const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
              const auth = getToken();
-@@ -241,7 +240,7 @@ export const RootStore = types
+@@ -241,7 +241,7 @@ export const RootStore = types
                  }
              );
  
@@ -772,7 +781,7 @@ index 8ae6e87b..c7a3cd72 100644
                  response => {
                      if (response.data.error) {
                          const {
-@@ -298,7 +297,7 @@ export const RootStore = types
+@@ -298,7 +298,7 @@ export const RootStore = types
  
                      return Promise.reject(error);
                  }
@@ -781,7 +790,7 @@ index 8ae6e87b..c7a3cd72 100644
          };
  
          const collectLogs = (callback: (data: BlobPart) => void) => {
-@@ -314,7 +313,25 @@ export const RootStore = types
+@@ -314,7 +314,25 @@ export const RootStore = types
              callbacks[index]?.(data);
          };
  
@@ -807,7 +816,32 @@ index 8ae6e87b..c7a3cd72 100644
              callbacks = [];
              let isMaximizedCurrently = false;
  
-@@ -384,6 +401,8 @@ export const RootStore = types
+@@ -324,6 +342,7 @@ export const RootStore = types
+             };
+ 
+             const createIcon = createIconFactory(window.rootConfig?.platform === 'mac' ? 'mac' : 'windows');
++            const toNumber = value => (value ? (typeof value === 'number' ? value : parseInt(value, 0)) : 0);
+ 
+             const setCounter = (values: Partial<typeof counters>) => {
+                 let oldValue = 0,
+@@ -331,7 +350,7 @@ export const RootStore = types
+ 
+                 Object.keys(counters).forEach((key: keyof typeof counters) => {
+                     oldValue += counters[key];
+-                    key in values && (counters[key] = values[key]);
++                    key in values && (counters[key] = toNumber(values[key]));
+                     newValue += counters[key];
+                 });
+ 
+@@ -339,6 +358,7 @@ export const RootStore = types
+                     return;
+                 }
+ 
++                logger.log('Set missing event counter', newValue);
+                 getIpcRender().send('set-icon', createIcon(newValue));
+             };
+ 
+@@ -384,6 +404,8 @@ export const RootStore = types
                  getIpcRender().send('autolauncherchange', value)
              );
  
@@ -816,7 +850,7 @@ index 8ae6e87b..c7a3cd72 100644
              getIpcRender().on('maximize', () => (self as RootInstance).setMaximized(true));
              getIpcRender().on('unmaximize', () => (self as RootInstance).setMaximized(false));
  
-@@ -408,6 +427,8 @@ export const RootStore = types
+@@ -408,6 +430,8 @@ export const RootStore = types
                      eventBus.broadcast('checkstartminimize', data.isStartMinimize)
                  );
  
@@ -825,7 +859,7 @@ index 8ae6e87b..c7a3cd72 100644
                  getIpcRender().on('update-downloaded', () => (self as RootInstance).setUpdateReceived(true));
                  getIpcRender().on('maximize', () => eventBus.broadcast('maximize'));
                  getIpcRender().on('unmaximize', () => eventBus.broadcast('unmaximize'));
-@@ -425,6 +446,8 @@ export const RootStore = types
+@@ -425,6 +449,8 @@ export const RootStore = types
  
              eventBus.subscribe('get-clicked', (callback: (clicked: boolean) => void) => callback(clicked));
              eventBus.subscribe('set-not-clicked', () => (clicked = false));
@@ -834,7 +868,7 @@ index 8ae6e87b..c7a3cd72 100644
          };
  
          const resetStore = () => {
-@@ -436,8 +459,14 @@ export const RootStore = types
+@@ -436,8 +462,14 @@ export const RootStore = types
              });
          };
  
@@ -851,7 +885,7 @@ index 8ae6e87b..c7a3cd72 100644
              setUpdateReceived = (value: boolean) => (self.isUpdateReceived = !!value),
              setCredentials = (value: Array<CredentialsSnapshot>) => (self.credentials = cast(value));
  
-@@ -465,6 +494,7 @@ export const RootStore = types
+@@ -465,6 +497,7 @@ export const RootStore = types
              handleLogsCollected,
              toggleSoftphoneVisiblity,
              setSoftphoneVisiblity,
@@ -859,7 +893,7 @@ index 8ae6e87b..c7a3cd72 100644
          };
      });
  
-@@ -475,7 +505,8 @@ export type DependencyInjection = {
+@@ -475,7 +508,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
@@ -870,7 +904,7 @@ index 8ae6e87b..c7a3cd72 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index fa214b30..fccb8a61 100644
+index fa214b30..4c68b9f1 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -1,19 +1,51 @@
@@ -992,7 +1026,7 @@ index fa214b30..fccb8a61 100644
          sessionStorage.removeItem(AUTH_KEY);
          sessionStorage.removeItem('access_token');
      }
-@@ -92,10 +148,13 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -92,10 +148,14 @@ const removeToken = (skipLocalStorage = false) => {
  
  export const AuthStore = Loader.named('AuthStore')
      .props({
@@ -1005,10 +1039,11 @@ index fa214b30..fccb8a61 100644
 +        login: types.optional(types.string, ''),
 +        password: types.optional(types.string, ''),
 +        isChecked: types.optional(types.boolean, false),
++        dontKeepMeSignedIn: types.optional(types.boolean, false),
      })
      .views(self => ({
          get token(): Auth {
-@@ -106,14 +165,27 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -106,14 +166,27 @@ export const AuthStore = Loader.named('AuthStore')
          const { httpRpcAuth } = getEnv(self);
          const { authStore, accountStore, notificationStore, resetStore } = getRoot<typeof RootStore>(self);
  
@@ -1036,7 +1071,7 @@ index fa214b30..fccb8a61 100644
          const cancelNotifications = () => {
              notificationStore.stackingNotificationInstance?.destroyAll();
              notificationStore.cancelNotifications();
-@@ -125,19 +197,33 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -125,19 +198,33 @@ export const AuthStore = Loader.named('AuthStore')
              setAuthorized(false);
              cancelPendingRequests('canceled by logout');
              eventBus.broadcast('logout');
@@ -1078,7 +1113,7 @@ index fa214b30..fccb8a61 100644
  
              try {
                  const token = getToken();
-@@ -148,10 +234,18 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -148,10 +235,18 @@ export const AuthStore = Loader.named('AuthStore')
                      password,
                      project: getProject(),
                      old_jwt,
@@ -1099,7 +1134,7 @@ index fa214b30..fccb8a61 100644
              } catch (e) {
                  removeToken();
  
-@@ -161,7 +255,19 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -161,7 +256,22 @@ export const AuthStore = Loader.named('AuthStore')
              }
          });
  
@@ -1107,8 +1142,11 @@ index fa214b30..fccb8a61 100644
 +            ? window.hasSSOAuth
 +            : !ssoAuthUrl.endsWith('REACT_APP_SSO_AUTH_URL') && Boolean(ssoAuthUrl);
 +
-+        const fetchLoginUser = flow(function* ({ login, password, is_checked }: LoginUser) {
++        const fetchLoginUser = flow(function* ({ login, password, is_checked, dont_keep_me_signed_in }: LoginUser) {
++            self.dontKeepMeSignedIn = dont_keep_me_signed_in;
 +            hasSSOAuth() ? yield loginSSO(login, password, is_checked) : yield loginJWT(login, password, is_checked);
++
++            getRoot(self).setAuthError('');
 +        });
 +
          const fetchRefresh = flow(function* () {
@@ -1119,7 +1157,7 @@ index fa214b30..fccb8a61 100644
              try {
                  setIsTokenRefreshing(true);
  
-@@ -178,16 +284,29 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -178,16 +288,29 @@ export const AuthStore = Loader.named('AuthStore')
              }
          });
  
@@ -1155,7 +1193,7 @@ index fa214b30..fccb8a61 100644
              } catch (e) {
                  return Promise.reject(e);
              } finally {
-@@ -195,11 +314,86 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -195,11 +318,86 @@ export const AuthStore = Loader.named('AuthStore')
              }
          });
  
@@ -1243,7 +1281,7 @@ index fa214b30..fccb8a61 100644
                  }
              });
              window.addEventListener('doRefreshToken', (event: CustomEvent) => {
-@@ -226,6 +420,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -226,6 +424,8 @@ export const AuthStore = Loader.named('AuthStore')
                          if (accountStoreUserId !== null && jwtUserId !== accountStoreUserId) {
                              window.location.href = '/';
                          }
@@ -1252,7 +1290,7 @@ index fa214b30..fccb8a61 100644
                      }
                  }
              }, 1000);
-@@ -233,10 +429,20 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -233,10 +433,20 @@ export const AuthStore = Loader.named('AuthStore')
  
          return {
              fetchLoginUser,

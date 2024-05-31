@@ -3,13 +3,22 @@ document.addEventListener('DOMContentLoaded', function () {
         baseUrl: '/tests/utils'
     });
 
-    requirejs(['promise-mock', 'tester', 'softphone-tester', 'sip', 'fake-require', 'sound-sources'], function (
+    requirejs([
+        'promise-mock',
+        'tester',
+        'softphone-tester',
+        'sip',
+        'fake-require',
+        'sound-sources',
+        'amocrm-lead',
+    ], function (
         PromiseMock,
         Tester,
         SoftphoneTester,
         Sip,
         FakeRequire,
-        soundSources
+        soundSources,
+        amocrmLead,
     ) {
         describe('', function() {
             beforeEach(function() {
@@ -24,6 +33,7 @@ document.addEventListener('DOMContentLoaded', function () {
             const WrappedTester = function (options) {
                 options.softphoneHost = options.softphoneHost || '$REACT_APP_SOFTPHONE_BACKEND_HOST';
                 options.softphoneTester = new SoftphoneTester(options);
+                options.amocrmLead = amocrmLead;
 
                 return new Tester(options);
             };

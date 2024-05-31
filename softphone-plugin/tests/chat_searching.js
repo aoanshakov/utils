@@ -1,7 +1,6 @@
 tests.addTest(options => {
     const {
-        Tester,
-        setFocus,
+        Tester, setFocus,
         notificationTester,
         spendTime,
         postMessages,
@@ -376,7 +375,7 @@ tests.addTest(options => {
                                                 expectToHaveTextContent('Нет данных');
                                         });
                                         it('Отображены все три типа канала.', function() {
-                                            tester.modalWindow.button('WhatsApp').expectToBeInactive();
+                                            tester.modalWindow.button('WhatsApp').expectToBeActive();
                                             tester.modalWindow.button('WABA').expectToBeActive();
                                             tester.modalWindow.button('Telegram').expectToBeActive();
 
@@ -980,7 +979,7 @@ tests.addTest(options => {
                                 expectToHaveTextContent('Нет данных');
                         });
                         it('Отображены все три типа канала.', function() {
-                            tester.modalWindow.button('WhatsApp').expectToBeInactive();
+                            tester.modalWindow.button('WhatsApp').expectToBeActive();
                             tester.modalWindow.button('WABA').expectToBeActive();
                             tester.modalWindow.button('Telegram').expectToBeActive();
 
@@ -1652,7 +1651,7 @@ tests.addTest(options => {
                 emptySearchString().
                 receiveResponse();
 
-            tester.modalWindow.button('WhatsApp').expectToBeInactive();
+            tester.modalWindow.button('WhatsApp').expectToBeActive();
             tester.modalWindow.button('WABA').expectNotToExist();
             tester.modalWindow.button('Telegram').expectNotToExist();
         });

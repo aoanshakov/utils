@@ -6462,14 +6462,38 @@ function JsTester_DomElement (
         me.expectToBeVisible();
         return getDomElement().getBoundingClientRect();
     }
-    this.expectToHaveTopOffset = function (expectedTopOffset) {
+
+    const compareTopOffset = ({
+        value,
+        shouldThrowError,
+        getErrorMessage,
+    }) => {
         var actualTopOffset = getBoundingClientRect().y;
 
-        if (expectedTopOffset != actualTopOffset) {
-            throw new Error('Вертикальная позиция ' + getGenetiveDescription() + ' должна быть равна ' +
-                expectedTopOffset + ', а не ' + actualTopOffset);
+        if (shouldThrowError({ value, actualTopOffset })) {
+            throw new Error('Вертикальная позиция ' + getGenetiveDescription() + ' ' + getErrorMessage({
+                value,
+                actualTopOffset,
+            }));
         }
     };
+
+    this.expectNotToHaveTopOffset = function (unexpectedTopOffset) {
+        compareTopOffset({
+            value: unexpectedTopOffset,
+            shouldThrowError: ({ value, actualTopOffset }) => value == actualTopOffset,
+            getErrorMessage: ({ actualTopOffset, value }) => 'не должна быть равна ' + value,
+        });
+    };
+
+    this.expectToHaveTopOffset = function (expectedTopOffset) {
+        compareTopOffset({
+            value: expectedTopOffset,
+            shouldThrowError: ({ value, actualTopOffset }) => value != actualTopOffset,
+            getErrorMessage: ({ actualTopOffset, value }) => 'должна быть равна ' + value + ', а не ' + actualTopOffset,
+        });
+    };
+
     this.expectToHaveHeight = function (expectedHeight) {
         var actualHeight = getBoundingClientRect().height;
 
@@ -6478,6 +6502,7 @@ function JsTester_DomElement (
                 actualHeight);
         }
     };
+
     this.expectHeightToBeMoreThan = function (expectedHeight) {
         var actualHeight = getBoundingClientRect().height;
 
