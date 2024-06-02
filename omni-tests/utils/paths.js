@@ -1,6 +1,9 @@
-const src = '/usr/local/src';
+const src = '/usr/local/src',
+    utils =  `${src}/utils`;
 
 module.exports = {
     src,
-    envJson: `${src}/utils/env.json`
+    tmp: `${utils}/tmp`,
+    envJson: `${utils}/env.json`,
+    tmpJson: `${utils}/tmp.json`,
 };

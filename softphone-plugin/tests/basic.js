@@ -51,7 +51,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        xdescribe('Открыт IFrame.', function() {
+        describe('Открыт IFrame.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'iframeContent',
@@ -517,7 +517,7 @@ tests.addTest(options => {
                 tester.softphone.expectNotToExist();
             });
         });
-        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
+        describe('Открываю попап. Отправлен запрос состояния.', function() {
             let stateRequest,
                 popupStateSettingRequest;
 
@@ -596,7 +596,7 @@ tests.addTest(options => {
                     expectToBeReloaded();
             });
         });
-        xdescribe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
+        describe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -1132,8 +1132,94 @@ tests.addTest(options => {
                 });
                 describe('Укзано регулярное выражение для замены номера.', function() {
                     beforeEach(function() {
+                        widgetSettings.textSelectorRegExp();
+                    });
+
+                    describe('Используется режим замены.', function() {
+                        beforeEach(function() {
+                            widgetSettings.receive();
+
+                            tester.stateSettingRequest().receive();
+                            tester.popupStateSettingRequest().receiveResponse();
+
+                            tester.widgetSettings().
+                                textSelectorRegExp().
+                                windowMessage().
+                                expectToBeSent();
+
+                            tester.submoduleInitilizationEvent().
+                                operatorWorkplace().
+                                receive();
+
+                            tester.submoduleInitilizationEvent().receive();
+
+                            tester.widgetSettings().
+                                windowMessage().
+                                chatsSettings().
+                                expectToBeSent();
+                        });
+
+                        it('Нажимаю на кнопку номера телефона. Отправлен запрос вызова.', function() {
+                            tester.phoneButton.
+                                atIndex(2).
+                                click();
+
+                            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+
+                            postMessages.nextMessage().expectMessageToContain({
+                                method: 'start_call',
+                                data: '74951234564',
+                            });
+                        });
+                        it('Обновляю настройки. Разметка вернулась к исходному состоянию.', function() {
+                            tester.widgetSettings().
+                                storageData().
+                                receive();
+
+                            tester.stateSettingRequest().receive();
+
+                            tester.widgetSettings().
+                                windowMessage().
+                                expectToBeSent();
+
+                            tester.widgetSettings().
+                                windowMessage().
+                                chatsSettings().
+                                expectToBeSent();
+
+                            tester.body.expectToHaveTextContent(
+                                'Первый элемент #1 ' +
+                                'Трубочка ' +
+                                'Некий элемент #1 ' +
+                                'Последний элемент #1 ' +
+
+                                'Телефон: 74951234568 ' +
+                                'Телефон: 74951234570 ' +
+                                'Номер телефона: +74951234572 (74951234571) ' +
+                                'Номер телефона: +74951234574 (74951234573) ' +
+                                '[+7 (495) 123-45-64] ' +
+                                '[+7 (495) 123-45-63]'
+                            );
+                        });
+                        it('Замена произведена.', function() {
+                            tester.body.expectToHaveTextContent(
+                                'Первый элемент #1 ' +
+                                'Трубочка ' +
+                                'Некий элемент #1 ' +
+                                'Последний элемент #1 ' +
+
+                                'Телефон: 74951234568 ' +
+                                'Телефон: 74951234570 ' +
+                                '+74951234572 ' +
+                                '+74951234574 ' +
+                                '[ Номер телефона: +7 (495) 123-45-64 (74951234564) ] ' +
+                                '[ Номер телефона: +7 (495) 123-45-63 (74951234563) ]'
+                            );
+                        });
+                    });
+                    it('Используется режим вставки. Номера вставлены.', function() {
                         widgetSettings.
-                            textSelectorRegExp().
+                            insertHandlerAfterElement().
                             receive();
 
                         tester.stateSettingRequest().receive();
@@ -1141,6 +1227,7 @@ tests.addTest(options => {
 
                         tester.widgetSettings().
                             textSelectorRegExp().
+                            insertHandlerAfterElement().
                             windowMessage().
                             expectToBeSent();
 
@@ -1154,63 +1241,10 @@ tests.addTest(options => {
                             windowMessage().
                             chatsSettings().
                             expectToBeSent();
-                    });
 
-                    it('Нажимаю на кнопку номера телефона. Отправлен запрос вызова.', function() {
-                        tester.phoneButton.
-                            atIndex(2).
-                            click();
-
-                        tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-
-                        postMessages.nextMessage().expectMessageToContain({
-                            method: 'start_call',
-                            data: '74951234564',
-                        });
-                    });
-                    it('Обновляю настройки. Разметка вернулась к исходному состоянию.', function() {
-                        tester.widgetSettings().
-                            storageData().
-                            receive();
-
-                        tester.stateSettingRequest().receive();
-
-                        tester.widgetSettings().
-                            windowMessage().
-                            expectToBeSent();
-
-                        tester.widgetSettings().
-                            windowMessage().
-                            chatsSettings().
-                            expectToBeSent();
-
-                        tester.body.expectToHaveTextContent(
-                            'Первый элемент #1 ' +
-                            'Трубочка ' +
-                            'Некий элемент #1 ' +
-                            'Последний элемент #1 ' +
-
-                            'Телефон: 74951234568 ' +
-                            'Телефон: 74951234570 ' +
-                            'Номер телефона: +74951234572 (74951234571) ' +
-                            'Номер телефона: +74951234574 (74951234573) ' +
-                            '[+7 (495) 123-45-64] ' +
-                            '[+7 (495) 123-45-63]'
-                        );
-                    });
-                    it('Замена произведена.', function() {
-                        tester.body.expectToHaveTextContent(
-                            'Первый элемент #1 ' +
-                            'Трубочка ' +
-                            'Некий элемент #1 ' +
-                            'Последний элемент #1 ' +
-
-                            'Телефон: 74951234568 ' +
-                            'Телефон: 74951234570 ' +
-                            '+74951234572 ' +
-                            '+74951234574 ' +
-                            '[ Номер телефона: +7 (495) 123-45-64 (74951234564) ] ' +
-                            '[ Номер телефона: +7 (495) 123-45-63 (74951234563) ]'
+                        tester.body.expectTextContentToHaveSubstring(
+                            '[ +7 (495) 123-45-64: 74951234564 ] ' +
+                            '[ +7 (495) 123-45-63: 74951234563 ]'
                         );
                     });
                 });
@@ -1579,7 +1613,7 @@ tests.addTest(options => {
                 tester.iframe.first.expectNotToExist();
             });
         });
-        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
+        describe('Открываю попап. Отправлен запрос состояния.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'popup',
@@ -1742,7 +1776,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentNotToHaveSubstring('Вы не авторизованы');
             });
         });
-        xdescribe('Открываю background-скрипт. Софтфон авторизован.', function() {
+        describe('Открываю background-скрипт. Софтфон авторизован.', function() {
             let oauthRequest;
 
             beforeEach(function() {
@@ -1925,7 +1959,7 @@ tests.addTest(options => {
                     grant();
             });
         });
-        xdescribe('Открываю background-скрипт.', function() {
+        describe('Открываю background-скрипт.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'background',
@@ -2101,7 +2135,7 @@ tests.addTest(options => {
                 tester.popupStateSettingRequest().expectResponseToBeSent();
             });
         });
-        xdescribe('Контент скрипт встроился в IFrame. Сотрудник авторизован.', function() {
+        describe('Контент скрипт встроился в IFrame. Сотрудник авторизован.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -2207,7 +2241,7 @@ tests.addTest(options => {
                 );
             });
         });
-        xdescribe('Открыт IFrame софтфона amoCRM.', function() {
+        describe('Открыт IFrame софтфона amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'amocrmIframeContent',
@@ -2421,7 +2455,7 @@ tests.addTest(options => {
                 windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru');
             });
         });
-        xdescribe('Открываю виджет amoCRM.', function() {
+        describe('Открываю виджет amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -2584,7 +2618,7 @@ tests.addTest(options => {
                 tester.iframe.first.expectToBeHidden();
             });
         });
-        xdescribe(
+        describe(
             'В локальном хранилище сохранен токен. Открыт IFrame софтфона amoCRM. Производится авторизация.',
         function() {
             let settingsRequest,
@@ -2900,7 +2934,7 @@ tests.addTest(options => {
                 });
             });
         });
-        xdescribe('Открываю IFrame чатов. Получены настройки.', function() {
+        describe('Открываю IFrame чатов. Получены настройки.', function() {
             let accountRequest,
                 secondAccountRequest,
                 widgetSettings;
@@ -3623,7 +3657,7 @@ tests.addTest(options => {
                 tester.messageTemplatesSettingsRequest().expectToBeSent();
             });
         });
-        xdescribe('Открываю страницу с расширением. Есть номера чатов.', function() {
+        describe('Открываю страницу с расширением. Есть номера чатов.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -3893,7 +3927,7 @@ tests.addTest(options => {
                 );
             });
         });
-        xdescribe('Контент скрипт встроился в IFrame.', function() {
+        describe('Контент скрипт встроился в IFrame.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -3960,7 +3994,7 @@ tests.addTest(options => {
                 postMessages.nextMessage().expectNotToExist();
             });
         });
-        xdescribe('Контент-скрипт встроился в IFrame. Есть номера чатов.', function() {
+        describe('Контент-скрипт встроился в IFrame. Есть номера чатов.', function() {
             let widgetSettings;
 
             beforeEach(function() {
@@ -4142,7 +4176,7 @@ tests.addTest(options => {
                 );
             });
         });
-        xit('Открыт IFrame. Получен дубайский токен. Отправлен запрос авторизации в дубайский сервер.', function() {
+        it('Открыт IFrame. Получен дубайский токен. Отправлен запрос авторизации в дубайский сервер.', function() {
             tester = new Tester({
                 application: 'iframeContent',
                 isIframe: true,
@@ -4182,7 +4216,7 @@ tests.addTest(options => {
                 anotherToken().
                 expectToBeSent();
         });
-        xit(
+        it(
             'Открываю background-скрипт. Софтфон авторизован. Время хранения настроек истекло. Получен запрос ' +
             'возможного обновления настроек. Настройки обновлены.',
         function() {
@@ -4213,7 +4247,7 @@ tests.addTest(options => {
                 storageData().
                 expectToBeSaved();
         });
-        xit('Ранее был открыт дубайский IFrame. Дубайский IFrame снова открыт.', function() {
+        it('Ранее был открыт дубайский IFrame. Дубайский IFrame снова открыт.', function() {
             window.localStorage.setItem('data_center', 'dubai'),
 
             tester = new Tester({
@@ -4239,7 +4273,7 @@ tests.addTest(options => {
                 'https://prod-msk-softphone-widget-iframe.callgear.ae/amocrm',
             );
         });
-        xit('Виджет установлен. Открываю настройки. Кнопока настроек видима.', function() {
+        it('Виджет установлен. Открываю настройки. Кнопока настроек видима.', function() {
             tester = new Tester({
                 softphoneHost: 'my.uiscom.ru',
                 ...options,
@@ -4250,7 +4284,7 @@ tests.addTest(options => {
             tester.openSettings();
             tester.button('Перейти к настройкам').expectToBeVisible();
         });
-        xit('Должен использоваться английский язык. Открываю настройки. Используется английский язык.', function() {
+        it('Должен использоваться английский язык. Открываю настройки. Используется английский язык.', function() {
             tester = new Tester({
                 softphoneHost: 'my.uiscom.ru',
                 ...options,
@@ -4262,7 +4296,7 @@ tests.addTest(options => {
             tester.openSettings();
             tester.button('Open settings').expectToBeVisible();
         });
-        xit('Открываю страницу с расширением. Токен авторизации был сохранен. В IFrame отправлен токен.', function() {
+        it('Открываю страницу с расширением. Токен авторизации был сохранен. В IFrame отправлен токен.', function() {
             tester = new Tester({
                 softphoneHost: 'my.uiscom.ru',
                 isAuthorized: true,
@@ -4319,7 +4353,7 @@ tests.addTest(options => {
                 emptyToken().
                 expectToBeSaved();
         });
-        it('Открываю страницу с расширением. Токен авторизации был сохранен. В IFrame отправлен токен.', function() {
+        it('Открываю страницу с расширением в amoCRM. Добавлены кнопки каналов.', function() {
             tester = new Tester({
                 softphoneHost: 'my.uiscom.ru',
                 isAuthorized: true,
@@ -4359,6 +4393,14 @@ tests.addTest(options => {
                 addChannel().
                 addThirdChannel().
                 receive();
+
+            tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                'Александр Аншаков' ,
+
+                'Нижний Новгород ' +
+                'Белгород ' +
+                'Астана'
+            );
         });
     });
 });

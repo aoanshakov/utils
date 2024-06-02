@@ -869,6 +869,17 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            const phoneNumberPattern = (() => {
+                const MAX_SHORT_PHONE_NUMBER_LENGTH = 5,
+                    separator = space => `[\\-\\(\\)${space}]*`,
+                    character = separator => `(?:${separator}\\d${separator})`,
+                    noSpace = character(separator('')),
+                    hasSpace = character(separator(' ')),
+                    pattern = `\\+?\\d${hasSpace}{${MAX_SHORT_PHONE_NUMBER_LENGTH - 1}}${hasSpace}*${noSpace}{1}`;
+
+                return pattern;
+            })();
+
             me.amocrmExtension = () => {
                 chatSettingsProcessors.push(settings => {
                     settings.handlers = [{
@@ -954,15 +965,19 @@ define(() => function ({
             me.textSelectorRegExp = () => {
                 softphoneSettingsProcessors.push(softphoneSettings => {
                     softphoneSettings.click2call.handlers[1].elementSelector = '.some-text-container';
+                    softphoneSettings.click2call.handlers[1].textSelectorRegExp = phoneNumberPattern;
 
-                    const MAX_SHORT_PHONE_NUMBER_LENGTH = 5,
-                        separator = space => `[\\-\\(\\)${space}]*`,
-                        character = separator => `(?:${separator}\\d${separator})`,
-                        noSpace = character(separator('')),
-                        hasSpace = character(separator(' ')),
-                        pattern = `\\+?\\d${hasSpace}{${MAX_SHORT_PHONE_NUMBER_LENGTH - 1}}${hasSpace}*${noSpace}{1}`;
+                    return softphoneSettings;
+                });
 
-                    softphoneSettings.click2call.handlers[1].textSelectorRegExp = pattern;
+                return me;
+            };
+
+            me.insertHandlerAfterElement = () => {
+                softphoneSettingsProcessors.push(softphoneSettings => {
+                    softphoneSettings.click2call.handlers[1].innerHTML = ': {{ phone }}';
+                    softphoneSettings.click2call.handlers[1].mode = 'insertAfter';
+
                     return softphoneSettings;
                 });
 

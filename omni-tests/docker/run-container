@@ -1,11 +1,12 @@
 #!/bin/bash
 
-action="initialize"
+action="bash"
 farg=""
 isOsX=0
 dockerArguments=""
 entrypointArguments=""
 buildImage=0
+shouldOpenLogs=0
 noCache=""
 imageTag="omni-tests"
 
@@ -47,6 +48,9 @@ do
         fi
 
         shift
+    elif [ "$1" = "--log" ]
+    then
+        shouldOpenLogs=1
     elif [ "$1" = "--network=host" ]
     then
         dockerArguments="$dockerArguments $1"
@@ -127,6 +131,40 @@ then
     fi
 else
     applicationDirectory=$(getAbsolutePath $applicationDirectory)
+fi
+
+if [ $shouldOpenLogs -eq 1 ]
+then
+    tmux new -d -s omni-logs \; \
+        rename-window "desktop" \; \
+        new-window -n "web" \; \
+        new-window -n "chats" \; \
+        new-window -n "contacts" \; \
+        new-window -n "operator-workplace" \; \
+        new-window -n "softphone"
+
+    tmux send-keys -t omni-logs:0 "tail -f $applicationDirectory/desktop/server.log" ENTER
+    tmux send-keys -t omni-logs:1 "tail -f $applicationDirectory/comagic-app/server.log" ENTER
+    tmux send-keys -t omni-logs:2 "tail -f $applicationDirectory/chats/server.log" ENTER
+    tmux send-keys -t omni-logs:3 "tail -f $applicationDirectory/contacts/server.log" ENTER
+    tmux send-keys -t omni-logs:4 "tail -f $applicationDirectory/operator-workplace/server.log" ENTER
+    tmux send-keys -t omni-logs:5 "tail -f $applicationDirectory/softphone/server.log" ENTER
+
+    if [ $? -ne 0 ]
+    then
+        echo "Не удалось создать сессию tmux"
+        exit 1
+    fi
+
+    tmux a -t omni-logs
+
+    if [ $? -ne 0 ]
+    then
+        echo "Не удалось подключиться к сессии tmux"
+        exit 1
+    fi
+
+    exit 0
 fi
 
 docker run -it --rm \

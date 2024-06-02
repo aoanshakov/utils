@@ -7,12 +7,24 @@ const execute = (command, callback) => {
     }
 
     if (typeof command == 'function') {
-        command();
-        callback();
+        command.getDescription && console.log(command.getDescription());
+        const result = command();
+
+        if (!result || typeof result.then != 'function') {
+            callback();
+            return;
+        }
+
+        result.catch(error => {
+            throw new Error(error);
+        }).then(callback)
+
         return;
     }
 
-    console.log(`> ${command}`);
+    if (typeof command == 'string') {
+        console.log(`> ${command}`);
+    }
 
     const stream = exec(
         command,

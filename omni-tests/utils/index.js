@@ -2,18 +2,23 @@ const { Args, isOneOf, isListOf, isString } = require('./arguments'),
     fs = require('fs'),
     execute = require('./execute'),
     mkdir = require('./mkdir'),
-    write = require('./write');
+    write = require('./write'),
     JSON3 = require('json3'),
+    { v4: uuid } = require('uuid'),
     readJson = path => JSON.parse(fs.readFileSync(path)),
     encodeJson = content => JSON3.stringify(content, null, 2);
 
 const {
     src,
     envJson,
+    tmpJson,
+    tmp,
 } = require('./paths');
 
 const actions = {},
-    rmVerbose = target => `if [ -e ${target} ]; then rm -rvf ${target}; fi`,
+    ifExists = (resource, command, not = '') => `if [ ${not}-e ${resource} ]; then ${command}; fi`,
+    ifNotExists = (resource, command) => ifExists(resource, command, '! '),
+    rmVerbose = target => ifExists(target, `rm -rvf ${target}`),
     modulePath = directory => `${src}/${directory}`;
 
 actions['fix-permissions'] =
@@ -54,7 +59,7 @@ const moduleNames = modules.map(({ repository, directory }) => directory),
     isHost = directory => ['desktop', 'comagic-app'].includes(directory),
     submoduleNames = moduleNames.filter(directory => !isHost(directory)),
     replaceWithStand = ({ value, params }) => value?.split('{stand}').join(params.stand || ''),
-    linkedModulePath = ({ path, directory}) => `${path}/linked_modules/${directory}`;
+    dependenciesParams = ['peerDependencies', 'dependencies'];
 
 const envParams = modules.filter(
     ({ param }) => !!param,
@@ -66,12 +71,233 @@ const envParams = modules.filter(
 const linkedModules = [{
     module: '@comagic/softphone-widget',
     repository: 'web/sip_lib',
-    directory: 'softphone-widget',
 }, {
     module: '@comagic/softphone-core',
     repository: 'web/uis_webrtc',
-    directory: 'softphone-core',
-}];
+}].map(item => {
+    item.isLinkedModule = true;
+
+    if (item.directory) {
+        return item;
+    }
+
+    item.directory = (module => {
+        if (!module.length || module.length > 2) {
+            return '';
+        }
+
+        if (module.length == 1) {
+            return module[0];
+        }
+
+        if (module[0] !== '@comagic') {
+            return '';
+        }
+
+        return module[1];
+    })(item.module.split('/'));
+
+    return item;
+}).reduce((linkedModules, item) => (linkedModules[item.module] = item, linkedModules), {});
+
+const allModules = Object.values(linkedModules).concat(modules),
+    addDescription = (task, message) => (task.getDescription = () => message, task);
+
+const show = tasks => ['', ...tasks, ''].forEach(
+    task => {
+        task?.getDescription && console.log(task.getDescription());
+        typeof task === 'string' && console.log(task);
+    },
+);
+
+const handlePackageJson = type => fs.existsSync(tmpJson)
+    ?  Object.entries(readJson(tmpJson) || {}).reduce(
+        (tasks, [directory, item]) => [
+            ...tasks,
+            `cp ${item[type]} ${modulePath(directory)}/package.json`
+        ],
+
+        [],
+    )
+
+    : [];
+
+actions['restore-package-json'] = () => handlePackageJson('original');
+
+const removeTmp = [
+    rmVerbose(tmp),
+    rmVerbose(tmpJson),
+];
+
+actions['mount-linked-modules'] = () => [
+    ...actions['restore-package-json'](),
+    ...removeTmp,
+    `mkdir -p ${tmp}`,
+
+    addDescription(
+        () => write(tmpJson, encodeJson({})),
+        `Creating ${tmpJson}`,
+    ),
+
+    () => {
+        const getDependencies = moduleName => {
+            const directory = linkedModules[moduleName]?.directory;
+
+            if (!directory) {
+                return [];
+            }
+
+            const packageParams = readJson(`${modulePath(directory)}/package.json`);
+
+            const dependencies =  Object.keys(['dependencies', 'peerDependencies'].reduce(
+                (dependencies, param) => {
+                    return {
+                        ...dependencies,
+                        ...packageParams[param],
+                    };
+                },
+
+                {},
+            )).filter(name => linkedModules[name]).reduce((dependencies, moduleName) => [
+                ...dependencies,
+                moduleName,
+                ...getDependencies(moduleName),
+            ], []);
+
+            return dependencies;
+        };
+
+        const linkedModuleDependencies = Object.keys(linkedModules).reduce((linkedModuleDependencies, moduleName) => ({
+            ...linkedModuleDependencies,
+            [moduleName]: getDependencies(moduleName),
+        }), {});
+
+        const tasks = allModules.reduce((tasks, { directory: moduleDirectory, isLinkedModule }) => {
+            const path = modulePath(moduleDirectory),
+                packageJsonPath = `${path}/package.json`,
+                packageParams = readJson(packageJsonPath),
+                originalPackageParams = readJson(packageJsonPath);
+
+            let hasLinkedModules = false;
+
+            tasks = dependenciesParams.reduce(
+                (tasks, param) => Object.keys(packageParams[param] || {}).reduce(
+                    (tasks, moduleName) => {
+                        const item = linkedModules[moduleName];
+
+                        if (!item) {
+                            return tasks;
+                        }
+
+                        hasLinkedModules = true;
+
+                        if (isLinkedModule) {
+                            delete(packageParams[param][moduleName]);
+                            console.log(`Remove ${moduleName} from ${moduleDirectory}/package.json`);
+
+                            return tasks;
+                        } else {
+                            const command = 'npm link ';
+
+                            return [
+                                moduleName,
+                                ...linkedModuleDependencies[moduleName],
+                            ].reduce((tasks, moduleName) => {
+                                const { directory } = linkedModules[moduleName],
+                                    relativeDirectory = `linked_modules/${directory}`,
+                                    relativeDirectoryWithDot = `./${relativeDirectory}`,
+                                    linkedModulePath = `${path}/${relativeDirectory}`;
+
+                                packageParams.scripts?.postinstall?.indexOf?.(command) !== 0 && (
+                                    (packageParams.scripts || (packageParams.scripts = {})).postinstall = (
+                                        packageParams.scripts?.postinstall
+                                            ? `${packageParams.scripts.postinstall} &&`
+                                            : ''
+                                    ) + command
+                                );
+
+                                packageParams.scripts.postinstall += ` ${relativeDirectoryWithDot}`;
+                                packageParams[param][moduleName] = relativeDirectoryWithDot;
+
+                                return [
+                                    ...tasks,
+                                    ifNotExists(linkedModulePath, `mkdir -p ${linkedModulePath}`),
+
+                                    ifNotExists(
+                                        `${linkedModulePath}/package.json`,
+                                        `mount --bind ${modulePath(directory)} ${linkedModulePath}`,
+                                    )
+                                ];
+                            }, tasks);
+                        }
+                    },
+
+                    tasks,
+                ),
+                tasks,
+            );
+
+            return [
+                ...((hasLinkedModules ? [
+                    {
+                        name: 'modified',
+                        params: packageParams,
+                    },
+                    {
+                        name: 'original',
+                        params: originalPackageParams,
+                    },
+                ].map(({ name, params }) => {
+                    const filePath = `${tmp}/${uuid()}`;
+
+                    return addDescription(
+                        () => {
+                            const tmpParams = readJson(tmpJson);
+
+                            (tmpParams[moduleDirectory] || (tmpParams[moduleDirectory] = {}))[name] = filePath;
+
+                            write(filePath, encodeJson(params));
+                            write(tmpJson, encodeJson(tmpParams));
+                        },
+
+                        `Copy ${name} package.json from ${packageJsonPath} to ${filePath}`,
+                    );
+                }) : [])),
+
+                ...tasks,
+            ]
+        }, []);
+
+        return execute(tasks);
+    },
+];
+
+actions['install-node-modules'] = () => {
+    return [
+        () => execute(actions['mount-linked-modules']()),
+
+        () => execute([
+            ...handlePackageJson('modified'),
+
+            ...modules.reduce((tasks, { directory }) => {
+                const path = modulePath(directory);
+
+                return [
+                    ...tasks,
+
+                    ifNotExists(
+                        `${path}/node_modules`,
+                        `cd ${path} && npm set registry http://npm.dev.uis.st:80 && npm install --verbose`,
+                    ),
+                ];
+            }, []),
+
+            ...handlePackageJson('original'),
+        ]),
+
+        ...removeTmp,
+    ];
+};
 
 actions['initialize'] = params => {
     const clone = ({
@@ -79,39 +305,25 @@ actions['initialize'] = params => {
         repository,
         branch = 'stand-{stand}',
     }) => !fs.existsSync(path) ? [
-        () => mkdir(path),
+        `mkdir -p ${path}`,
 
-        `cd ${path} && git clone${
+        `cd ${path} && git clone --progress --verbose${
             params.stand ? ` --branch ${replaceWithStand({ value: branch, params })}` : ''
         } git@gitlab.uis.dev:${repository}.git .`
     ] : [];
 
-    return linkedModules.reduce((clones, { module, repository }) => {
-        const directory = (module => {
-            if (!module.length || module.length > 2) {
-                return '';
-            }
-
-            if (module.length == 1) {
-                return module[0];
-            }
-
-            if (module[0] !== '@comagic') {
-                return '';
-            }
-
-            return module[1];
-        })(module.split('/'));
-
-        if (!directory) {
-            return clones;
-        }
-
-        return clones.concat(clone({
+    return [
+        ...allModules.reduce((clones, {
+            repository,
+            directory,
+        }) => clones.concat(directory ? clone({
             path: modulePath(directory),
             repository,
-        }));
-    }, []);
+        }) : []), []),
+
+        () => execute(actions['install-node-modules']()),
+        ...actions['fix-permissions'],
+    ];
 };
 
 /*
@@ -296,11 +508,22 @@ actions['set-env'] = params => [
 
 actions['remove-node-modules'] = params => (
     params.module ?
-        modules.filter(({ directory }) => params.module.includes(directory)) :
-        modules
+        allModules.filter(({ directory }) => params.module.includes(directory)) :
+        allModules
 ).map(({ repository, directory }) => rmVerbose(`${modulePath(directory)}/node_modules`));
 
-actions['clear'] = modules.map(({ repository, directory }) => rmVerbose(modulePath(directory)));
+actions['remove-linked-modules'] = params => (
+    params.module ?
+        allModules.filter(({ directory }) => params.module.includes(directory)) :
+        allModules
+).map(({ repository, directory }) => rmVerbose(`${modulePath(directory)}/linked_modules`));
+
+actions['clear'] = [
+    rmVerbose(tmp),
+    rmVerbose(tmpJson),
+
+    ...allModules.map(({ repository, directory }) => rmVerbose(modulePath(directory))),
+];
 actions['bash'] = [];
 
 actions['run'] = params =>
@@ -315,8 +538,8 @@ actions['run'] = params =>
         }
 
         return result.concat([
-            rmVerbose(serverLog),
-            `touch ${serverLog}`,
+            ifNotExists(serverLog, `touch ${serverLog}`),
+            `cat /dev/null > ${serverLog}`,
             `cd ${path} && npm run ${script} > ${serverLog} 2>&1 &`,
         ]);
     }, []));
