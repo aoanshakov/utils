@@ -6,4 +6,7 @@
 /operator-workplace
 /softphone-core
 /softphone-widget
+/workplace-utils
+/utils/tmp
+/utils/tmp.json
 *.swp
