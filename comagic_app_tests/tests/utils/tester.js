@@ -220,6 +220,12 @@ define(() => function ({
         return tester;
     })();
 
+    me.callData = {
+        section: title => ({
+            title: me.callDataSectionTitle(title),
+        }),
+    };
+
     me.redirectEmployeeSelectCover = testersFactory.
         createDomElementTester('.cm-chats--redirect-employee-select-cover');
 
@@ -5390,6 +5396,11 @@ define(() => function ({
         });
 
         return {
+            subscriberCommentSpecified: function () {
+                params.subscriber_comment = 'Некий комментарий ';
+                return this;
+            },
+
             contactNameWithWithDigits: function () {
                 params.contact_full_name = 'Мой номер +7 (916) 234-56-78';
                 return this;
@@ -5681,6 +5692,18 @@ define(() => function ({
         };
 
         const addResponseModifiers = (me, response) => {
+            me.undefinedParams = () => {
+                delete(response.data.is_need_auto_change_sip_number_capacity_before_call);
+                delete(response.data.is_need_disconnect_signal);
+                delete(response.data.on_login_status_id);
+                delete(response.data.on_logout_status_id);
+                delete(response.data.is_need_auto_set_status);
+                delete(response.data.is_need_open_widget_on_call);
+                delete(response.data.is_need_close_widget_on_call_finished);
+
+                return me;
+            };
+
             me.anotherWsUrl = () => ((
                 response.data.ws_url = 'wss://softphone-events-server.com/sup/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0'
             ), me);

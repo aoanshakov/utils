@@ -761,7 +761,7 @@ define(function () {
             );
 
             const click = tester.click.bind(tester);
-            tester.click = () => (click(), spendTime(0));
+            tester.click = () => (click(), spendTime(0), spendTime(0));
 
             return tester;
         };

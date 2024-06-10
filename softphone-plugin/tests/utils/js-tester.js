@@ -6528,6 +6528,14 @@ function JsTester_DomElement (
                 expectedTopOffset + ', а не ' + actualTopOffset);
         }
     };
+    this.expectToHaveLeftOffset = function (expectedLeftOffset) {
+        var actualLeftOffset = getBoundingClientRect().x;
+
+        if (expectedLeftOffset != actualLeftOffset) {
+            throw new Error('Горизонтальная позиция ' + getGenetiveDescription() + ' должна быть равна ' +
+                expectedLeftOffset + ', а не ' + actualLeftOffset);
+        }
+    };
     this.expectToHaveHeight = function (expectedHeight) {
         var actualHeight = getBoundingClientRect().height;
 

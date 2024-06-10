@@ -35,6 +35,7 @@ tests.addTest(options => {
 
         beforeEach(function() {
             setNow('2019-12-19T12:10:06');
+            localStorage.setItem('softphone-position-x', '174');
 
             tester = new Tester(options);
 
@@ -68,16 +69,43 @@ tests.addTest(options => {
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
-            tester.slavesNotification().additional().expectToBeSent();
-            tester.slavesNotification().expectToBeSent();
+
+            tester.employeesBroadcastChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                applyLeader().
+                expectToBeSent();
+
+            tester.employeesBroadcastChannel().
+                tellIsLeader().
+                expectToBeSent();
 
             tester.employeesWebSocket.connect();
             tester.employeesInitMessage().expectToBeSent();
 
-            tester.notificationChannel().tellIsLeader().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.notificationChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.slavesNotification().expectToBeSent();
+
+            tester.slavesNotification().
+                additional().
+                expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
@@ -156,6 +184,7 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     numaRequest = tester.numaRequest().expectToBeSent();
+                    tester.accountRequest().receiveResponse();
                 });
 
                 describe('Позвонивший не является сотрудником.', function() {
@@ -1296,13 +1325,20 @@ tests.addTest(options => {
                         var outCallEvent;
 
                         beforeEach(function() {
-                            outCallEvent = tester.outCallEvent().autoCallCampaignName();
+                            outCallEvent = tester.outCallEvent().
+                                subscriberCommentSpecified().
+                                autoCallCampaignName();
                         });
 
                         it('Автоответ включен. Звонок принимается.', function() {
                             outCallEvent.needAutoAnswer().receive();
-                            tester.outCallEvent().needAutoAnswer().autoCallCampaignName().
-                                slavesNotification().expectToBeSent();
+
+                            tester.outCallEvent().
+                                needAutoAnswer().
+                                autoCallCampaignName().
+                                subscriberCommentSpecified().
+                                slavesNotification().
+                                expectToBeSent();
 
                             tester.firstConnection.connectWebRTC();
                             tester.firstConnection.callTrackHandler();
@@ -1327,22 +1363,37 @@ tests.addTest(options => {
                             'Имя контакта отсутствует. Звонок обозначен, как исходящий обзвон.',
                         function() {
                             outCallEvent.noName().receive();
-                            tester.outCallEvent().noName().autoCallCampaignName().
+
+                            tester.outCallEvent().
+                                noName().
+                                autoCallCampaignName().
                                 slavesNotification().expectToBeSent();
 
                             tester.outgoingIcon.expectToBeVisible();
+
                             tester.softphone.expectTextContentToHaveSubstring(
                                 '+7 (916) 123-45-67 Исходящий обзвон'
                             );
                         });
                         it('Звонок отображается как исходящий.', function() {
                             outCallEvent.receive();
-                            tester.outCallEvent().autoCallCampaignName().slavesNotification().
+
+                            tester.outCallEvent().
+                                autoCallCampaignName().
+                                slavesNotification().
                                 expectToBeSent();
 
                             tester.outgoingIcon.expectToBeVisible();
+
                             tester.softphone.expectTextContentToHaveSubstring(
-                                'Шалева Дора +7 (916) 123-45-67'
+                                'Шалева Дора ' +
+                                '+7 (916) 123-45-67 ' +
+                                
+                                'Кампания исходящего обзвона ' +
+                                'Обзвон лидов ЖК Солнцево Парк ' +
+
+                                'Комментарий ' +
+                                'Некий комментарий'
                             );
                         });
                     });
@@ -1363,6 +1414,32 @@ tests.addTest(options => {
 
                             windowOpener.expectToHavePath(
                                 'https://comagicwidgets.amocrm.ru/leads/detail/3003651'
+                            );
+                        });
+                        it('Нажимаю на заголовок секции информации о звонке. Секция скрыта.', function() {
+                            tester.callData.
+                                section('Открытые сделки').
+                                title.
+                                click();
+
+                            tester.softphone.expectTextContentToHaveSubstring(
+                                'Шалева Дора ' +
+                                '+7 (916) 123-45-67 ' +
+
+                                'Открытые сделки ' +
+                                'Путь лида ' +
+
+                                'Виртуальный номер ' +
+                                '+7 (916) 123-45-68 ' +
+
+                                'Сайт ' +
+                                'somesite.com ' +
+
+                                'Поисковый запрос ' +
+                                'Какой-то поисковый запрос, который не помещается в одну строчку ' +
+
+                                'Рекламная кампания ' +
+                                'Некая рекламная кампания'
                             );
                         });
                         it('Открытые сделки отображены.', function() {
@@ -1557,12 +1634,12 @@ tests.addTest(options => {
                         tester.masterNotification().tabOpened().receive();
 
                         tester.slavesNotification().
-                            additional().
+                            twoChannels().
+                            available().
                             expectToBeSent();
 
                         tester.slavesNotification().
-                            twoChannels().
-                            available().
+                            additional().
                             expectToBeSent();
                     });
 
@@ -1598,6 +1675,7 @@ tests.addTest(options => {
                                 expectToBeSent();
 
                             tester.numaRequest().receiveResponse();
+                            tester.accountRequest().receiveResponse();
 
                             tester.outCallEvent().receive();
                             tester.outCallEvent().slavesNotification().expectToBeSent();
@@ -1616,6 +1694,7 @@ tests.addTest(options => {
                                 expectToBeSent();
 
                             tester.numaRequest().receiveResponse();
+                            tester.accountRequest().receiveResponse();
 
                             tester.outCallEvent().receive();
                             tester.outCallEvent().slavesNotification().expectToBeSent();
@@ -1640,6 +1719,7 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.numaRequest().receiveResponse();
+                        tester.accountRequest().receiveResponse();
 
                         tester.outCallEvent().receive();
                         tester.outCallEvent().slavesNotification().expectToBeSent();
@@ -1663,6 +1743,7 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.numaRequest().receiveResponse();
+                        tester.accountRequest().receiveResponse();
 
                         notificationTester.grantPermission().
                             recentNotification().
@@ -1687,6 +1768,7 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.numaRequest().receiveResponse();
+                        tester.accountRequest().receiveResponse();
                     });
 
                     it(
@@ -1726,6 +1808,7 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.numaRequest().receiveResponse();
+                    tester.accountRequest().receiveResponse();
 
                     tester.outCallEvent().receive();
                     tester.outCallEvent().slavesNotification().expectToBeSent();
@@ -1736,7 +1819,10 @@ tests.addTest(options => {
                 'звонке.',
             function() {
                 tester.outCallEvent().receive();
-                tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                tester.outCallEvent().
+                    slavesNotification().
+                    expectToBeSent();
 
                 tester.incomingCall().receive();
 
@@ -1748,6 +1834,7 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.numaRequest().receiveResponse();
+                tester.accountRequest().receiveResponse();
                     
                 tester.softphone.expectTextContentToHaveSubstring(
                     'Шалева Дора +7 (916) 123-45-67 ' +
@@ -1828,6 +1915,7 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.numaRequest().receiveResponse();
+                    tester.accountRequest().receiveResponse();
                 });
 
                 describe('Получены данные звонка.', function() {
@@ -1882,15 +1970,15 @@ tests.addTest(options => {
                                 incomingCall.receiveCancel();
 
                                 tester.slavesNotification().
-                                    additional().
-                                    expectToBeSent();
-
-                                tester.slavesNotification().
                                     twoChannels().
                                     available().
                                     failed().
                                     secondChannel().
                                         failed().
+                                    expectToBeSent();
+
+                                tester.slavesNotification().
+                                    additional().
                                     expectToBeSent();
 
                                 tester.softphone.expectNotToExist();
@@ -1948,21 +2036,28 @@ tests.addTest(options => {
                 describe('Поступил входящий звонок.', function() {
                     beforeEach(function() {
                         tester.outCallEvent().receive();
-                        tester.outCallEvent().slavesNotification().expectToBeSent();
+                        tester.accountRequest().receiveResponse();
 
                         tester.slavesNotification().
                             additional().
                             visible().
                             outCallEvent().include().
                             expectToBeSent();
+
+                        tester.outCallEvent().
+                            slavesNotification().
+                            expectToBeSent();
                     });
 
                     it('Звонок завершен. Софтфон скрыт.', function() {
                         tester.callSessionFinish().receive();
-                        tester.callSessionFinish().slavesNotification().expectToBeSent();
 
                         tester.slavesNotification().
                             additional().
+                            expectToBeSent();
+
+                        tester.callSessionFinish().
+                            slavesNotification().
                             expectToBeSent();
 
                         tester.softphone.expectNotToExist();

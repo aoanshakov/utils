@@ -307,9 +307,12 @@ tests.addTest(options => {
                                                                 'Прокручиваю историю до конца. Запрошена вторая ' +
                                                                 'страница истории.',
                                                             function() {
-                                                                tester.callsGridScrolling().toTheEnd().scroll();
+                                                                tester.callsGridScrolling().
+                                                                    toTheEnd().
+                                                                    scroll();
 
-                                                                tester.callsRequest().infiniteScrollSecondPage().
+                                                                tester.callsRequest().
+                                                                    infiniteScrollSecondPage().
                                                                     expectToBeSent();
                                                             });
                                                             it('Вторая страница истории еще не запрошена.', function() {
@@ -454,7 +457,9 @@ tests.addTest(options => {
                                                     });
                                                     describe('Не было ни одного звонка за три месяца.', function() {
                                                         beforeEach(function() {
-                                                            callsRequest.noCalls().receiveResponse();
+                                                            callsRequest.
+                                                                noCalls().
+                                                                receiveResponse();
 
                                                             callsRequest = tester.callsRequest().
                                                                 fromHalfOfTheYearAgo().
@@ -483,7 +488,11 @@ tests.addTest(options => {
                                                         'Есть записи в которых не найденн контакт. Нажимаю на номер ' +
                                                         'записи. Открыта форма создания контакта.',
                                                     function() {
-                                                        callsRequest.noContact().receiveResponse();
+                                                        callsRequest.
+                                                            noContact().
+                                                            receiveResponse();
+
+                                                        tester.triggerScrollRecalculation();
 
                                                         tester.callsHistoryRow.
                                                             withText('+7 (495) 023-06-26').
@@ -516,7 +525,24 @@ tests.addTest(options => {
                                                     it(
                                                         'Звонок является трансфером. Отображена иконка трансфера.',
                                                     function() {
-                                                        callsRequest.transferCall().receiveResponse();
+                                                        callsRequest.
+                                                            transferCall().
+                                                            receiveResponse();
+
+                                                        tester.triggerScrollRecalculation();
+
+                                                        tester.body.expectTextContentToHaveSubstring(
+                                                            'Сегодня ' +
+                                                            'Гяурова Марийка 08:03 ' +
+
+                                                            'Вчера ' +
+                                                            'Манова Тома 18:08 ' +
+
+                                                            '17 декабря 2019 ' +
+
+                                                            'Сотирова Атанаска 12:02 ' +
+                                                            'Сотирова Атанаска 05:57'
+                                                        );
 
                                                         tester.callsHistoryRow.
                                                             withText('Гяурова Марийка').
@@ -969,10 +995,11 @@ tests.addTest(options => {
                                                                     expectNotToHaveClass('cmg-button-pressed');
                                                             });
                                                         });
-                                                        it('Нет открытых сделки. Отображен диалпад.', function() {
+                                                        it('Нет открытых сделок. Отображен диалпад.', function() {
                                                             outCallSessionEvent.receive();
 
-                                                            tester.outCallSessionEvent().slavesNotification().
+                                                            tester.outCallSessionEvent().
+                                                                slavesNotification().
                                                                 expectToBeSent();
 
                                                             tester.dialpadButton(1).expectToBeVisible();
@@ -996,7 +1023,7 @@ tests.addTest(options => {
                                                         tester.digitRemovingButton.expectToBeVisible();
                                                         tester.softphone.expectToBeExpanded();
 
-                                                        if (localStorage.getItem('isSoftphoneHigh') != 'true') {
+                                                        if (localStorage.getItem('isExpanded') != 'true') {
                                                             throw new Error(
                                                                 'В локальном хранилище должна быть сохранена ' +
                                                                 'развернутость софтфона.'
@@ -1919,7 +1946,7 @@ tests.addTest(options => {
                                                         );
                                                 });
                                                 it('Отображен софтфон.', function() {
-                                                    if (localStorage.getItem('isSoftphoneHigh') != 'false') {
+                                                    if (localStorage.getItem('isExpanded') != 'false') {
                                                         throw new Error(
                                                             'В локальном хранилище должна быть сохранена свернутость ' +
                                                             'софтфона.'
@@ -3323,6 +3350,8 @@ tests.addTest(options => {
                                     settingsRequest.
                                         noTelephony().
                                         receiveResponse();
+
+                                    notificationTester.grantPermission();
 
                                     tester.slavesNotification().expectToBeSent();
 

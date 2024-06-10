@@ -228,7 +228,9 @@ define(function () {
                             'cmgui-text-field-error',
                         ]);
 
-                        errorMessage !== undefined && fieldNotificationTester.expectToHaveTextContent(errorMessage);
+                        errorMessage
+                            ? fieldNotificationTester.expectToHaveTextContent(errorMessage)
+                            : fieldNotificationTester.expectNotToExist();
                     };
 
                     tester.clearIcon = (() => {
@@ -288,6 +290,7 @@ define(function () {
                 '.clct-c-button, ' +
                 '.ui-radio-content, ' +
                 '.cmgui-radio-content, ' +
+                '.cmgui-radio-wrapper, ' +
                 '.cmg-switch-label, ' +
                 '.misc-core-src-component-styles-module__label, ' +
                 '.misc-core-src-components-menu-styles-module__label, ' +
@@ -326,7 +329,10 @@ define(function () {
 
                 const isSwitch = (() => {
                     try {
-                        return domElement.classList.contains('cmg-switch-label')
+                        return [
+                            'cmg-switch-label',
+                            'cmgui-radio-wrapper',
+                        ].some(className => domElement.classList.contains(className));
                     } catch (e) {
                         return false;
                     }
@@ -494,7 +500,8 @@ define(function () {
                         '.ui-audio-player__close, ' +
                         '.cmgui-audio-player__close, ' +
                         '.ui-notification-close-x, ' +
-                        '.cmgui-notification-close-x'
+                        '.cmgui-notification-close-x, ' +
+                        '.cmgui-icon[data-component=Cancel20]'
                     ) 
                 );
 

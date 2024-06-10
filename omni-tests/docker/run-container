@@ -7,6 +7,7 @@ dockerArguments=""
 entrypointArguments=""
 buildImage=0
 shouldOpenLogs=0
+shouldRunTests=0
 noCache=""
 imageTag="omni-tests"
 
@@ -51,6 +52,9 @@ do
     elif [ "$1" = "--log" ]
     then
         shouldOpenLogs=1
+    elif [ "$1" = "--test" ]
+    then
+        shouldRunTests=1
     elif [ "$1" = "--network=host" ]
     then
         dockerArguments="$dockerArguments $1"
@@ -164,6 +168,12 @@ then
         exit 1
     fi
 
+    exit 0
+fi
+
+if [ $shouldRunTests -eq 1 ]
+then
+    cd $applicationDirectory/utils && npx cypress open
     exit 0
 fi
 

@@ -742,7 +742,7 @@ tests.addTest(options => {
         });
     });
     it('Ранее софтфон был развернут. Софтфон развернут.', function() {
-        localStorage.setItem('isSoftphoneHigh', true);
+        localStorage.setItem('isExpanded', true);
             
         setNow('2019-12-19T12:10:06');
 
@@ -870,7 +870,7 @@ tests.addTest(options => {
         tester.phoneField.expectToBeVisible();
     });
     it('Ранее софтфон был свернут. Софтфон свернут.', function() {
-        localStorage.setItem('isSoftphoneHigh', false);
+        localStorage.setItem('isExpanded', false);
             
         setNow('2019-12-19T12:10:06');
 

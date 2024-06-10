@@ -322,6 +322,15 @@ tests.addTest(options => {
                                             tester.contactGroupsRequest().
                                                 forIframe().
                                                 receiveResponse();
+
+                                            tester.contactGroupsRequest().
+                                                forIframe().
+                                                receiveResponse();
+
+                                            tester.usersRequest().
+                                                forContacts().
+                                                forIframe().
+                                                receiveResponse();
                                         });
                                         it('В списке отображёны каналы Telegram Private.', function() {
                                             tester.select.
@@ -473,14 +482,20 @@ tests.addTest(options => {
 
                                                             tester.modalWindow.
                                                                 select.
-                                                                expectToHaveTextContent('Нижний Новгород');
+                                                                expectToHaveTextContent(
+                                                                    'Нижний Новгород ' +
+                                                                    'Выберите канал *'
+                                                                );
 
                                                             tester.button('Перейти к чату').expectToBeEnabled();
                                                         });
                                                         it('Канал выбран.', function() {
                                                             tester.modalWindow.
                                                                 select.
-                                                                expectToHaveTextContent('Белгород');
+                                                                expectToHaveTextContent(
+                                                                    'Белгород ' +
+                                                                    'Выберите канал *'
+                                                                );
 
                                                             tester.button('Начать чат').expectToBeEnabled();
                                                         });
@@ -500,7 +515,10 @@ tests.addTest(options => {
 
                                                     tester.modalWindow.
                                                         select.
-                                                        expectToHaveTextContent('Якутск');
+                                                        expectToHaveTextContent(
+                                                            'Якутск ' +
+                                                            'Выберите канал *'
+                                                        );
 
                                                     tester.button('Начать чат').expectToBeEnabled();
 
@@ -508,7 +526,10 @@ tests.addTest(options => {
                                                 it('Канал выбран.', function() {
                                                     tester.modalWindow.
                                                         select.
-                                                        expectToHaveTextContent('Нижний Новгород');
+                                                        expectToHaveTextContent(
+                                                            'Нижний Новгород ' +
+                                                            'Выберите канал *'
+                                                        );
 
                                                     tester.button('Начать чат').expectToBeEnabled();
                                                 });
@@ -577,7 +598,7 @@ tests.addTest(options => {
 
                                         tester.input.
                                             withPlaceholder('Введите номер').
-                                            expectNotToHaveError();
+                                            expectToHaveError('');
                                     });
                                     it('Ввожу другой номер телефона.', function() {
                                         tester.input.
@@ -971,6 +992,95 @@ tests.addTest(options => {
                                 tester.spin.expectToBeVisible();
                             });
                         });
+                        describe('Выбираю тип Email.', function() {
+                            beforeEach(function() {
+                                tester.button('Email').click();
+
+                                tester.input.
+                                    withPlaceholder('Введите email').
+                                    fill('tomova@gmail.com').
+                                    pressEnter();
+
+                                tester.searchResultsRequest().
+                                    anotherToken().
+                                    email().
+                                    receiveResponse();
+
+                                tester.chatChannelSearchRequest().
+                                    email().
+                                    noChat().
+                                    receiveResponse();
+                            });
+                            
+                            it('Нажимаю на кнопку начатия чата. Чат начат.', function() {
+                                tester.button('Начать чат').click();
+
+                                tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    noData().
+                                    receiveResponse();
+
+                                tester.chatListRequest().
+                                    active().
+                                    secondPage().
+                                    forCurrentEmployee().
+                                    receiveResponse();
+
+                                tester.chatListRequest().
+                                    closed().
+                                    noData().
+                                    forCurrentEmployee().
+                                    receiveResponse();
+
+                                tester.chatListRequest().
+                                    active().
+                                    noData().
+                                    forCurrentEmployee().
+                                    isOtherEmployeesAppeals().
+                                    receiveResponse();
+
+                                tester.chatStartingRequest().
+                                    email().
+                                    receiveResponse();
+
+                                tester.chatListRequest().
+                                    thirdChat().
+                                    receiveResponse();
+
+                                tester.submoduleInitilizationEvent().
+                                    contacts().
+                                    expectToBeSent();
+
+                                tester.visitorCardRequest().receiveResponse();
+                                tester.chatInfoRequest().receiveResponse();
+                                    
+                                tester.usersRequest().
+                                    forContacts().
+                                    forIframe().
+                                    receiveResponse();
+
+                                tester.contactGroupsRequest().
+                                    forIframe().
+                                    receiveResponse();
+
+                                tester.contactGroupsRequest().
+                                    forIframe().
+                                    receiveResponse();
+
+                                tester.usersRequest().
+                                    forContacts().
+                                    forIframe().
+                                    receiveResponse();
+                            });
+                            it('Выбран канал типа Email.', function() {
+                                tester.modalWindow.
+                                    select.
+                                    expectToHaveTextContent(
+                                        'Дели ' +
+                                        'Выберите канал *'
+                                    );
+                            });
+                        });
                         it('Открываю выпадающий список каналов. В нем нет ни одного канала.', function() {
                             tester.select.click();
 
@@ -997,7 +1107,7 @@ tests.addTest(options => {
 
                             tester.input.
                                 withPlaceholder('Введите номер').
-                                expectNotToHaveError();
+                                expectToHaveError();
                         });
                     });
                     describe('Открываю чат. Нажимаю на опцию канала связи.', function() {

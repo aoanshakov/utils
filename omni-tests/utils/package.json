@@ -12,5 +12,8 @@
   "dependencies": {
     "json3": "3.3.3",
     "uuid": "^8.2.0"
+  },
+  "devDependencies": {
+    "cypress": "^13.10.0"
   }
 }

@@ -54,7 +54,6 @@ define(() => function ({
     window.resetElectronCookiesManager?.();
 
     window.isIframe = !!isIframe;
-    window.getOrigin = () => url;
     window.stores = null;
     window.contactStore = null;
     window.chatsStore = null;
@@ -62,6 +61,9 @@ define(() => function ({
     window.softphoneBroadcastChannelCache = {};
     window.destroyMethodCaller?.();
     window.resetChannels?.();
+
+    window.getOrigin = () => url;
+    me.changeCurrentUrl = () => (url = 'https://amo2comagicdev.amocrm.ru/leads/list/pipeline/6168778');
 
     {
 
@@ -721,56 +723,57 @@ define(() => function ({
             },
         });
 
-        const getSoftphoneSettings = () => {
-            const value = {
-                padding: {
-                    top: 40,
-                    right: 10,
-                    bottom: 30,
-                    left: 50,
+        const getDefaultSoftphoneSettings = () => ({
+            padding: {
+                top: 40,
+                right: 10,
+                bottom: 30,
+                left: 50,
+            },
+            button: {
+                elementSelector: '.some-element',
+                mode: 'insertBefore',
+                tag: 'button',
+
+                innerHTML: '<span class="visibility-button-inner">' +
+                    'Трубочка ' +
+
+                    '{% if missedEventsCount > 0 %}' +
+                        '({{ missedEventsCount }}) ' +
+                    '{% endif %}' +
+                '</span>',
+
+                attributes: {
+                    class: 'visibility-button',
                 },
-                button: {
-                    elementSelector: '.some-element',
-                    mode: 'insertBefore',
+            },
+            click2call: {
+                callapi: getCallapi(),
+                handlers: [{
+                    elementSelector: '.phone-number',
                     tag: 'button',
-
-                    innerHTML: '<span class="visibility-button-inner">' +
-                        'Трубочка ' +
-
-                        '{% if missedEventsCount > 0 %}' +
-                            '({{ missedEventsCount }}) ' +
-                        '{% endif %}' +
-                    '</span>',
-
+                    innerHTML: '<span class="click-2-call-inner">Телефон: {{ phone }}</span>',
                     attributes: {
-                        class: 'visibility-button',
+                        class: 'click-2-call',
                     },
-                },
-                click2call: {
-                    callapi: getCallapi(),
-                    handlers: [{
-                        elementSelector: '.phone-number',
-                        tag: 'button',
-                        innerHTML: '<span class="click-2-call-inner">Телефон: {{ phone }}</span>',
-                        attributes: {
-                            class: 'click-2-call',
-                        },
-                        phoneXpath: './/text()',
-                    }, {
-                        elementSelector: '.telephone-number',
-                        tag: 'button',
-                        innerHTML:
-                            '<span class="click-2-call-inner-wrapper">' +
-                                'Номер телефона: {{ element|raw }} ({{ phone }})' +
-                            '</span>',
-                        attributes: {
-                            class: 'click-2-call-wrapper',
-                        },
-                        phoneXpath: 'span/@data-phone',
-                    }],
-                },
-            };
+                    phoneXpath: './/text()',
+                }, {
+                    elementSelector: '.telephone-number',
+                    tag: 'button',
+                    innerHTML:
+                        '<span class="click-2-call-inner-wrapper">' +
+                            'Номер телефона: {{ element|raw }} ({{ phone }})' +
+                        '</span>',
+                    attributes: {
+                        class: 'click-2-call-wrapper',
+                    },
+                    phoneXpath: 'span/@data-phone',
+                }],
+            },
+        });
 
+        const getSoftphoneSettings = () => {
+            const value = getDefaultSoftphoneSettings();
             return softphoneSettingsProcessors.reduce((value, process) => process(value), value);
         };
 
@@ -829,6 +832,10 @@ define(() => function ({
 
             const value = {
                 softphone: {
+                    ...(isChrome ? {
+                        'https://*.amocrm.ru/**': getDefaultSoftphoneSettings(),
+                    } : {}),
+
                     [softphoneWildcart]: isChrome ? getSoftphoneSettings() : {
                         click2call: {
                             callapi: getCallapi(),
@@ -882,6 +889,73 @@ define(() => function ({
 
             me.amocrmExtension = () => {
                 chatSettingsProcessors.push(settings => {
+                    settings.button = {
+                        elementSelector: '#nav_menu',
+                        mode: 'insertInto',
+                        tag: 'div',
+
+                        innerHTML: '<div class="nav__menu__item__icon" style="width: 38px; height: 38px;"' +
+                        '>' +
+                            '<svg ' +
+                                'width="38" ' +
+                                'height="38" ' +
+                                'viewBox="0 0 38 38" ' +
+                                'fill="none" ' +
+                                'xmlns="http://www.w3.org/2000/svg"' +
+                            '>' +
+                                '<circle ' +
+                                    'cx="19" ' +
+                                    'cy="19" ' +
+                                    'r="18" ' +
+                                    'fill="none" ' +
+                                    'stroke="#9da8ae"' +
+                                '></circle>' +
+
+                                '<path ' +
+                                    'transform="translate(3, 3)" ' +
+                                    'fill-rule="evenodd" ' +
+                                    'clip-rule="evenodd" ' +
+                                    'fill="#9da8ae" ' +
+                                    'd="' +
+                                        'M15.214 15.288c1.402-1.461 2.483-2.588 4.516-2.588 3.25 0 4.909 3.69 ' +
+                                        '5.47 6.71h-2.42c-.72-3.007-1.806-4.562-3.08-4.562-.854 ' +
+                                        '0-1.344.504-2.315 1.504l-.409.419-.274.281-.001.001c-1.085 1.119-2.39 ' +
+                                        '2.463-4.351 2.463-3.331 0-4.713-3.408-5.108-6.715h2.415c.526 3.237 1.56 ' +
+                                        '4.55 2.728 4.55.847 0 1.631-.817 2.666-1.894l.127-.132.036-.037z' +
+                                    '"' +
+                                '></path>' +
+                            '</svg>' +
+                        '</div>' +
+
+                        '<div class="nav__menu__item__title" style="color: #9da8ae;">UIS</div>' +
+
+                        '{% if missedEventsCount > 0 %}' +
+                            '<div ' +
+                                'style="' +
+                                    'position: absolute;' +
+                                    'line-height: 21px;' +
+                                    'color: #fff;' +
+                                    'background: #f50034;' +
+                                    'border-radius: 11px;' +
+                                    'font-size: 10px;' +
+                                    'padding: 0 6px;' +
+                                    'font-weight: bold;' +
+                                    'top: 0;' +
+                                    'right: 3px;' +
+                                '"' +
+                            '>{{ missedEventsCount }}</div>' +
+                        '{% endif %}',
+
+                        attributes: {
+                            style: 
+                                'margin: 16px 0 0;' +
+                                'position: relative;' +
+                                'cursor: pointer;' +
+                                'line-height: 70px;' +
+                                'text-align: center;',
+                        },
+                    };
+
                     settings.handlers = [{
                         elementSelector: '.linked-form__field.linked-form__field-name',
                         tag: 'div',
@@ -1206,6 +1280,35 @@ define(() => function ({
 
             me.noSettings = () => {
                 (chatsSettings ? chatSettingsProcessors : softphoneSettingsProcessors).push(() => null);
+                return me;
+            };
+
+            me.style = () => {
+                const style = '.cmg-chats-iframe ' + "\u007B" +
+                    'width: calc(90% - 65px);' +
+                    'height: 100%;' +
+                    'left: calc(30% - 65px);' +
+                    'top: 0;' +
+                    'box-shadow: none;' +
+                    'border-radius: 0;' +
+                "\u007D";
+
+                (chatsSettings ? chatSettingsProcessors : softphoneSettingsProcessors).push(settings => (
+                    settings.style = style,
+                    settings
+                ));
+
+                return me;
+            };
+
+            me.padding = () => {
+                chatSettingsProcessors.push(settings => (settings.padding = {
+                    top: 5,
+                    right: 10,
+                    bottom: 100,
+                    left: 200,
+                }, settings));
+
                 return me;
             };
 
@@ -1608,6 +1711,15 @@ define(() => function ({
         });
     };
 
+    me.chatsHidingRequest = () => {
+        const message = { method: 'hide_chats' };
+
+        return {
+            receive: () => postMessages.receive(message),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
+        };
+    };
+
     me.unreadMessagesCountSettingRequest = () => {
         const processors = [];
 
@@ -1727,6 +1839,15 @@ define(() => function ({
                 message.data.channels.push(undefined);
                 postMessages.nextMessage().expectMessageToContain(message);
             },
+        };
+    };
+
+    me.chatListOpeningRequest = () => {
+        const message = { method: 'open_chat_list' };
+
+        return {
+            receive: () => postMessages.receive(message),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
         };
     };
 
@@ -2355,13 +2476,13 @@ define(() => function ({
     );
 
     if (application == 'softphone') {
-        {
-            const pagesContainer = document.createElement('div');
-            pagesContainer.id = 'pages-container';
+        const pagesContainer = document.createElement('div');
+        pagesContainer.id = 'pages-container';
 
-            document.body.appendChild(pagesContainer);
-            addPageContent(1);
-        }
+        renderAmocrmLead && pagesContainer.classList.add('pages-container-amocrm-lead');
+
+        document.body.appendChild(pagesContainer);
+        addPageContent(1);
     }
 
     notification?.destroyAll();
@@ -3965,7 +4086,8 @@ define(() => function ({
         const params = {
             channel_id: 216395,
             contact: {
-                phone: '79283810988'
+                phone: '79283810988',
+                email: undefined,
             }
         };
 
@@ -3993,6 +4115,13 @@ define(() => function ({
 
             noPhone() {
                 params.contact.phone = null;
+                return this;
+            },
+
+            email() {
+                params.contact.phone = undefined;
+                params.contact.email = 'tomova@gmail.com';
+
                 return this;
             },
 
@@ -8785,6 +8914,13 @@ define(() => function ({
                 return this;
             },
 
+            email() {
+                params.search_string = 'tomova@gmail.com';
+                response.result.data.found_list[0].chat_channel_type = 'email';
+
+                return this;
+            },
+
             noSearchString() {
                 params.search_string = null;
                 return this;
@@ -9872,6 +10008,7 @@ define(() => function ({
                         respond(request, data);
 
                         Promise.runAll(false, true);
+                        spendTime(0)
                         spendTime(0)
                         spendTime(0)
                         spendTime(0)
@@ -15236,6 +15373,7 @@ define(() => function ({
         const params = {
             contact: {
                 phone: '79283810988',
+                email: undefined,
             },
         };
 
@@ -15446,6 +15584,16 @@ define(() => function ({
 
             fifthSearchString() {
                 params.contact.phone = '79164725823';
+                return this;
+            },
+
+            email() {
+                params.contact.phone = undefined;
+                params.contact.email = 'tomova@gmail.com';
+
+                data[0].channel_type = 'email';
+                data[0].channel_name = 'Дели';
+
                 return this;
             },
             
@@ -18246,10 +18394,13 @@ define(() => function ({
 
     const addCommunicationPanelTestingMethods = selector => {
         const getDomElement = () => utils.querySelector(selector, true),
+            getHeader = () => getDomElement().closest('.cm-chats--history-wrapper'),
             tester = addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement),
             downloadAnchors = new Set(),
             noElement = new JsTester_NoElement(),
             messageClassNames = '.cm-chats--chat-history-message, .cm-contacts-system-message';
+
+        tester.header = addTesters(testersFactory.createDomElementTester(getHeader), getHeader);
 
         const createMessageTester = getMessageElement => {
             const createTester = (filter = () => true) => {
@@ -18772,7 +18923,7 @@ define(() => function ({
         tester.expectToBeSelected = () => tester.expectToHaveClass('cm-chats--chats-list-item__selected');
         tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cm-chats--chats-list-item__selected');
 
-        tester.click = () => (click(), spendTime(0));
+        tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
 
         tester.scrollIntoView = () => {
             scrollIntoView();

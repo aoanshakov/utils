@@ -67,26 +67,530 @@ tests.addTest(options => {
             'SIP-линия зарегистрирована. Получены данные для отчета. SIP-регистрация завершена.',
         function() {
             let authenticatedUserRequest,
-                registrationRequest;
+                registrationRequest,
+                settingsRequest;
 
             beforeEach(function() {
                 tester.masterInfoMessage().receive();
-                tester.slavesNotification().additional().expectToBeSent();
-                tester.slavesNotification().expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
 
                 tester.employeesWebSocket.connect();
                 tester.employeesInitMessage().expectToBeSent();
 
-                tester.notificationChannel().tellIsLeader().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.slavesNotification().expectToBeSent();
+
+                tester.slavesNotification().
+                    additional().
+                    expectToBeSent();
 
                 authCheckRequest.receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
-                tester.settingsRequest().receiveResponse();
-               
+                settingsRequest = tester.settingsRequest().expectToBeSent();
+            });
+
+            describe('Настройки определены.', function() {
+                beforeEach(function() {
+                    settingsRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        expectToBeSent();
+
+                    tester.connectEventsWebSocket();
+     
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.connectSIPWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    notificationTester.grantPermission();
+
+                    authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                    registrationRequest = tester.registrationRequest().expectToBeSent();
+
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        expectToBeSent();
+
+                    authenticatedUserRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    reportGroupsRequest.receiveResponse();
+                    registrationRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
+                });
+
+                describe('Нажимаю на кнопку "Настройки".', function() {
+                    beforeEach(function() {
+                        tester.button('Настройки').click();
+                    });
+
+                    describe('Нажимаю на кнпоку "Софтфон".', function() {
+                        beforeEach(function() {
+                            tester.popover.button('Софтфон').click();
+                        });
+
+                        describe('Открываю вкладку "Звук".', function() {
+                            beforeEach(function() {
+                                tester.button('Звук').click();
+                            });
+
+                            describe('Настраиваю звук.', function() {
+                                let ringtoneRequest;
+
+                                beforeEach(function() {
+                                    tester.slider.click(25);
+
+                                    tester.othersNotification().
+                                        updateSettings().
+                                        ringtoneVolumeChanged().
+                                        noMicrophoneDevice().
+                                        noRingtoneDevice().
+                                        noOutputDevice().
+                                        shouldNotPlayCallEndingSignal().
+                                        expectToBeSent();
+
+                                    tester.fieldRow('Микрофон').select.arrow.click();
+                                    tester.select.option('Микрофон SURE').click();
+
+                                    tester.othersNotification().
+                                        updateSettings().
+                                        ringtoneVolumeChanged().
+                                        microphoneDevice().
+                                        noRingtoneDevice().
+                                        noOutputDevice().
+                                        shouldNotPlayCallEndingSignal().
+                                        expectToBeSent();
+
+                                    tester.fieldRow('Динамики').select.arrow.click();
+                                    tester.select.option('Колонка JBL').click();
+
+                                    tester.othersNotification().
+                                        updateSettings().
+                                        ringtoneVolumeChanged().
+                                        microphoneDevice().
+                                        noRingtoneDevice().
+                                        anotherOutputDevice().
+                                        shouldNotPlayCallEndingSignal().
+                                        expectToBeSent();
+
+                                    tester.fieldRow('Звонящее устройство').select.arrow.click();
+                                    tester.select.option('Встроенный динамик').click();
+
+                                    tester.othersNotification().
+                                        updateSettings().
+                                        anotherRingtoneDevice().
+                                        ringtoneVolumeChanged().
+                                        microphoneDevice().
+                                        anotherOutputDevice().
+                                        shouldNotPlayCallEndingSignal().
+                                        expectToBeSent();
+                                });
+
+                                describe('Продолжаю настраивать звук.', function() {
+                                    beforeEach(function() {
+                                        tester.button('Сигнал о завершении звонка').click();
+                                        tester.settingsUpdatingRequest().isNeedDisconnectSignal().receiveResponse();
+                                        tester.settingsRequest().isNeedDisconnectSignal().receiveResponse();
+
+                                        tester.othersNotification().
+                                            updateSettings().
+                                            shouldPlayCallEndingSignal().
+                                            expectToBeSent();
+
+                                        tester.othersNotification().
+                                            widgetStateUpdate().
+                                            expectToBeSent();
+
+                                        tester.fieldRow('Мелодия звонка').select.arrow.click();
+                                        tester.select.option('Мелодия звонка 2').click();
+
+                                        tester.settingsUpdatingRequest().
+                                            secondRingtone().
+                                            receiveResponse();
+
+                                        tester.settingsRequest().
+                                            secondRingtone().
+                                            isNeedDisconnectSignal().
+                                            receiveResponse();
+
+                                        tester.othersNotification().
+                                            updateSettings().
+                                            shouldPlayCallEndingSignal().
+                                            incomingRingtone().
+                                            expectToBeSent();
+
+                                        tester.othersNotification().
+                                            widgetStateUpdate().
+                                            expectToBeSent();
+
+                                        ringtoneRequest = tester.ringtoneRequest().expectToBeSent();
+                                    });
+
+                                    describe('Мелодия загружена.', function() {
+                                        beforeEach(function() {
+                                            ringtoneRequest.receiveResponse();
+                                            fileReader.accomplishFileLoading(tester.secondRingtone);
+
+                                            mediaStreamsTester.setIsAbleToPlayThough(
+                                                'data:audio/wav;base64,' +
+                                                tester.secondRingtone
+                                            );
+                                        });
+
+                                        describe('Поступает входящий звонок.', function() {
+                                            let incomingCall;
+
+                                            beforeEach(function() {
+                                                incomingCall = tester.incomingCall().receive();
+
+                                                tester.slavesNotification().
+                                                    available().
+                                                    twoChannels().
+                                                    incoming().
+                                                    progress().
+                                                    expectToBeSent();
+
+                                                tester.numaRequest().receiveResponse();
+                                                tester.accountRequest().receiveResponse();
+
+                                                tester.outCallEvent().receive();
+                                                tester.outCallEvent().slavesNotification().expectToBeSent();
+                                            });
+
+                                            it(
+                                                'Принимаю звонок. Выбранные настройки звука ' +
+                                                'применены.',
+                                            function() {
+                                                tester.callStartingButton.click();
+
+                                                tester.firstConnection.connectWebRTC();
+                                                tester.firstConnection.callTrackHandler();
+
+                                                const mediaStream = tester.allowMediaInput();
+
+                                                tester.firstConnection.addCandidate();
+                                                incomingCall.expectOkToBeSent().receiveResponse();
+
+                                                tester.slavesNotification().
+                                                    available().
+                                                    twoChannels().
+                                                    incoming().
+                                                    confirmed().
+                                                    expectToBeSent();
+
+                                                tester.firstConnection.expectSinkIdToEqual(
+                                                    'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab');
+
+                                                tester.expectMicrophoneDeviceIdToEqual(
+                                                    mediaStream, 
+                                                    '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289hg9a48ghal4'
+                                                );
+                                            });
+                                            it('Настройки применены.', function() {
+                                                mediaStreamsTester.expectStreamsToPlay(
+                                                    'data:audio/wav;base64,' + tester.secondRingtone
+                                                );
+
+                                                mediaStreamsTester.expectVolumeToEqual(
+                                                    'data:audio/wav;base64,' +
+                                                    tester.secondRingtone, 25
+                                                );
+
+                                                mediaStreamsTester.expectSinkIdToEqual(
+                                                    'data:audio/wav;base64,' +
+                                                    tester.secondRingtone,
+
+                                                    '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943ab'
+                                                );
+
+                                                tester.body.expectTextContentToHaveSubstring('Громкость звонка 25%');
+
+                                                tester.fieldRow('Микрофон').
+                                                    select. 
+                                                    expectToHaveTextContent('Микрофон SURE');
+
+                                                tester.fieldRow('Динамики').
+                                                    select.
+                                                    expectToHaveTextContent('Колонка JBL');
+
+                                                tester.fieldRow('Звонящее устройство').
+                                                    select.
+                                                    expectToHaveTextContent('Встроенный динамик');
+
+                                                tester.button('Сигнал о завершении звонка').expectToBeChecked();
+
+                                                utils.expectJSONObjectToContain(
+                                                    localStorage.getItem('audioSettings'),
+                                                    {
+                                                        microphone: {
+                                                            deviceId: '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8' +
+                                                                'g2hg289hg9a48ghal4'
+                                                        },
+                                                        ringtone: {
+                                                            deviceId: '6943f509802439f2c170bea3f42991df56faee134b25b3' +
+                                                                'a2f2a13f0fad6943ab',
+                                                            volume: 25
+                                                        },
+                                                        outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo' +
+                                                            '48g92gj28ogtjog82jgab'
+                                                    }
+                                                );
+                                            });
+                                        });
+                                        it(
+                                            'Нажимаю на кнопку проигрывания. Рингтон ' +
+                                            'проигрывается. Отображена иконка остановки.',
+                                        function() {
+                                            tester.playerButton.click();
+
+                                            mediaStreamsTester.expectStreamsToPlay(
+                                                'data:audio/wav;base64,' +
+                                                tester.secondRingtone
+                                            );
+
+                                            tester.playerButton.findElement('svg').
+                                                expectNotToExist();
+                                        });
+                                        it('Кнопка проигрывания доступна.', function() {
+                                            tester.playerButton.expectNotToHaveClass(
+                                                'cmg-ringtone-player-disabled'
+                                            );
+                                        });
+                                    });
+                                    it('Кнопка проигрывания заблокирования.', function() {
+                                        tester.playerButton.
+                                            expectToHaveClass('cmg-ringtone-player-disabled');
+                                    });
+                                });
+                                it('Настройки сохранены в locaStorage.', function() {
+                                    utils.expectJSONObjectToContain(
+                                        localStorage.getItem('audioSettings'),
+                                        {
+                                            shouldPlayCallEndingSignal: false,
+                                            microphone: {
+                                                deviceId: '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289hg9a48ghal4'
+                                            },
+                                            ringtone: {
+                                                deviceId: '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943' +
+                                                    'ab',
+                                                volume: 25,
+                                                value: 'default'
+                                            },
+                                            outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82' +
+                                                'jgab'
+                                        }
+                                    );
+                                });
+                            });
+                            it('Настройки не выбраны.', function() {
+                                tester.fieldRow('Микрофон').select.expectToHaveTextContent('По умолчанию');
+                                tester.fieldRow('Динамики').select.expectToHaveTextContent('По умолчанию');
+                                tester.fieldRow('Звонящее устройство').select.expectToHaveTextContent('По умолчанию');
+
+                                tester.button('Сигнал о завершении звонка').expectNotToBeChecked();
+                                
+                                tester.playerButton.expectNotToHaveClass('cmg-ringtone-player-disabled');
+                                tester.playerButton.findElement('svg').expectToExist();
+                            });
+                        });
+                        describe('Выбираю режим IP-телефон.', function() {
+                            beforeEach(function() {
+                                tester.button('Софтфон').click();
+                                tester.accountRequest().receiveResponse();
+
+                                tester.slavesNotification().
+                                    additional().
+                                    visible().
+                                    expectToBeSent();
+
+                                tester.dialpadVisibilityButton.click();
+                                tester.button('IP-телефон').click();
+
+                                tester.settingsUpdatingRequest().
+                                    callsAreManagedByAnotherDevice().
+                                    receiveResponse();
+
+                                tester.settingsRequest().
+                                    callsAreManagedByAnotherDevice().
+                                    receiveResponse();
+
+                                tester.slavesNotification().
+                                    userDataFetched().
+                                    twoChannels().
+                                    disabled().
+                                    microphoneAccessGranted().
+                                    softphoneServerConnected().
+                                    expectToBeSent();
+
+                                tester.othersNotification().
+                                    widgetStateUpdate().
+                                    isNotUsingWidgetForCalls().
+                                    expectToBeSent();
+
+                                tester.registrationRequest().expired().receiveResponse();
+                            });
+
+                            it(
+                                'Выбираю текущее устройство. Новый вебсокет открыт. Старый Вебсокет закрыт. Сообщение ' +
+                                '"Устанавливается соединение..." скрыто.',
+                            function() {
+                                tester.button('Текущее устройство').click();
+                                
+                                tester.settingsUpdatingRequest().receiveResponse();
+                                tester.settingsRequest().dontTriggerScrollRecalculation().receiveResponse();
+
+                                tester.slavesNotification().
+                                    userDataFetched().
+                                    twoChannels().
+                                    enabled().
+                                    softphoneServerConnected().
+                                    microphoneAccessGranted().
+                                    expectToBeSent();
+
+                                tester.othersNotification().
+                                    widgetStateUpdate().
+                                    expectToBeSent();
+
+                                tester.connectSIPWebSocket(1);
+
+                                tester.slavesNotification().
+                                    userDataFetched().
+                                    twoChannels().
+                                    webRTCServerConnected().
+                                    softphoneServerConnected().
+                                    microphoneAccessGranted().
+                                    expectToBeSent();
+
+                                tester.registrationRequest().receiveResponse();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    available().
+                                    expectToBeSent();
+
+                                spendTime(1000);
+                                tester.getWebRtcSocket(0).finishDisconnecting();
+
+                                tester.softphone.expectTextContentNotToHaveSubstring('Устанавливается соединение...');
+                            });
+                            it('Вебсокет закрыт.', function() {
+                                spendTime(1000);
+                                tester.webrtcWebsocket.finishDisconnecting();
+                            });
+                            it('Разворачиваю виджет. Отображен заблокированный диалпад.', function() {
+                                tester.collapsednessToggleButton.click();
+                                tester.dialpadButton(1).expectToHaveAttribute('disabled');
+                            });
+                            it('Свитчбокс "IP-телефон" отмечен.', function() {
+                                tester.button('Текущее устройство').expectNotToBeChecked();
+                                tester.button('IP-телефон').expectToBeChecked();
+
+                                tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                                tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
+
+                                tester.dialpadButton(1).expectNotToExist();
+                            });
+                        });
+                        it('Установлены настройки по умолчанию.', function() {
+                            tester.button('Текущее устройство').expectToBeChecked();
+                            tester.button('IP-телефон').expectNotToBeChecked();
+                            tester.button('Автозапуск приложения').expectNotToExist();
+                            tester.button('Помощь').expectNotToExist();
+                        });
+                    });
+                    it('Открыто меню настроек.', function() {
+                        tester.body.expectTextContentToHaveSubstring(
+                            'Настройки ' +
+
+                            'Софтфон ' +
+                            'Коллтрекинг ' +
+                            'Сценарии' 
+                        );
+                    });
+                });
+                describe('Открываю софтфон.', function() {
+                    beforeEach(function() {
+                        tester.button('Софтфон').click();
+                        tester.accountRequest().receiveResponse();
+
+                        tester.slavesNotification().
+                            additional().
+                            visible().
+                            expectToBeSent();
+                    });
+
+                    it('Нажимаю на кнопку настроек в нижнем тулбаре. Открыт раздел настроек.', function() {
+                        tester.settingsButton.click();
+
+                        tester.settingsButton.expectToBePressed();
+                        tester.phoneField.expectToBeVisible();
+                        tester.button('Текущее устройство').expectToBeChecked();
+                    });
+                    it('Кнопка настроек не нажата.', function() {
+                        tester.settingsButton.expectNotToBePressed();
+                    });
+                });
+            });
+            it('Настройки не определены.', function() {
+                settingsRequest.
+                    undefinedParams().
+                    receiveResponse();
+
                 tester.slavesNotification().
                     twoChannels().
                     enabled().
@@ -139,420 +643,33 @@ tests.addTest(options => {
                     twoChannels().
                     available().
                     expectToBeSent();
-            });
 
-            describe('Нажимаю на кнопку "Настройки".', function() {
-                beforeEach(function() {
-                    tester.button('Настройки').click();
-                });
+                tester.button('Настройки').click();
+                tester.popover.button('Софтфон').click();
 
-                describe('Нажимаю на кнпоку "Софтфон".', function() {
-                    beforeEach(function() {
-                        tester.popover.button('Софтфон').click();
-                    });
-
-                    describe('Открываю вкладку "Звук".', function() {
-                        beforeEach(function() {
-                            tester.button('Звук').click();
-                        });
-
-                        describe('Настраиваю звук.', function() {
-                            let ringtoneRequest;
-
-                            beforeEach(function() {
-                                tester.slider.click(25);
-
-                                tester.othersNotification().
-                                    updateSettings().
-                                    ringtoneVolumeChanged().
-                                    noMicrophoneDevice().
-                                    noRingtoneDevice().
-                                    noOutputDevice().
-                                    shouldNotPlayCallEndingSignal().
-                                    expectToBeSent();
-
-                                tester.fieldRow('Микрофон').select.arrow.click();
-                                tester.select.option('Микрофон SURE').click();
-
-                                tester.othersNotification().
-                                    updateSettings().
-                                    ringtoneVolumeChanged().
-                                    microphoneDevice().
-                                    noRingtoneDevice().
-                                    noOutputDevice().
-                                    shouldNotPlayCallEndingSignal().
-                                    expectToBeSent();
-
-                                tester.fieldRow('Динамики').select.arrow.click();
-                                tester.select.option('Колонка JBL').click();
-
-                                tester.othersNotification().
-                                    updateSettings().
-                                    ringtoneVolumeChanged().
-                                    microphoneDevice().
-                                    noRingtoneDevice().
-                                    anotherOutputDevice().
-                                    shouldNotPlayCallEndingSignal().
-                                    expectToBeSent();
-
-                                tester.fieldRow('Звонящее устройство').select.arrow.click();
-                                tester.select.option('Встроенный динамик').click();
-
-                                tester.othersNotification().
-                                    updateSettings().
-                                    anotherRingtoneDevice().
-                                    ringtoneVolumeChanged().
-                                    microphoneDevice().
-                                    anotherOutputDevice().
-                                    shouldNotPlayCallEndingSignal().
-                                    expectToBeSent();
-                            });
-
-                            describe('Продолжаю настраивать звук.', function() {
-                                beforeEach(function() {
-                                    tester.button('Сигнал о завершении звонка').click();
-                                    tester.settingsUpdatingRequest().isNeedDisconnectSignal().receiveResponse();
-                                    tester.settingsRequest().isNeedDisconnectSignal().receiveResponse();
-
-                                    tester.othersNotification().
-                                        widgetStateUpdate().
-                                        expectToBeSent();
-
-                                    tester.othersNotification().
-                                        updateSettings().
-                                        shouldPlayCallEndingSignal().
-                                        expectToBeSent();
-
-                                    tester.fieldRow('Мелодия звонка').select.arrow.click();
-                                    tester.select.option('Мелодия звонка 2').click();
-
-                                    tester.settingsUpdatingRequest().
-                                        secondRingtone().
-                                        receiveResponse();
-
-                                    tester.settingsRequest().
-                                        secondRingtone().
-                                        isNeedDisconnectSignal().
-                                        receiveResponse();
-
-                                    tester.othersNotification().
-                                        widgetStateUpdate().
-                                        expectToBeSent();
-
-                                    tester.othersNotification().
-                                        updateSettings().
-                                        shouldPlayCallEndingSignal().
-                                        incomingRingtone().
-                                        expectToBeSent();
-
-                                    ringtoneRequest = tester.ringtoneRequest().expectToBeSent();
-                                });
-
-                                describe('Мелодия загружена.', function() {
-                                    beforeEach(function() {
-                                        ringtoneRequest.receiveResponse();
-                                        fileReader.accomplishFileLoading(tester.secondRingtone);
-
-                                        mediaStreamsTester.setIsAbleToPlayThough(
-                                            'data:audio/wav;base64,' +
-                                            tester.secondRingtone
-                                        );
-                                    });
-
-                                    describe('Поступает входящий звонок.', function() {
-                                        let incomingCall;
-
-                                        beforeEach(function() {
-                                            incomingCall = tester.incomingCall().receive();
-
-                                            tester.slavesNotification().
-                                                available().
-                                                twoChannels().
-                                                incoming().
-                                                progress().
-                                                expectToBeSent();
-
-                                            tester.numaRequest().receiveResponse();
-
-                                            tester.outCallEvent().receive();
-                                            tester.outCallEvent().slavesNotification().expectToBeSent();
-                                        });
-
-                                        it(
-                                            'Принимаю звонок. Выбранные настройки звука ' +
-                                            'применены.',
-                                        function() {
-                                            tester.callStartingButton.click();
-
-                                            tester.firstConnection.connectWebRTC();
-                                            tester.firstConnection.callTrackHandler();
-
-                                            const mediaStream = tester.allowMediaInput();
-
-                                            tester.firstConnection.addCandidate();
-                                            incomingCall.expectOkToBeSent().receiveResponse();
-
-                                            tester.slavesNotification().
-                                                available().
-                                                twoChannels().
-                                                incoming().
-                                                confirmed().
-                                                expectToBeSent();
-
-                                            tester.firstConnection.expectSinkIdToEqual(
-                                                'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82jgab');
-
-                                            tester.expectMicrophoneDeviceIdToEqual(
-                                                mediaStream, 
-                                                '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289hg9a48ghal4'
-                                            );
-                                        });
-                                        it('Настройки применены.', function() {
-                                            mediaStreamsTester.expectStreamsToPlay(
-                                                'data:audio/wav;base64,' + tester.secondRingtone
-                                            );
-
-                                            mediaStreamsTester.expectVolumeToEqual(
-                                                'data:audio/wav;base64,' +
-                                                tester.secondRingtone, 25
-                                            );
-
-                                            mediaStreamsTester.expectSinkIdToEqual(
-                                                'data:audio/wav;base64,' +
-                                                tester.secondRingtone,
-
-                                                '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943ab'
-                                            );
-
-                                            tester.body.expectTextContentToHaveSubstring('Громкость звонка 25%');
-
-                                            tester.fieldRow('Микрофон').
-                                                select. 
-                                                expectToHaveTextContent('Микрофон SURE');
-
-                                            tester.fieldRow('Динамики').
-                                                select.
-                                                expectToHaveTextContent('Колонка JBL');
-
-                                            tester.fieldRow('Звонящее устройство').
-                                                select.
-                                                expectToHaveTextContent('Встроенный динамик');
-
-                                            tester.button('Сигнал о завершении звонка').expectToBeChecked();
-
-                                            utils.expectJSONObjectToContain(
-                                                localStorage.getItem('audioSettings'),
-                                                {
-                                                    microphone: {
-                                                        deviceId: '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg' +
-                                                            '289hg9a48ghal4'
-                                                    },
-                                                    ringtone: {
-                                                        deviceId: '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2' +
-                                                            'a13f0fad6943ab',
-                                                        volume: 25
-                                                    },
-                                                    outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92' +
-                                                        'gj28ogtjog82jgab'
-                                                }
-                                            );
-                                        });
-                                    });
-                                    it(
-                                        'Нажимаю на кнопку проигрывания. Рингтон ' +
-                                        'проигрывается. Отображена иконка остановки.',
-                                    function() {
-                                        tester.playerButton.click();
-
-                                        mediaStreamsTester.expectStreamsToPlay(
-                                            'data:audio/wav;base64,' +
-                                            tester.secondRingtone
-                                        );
-
-                                        tester.playerButton.findElement('svg').
-                                            expectNotToExist();
-                                    });
-                                    it('Кнопка проигрывания доступна.', function() {
-                                        tester.playerButton.expectNotToHaveClass(
-                                            'cmg-ringtone-player-disabled'
-                                        );
-                                    });
-                                });
-                                it('Кнопка проигрывания заблокирования.', function() {
-                                    tester.playerButton.
-                                        expectToHaveClass('cmg-ringtone-player-disabled');
-                                });
-                            });
-                            it('Настройки сохранены в locaStorage.', function() {
-                                utils.expectJSONObjectToContain(
-                                    localStorage.getItem('audioSettings'),
-                                    {
-                                        shouldPlayCallEndingSignal: false,
-                                        microphone: {
-                                            deviceId: '98g2j2pg9842gi2gh89hl48ogh2og82h9g724hg427gla8g2hg289hg9a48ghal4'
-                                        },
-                                        ringtone: {
-                                            deviceId: '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943' +
-                                                'ab',
-                                            volume: 25,
-                                            value: 'default'
-                                        },
-                                        outputDeviceId: 'g8294gjg29guslg82pgj2og8ogjwog8u29gj0pagulo48g92gj28ogtjog82' +
-                                            'jgab'
-                                    }
-                                );
-                            });
-                        });
-                        it('Настройки не выбраны.', function() {
-                            tester.fieldRow('Микрофон').select.expectToHaveTextContent('По умолчанию');
-                            tester.fieldRow('Динамики').select.expectToHaveTextContent('По умолчанию');
-                            tester.fieldRow('Звонящее устройство').select.expectToHaveTextContent('По умолчанию');
-
-                            tester.button('Сигнал о завершении звонка').expectNotToBeChecked();
-                            
-                            tester.playerButton.expectNotToHaveClass('cmg-ringtone-player-disabled');
-                            tester.playerButton.findElement('svg').expectToExist();
-                        });
-                    });
-                    describe('Выбираю режим IP-телефон.', function() {
-                        beforeEach(function() {
-                            tester.button('Софтфон').click();
-
-                            tester.slavesNotification().
-                                additional().
-                                visible().
-                                expectToBeSent();
-
-                            tester.dialpadVisibilityButton.click();
-                            tester.button('IP-телефон').click();
-
-                            tester.settingsUpdatingRequest().
-                                callsAreManagedByAnotherDevice().
-                                receiveResponse();
-
-                            tester.settingsRequest().
-                                callsAreManagedByAnotherDevice().
-                                receiveResponse();
-
-                            tester.othersNotification().
-                                widgetStateUpdate().
-                                isNotUsingWidgetForCalls().
-                                expectToBeSent();
-
-                            tester.slavesNotification().
-                                userDataFetched().
-                                twoChannels().
-                                disabled().
-                                microphoneAccessGranted().
-                                softphoneServerConnected().
-                                expectToBeSent();
-
-                            tester.registrationRequest().expired().receiveResponse();
-                        });
-
-                        it(
-                            'Выбираю текущее устройство. Новый вебсокет открыт. Старый Вебсокет закрыт. Сообщение ' +
-                            '"Устанавливается соединение..." скрыто.',
-                        function() {
-                            tester.button('Текущее устройство').click();
-                            
-                            tester.settingsUpdatingRequest().receiveResponse();
-                            tester.settingsRequest().dontTriggerScrollRecalculation().receiveResponse();
-
-                            tester.othersNotification().
-                                widgetStateUpdate().
-                                expectToBeSent();
-
-                            tester.slavesNotification().
-                                userDataFetched().
-                                twoChannels().
-                                enabled().
-                                softphoneServerConnected().
-                                microphoneAccessGranted().
-                                expectToBeSent();
-
-                            tester.connectSIPWebSocket(1);
-
-                            tester.slavesNotification().
-                                userDataFetched().
-                                twoChannels().
-                                webRTCServerConnected().
-                                softphoneServerConnected().
-                                microphoneAccessGranted().
-                                expectToBeSent();
-
-                            tester.registrationRequest().receiveResponse();
-
-                            tester.slavesNotification().
-                                twoChannels().
-                                available().
-                                expectToBeSent();
-
-                            spendTime(1000);
-                            tester.getWebRtcSocket(0).finishDisconnecting();
-
-                            tester.softphone.expectTextContentNotToHaveSubstring('Устанавливается соединение...');
-                        });
-                        it('Вебсокет закрыт.', function() {
-                            spendTime(1000);
-                            tester.webrtcWebsocket.finishDisconnecting();
-                        });
-                        it('Разворачиваю виджет. Отображен заблокированный диалпад.', function() {
-                            tester.collapsednessToggleButton.click();
-                            tester.dialpadButton(1).expectToHaveAttribute('disabled');
-                        });
-                        it('Свитчбокс "IP-телефон" отмечен.', function() {
-                            tester.button('Текущее устройство').expectNotToBeChecked();
-                            tester.button('IP-телефон').expectToBeChecked();
-
-                            tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
-                            tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
-
-                            tester.dialpadButton(1).expectNotToExist();
-                        });
-                    });
-                    it('Установлены настройки по умолчанию.', function() {
-                        tester.button('Текущее устройство').expectToBeChecked();
-                        tester.button('IP-телефон').expectNotToBeChecked();
-                        tester.button('Автозапуск приложения').expectNotToExist();
-                        tester.button('Помощь').expectNotToExist();
-                    });
-                });
-                it('Открыто меню настроек.', function() {
-                    tester.body.expectTextContentToHaveSubstring(
-                        'Настройки ' +
-
-                        'Софтфон ' +
-                        'Коллтрекинг ' +
-                        'Сценарии' 
-                    );
-                });
-            });
-            describe('Открываю софтфон.', function() {
-                beforeEach(function() {
-                    tester.button('Софтфон').click();
-                    tester.slavesNotification().additional().visible().expectToBeSent();
-                });
-
-                it('Нажимаю на кнопку настроек в нижнем тулбаре. Открыт раздел настроек.', function() {
-                    tester.settingsButton.click();
-
-                    tester.settingsButton.expectToBePressed();
-                    tester.phoneField.expectToBeVisible();
-                    tester.button('Текущее устройство').expectToBeChecked();
-                });
-                it('Кнопка настроек не нажата.', function() {
-                    tester.settingsButton.expectNotToBePressed();
-                });
+                tester.button('Открывать во время звонка').expectToBeChecked();
+                tester.button('Скрывать после звонка').expectNotToBeChecked();
             });
         });
         it(
             'Вкладка является ведомой. Открываю софтфон. Открываю настройки звука. На другой вкладке ' +
             'изменены настройки звука.',
         function() {
-            tester.masterInfoMessage().isNotMaster().receive();
-            tester.masterNotification().tabOpened().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.masterInfoMessage().
+                isNotMaster().
+                receive();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterNotification().
+                tabOpened().
+                expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
@@ -562,9 +679,18 @@ tests.addTest(options => {
                 allowNumberCapacityUpdate().
                 receiveResponse();
 
-            tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+            tester.settingsRequest().
+                allowNumberCapacitySelect().
+                receiveResponse();
 
-            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
             notificationTester.grantPermission();
 
             tester.numberCapacityRequest().receiveResponse();
@@ -586,6 +712,8 @@ tests.addTest(options => {
                 additional().
                 visible().
                 receive();
+
+            tester.accountRequest().receiveResponse();
 
             tester.button('Настройки').click();
             tester.popover.button('Софтфон').click();
@@ -683,16 +811,43 @@ tests.addTest(options => {
             reportGroupsRequest.receiveResponse();
 
             tester.masterInfoMessage().receive();
-            tester.slavesNotification().additional().expectToBeSent();
-            tester.slavesNotification().expectToBeSent();
+
+            tester.employeesBroadcastChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                applyLeader().
+                expectToBeSent();
+
+            tester.employeesBroadcastChannel().
+                tellIsLeader().
+                expectToBeSent();
 
             tester.employeesWebSocket.connect();
             tester.employeesInitMessage().expectToBeSent();
 
-            tester.notificationChannel().tellIsLeader().expectToBeSent();
-            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
-            tester.notificationChannel().applyLeader().expectToBeSent();
+            tester.notificationChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.slavesNotification().expectToBeSent();
+
+            tester.slavesNotification().
+                additional().
+                expectToBeSent();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
@@ -703,15 +858,15 @@ tests.addTest(options => {
                 isNeedDisconnectSignal().
                 receiveResponse();
 
-            tester.slavesNotification().
-                twoChannels().
-                enabled().
-                expectToBeSent();
-
             tester.othersNotification().
                 updateSettings().
                 shouldPlayCallEndingSignal().
                 anotherCustomRingtone().
+                expectToBeSent();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
                 expectToBeSent();
 
             notificationTester.grantPermission();
@@ -782,6 +937,7 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.numaRequest().receiveResponse();
+                tester.accountRequest().receiveResponse();
 
                 tester.outCallEvent().receive();
                 tester.outCallEvent().slavesNotification().expectToBeSent();
@@ -812,20 +968,32 @@ tests.addTest(options => {
                     });
 
                     it('Выбираю другой рингтон. Звучит больше не звучит.', function() {
-                        tester.fieldRow('Мелодия звонка').select.arrow.click();
-                        tester.select.option('Мелодия звонка 3').click();
+                        tester.fieldRow('Мелодия звонка').
+                            select.
+                            arrow.
+                            click();
 
-                        tester.settingsUpdatingRequest().thirdRingtone().receiveResponse();
-                        tester.settingsRequest().thirdRingtone().isNeedDisconnectSignal().receiveResponse();
+                        tester.select.
+                            option('Мелодия звонка 3').
+                            click();
 
-                        tester.othersNotification().
-                            widgetStateUpdate().
-                            expectToBeSent();
+                        tester.settingsUpdatingRequest().
+                            thirdRingtone().
+                            receiveResponse();
+
+                        tester.settingsRequest().
+                            thirdRingtone().
+                            isNeedDisconnectSignal().
+                            receiveResponse();
 
                         tester.othersNotification().
                             updateSettings().
                             shouldPlayCallEndingSignal().
                             customRingtone().
+                            expectToBeSent();
+
+                        tester.othersNotification().
+                            widgetStateUpdate().
                             expectToBeSent();
 
                         tester.ringtoneRequest().third().receiveResponse();
@@ -883,8 +1051,14 @@ tests.addTest(options => {
                 tester.settingsUpdatingRequest().thirdRingtone().receiveResponse();
                 tester.settingsRequest().thirdRingtone().isNeedDisconnectSignal().receiveResponse();
 
-                tester.othersNotification().widgetStateUpdate().expectToBeSent();
-                tester.othersNotification().updateSettings().shouldPlayCallEndingSignal().customRingtone().
+                tester.othersNotification().
+                    updateSettings().
+                    shouldPlayCallEndingSignal().
+                    customRingtone().
+                    expectToBeSent();
+
+                tester.othersNotification().
+                    widgetStateUpdate().
                     expectToBeSent();
 
                 tester.ringtoneRequest().third().receiveResponse();
@@ -965,16 +1139,43 @@ tests.addTest(options => {
         employeeRequest.receiveResponse();
 
         tester.masterInfoMessage().receive();
-        tester.slavesNotification().additional().expectToBeSent();
-        tester.slavesNotification().expectToBeSent();
+
+        tester.employeesBroadcastChannel().
+            applyLeader().
+            expectToBeSent();
+
+        tester.notificationChannel().
+            applyLeader().
+            expectToBeSent();
+
+        tester.masterInfoMessage().
+            applyLeader().
+            expectToBeSent();
+
+        tester.masterInfoMessage().
+            applyLeader().
+            expectToBeSent();
+
+        tester.employeesBroadcastChannel().
+            tellIsLeader().
+            expectToBeSent();
+
+        tester.notificationChannel().
+            tellIsLeader().
+            expectToBeSent();
 
         tester.employeesWebSocket.connect();
         tester.employeesInitMessage().expectToBeSent();
 
-        tester.notificationChannel().tellIsLeader().expectToBeSent();
-        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-        tester.notificationChannel().applyLeader().expectToBeSent();
-        tester.notificationChannel().applyLeader().expectToBeSent();
+        tester.masterInfoMessage().
+            tellIsLeader().
+            expectToBeSent();
+
+        tester.slavesNotification().expectToBeSent();
+
+        tester.slavesNotification().
+            additional().
+            expectToBeSent();
 
         authCheckRequest.receiveResponse();
         tester.talkOptionsRequest().receiveResponse();

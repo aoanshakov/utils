@@ -13,7 +13,28 @@ define(function () {
 `<link rel="stylesheet" type="text/css" href="${getUrl('app.css')}" />` +
 `<link rel="stylesheet" type="text/css" href="${getUrl('cards.css')}" />` +
 
-'<div class="card-holder__fields">' +
+'<div style="width: 65px; position: static;" class="nav__menu-scroll-hide">' +
+    '<div style="width: 65px;" class="nav__menu-wrapper">' +
+        '<div class="nav__menu" id="nav_menu">' +
+            '<div class="nav__menu__item" data-entity="settings">' +
+                '<a class="nav__menu__item__link" href="/settings/">' +
+                    '<div class="nav__menu__item__icon  icon-settings ">' +
+                        '<span ' +
+                            'class="' +
+                                'js-notifications_counter ' +
+                                'nav__notifications__counter' +
+                            '" ' +
+                            'style="display: none"' +
+                        '></span>' +
+                    '</div>' +
+                    '<div class="nav__menu__item__title"> Настройки </div>' +
+                '</a>' +
+            '</div>' +
+        '</div>' +
+    '</div>' +
+'</div>' +
+
+'<div style="left: 65px;" class="card-holder__fields">' +
 
 '<li class="linked-forms__item linked-forms__item-active" data-main-item="true">' +
     '<form action="/ajax/contacts/detail/" autocomplete="off" enctype="multipart/form-data" class="linked-form " id="linked_form_22874819" method="post">' +
@@ -401,5 +422,7 @@ define(function () {
 '</li>' +
 
 '</div>'
+
+
     );
 });

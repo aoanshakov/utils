@@ -764,6 +764,8 @@ tests.addTest(options => {
                                     tester.chatsVisibilitySettingRequest().
                                         visible().
                                         receiveResponse();
+
+                                    tester.chatListOpeningRequest().expectToBeSent();
                                 });
 
                                 it(
@@ -774,22 +776,17 @@ tests.addTest(options => {
                                     tester.iframe.first.expectToBeHidden();
                                     tester.iframe.atIndex(1).expectToBeVisible();
                                 });
+                                it('Получаю запрос скрытия окна чатов. Окно скрыто.', function() {
+                                    tester.chatsHidingRequest().receive();
+                                    tester.chatsVisibilitySettingRequest().receiveResponse();
+
+                                    tester.iframe.first.expectToBeHidden();
+                                    tester.iframe.atIndex(1).expectToBeHidden();
+                                });
                                 it('Чаты видимы.', function() {
                                     tester.iframe.first.expectToBeHidden();
                                     tester.iframe.atIndex(1).expectToBeVisible();
                                 });
-                            });
-                            it(
-                                'Получено событие нажатия на уведомление нового сообщения. Отображены чаты.',
-                            function() {
-                                tester.notificationClickedEvent().receive();
-
-                                tester.chatsVisibilitySettingRequest().
-                                    visible().
-                                    receiveResponse();
-
-                                tester.iframe.first.expectToBeHidden();
-                                tester.iframe.atIndex(1).expectToBeVisible();
                             });
                             it('Получены другие настройки. Кнопка видимости добавлена после элемента.', function() {
                                 tester.widgetSettings().
@@ -826,6 +823,18 @@ tests.addTest(options => {
                                     '[+7 (495) 123-45-64] ' +
                                     '[+7 (495) 123-45-63]'
                                 );
+                            });
+                            it(
+                                'Получено событие нажатия на уведомление нового сообщения. Отображены чаты.',
+                            function() {
+                                tester.notificationClickedEvent().receive();
+
+                                tester.chatsVisibilitySettingRequest().
+                                    visible().
+                                    receiveResponse();
+
+                                tester.iframe.first.expectToBeHidden();
+                                tester.iframe.atIndex(1).expectToBeVisible();
                             });
                             it('В дочернем IFrame  нажимаю на номер телефона. Отправлен запрос вызова.', function() {
                                 postMessages.receive({
@@ -1248,6 +1257,137 @@ tests.addTest(options => {
                         );
                     });
                 });
+                describe('Кнопка видимости должна добавляться после элемента.', function() {
+                    beforeEach(function() {
+                        widgetSettings.
+                            insertAfter().
+                            receive();
+
+                        tester.stateSettingRequest().receive();
+                        tester.popupStateSettingRequest().receiveResponse();
+
+                        tester.widgetSettings().
+                            insertAfter().
+                            windowMessage().
+                            expectToBeSent();
+                    });
+
+                    it('URL изменился. Кнопка видимости добавлена перед элементом.', function() {
+                        tester.changeCurrentUrl();
+
+                        tester.page.triggerMutation();
+                        spendTime(1000);
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            expectToBeSent();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            chatsSettings().
+                            noSettings().
+                            expectToBeSent();
+
+                        tester.body.expectToHaveTextContent(
+                            'Первый элемент #1 ' +
+                            'Трубочка ' +
+                            'Некий элемент #1 ' +
+                            'Последний элемент #1 ' +
+
+                            'Телефон: 74951234568 ' +
+                            'Телефон: 74951234570 ' +
+                            'Номер телефона: +74951234572 (74951234571) ' +
+                            'Номер телефона: +74951234574 (74951234573) ' +
+                            '[+7 (495) 123-45-64] ' +
+                            '[+7 (495) 123-45-63]'
+                        );
+                    });
+                    it('Кнопка видимости добавлена после элемента.', function() {
+                        tester.body.expectToHaveTextContent(
+                            'Первый элемент #1 ' +
+                            'Некий элемент #1 ' +
+                            'Трубочка ' +
+                            'Последний элемент #1 ' +
+
+                            'Телефон: 74951234568 ' +
+                            'Телефон: 74951234570 ' +
+                            'Номер телефона: +74951234572 (74951234571) ' +
+                            'Номер телефона: +74951234574 (74951234573) ' +
+                            '[+7 (495) 123-45-64] ' +
+                            '[+7 (495) 123-45-63]'
+                        );
+                    });
+                });
+                it( 'Получены стили. Открываю окно чатов. Стили применены.', function() {
+                    widgetSettings.
+                        style().
+                        receive();
+
+                    tester.popupStateSettingRequest().receiveResponse();
+                    tester.stateSettingRequest().receive();
+
+                    tester.widgetSettings().
+                        windowMessage().
+                        style().
+                        expectToBeSent();
+
+                    tester.submoduleInitilizationEvent().
+                        operatorWorkplace().
+                        receive();
+
+                    tester.submoduleInitilizationEvent().receive();
+
+                    tester.widgetSettings().
+                        windowMessage().
+                        chatsSettings().
+                        expectToBeSent();
+
+                    tester.toggleChatsVisibilityRequest().expectResponseToBeSent();
+
+                    tester.chatsVisibilitySettingRequest().
+                        visible().
+                        receiveResponse();
+
+                    tester.chatListOpeningRequest().expectToBeSent();
+                });
+                it(
+                    'Получены настройки размера окна чатов. Открываю окно чатов. Окно чатов имеет указаный в ' +
+                    'настройках размер.',
+                function() {
+                    widgetSettings.
+                        padding().
+                        receive();
+
+                    tester.popupStateSettingRequest().receiveResponse();
+                    tester.stateSettingRequest().receive();
+
+                    tester.widgetSettings().
+                        windowMessage().
+                        expectToBeSent();
+
+                    tester.submoduleInitilizationEvent().
+                        operatorWorkplace().
+                        receive();
+
+                    tester.submoduleInitilizationEvent().receive();
+
+                    tester.widgetSettings().
+                        windowMessage().
+                        chatsSettings().
+                        padding().
+                        expectToBeSent();
+
+                    tester.toggleChatsVisibilityRequest().expectResponseToBeSent();
+
+                    tester.chatsVisibilitySettingRequest().
+                        visible().
+                        receiveResponse();
+
+                    tester.chatListOpeningRequest().expectToBeSent();
+
+                    tester.iframe.atIndex(1).expectToHaveTopOffset(5);
+                    tester.iframe.atIndex(1).expectToHaveLeftOffset(200);
+                });
                 it('Получен дубайский токен. Отображен IFrame с дубайского сервера.', function() {
                     widgetSettings.
                         anotherToken().
@@ -1366,35 +1506,6 @@ tests.addTest(options => {
                         'Некий элемент #1 ' +
                         'Последний элемент #1 ' +
                         'Трубочка ' +
-
-                        'Телефон: 74951234568 ' +
-                        'Телефон: 74951234570 ' +
-                        'Номер телефона: +74951234572 (74951234571) ' +
-                        'Номер телефона: +74951234574 (74951234573) ' +
-                        '[+7 (495) 123-45-64] ' +
-                        '[+7 (495) 123-45-63]'
-                    );
-                });
-                it(
-                    'Кнопка видимости должна добавляться после элемента. Кнопка видимости добавлена после элемента.',
-                function() {
-                    widgetSettings.
-                        insertAfter().
-                        receive();
-
-                    tester.stateSettingRequest().receive();
-                    tester.popupStateSettingRequest().receiveResponse();
-
-                    tester.widgetSettings().
-                        insertAfter().
-                        windowMessage().
-                        expectToBeSent();
-
-                    tester.body.expectToHaveTextContent(
-                        'Первый элемент #1 ' +
-                        'Некий элемент #1 ' +
-                        'Трубочка ' +
-                        'Последний элемент #1 ' +
 
                         'Телефон: 74951234568 ' +
                         'Телефон: 74951234570 ' +
@@ -1975,6 +2086,8 @@ tests.addTest(options => {
                         permissions.
                         nextRequest().
                         expectHostPermissionToBeRequested('https://uc-sso-prod-api.uiscom.ru/*').
+                        expectHostPermissionToBeRequested('https://uc-sso-dub-api.callgear.ae/*').
+                        expectHostPermissionToBeRequested('https://uc-sso-dub-api.callgear.com/*').
                         expectHostPermissionToBeRequested('https://my.uiscom.ru/*').
                         expectHostPermissionToBeRequested('https://my.callgear.ae/*').
                         expectHostPermissionToBeRequested('https://my.comagic.com/*').
@@ -3151,7 +3264,6 @@ tests.addTest(options => {
 
                                     tester.chatListRequest().
                                         active().
-                                        secondPage().
                                         forCurrentEmployee().
                                         receiveResponse();
 
@@ -3192,6 +3304,17 @@ tests.addTest(options => {
                                     tester.contactGroupsRequest().
                                         forIframe().
                                         receiveResponse();
+
+                                    tester.contactGroupsRequest().
+                                        forIframe().
+                                        receiveResponse();
+
+                                    tester.usersRequest().
+                                        forContacts().
+                                        forIframe().
+                                        receiveResponse();
+
+                                    tester.chatList.first.expectNotToExist();
 
                                     tester.contactBar.expectTextContentToHaveSubstring(
                                         'ФИО ' +
@@ -3269,80 +3392,110 @@ tests.addTest(options => {
                                     expectToBeSent();
                             });
                         });
-                        it(
+                        describe(
                             'В канале нет чатов. Получен запрос открытия чата с номером по которому производился ' +
-                            'поиск. Чат начат.',
+                            'поиск.',
                         function() {
-                            searchResultsRequest.receiveResponse();
-                            chatChannelSearchRequest.noChat().receiveResponse();
+                            let newChatListRequest,
+                                activeChatListRequest,
+                                closedChatListRequest,
+                                otherChatListRequest;
 
-                            tester.channelsSearchingResponse().
-                                addChannel().
-                                expectToBeSent();
+                            beforeEach(function() {
+                                searchResultsRequest.receiveResponse();
+                                chatChannelSearchRequest.noChat().receiveResponse();
 
-                            tester.chatOpeningRequest().receive();
+                                tester.channelsSearchingResponse().
+                                    addChannel().
+                                    expectToBeSent();
 
-                            tester.chatListRequest().
-                                forCurrentEmployee().
-                                noData().
-                                receiveResponse();
+                                tester.chatOpeningRequest().receive();
 
-                            tester.chatListRequest().
-                                active().
-                                secondPage().
-                                forCurrentEmployee().
-                                receiveResponse();
+                                newChatListRequest = tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    noData().
+                                    expectToBeSent();
 
-                            tester.chatListRequest().
-                                closed().
-                                noData().
-                                forCurrentEmployee().
-                                receiveResponse();
+                                activeChatListRequest = tester.chatListRequest().
+                                    active().
+                                    forCurrentEmployee().
+                                    expectToBeSent();
 
-                            tester.chatListRequest().
-                                active().
-                                noData().
-                                forCurrentEmployee().
-                                isOtherEmployeesAppeals().
-                                receiveResponse();
+                                closedChatListRequest = tester.chatListRequest().
+                                    closed().
+                                    noData().
+                                    forCurrentEmployee().
+                                    expectToBeSent();
 
-                            tester.chatStartingRequest().
-                                anotherPhone().
-                                receiveResponse();
+                                otherChatListRequest = tester.chatListRequest().
+                                    active().
+                                    noData().
+                                    forCurrentEmployee().
+                                    isOtherEmployeesAppeals().
+                                    expectToBeSent();
+                            });
 
-                            tester.chatListRequest().
-                                thirdChat().
-                                receiveResponse();
+                            describe('Получен список чатов.', function() {
+                                beforeEach(function() {
+                                    newChatListRequest.receiveResponse();
+                                    activeChatListRequest.receiveResponse();
+                                    closedChatListRequest.receiveResponse();
+                                    otherChatListRequest.receiveResponse();
 
-                            tester.submoduleInitilizationEvent().
-                                contacts().
-                                expectToBeSent();
+                                    tester.chatStartingRequest().
+                                        anotherPhone().
+                                        receiveResponse();
 
-                            tester.visitorCardRequest().receiveResponse();
-                            tester.chatInfoRequest().receiveResponse();
+                                    tester.chatListRequest().
+                                        thirdChat().
+                                        receiveResponse();
+        
+                                    tester.submoduleInitilizationEvent().
+                                        contacts().
+                                        expectToBeSent();
 
-                            tester.usersRequest().
-                                forContacts().
-                                forIframe().
-                                receiveResponse();
+                                    tester.visitorCardRequest().receiveResponse();
+                                    tester.chatInfoRequest().receiveResponse();
 
-                            tester.contactGroupsRequest().
-                                forIframe().
-                                receiveResponse();
+                                    tester.usersRequest().
+                                        forContacts().
+                                        forIframe().
+                                        receiveResponse();
 
-                            tester.contactGroupsRequest().
-                                forIframe().
-                                receiveResponse();
+                                    tester.contactGroupsRequest().
+                                        forIframe().
+                                        receiveResponse();
 
-                            tester.usersRequest().
-                                forContacts().
-                                forIframe().
-                                receiveResponse();
+                                    tester.contactGroupsRequest().
+                                        forIframe().
+                                        receiveResponse();
 
-                            tester.contactBar.expectTextContentToHaveSubstring(
-                                'ФИО ' +
-                                'Помакова Бисерка Драгановна'
-                            );
+                                    tester.usersRequest().
+                                        forContacts().
+                                        forIframe().
+                                        receiveResponse();
+                                });
+
+                                it('Получен запрос отображения списка чатов. Список чатов отображён.', function() {
+                                    tester.chatListOpeningRequest().receive();
+
+                                    tester.chatList.
+                                        first.
+                                        item('Помакова Бисерка').
+                                        expectToBeVisible();
+                                });
+                                it('Чат начат.', function() {
+                                    tester.chatList.first.expectNotToExist();
+
+                                    tester.contactBar.expectTextContentToHaveSubstring(
+                                        'ФИО ' +
+                                        'Помакова Бисерка Драгановна'
+                                    );
+                                });
+                            });
+                            it('Плейсхолдер не отображается.', function() {
+                                tester.body.expectToHaveTextContent('');
+                            });
                         });
                     });
                     describe('Скрываю приложение. Приходит новое сообщение.', function() {
@@ -3403,46 +3556,71 @@ tests.addTest(options => {
                                 expectToBeOpened();
                         });
                     });
-                    it('Выбираю чат.', function() {
-                        tester.chatList.
-                            first.
-                            item('Привет').
-                            click();
+                    describe('Выбираю чат.', function() {
+                        beforeEach(function() {
+                            tester.chatList.
+                                first.
+                                item('Привет').
+                                click();
 
-                        tester.submoduleInitilizationEvent().
-                            contacts().
-                            expectToBeSent();
+                            tester.submoduleInitilizationEvent().
+                                contacts().
+                                expectToBeSent();
 
-                        tester.visitorCardRequest().receiveResponse();
-                        tester.messageListRequest().receiveResponse();
+                            tester.visitorCardRequest().receiveResponse();
+                            tester.messageListRequest().receiveResponse();
 
-                        tester.chatInfoRequest().
-                            anotherChat().
-                            receiveResponse();
+                            tester.chatInfoRequest().
+                                anotherChat().
+                                receiveResponse();
 
-                        tester.usersRequest().
-                            forContacts().
-                            forIframe().
-                            receiveResponse();
+                            tester.usersRequest().
+                                forContacts().
+                                forIframe().
+                                receiveResponse();
 
-                        tester.contactGroupsRequest().
-                            forIframe().
-                            receiveResponse();
+                            tester.contactGroupsRequest().
+                                forIframe().
+                                receiveResponse();
 
-                        tester.changeMessageStatusRequest().
-                            read().
-                            anotherMessage().
-                            receiveResponse();
+                            tester.contactGroupsRequest().
+                                forIframe().
+                                receiveResponse();
 
-                        tester.countersRequest().
-                            noNewChats().
-                            noClosedChats().
-                            receiveResponse();
+                            tester.usersRequest().
+                                forContacts().
+                                forIframe().
+                                receiveResponse();
 
-                        tester.contactBar.expectTextContentToHaveSubstring(
-                            'ФИО ' +
-                            'Помакова Бисерка Драгановна'
-                        );
+                            tester.changeMessageStatusRequest().
+                                read().
+                                anotherMessage().
+                                receiveResponse();
+
+                            tester.countersRequest().
+                                noNewChats().
+                                noClosedChats().
+                                receiveResponse();
+                        });
+
+                        it('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
+                            tester.chatHistory.
+                                header.
+                                closeButton.
+                                click();
+
+                            tester.chatsHidingRequest().expectToBeSent();;
+                        });
+                        it('Чат открыт.', function() {
+                            tester.contactBar.expectTextContentToHaveSubstring(
+                                'ФИО ' +
+                                'Помакова Бисерка Драгановна'
+                            );
+                        });
+                    });
+                    it('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
+                        tester.closeButton.click();
+                        tester.chatsHidingRequest().expectToBeSent();;
                     });
                     it('Отображен список чатов.', function() {
                         tester.chatList.
@@ -3451,6 +3629,7 @@ tests.addTest(options => {
                             expectToBeVisible();
 
                         tester.body.expectTextContentNotToHaveSubstring('Недостаточно прав на раздел чатов');
+                        tester.body.expectTextContentToHaveSubstring('Выберите чат слева для отображения переписки');
                     });
                 });
                 it('Чаты недоступны. Чаты скрыты.', function() {
@@ -3728,12 +3907,6 @@ tests.addTest(options => {
                         spendTime(1000);
                         spendTime(0);
 
-                        tester.channelsSearchingRequest().expectToBeSent();
-
-                        tester.channelsSearchingRequest().
-                            anotherPhone().
-                            expectToBeSent();
-
                         tester.channelsSearchingRequest().
                             thirdPhone().
                             expectToBeSent();
@@ -3743,23 +3916,131 @@ tests.addTest(options => {
                             expectToBeSent();
                     });
 
-                    it('Получен список каналов. Отображены каналы.', function() {
-                        tester.channelsSearchingResponse().
-                            addChannel().
-                            receive();
+                    describe('Получен список каналов.', function() {
+                        beforeEach(function() {
+                            tester.channelsSearchingResponse().
+                                thirdChannel().
+                                receive();
 
-                        tester.channelsSearchingResponse().
-                            anotherChannel().
-                            receive();
+                            tester.channelsSearchingResponse().
+                                fourthChannel().
+                                receive();
+                        });
 
-                        tester.channelsSearchingResponse().
-                            thirdChannel().
-                            receive();
+                        it('Повторно получен список каналов. Список каналов не был обновлён.', function() {
+                            tester.channelsSearchingResponse().
+                                addChannel().
+                                receive();
 
-                        tester.channelsSearchingResponse().
-                            fourthChannel().
-                            receive();
+                            tester.channelsSearchingResponse().
+                                anotherChannel().
+                                receive();
 
+                            tester.body.expectToHaveTextContent(
+                                'Первый элемент #1 ' +
+                                'Трубочка ' +
+
+                                'Некий элемент #1 ' +
+                                'Последний элемент #1 ' +
+
+                                'Чаты ' +
+                                'Ещё один элемент #1 ' +
+
+                                'Телефон: 74951234568 ' +
+                                'Телефон: 74951234570 ' +
+                                'Номер телефона: +74951234572 (74951234571) ' +
+                                'Номер телефона: +74951234574 (74951234573) ' +
+                                '[+7 (495) 123-45-64] ' +
+                                '[+7 (495) 123-45-63] ' +
+
+                                'Каналы связанные с телефоном 74951234575: ' +
+
+                                    'Канал "Белгород" ' +
+                                    'Канал "Астана" ' +
+
+                                'Каналы связанные с телефоном 74951234576: ' +
+
+                                    'Канал "Ереван" ' +
+
+                                'Первый элемент #2 ' +
+                                'Трубочка ' +
+
+                                'Некий элемент #2 ' +
+                                'Последний элемент #2 ' +
+
+                                'Чаты ' +
+                                'Ещё один элемент #2 ' +
+
+                                'Телефон: 74951234577 ' +
+                                'Телефон: 74951234579 ' +
+                                'Номер телефона: +74951234581 (74951234580) ' +
+                                'Номер телефона: +74951234583 (74951234582) ' +
+                                '[+7 (495) 123-45-64] ' +
+                                '[+7 (495) 123-45-63] ' +
+
+                                'Каналы связанные с телефоном 74951234584: ' +
+
+                                    'Канал "Тбилиси" ' +
+
+                                'Каналы связанные с телефоном 74951234585: ' +
+
+                                    'Канал "Белград"'
+                            );
+                        });
+                        it('Отображены каналы.', function() {
+                            tester.body.expectToHaveTextContent(
+                                'Первый элемент #1 ' +
+                                'Трубочка ' +
+
+                                'Некий элемент #1 ' +
+                                'Последний элемент #1 ' +
+
+                                'Чаты ' +
+                                'Ещё один элемент #1 ' +
+
+                                'Телефон: 74951234568 ' +
+                                'Телефон: 74951234570 ' +
+                                'Номер телефона: +74951234572 (74951234571) ' +
+                                'Номер телефона: +74951234574 (74951234573) ' +
+                                '[+7 (495) 123-45-64] ' +
+                                '[+7 (495) 123-45-63] ' +
+
+                                'Каналы связанные с телефоном 74951234575: ' +
+
+                                    'Канал "Белгород" ' +
+                                    'Канал "Астана" ' +
+
+                                'Каналы связанные с телефоном 74951234576: ' +
+
+                                    'Канал "Ереван" ' +
+
+                                'Первый элемент #2 ' +
+                                'Трубочка ' +
+
+                                'Некий элемент #2 ' +
+                                'Последний элемент #2 ' +
+
+                                'Чаты ' +
+                                'Ещё один элемент #2 ' +
+
+                                'Телефон: 74951234577 ' +
+                                'Телефон: 74951234579 ' +
+                                'Номер телефона: +74951234581 (74951234580) ' +
+                                'Номер телефона: +74951234583 (74951234582) ' +
+                                '[+7 (495) 123-45-64] ' +
+                                '[+7 (495) 123-45-63] ' +
+
+                                'Каналы связанные с телефоном 74951234584: ' +
+
+                                    'Канал "Тбилиси" ' +
+
+                                'Каналы связанные с телефоном 74951234585: ' +
+
+                                    'Канал "Белград"'
+                            );
+                        });
+                    });
+                    it('Раннее полученные каналы не были скрыты.', function() {
                         tester.body.expectToHaveTextContent(
                             'Первый элемент #1 ' +
                             'Трубочка ' +
@@ -3779,58 +4060,12 @@ tests.addTest(options => {
 
                             'Каналы связанные с телефоном 74951234575: ' +
 
-                                'Канал "Нижний Новгород" ' +
                                 'Канал "Белгород" ' +
+                                'Канал "Астана" ' +
 
                             'Каналы связанные с телефоном 74951234576: ' +
 
                                 'Канал "Ереван" ' +
-
-                            'Первый элемент #2 ' +
-                            'Трубочка ' +
-
-                            'Некий элемент #2 ' +
-                            'Последний элемент #2 ' +
-
-                            'Чаты ' +
-                            'Ещё один элемент #2 ' +
-
-                            'Телефон: 74951234577 ' +
-                            'Телефон: 74951234579 ' +
-                            'Номер телефона: +74951234581 (74951234580) ' +
-                            'Номер телефона: +74951234583 (74951234582) ' +
-                            '[+7 (495) 123-45-64] ' +
-                            '[+7 (495) 123-45-63] ' +
-
-                            'Каналы связанные с телефоном 74951234584: ' +
-
-                                'Канал "Тбилиси" ' +
-
-                            'Каналы связанные с телефоном 74951234585: ' +
-
-                                'Канал "Белград"'
-                        );
-                    });
-                    it('Каналы скрыты.', function() {
-                        tester.body.expectToHaveTextContent(
-                            'Первый элемент #1 ' +
-                            'Трубочка ' +
-
-                            'Некий элемент #1 ' +
-                            'Последний элемент #1 ' +
-
-                            'Чаты ' +
-                            'Ещё один элемент #1 ' +
-
-                            'Телефон: 74951234568 ' +
-                            'Телефон: 74951234570 ' +
-                            'Номер телефона: +74951234572 (74951234571) ' +
-                            'Номер телефона: +74951234574 (74951234573) ' +
-                            '[+7 (495) 123-45-64] ' +
-                            '[+7 (495) 123-45-63] ' +
-
-                            'Каналы связанные с телефоном 74951234575: ' +
-                            'Каналы связанные с телефоном 74951234576: ' +
 
                             'Первый элемент #2 ' +
                             'Трубочка ' +
@@ -3855,6 +4090,7 @@ tests.addTest(options => {
                 });
                 it('Нажимаю на кнопку "Чаты". Отображен IFrame чатов.', function() {
                     tester.button('Чаты').click();
+                    tester.chatListOpeningRequest().expectToBeSent();
 
                     tester.chatsVisibilitySettingRequest().
                         visible().
@@ -3881,12 +4117,15 @@ tests.addTest(options => {
                 });
                 it('Нажимаю на кнопку канала. Отправлен запрос открытия чата.', function() {
                     tester.channelButton.first.click();
-
                     tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
 
                     tester.chatOpeningRequest().
                         thirdChannel().
                         expectToBeSent();
+
+                    tester.chatsVisibilitySettingRequest().
+                        visible().
+                        receiveResponse();
                 });
                 it('Отображён непустой список каналов.', function() {
                     tester.body.expectTextContentToHaveSubstring(
@@ -4392,6 +4631,10 @@ tests.addTest(options => {
             tester.channelsSearchingResponse().
                 addChannel().
                 addThirdChannel().
+                receive();
+
+            tester.unreadMessagesCountSettingRequest().
+                value(75).
                 receive();
 
             tester.body.expectTextContentToHaveSubstringsConsideringOrder(

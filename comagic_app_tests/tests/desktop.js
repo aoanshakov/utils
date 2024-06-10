@@ -8210,7 +8210,7 @@ tests.addTest(options => {
                 requests,
                 tester;
 
-            localStorage.setItem('isSoftphoneHigh', 'true');
+            localStorage.setItem('isExpanded', 'true');
             localStorage.setItem('isLarge', 'true');
 
             tester = new Tester({
@@ -8334,7 +8334,7 @@ tests.addTest(options => {
             tester.leftMenu.expectToBeVisible();
         });
         it('Ранее софтфон был раскрыт. Открываю софтфон. Он раскрыт.', function() {
-            localStorage.setItem('isSoftphoneHigh', 'true');
+            localStorage.setItem('isExpanded', 'true');
 
             tester = new Tester({
                 ...options,
