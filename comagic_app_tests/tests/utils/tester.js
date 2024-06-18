@@ -1282,6 +1282,33 @@ define(() => function ({
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
     };
 
+    me.ssoCheckRequest = () => {
+        let respond = request => request.respondUnauthorizedWith('401 Unauthorized');
+
+        const addResponseModifiers = me => {
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath('$REACT_APP_SSO_AUTH_URL/sso/check').
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        respond(request);
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.apiLogoutRequest = () => {
         let respond = request => request.respondSuccessfullyWith({
             data: {},
@@ -2269,7 +2296,8 @@ define(() => function ({
     me.employeeUpdatingRequest = () => {
         let response = { data: true },
             respond = request => request.respondSuccessfullyWith(response),
-            checkComplience = request => request;
+            checkComplience = request => request,
+            status_id = 4;
 
         const headers = {
             Authorization: 'Bearer XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
@@ -2300,10 +2328,21 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            anotherStatus() {
+                status_id = 5;
+                return this;
+            },
+
             anotherAuthorizationToken() {
                 this.checkAuthorizationHeader();
                 headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
 
+                return this;
+            },
+
+            thirdAuthorizationToken() {
+                this.checkAuthorizationHeader();
+                headers.Authorization = 'Bearer 2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29';
                 return this;
             },
 
@@ -2317,9 +2356,7 @@ define(() => function ({
                     ajax.recentRequest().
                         expectToHaveMethod('PATCH').
                         expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816').
-                        expectBodyToContain({
-                            status_id: 4,
-                        })
+                        expectBodyToContain({ status_id })
                 );
 
                 return addResponseModifiers({
@@ -3860,13 +3897,13 @@ define(() => function ({
             tester.connect = () => {
                 const value = createWebSocketTester();
 
-                tester.disconnect = () => {
-                    value.disconnect();
+                tester.disconnect = code => {
+                    value.disconnect(code);
                     applyMethods();
                 };
 
-                tester.disconnectAbnormally = () => {
-                    value.disconnectAbnormally();
+                tester.disconnectAbnormally = code => {
+                    value.disconnectAbnormally(code);
                     applyMethods();
                 };
 
@@ -16334,7 +16371,14 @@ define(() => function ({
 
     me.triggerPageResize = () => (triggerResize(document.querySelector('.cmg-softphone-page')), spendTime(0));
     me.antDrawerCloseButton = testersFactory.createDomElementTester('.ant-drawer-close');
-    me.digitRemovingButton = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear');
+
+    me.digitRemovingButton = (() => {
+        const tester = testersFactory.createDomElementTester('.clct-adress-book__dialpad-header-clear'),
+            click = tester.click.bind(tester);
+
+        tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0));
+        return tester;
+    })();
 
     me.maximizednessButton = (() => {
         const tester = testersFactory.createDomElementTester('.cmg-maximization-button svg'),

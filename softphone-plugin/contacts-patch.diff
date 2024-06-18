@@ -1,15 +1,15 @@
 diff --git a/package.json b/package.json
-index 9d7df34..6b25892 100644
+index 024aea9..b0429bb 100644
 --- a/package.json
 +++ b/package.json
-@@ -71,24 +71,12 @@
+@@ -73,24 +73,12 @@
      "webpack-merge": "^5.8.0"
    },
    "dependencies": {
 -    "@comagic/core": "^0.7.0",
 -    "@comagic/crud": "2.42.3",
 -    "@comagic/ui": "^2.8.1",
--    "@comagic/workplace-utils": "0.0.0-int0",
+-    "@comagic/workplace-utils": "^1.0.26",
 -    "axios": "^0.27.2",
      "classnames": "^2.3.1",
      "formik": "^2.2.9",

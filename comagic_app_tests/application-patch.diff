@@ -904,7 +904,7 @@ index 8ae6e87b..2c023818 100644
  type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
  
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index fa214b30..4c68b9f1 100644
+index fa214b30..0399e06a 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -1,19 +1,51 @@
@@ -1043,12 +1043,14 @@ index fa214b30..4c68b9f1 100644
      })
      .views(self => ({
          get token(): Auth {
-@@ -106,14 +166,27 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -105,15 +165,29 @@ export const AuthStore = Loader.named('AuthStore')
+     .actions(self => {
          const { httpRpcAuth } = getEnv(self);
          const { authStore, accountStore, notificationStore, resetStore } = getRoot<typeof RootStore>(self);
- 
-+        const broadcastAuthorizedness = () => eventBus.broadcast('set_authorized', self.isAuthorized);
++        let refreshingCall: Promise<void>;
 +
++        const broadcastAuthorizedness = () => eventBus.broadcast('set_authorized', self.isAuthorized);
+ 
          const setAuthorized = (isAuthorized: boolean) => {
              self.isAuthorized = isAuthorized;
 +            broadcastAuthorizedness();
@@ -1071,7 +1073,7 @@ index fa214b30..4c68b9f1 100644
          const cancelNotifications = () => {
              notificationStore.stackingNotificationInstance?.destroyAll();
              notificationStore.cancelNotifications();
-@@ -125,19 +198,33 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -125,19 +199,33 @@ export const AuthStore = Loader.named('AuthStore')
              setAuthorized(false);
              cancelPendingRequests('canceled by logout');
              eventBus.broadcast('logout');
@@ -1096,8 +1098,7 @@ index fa214b30..4c68b9f1 100644
 +                    identity_provider: 'comagic_db',
 +                    sliding_expiration: !is_checked,
 +                });
- 
--            getParent<RootInstance>(self).setAuthError('');
++
 +                setAuthorized(true);
 +                window.dispatchEvent(new Event('loginSSO'));
 +                // setToken({ jwt: localStorage.getItem('auth'), refresh: 'sso' }, is_checked);
@@ -1107,13 +1108,14 @@ index fa214b30..4c68b9f1 100644
 +                self.setLoading(false);
 +            }
 +        });
-+
+ 
+-            getParent<RootInstance>(self).setAuthError('');
 +        const loginJWT = flow(function* (login: string, password: string, is_checked: boolean, confirmCode?: string) {
 +            self.setLoading(true);
  
              try {
                  const token = getToken();
-@@ -148,10 +235,18 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -148,10 +236,18 @@ export const AuthStore = Loader.named('AuthStore')
                      password,
                      project: getProject(),
                      old_jwt,
@@ -1134,7 +1136,7 @@ index fa214b30..4c68b9f1 100644
              } catch (e) {
                  removeToken();
  
-@@ -161,7 +256,22 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -161,7 +257,34 @@ export const AuthStore = Loader.named('AuthStore')
              }
          });
  
@@ -1154,21 +1156,47 @@ index fa214b30..4c68b9f1 100644
 +                return;
 +            }
 +
++            let resolve = (): void => null,
++                reject = (e: any): void => null;
++
++            if (self.isTokenRefreshing) {
++                return refreshingCall;
++            }
++
++            refreshingCall = new Promise((value1, value2) => {
++                resolve = value1;
++                reject = value2;
++            });
++
              try {
                  setIsTokenRefreshing(true);
  
-@@ -178,16 +288,29 @@ export const AuthStore = Loader.named('AuthStore')
-             }
-         });
+@@ -170,24 +293,42 @@ export const AuthStore = Loader.named('AuthStore')
+                 const nextAuth = yield httpRpcAuth('refresh', auth);
  
+                 setToken(nextAuth);
++                window.dispatchEvent(new Event('tokenRefreshed'));
++
++                resolve();
+             } catch (e) {
+-                void fetchLogoutUser();
++                reject(e);
++                e?.message !== 'canceled by logout' && void fetchLogoutUser();
+                 return Promise.reject(e);
+             } finally {
+                 setIsTokenRefreshing(false);
+             }
++
++        });
++
 +        const fetchResendConfirmationCode = flow(function* () {
 +            yield loginJWT(self.login, self.password, self.isChecked);
 +        });
 +
 +        const fetchConfirmLogin = flow(function* (code: string) {
 +            yield loginJWT(self.login, self.password, self.isChecked, code);
-+        });
-+
+         });
+ 
          const fetchLogoutUser = flow(function* () {
              self.setLoading(true);
  
@@ -1193,7 +1221,7 @@ index fa214b30..4c68b9f1 100644
              } catch (e) {
                  return Promise.reject(e);
              } finally {
-@@ -195,11 +318,86 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -195,11 +336,86 @@ export const AuthStore = Loader.named('AuthStore')
              }
          });
  
@@ -1281,7 +1309,18 @@ index fa214b30..4c68b9f1 100644
                  }
              });
              window.addEventListener('doRefreshToken', (event: CustomEvent) => {
-@@ -226,6 +424,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -207,10 +423,6 @@ export const AuthStore = Loader.named('AuthStore')
+                 if (eventWindowId !== authStore.windowId) {
+                     authStore
+                         .fetchRefresh()
+-                        .then(() => {
+-                            const tokenRefreshedEvent = new Event('tokenRefreshed');
+-                            window.dispatchEvent(tokenRefreshedEvent);
+-                        })
+                         .catch(e => console.error(e));
+                 }
+             });
+@@ -226,6 +438,8 @@ export const AuthStore = Loader.named('AuthStore')
                          if (accountStoreUserId !== null && jwtUserId !== accountStoreUserId) {
                              window.location.href = '/';
                          }
@@ -1290,7 +1329,7 @@ index fa214b30..4c68b9f1 100644
                      }
                  }
              }, 1000);
-@@ -233,10 +433,20 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -233,10 +447,20 @@ export const AuthStore = Loader.named('AuthStore')
  
          return {
              fetchLoginUser,

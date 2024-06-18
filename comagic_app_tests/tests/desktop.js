@@ -3842,6 +3842,45 @@ tests.addTest(options => {
                                                 tester.offlineMessageListRequest().processing().receiveResponse();
                                                 tester.offlineMessageListRequest().processed().receiveResponse();
                                             });
+                                            it('', function() {
+                                                tester.eventsWebSocket.disconnect(4429);
+                                                tester.authLogoutRequest().receiveResponse();
+
+                                                tester.registrationRequest().
+                                                    desktopSoftphone().
+                                                    expired().
+                                                    receiveResponse();
+
+                                                tester.chatsWebSocket.disconnect(4429);
+                                                tester.userLogoutRequest().receiveResponse();
+
+                                                getPackage('electron').ipcRenderer.
+                                                    nextSentMessage().
+                                                    expectToBeSentToChannel('resize').
+                                                    expectToBeSentWithArguments({
+                                                        width: 300,
+                                                        height: 350,
+                                                    });
+
+                                                getPackage('electron').ipcRenderer.
+                                                    nextSentMessage().
+                                                    expectToBeSentToChannel('logout');
+
+                                                getPackage('electron').ipcRenderer.
+                                                    nextSentMessage().
+                                                    expectToBeSentToChannel('set-icon').
+                                                    expectToBeSentWithArguments('windows, 150');
+
+                                                getPackage('electron').ipcRenderer.
+                                                    nextSentMessage().
+                                                    expectToBeSentToChannel('set-icon').
+                                                    expectToBeSentWithArguments('windows, 0');
+
+                                                tester.employeesWebSocket.finishDisconnecting();
+
+                                                spendTime(2000);
+                                                tester.webrtcWebsocket.finishDisconnecting();
+                                            });
                                             it(
                                                 'Рядом с кнопкой истории звонков в нижнем тулбаре софтфона ' +
                                                 'отображена красная точка.',

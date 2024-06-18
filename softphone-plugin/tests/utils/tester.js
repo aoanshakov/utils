@@ -65,6 +65,41 @@ define(() => function ({
     window.getOrigin = () => url;
     me.changeCurrentUrl = () => (url = 'https://amo2comagicdev.amocrm.ru/leads/list/pipeline/6168778');
 
+    me.localStorage = {
+        key: key => ({
+            expectToBeEmpty: () => {
+                const actualValue = window.localStorage.getItem(key);
+
+                if (!!actualValue) {
+                    throw new Error(
+                        'Значение по ключу "' + key + '" должно быть пустым, однако оно таково: "' + actualValue + '".'
+                    );
+                }
+            },
+
+            expectToHaveValue: expectedValue => {
+                const actualValue = window.localStorage.getItem(key);
+
+                if (actualValue != expectedValue) {
+                    throw new Error(
+                        'Значением по ключу "' + key + '" должно быть "' + expectedValue + '", а не "' +
+                        actualValue + '".'
+                    );
+                }
+            },
+
+            expectNotToHaveValue: expectedValue => {
+                const actualValue = window.localStorage.getItem(key);
+
+                if (actualValue === expectedValue) {
+                    throw new Error(
+                        'Значение по ключу "' + key + '" должно отличаться от "' + expectedValue + '".'
+                    );
+                }
+            },
+        }),
+    };
+
     {
 
         let phoneIconClickHandler = function () {
@@ -119,6 +154,7 @@ define(() => function ({
         };
     }
 
+    window.setNotificationIframe = createIframeSetter('restoreNotificationIFrameContentWindow');
     window.setSoftphoneIframe = createIframeSetter('restoreSoftphoneIFrameContentWindow');
     window.setChatsIframe = createIframeSetter('restoreChatsIFrameContentWindow');
 
@@ -961,7 +997,6 @@ define(() => function ({
                         tag: 'div',
                         mode: 'insertAfter',
                         phoneXpath: '//input[contains(@class, "control-phone__formatted")]/@value',
-
                         innerHTML: '{{ items }}',
 
                         attributes: {
@@ -985,6 +1020,42 @@ define(() => function ({
                                 '"' +
                             '>' +
                                 '{{ icon }} {{ name }}' +
+                            '</button>',
+
+                            attributes: {
+                                style: 'margin-bottom: 10px;',
+                            },
+                        },
+                    }, {
+                        elementSelector: '.linked-form__field.linked-form__field-name',
+                        tag: 'div',
+                        mode: 'insertAfter',
+                        innerHTML: '{{ items }}',
+
+                        attributes: {
+                            style: 'margin: 10px 0 0;',
+                        },
+
+                        phoneXpath: '//input[@data-type="email"]/@value',
+                        searchField: 'email',
+
+                        item: {
+                            tag: 'div',
+
+                            innerHTML: '<button ' +
+                                'type="button" ' +
+                                'style="' +
+                                    'cursor: pointer; ' +
+                                    'background: #fff; ' +
+                                    'border: 1px solid #b1b1b1;' +
+                                    'color: #363b44;' +
+                                    'border-radius: 12px;' +
+                                    'display: flex;' +
+                                    'align-items: center;' +
+                                    'padding: 1px 8px 0px 8px;' +
+                                '"' +
+                            '>' +
+                                '{{ name }}' +
                             '</button>',
 
                             attributes: {
@@ -1720,6 +1791,15 @@ define(() => function ({
         };
     };
 
+    me.softphoneVisibilityToggleRequest = () => {
+        const message = { method: 'toggle_widget_visibility' };
+
+        return {
+            receive: () => postMessages.receive(message),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
+        };
+    };
+
     me.unreadMessagesCountSettingRequest = () => {
         const processors = [];
 
@@ -1754,7 +1834,8 @@ define(() => function ({
             const message = {
                 method: 'channels_searching_result',
                 data: {
-                    phone: '74951234575',
+                    value: '74951234575',
+                    searchField: 'phone',
                     channels: [{
                         id: 216395,
                         name: 'Нижний Новгород',
@@ -1804,7 +1885,7 @@ define(() => function ({
 
             anotherChannel() {
                 processors.push(message => {
-                    message.data.phone = '74951234576';
+                    message.data.value = '74951234576';
                     message.data.channels[0].id = 216397;
                     message.data.channels[0].name = 'Ереван';
                 });
@@ -1814,7 +1895,7 @@ define(() => function ({
 
             thirdChannel() {
                 processors.push(message => {
-                    message.data.phone = '74951234584';
+                    message.data.value = '74951234584';
                     message.data.channels[0].id = 216398;
                     message.data.channels[0].name = 'Тбилиси';
                 });
@@ -1824,11 +1905,26 @@ define(() => function ({
 
             fourthChannel() {
                 processors.push(message => {
-                    message.data.phone = '74951234585';
+                    message.data.value = '74951234585';
                     message.data.channels[0].id = 216399;
                     message.data.channels[0].name = 'Белград';
                 });
 
+                return this;
+            },
+
+            email() {
+                processors.push(message => {
+                    message.data.value = 'a.anshakov@comagic.dev';
+                    message.data.searchField = 'email';
+
+                    message.data.channels[0].id = 216404;
+                    message.data.channels[0].name = 'Сантьяго';
+                    message.data.channels[0].type = 'email';
+                    message.data.channels[0].type_name = 'Email';
+                    message.data.channels[0].icon = null;
+                });
+                    
                 return this;
             },
 
@@ -1848,6 +1944,72 @@ define(() => function ({
         return {
             receive: () => postMessages.receive(message),
             expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
+        };
+    };
+
+    me.notificationsClosingRequest = () => {
+        const processors = [];
+
+        const getMessage = () => {
+            const message = {
+                method: 'close_notifications',
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        return {
+            receive: () => postMessages.receive(getMessage()),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+
+    me.notificationSettingRequest = () => {
+        const processors = [];
+
+        const getMessage = () => {
+            const message = {
+                method: 'set_notification',
+                data: {
+                    success: false,
+                    subject: 'login',
+                },
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        return {
+            success() {
+                processors.push(message => (message.data.success = true));
+                return this;
+            },
+
+            receive: () => {
+                postMessages.receive(getMessage());
+                spendTime(0);
+            },
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+    
+    me.notificationInitializednessEvent = () => {
+        const processors = [];
+
+        const getMessage = () => {
+            const message = {
+                method: 'notification_initialized',
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        return {
+            receive: () => postMessages.receive(getMessage()),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
         };
     };
 
@@ -1952,7 +2114,10 @@ define(() => function ({
         const getMessage = () => {
             const message = {
                 method: 'search_channels',
-                data: '74951234575',
+                data: {
+                    searchField: 'phone',
+                    value: '74951234575'
+                },
             };
 
             processors.forEach(process => process(message));
@@ -1961,17 +2126,26 @@ define(() => function ({
 
         return {
             fourthPhone() {
-                processors.push(message => (message.data = '74951234585'));
+                processors.push(message => (message.data.value = '74951234585'));
                 return this;
             },
 
             thirdPhone() {
-                processors.push(message => (message.data = '74951234584'));
+                processors.push(message => (message.data.value = '74951234584'));
                 return this;
             },
 
             anotherPhone() {
-                processors.push(message => (message.data = '74951234576'));
+                processors.push(message => (message.data.value = '74951234576'));
+                return this;
+            },
+
+            email() {
+                processors.push(message => {
+                    message.data.searchField = 'email';
+                    message.data.value = 'a.anshakov@comagic.dev';
+                });
+
                 return this;
             },
 
@@ -1991,7 +2165,8 @@ define(() => function ({
             const message = {
                 method: 'open_chat',
                 data: {
-                    phone: '74951234575',
+                    searchField: 'phone',
+                    value: '74951234575',
                     channel_id: 216395,
                 },
             };
@@ -2003,7 +2178,7 @@ define(() => function ({
         return {
             anotherPhone() {
                 processors.push(message => {
-                    message.data.phone = '74951234576';
+                    message.data.value = '74951234576';
                 });
 
                 return this;
@@ -2067,6 +2242,7 @@ define(() => function ({
                 data: {
                     type: 'softphone',
                     data: {
+                        destroyed: false,
                         userName: '',
                         missedEventsCount: 0,
                         visible: false,
@@ -2116,6 +2292,11 @@ define(() => function ({
 
             visible() {
                 processors.push(message => (message.data.data.visible = true));
+                return this;
+            },
+
+            destroyed() {
+                processors.push(message => (message.data.data.destroyed = true));
                 return this;
             },
 
@@ -2311,9 +2492,14 @@ define(() => function ({
             history = value;
         };
 
+        const setNotification = value => {
+            notification = value;
+        };
+
         window.application.run({
             application,
             setHistory,
+            setNotification,
             active,
             setEventBus: eventBus => {
                 const events = {},
@@ -2411,6 +2597,8 @@ define(() => function ({
             me.history.push('/amocrm');
         } else if (application == 'chatsIframe') {
             me.history.push('/chrome/chats');
+        } else if (application == 'notificationsIframe') {
+            me.history.push('/chrome/notifications');
         }
     }
 
@@ -2510,10 +2698,17 @@ define(() => function ({
     me.iframe = (() => {
         const getIframes = () => Array.prototype.slice.call(document.querySelectorAll('iframe') || [], 0) || [];
 
-        const tester = testersFactory.createDomElementTester(() => {
+        const createTester = getIframes => testersFactory.createDomElementTester(() => {
             const iframes = getIframes();
-            iframes.length == 1 ? iframes[0] : null;
+
+            if (iframes.length > 1) {
+                throw new Error('Найдено больше Iframe, чем ожидалось.');
+            }
+
+            return iframes.length == 1 ? iframes[0] : null;
         });
+
+        const tester = createTester(getIframes);
 
         tester.atIndex = index => {
             const getDomElement = () => getIframes()[index],
@@ -2539,6 +2734,7 @@ define(() => function ({
             return tester;
         };
 
+        tester.withSrc = expectedSrc => createTester(() => getIframes().filter(iframe => iframe.src === expectedSrc));
         tester.first = tester.atIndex(0);
 
         return tester;
@@ -6092,8 +6288,8 @@ define(() => function ({
             tester.connect = () => {
                 const value = createWebSocketTester();
 
-                tester.disconnect = () => {
-                    value.disconnect();
+                tester.disconnect = code => {
+                    value.disconnect(code);
                     applyMethods();
                 };
 

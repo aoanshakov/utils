@@ -223,70 +223,79 @@ define(function () {
                     '<div class="linked-form__field__value"></div>' +
                 '</div>' +
             '</div>' +
-            '<div class="linked-form__field-no-value">' +
-                '<div class="linked-form__multiple-container">' +
-                    '<div class="linked-form__field linked-form__field-pei">' +
-                        '<div class="linked-form__field__label linked-form__field__label-multiple">' +
-                            '<div class="control--select linked-form__select ">' +
-                                '<ul class="custom-scroll control--select--list  ">' +
-                                    '<li data-value="386761" data-color="" class="control--select--list--item control--select--list--item-selected   " style="">' +
-                                        '<span class="control--select--list--item-inner" title="Email раб."> Email раб. </span>' +
-                                    '</li>' +
-                                    '<li data-value="386763" data-color="" class="control--select--list--item    " style="">' +
-                                        '<span class="control--select--list--item-inner" title="Email личн."> Email личн. </span>' +
-                                    '</li>' +
-                                    '<li data-value="386765" data-color="" class="control--select--list--item    " style="">' +
-                                        '<span class="control--select--list--item-inner" title="Email др."> Email др. </span>' +
-                                    '</li>' +
-                                '</ul>' +
-                                '<button class="control--select--button    " tabindex="" type="button" data-value="386761">' +
-                                    '<span class="control--select--button-inner"> Email раб. </span>' +
-                                '</button>' +
-                                '<input type="hidden" class="control--select--input " name="CFV[801695][tZGpAutduf][DESCRIPTION]" value="386761" data-prev-value="386761">' +
-                            '</div>' +
+            '<div class="linked-form__multiple-container">' +
+                '<div class="linked-form__field linked-form__field-pei">' +
+                    '<div class="linked-form__field__label linked-form__field__label-multiple">' +
+                        '<div class="control--select linked-form__select " style="">' +
+                            '<ul class="custom-scroll control--select--list" style="">' +
+                                '<li data-value="386761" data-color="" class="control--select--list--item control--select--list--item-selected" style="">' +
+                                    '<span class="control--select--list--item-inner" title="Email раб."> Email раб. </span>' +
+                                '</li>' +
+                                '<li data-value="386763" data-color="" class="control--select--list--item    " style="">' +
+                                    '<span class="control--select--list--item-inner" title="Email личн."> Email личн. </span>' +
+                                '</li>' +
+                                '<li data-value="386765" data-color="" class="control--select--list--item    " style="">' +
+                                    '<span class="control--select--list--item-inner" title="Email др."> Email др. </span>' +
+                                '</li>' +
+                            '</ul>' +
+                            '<button class="control--select--button    " tabindex="" type="button" data-value="386761">' +
+                                '<span class="control--select--button-inner"> Email раб. </span>' +
+                            '</button>' +
+                            '<input type="hidden" class="control--select--input " name="CFV[801695][UDVHbxJDZX][DESCRIPTION]" value="386761" data-prev-value="386761">' +
                         '</div>' +
-                        '<div class="linked-form__field__value">' +
-                            '<div class="js-linked-with-actions js-linked-has-actions " data-pei-code="email">' +
-                                '<div class="control-wrapper control--suggest ">' +
-                                    '<ul class="control--suggest--list js-control--suggest--list custom-scroll "></ul>' +
-                                    '<input data-enable-filter="y" autocomplete="off" name="CFV[801695][tZGpAutduf][VALUE]" class="text-input control--suggest--input js-control--suggest--input control--suggest--input-inline linked-form__cf js-linked-pei" type="text" placeholder="..." value="" data-value-id="" data-type="email">' +
-                                '</div>' +
-                                '<div class="js-tip-holder">' +
-                                    '<div class="tips js-tip card-cf-actions-tip " id="">' +
-                                        '<div class="tips__inner custom-scroll js-tip-items">' +
-                                            '<div class="tips-item js-tips-item js-cf-actions-item " data-type="email" data-id="" data-forced="" data-value="" data-suggestion-type="">' +
-                                                '<span class="tips-icon-container">' +
-                                                    '<span class="tips-icon icon icon-inline icon-mail-dark"></span>' +
-                                                '</span> Написать' +
-                                            '</div>' +
-                                            '<div class="tips-item js-tips-item js-cf-actions-item " data-type="email_with_template" data-id="" data-forced="" data-value="" data-suggestion-type="">' +
-                                                '<span class="tips-icon-container">' +
-                                                    '<span class="tips-icon icon icon-inline icon-mail-dark"></span>' +
-                                                '</span> Написать из amoCRM' +
-                                            '</div>' +
-                                            '<div class="tips-item js-tips-item js-cf-actions-item " data-type="copy" data-id="" data-forced="" data-value="" data-suggestion-type="">' +
-                                                '<span class="tips-icon-container">' +
-                                                    '<span class="tips-icon tips-svg-icon">' +
-                                                        '<svg class="svg-icon svg-common--copy-dims">' +
-                                                            '<use xlink:href="#common--copy"></use>' +
-                                                        '</svg>' +
-                                                    '</span>' +
-                                                '</span> Копировать' +
-                                            '</div>' +
-                                            '<div class="tips-item js-tips-item js-cf-actions-item " data-type="edit" data-id="" data-forced="" data-value="" data-suggestion-type="">' +
-                                                '<span class="tips-icon-container">' +
-                                                    '<span class="tips-icon icon icon-inline icon-pencil"></span>' +
-                                                '</span> Редактировать' +
-                                            '</div>' +
+                    '</div>' +
+                    '<div class="linked-form__field__value">' +
+                        '<div class="js-linked-with-actions js-linked-has-actions  js-linked-has-value" data-pei-code="email">' +
+                            '<div class="control-wrapper control--suggest">' +
+                                '<ul class="js-control--suggest--list custom-scroll control--suggest--list" style=""></ul>' +
+                                '<input ' +
+                                    'data-enable-filter="y" ' +
+                                    'autocomplete="off" ' +
+                                    'name="CFV[801695][UDVHbxJDZX][VALUE]" ' +
+                                    'class="text-input control--suggest--input js-control--suggest--input control--suggest--input-inline linked-form__cf js-linked-pei" ' +
+                                    'type="text" ' +
+                                    'placeholder="..." ' +
+                                    'value="a.anshakov@comagic.dev" ' +
+                                    'data-value-id="" ' +
+                                    'data-type="email"' +
+                                    'style="width: auto;"' +
+                                '>' +
+                            '</div>' +
+                            '<div class="js-tip-holder">' +
+                                '<div class="tips js-tip card-cf-actions-tip " id="">' +
+                                    '<div class="tips__inner custom-scroll js-tip-items">' +
+                                        '<div class="tips-item js-tips-item js-cf-actions-item " data-type="email" data-id="" data-forced="" data-value="" data-suggestion-type="">' +
+                                            '<span class="tips-icon-container">' +
+                                                '<span class="tips-icon icon icon-inline icon-mail-dark"></span>' +
+                                            '</span> Написать' +
+                                        '</div>' +
+                                        '<div class="tips-item js-tips-item js-cf-actions-item " data-type="email_with_template" data-id="" data-forced="" data-value="" data-suggestion-type="">' +
+                                            '<span class="tips-icon-container">' +
+                                                '<span class="tips-icon icon icon-inline icon-mail-dark"></span>' +
+                                            '</span> Написать из amoCRM' +
+                                        '</div>' +
+                                        '<div class="tips-item js-tips-item js-cf-actions-item " data-type="copy" data-id="" data-forced="" data-value="" data-suggestion-type="">' +
+                                            '<span class="tips-icon-container">' +
+                                                '<span class="tips-icon tips-svg-icon">' +
+                                                    '<svg class="svg-icon svg-common--copy-dims">' +
+                                                        '<use xlink:href="#common--copy"></use>' +
+                                                    '</svg>' +
+                                                '</span>' +
+                                            '</span> Копировать' +
+                                        '</div>' +
+                                        '<div class="tips-item js-tips-item js-cf-actions-item " data-type="edit" data-id="" data-forced="" data-value="" data-suggestion-type="">' +
+                                            '<span class="tips-icon-container">' +
+                                                '<span class="tips-icon icon icon-inline icon-pencil"></span>' +
+                                            '</span> Редактировать' +
                                         '</div>' +
                                     '</div>' +
                                 '</div>' +
                             '</div>' +
                         '</div>' +
                     '</div>' +
-                    '<div class="linked-form__field-add-multiple">' +
-                        '<div class="linked-form__field__value"></div>' +
-                    '</div>' +
+                '</div>' +
+                '<div class="linked-form__field-add-multiple" style="display: block;">' +
+                    '<div class="linked-form__field__value"></div>' +
                 '</div>' +
             '</div>' +
             '<div class="linked-form__field-no-value">' +

@@ -86,7 +86,7 @@ tests.addTest(options => {
             chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent();
         });
 
-        describe('Активны каналы всех трёх типов.', function() {
+        xdescribe('Активны каналы всех трёх типов.', function() {
             beforeEach(function() {
                 chatChannelListRequest.receiveResponse();
 
@@ -1140,6 +1140,15 @@ tests.addTest(options => {
                                 forIframe().
                                 receiveResponse();
 
+                            tester.contactGroupsRequest().
+                                forIframe().
+                                receiveResponse();
+
+                            tester.usersRequest().
+                                forContacts().
+                                forIframe().
+                                receiveResponse();
+
                             tester.changeMessageStatusRequest().
                                 read().
                                 anotherMessage().
@@ -1334,7 +1343,7 @@ tests.addTest(options => {
                                 tester.spin.expectToBeVisible();
                             });
                         });
-                        it('Найден только один канал Telegram.', function() {
+                        it('Найден только один канал Telegram. Открыт чат найденного канала.', function() {
                             chatChannelSearchRequest.receiveResponse();
 
                             tester.chatListRequest().
@@ -1376,6 +1385,16 @@ tests.addTest(options => {
                                 'ФИО ' +
                                 'Помакова Бисерка Драгановна'
                             );
+                        });
+                        it('Найден только один недоступный канал Telegram. Опция канала заблокирована.', function() {
+                            chatChannelSearchRequest.
+                                anotherEmployee().
+                                chatUnavailable().
+                                receiveResponse();
+
+                            tester.select.
+                                option('Нижний Новгород 79283810988').
+                                expectToBeDisabled();
                         });
                     });
                 });

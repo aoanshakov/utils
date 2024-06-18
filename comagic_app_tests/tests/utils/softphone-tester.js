@@ -1528,6 +1528,20 @@ define(function () {
                     return me;
                 };
 
+                me.accessTokenExpired = () => {
+                    receiveResponse = request =>
+                        request.respondUnsuccessfullyWith({
+                            error: {
+                                code: 401,
+                                message: 'Token has been expired',
+                                mnemonic: 'expired_token',
+                                is_smart: false
+                            },
+                        });
+
+                    return me;
+                };
+
                 return me;
             };
 

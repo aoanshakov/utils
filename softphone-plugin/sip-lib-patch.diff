@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index df0a9ec1..05b633e1 100644
+index 6a3a0e16..05b633e1 100644
 --- a/package.json
 +++ b/package.json
 @@ -21,9 +21,6 @@
@@ -16,8 +16,8 @@ index df0a9ec1..05b633e1 100644
      "@types/react": "^18.0.28",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
--    "@comagic/softphone-core": "0.0.0-int0",
--    "@comagic/workplace-utils": "0.0.0-int0",
+-    "@comagic/softphone-core": "^2.0.16",
+-    "@comagic/workplace-utils": "^1.0.26",
      "babel-loader": "^8.0.4",
 -    "classnames": "^2.2.6",
      "exports-loader": "2.0.0",
