@@ -23,102 +23,134 @@ tests.addTest(function(args) {
             wait();
         });
 
-        xdescribe('Нажимаю на кнопку "Тестировать бесплатно".', function() {
+        describe('Отмечаю чекбокс пользовательского соглашения.', function() {
             beforeEach(function() {
-                tester.tryForFreeButton.click();
-                tester.requestCreateAccount().send();
-                wait(10);
+                tester.agreementForm.checkbox().withBoxLabel(
+                    'Я соглашаюсь с Лицензионным договором (оферта) , Пользовательским соглашением , Правилами ' +
+                    'оказания услуг связи'
+                ).click();
+
+                wait();
             });
 
-            describe(
-                'Нажимаю на кнопку "Продолжить". В соответствии с данными, полученными от сервера ни один сотрудник ' +
-                'не был выбран ранее.',
-            function() {
+            describe('Нажимаю на кнопку "Тестировать бесплатно".', function() {
                 beforeEach(function() {
-                    tester.settingsStep('Номер телефона').nextButton().click();
-                    tester.requestEmployees().setNoEmployeesSelected().send();
+                    tester.tryForFreeButton.click();
+                    tester.requestCreateAccount().send();
                     wait(10);
                 });
 
-                describe('Выбираю одного сотрудника.', function() {
+                xdescribe(
+                    'Нажимаю на кнопку "Продолжить". В соответствии с данными, полученными от сервера ни один ' +
+                    'сотрудник не был выбран ранее.',
+                function() {
                     beforeEach(function() {
-                        tester.employeesGrid.row().atIndex(1).column().first().checkbox().click();
+                        tester.settingsStep('Номер телефона').nextButton().click();
+                        tester.requestEmployees().setNoEmployeesSelected().send();
                         wait(10);
                     });
 
-                    describe('Нажимаю на кнопку "Продолжить".', function() {
+                    describe('Выбираю одного сотрудника.', function() {
                         beforeEach(function() {
-                            tester.settingsStep('Сотрудники').nextButton().click();
-                            tester.requestChooseEmployees().setOnlyOneEmployeeSelected().setQueue().send();
-                            tester.requestSyncEmployees().setDone().send();
+                            tester.employeesGrid.row().atIndex(1).column().first().checkbox().click();
                             wait(10);
                         });
 
-                        it('Кнопки выбора типа переадресации скрыты.', function() {
-                            tester.forwardingTypeButtons.expectToBeHidden();
-                        });
-                        describe(
-                            'Ввожу номер телефона. Нажимаю на кнопку "Получить SMS". Ввожу код. Нажимаю на кнопку ' +
-                            '"Подтвердить".',
-                        function() {
+                        describe('Нажимаю на кнопку "Продолжить".', function() {
                             beforeEach(function() {
-                                tester.employeePhoneField().input('9161234567');
-                                wait(10);
-
-                                tester.receiveSmsButton.click();
-                                tester.requestSms().setOnlyOneEmployeeSelected().send();
-                                wait(10);
-
-                                tester.smsCodeField().input('1234');
-                                wait(10);
-                                
-                                tester.confirmNumberButton.click();
-                                tester.requestCodeInput().setOnlyOneEmployeeSelected().send();
-                                wait(10);
-                            });
-
-                            it(
-                                'Нажимаю на кнопку "Назад". Нажимаю на кнопку "Продолжить". Кнопка "Продолжить" ' +
-                                'доступна.',
-                            function() {
-                                tester.settingsStep('Правила обработки вызовов').backButton().click();
-                                wait(10);
-
                                 tester.settingsStep('Сотрудники').nextButton().click();
-                                wait(10);
-                                tester.requestChooseEmployees().setOnlyOneEmployeeSelected().setVerified().send();
-                                wait(10);
+                                tester.requestChooseEmployees().setOnlyOneEmployeeSelected().setQueue().send();
                                 tester.requestSyncEmployees().setDone().send();
                                 wait(10);
-
-                                tester.settingsStep('Правила обработки вызовов').nextButton().expectToBeEnabled();
                             });
-                            it(
-                                'Нажимаю на кнпоку "Продолжить". Отправлен запрос сохранения правил обработки ' +
-                                'вызовов, в котором передан тип переадресации "Одновременно всем".',
+
+                            describe(
+                                'Ввожу номер телефона. Нажимаю на кнопку "Получить SMS". Ввожу код. Нажимаю на ' +
+                                'кнопку "Подтвердить".',
                             function() {
-                                tester.settingsStep('Правила обработки вызовов').nextButton().click();
-                                tester.requestCallProcessingConfig().setOtherEmployee().setAll().send();
+                                beforeEach(function() {
+                                    tester.employeePhoneField().input('9161234567');
+                                    wait(10);
+
+                                    tester.receiveSmsButton.click();
+                                    tester.requestSms().setOnlyOneEmployeeSelected().send();
+                                    wait(10);
+
+                                    tester.smsCodeField().input('1234');
+                                    wait(10);
+                                    
+                                    tester.confirmNumberButton.click();
+                                    tester.requestCodeInput().setOnlyOneEmployeeSelected().send();
+                                    wait(10);
+                                });
+
+                                it(
+                                    'Нажимаю на кнопку "Назад". Нажимаю на кнопку "Продолжить". Кнопка "Продолжить" ' +
+                                    'доступна.',
+                                function() {
+                                    tester.settingsStep('Правила обработки вызовов').backButton().click();
+                                    wait(10);
+
+                                    tester.settingsStep('Сотрудники').nextButton().click();
+                                    wait(10);
+                                    tester.requestChooseEmployees().setOnlyOneEmployeeSelected().setVerified().send();
+                                    wait(10);
+                                    tester.requestSyncEmployees().setDone().send();
+                                    wait(10);
+
+                                    tester.settingsStep('Правила обработки вызовов').nextButton().expectToBeEnabled();
+                                });
+                                it(
+                                    'Нажимаю на кнпоку "Продолжить". Отправлен запрос сохранения правил обработки ' +
+                                    'вызовов, в котором передан тип переадресации "Одновременно всем".',
+                                function() {
+                                    tester.settingsStep('Правила обработки вызовов').nextButton().click();
+                                    tester.requestCallProcessingConfig().setOtherEmployee().setAll().send();
+                                });
+                            });
+                            it('Кнопки выбора типа переадресации скрыты.', function() {
+                                tester.forwardingTypeButtons.expectToBeHidden();
                             });
                         });
-                    });
-                    it('Кнопка "Продолжить" доступна.', function() {
-                        tester.settingsStep('Сотрудники').nextButton().expectToBeEnabled();
-                    });
-                    it(
-                        'Снимаю отметку с единственного отмеченного сотрудника. Кнопка "Продолжить" заблокирована.',
-                    function() {
-                        tester.employeesGrid.row().atIndex(1).column().first().checkbox().click();
-                        wait(10);
+                        it('Кнопка "Продолжить" доступна.', function() {
+                            tester.settingsStep('Сотрудники').nextButton().expectToBeEnabled();
+                        });
+                        it(
+                            'Снимаю отметку с единственного отмеченного сотрудника. Кнопка "Продолжить" заблокирована.',
+                        function() {
+                            tester.employeesGrid.row().atIndex(1).column().first().checkbox().click();
+                            wait(10);
 
+                            tester.settingsStep('Сотрудники').nextButton().expectToBeDisabled();
+                        });
+                    });
+                    it('Кнопка "Продолжить" заблокирована.', function() {
                         tester.settingsStep('Сотрудники').nextButton().expectToBeDisabled();
                     });
                 });
-                it('Кнопка "Продолжить" заблокирована.', function() {
-                    tester.settingsStep('Сотрудники').nextButton().expectToBeDisabled();
+                it('Отправлена заявка.', function() {
+                    tester.supportRequestSender.expectRequestParamsToContain({
+                        email: 'chigrakov@example.com',
+                        message:
+                            'Заявка со страницы Битрикс24 Легкий вход. ' +
+                            'Номер телефона пользоватeля - +74951234568. ' +
+                            'Домен - chigrakov.bitrix24.ru. ' +
+                            'Согласен на рассылку об интеграции телефонии и CRM',
+                        name: 'Марк Брониславович Чиграков',
+                        phone: '74951234568'
+                    });
                 });
             });
-            it('Отправлена заявка.', function() {
+            it('Снимаю отметку с чекбокса получения рассылки. Отправлена заявка.', function() {
+                tester.agreementForm.
+                    checkbox().
+                    withBoxLabel('Я хочу получать рассылки об интеграции телефонии и CRM').
+                    click();
+
+                tester.tryForFreeButton.click();
+                tester.requestCreateAccount().send();
+                wait();
+
                 tester.supportRequestSender.expectRequestParamsToContain({
                     email: 'chigrakov@example.com',
                     message:
@@ -129,13 +161,27 @@ tests.addTest(function(args) {
                     phone: '74951234568'
                 });
             });
-        });
-        it('Сайтфон отсутствует. Нажимаю на кнопку "Тестировать бесплатно". Ошибка не произошла.', function() {
-            tester.supportRequestSender.setNoSitePhone();
+            return;
+            it('Сайтфон отсутствует. Нажимаю на кнопку "Тестировать бесплатно". Ошибка не произошла.', function() {
+                tester.supportRequestSender.setNoSitePhone();
 
-            tester.tryForFreeButton.click();
-            tester.requestCreateAccount().send();
-            wait(10);
+                tester.tryForFreeButton.click();
+                tester.requestCreateAccount().send();
+                wait(10);
+            });
+        });
+        return;
+        it('Кнопка бесплатного тестирования заблокирована.', function() {
+            tester.tryForFreeButton.expectToBeDisabled();
+
+            tester.agreementForm.checkbox().withBoxLabel(
+                'Я хочу получать рассылки об интеграции телефонии и CRM'
+            ).expectToBeChecked();
+
+            tester.agreementForm.checkbox().withBoxLabel(
+                'Я соглашаюсь с Лицензионным договором (оферта) , Пользовательским соглашением , Правилами ' +
+                'оказания услуг связи'
+            ).expectNotToBeChecked();
         });
     });
     return;

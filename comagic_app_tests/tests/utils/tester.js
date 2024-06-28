@@ -310,6 +310,10 @@ define(() => function ({
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
 
+        me.moreIcon = () => testersFactory.createDomElementTester(
+            () => utils.element(getRootElement()).querySelector('.cmgui-icon[data-component=MoreVertical20]')
+        );
+
         me.sourceIcon = (() => {
             const getIcons = () => utils.element(getRootElement()).querySelectorAll('.ui-icon-source-24');
 
@@ -13634,6 +13638,16 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            forIframe() {
+                requestProcessors.push(() => (headers = {
+                    Authorization: `Bearer ${me.oauthToken}`,
+                    'X-Auth-Token': undefined,
+                    'X-Auth-Type': undefined,
+                }));
+
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}/contact-groups`).

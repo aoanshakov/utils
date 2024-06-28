@@ -17,6 +17,7 @@ tests.addTest(options => {
             chatChannelListRequest;
 
         afterEach(function() {
+            postMessages.nextMessage().expectNotToExist();
             tester.restoreSoftphoneIFrameContentWindow();
 
             tester.chrome.
@@ -86,7 +87,7 @@ tests.addTest(options => {
             chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent();
         });
 
-        xdescribe('Активны каналы всех трёх типов.', function() {
+        describe('Активны каналы всех трёх типов.', function() {
             beforeEach(function() {
                 chatChannelListRequest.receiveResponse();
 
@@ -312,6 +313,7 @@ tests.addTest(options => {
                                                 expectToBeSent();
 
                                             tester.visitorCardRequest().receiveResponse();
+                                            tester.scheduledMessagesRequest().receiveResponse();
                                             tester.chatInfoRequest().receiveResponse();
                                                 
                                             tester.usersRequest().
@@ -722,65 +724,84 @@ tests.addTest(options => {
                                             tester.modalWindow.select.click();
                                         });
 
-                                        it('Выбираю канал. Открыт активный чат.', function() {
-                                            tester.select.
-                                                option('Нижний Новгород').
-                                                click();
+                                        describe('Выбираю канал.', function() {
+                                            let newChatList,
+                                                activeChatList,
+                                                closedChatList,
+                                                otherChatList;
 
-                                            tester.button('Перейти к чату').click();
+                                            beforeEach(function() {
+                                                tester.select.
+                                                    option('Нижний Новгород').
+                                                    click();
 
-                                            tester.chatListRequest().
-                                                forCurrentEmployee().
-                                                receiveResponse();
+                                                tester.button('Перейти к чату').click();
 
-                                            tester.chatListRequest().
-                                                active().
-                                                forCurrentEmployee().
-                                                secondPage().
-                                                receiveResponse();
+                                                newChatList = tester.chatListRequest().
+                                                    forCurrentEmployee().
+                                                    expectToBeSent();
 
-                                            tester.chatListRequest().
-                                                closed().
-                                                forCurrentEmployee().
-                                                receiveResponse();
+                                                activeChatList = tester.chatListRequest().
+                                                    active().
+                                                    forCurrentEmployee().
+                                                    secondPage().
+                                                    expectToBeSent();
 
-                                            tester.chatListRequest().
-                                                active().
-                                                forCurrentEmployee().
-                                                isOtherEmployeesAppeals().
-                                                receiveResponse();
+                                                closedChatList = tester.chatListRequest().
+                                                    closed().
+                                                    forCurrentEmployee().
+                                                    expectToBeSent();
 
-                                            tester.chatListRequest().
-                                                thirdChat().
-                                                receiveResponse();
+                                                otherChatList = tester.chatListRequest().
+                                                    active().
+                                                    forCurrentEmployee().
+                                                    isOtherEmployeesAppeals().
+                                                    expectToBeSent();
+                                            });
 
-                                            tester.submoduleInitilizationEvent().
-                                                contacts().
-                                                expectToBeSent();
+                                            it('Открыт активный чат.', function() {
+                                                newChatList.receiveResponse();
+                                                activeChatList.receiveResponse();
+                                                closedChatList.receiveResponse();
+                                                otherChatList.receiveResponse();
 
-                                            tester.messageListRequest().receiveResponse();
-                                            tester.visitorCardRequest().receiveResponse();
-                                            tester.chatInfoRequest().receiveResponse();
-                                                
-                                            tester.usersRequest().
-                                                forContacts().
-                                                forIframe().
-                                                receiveResponse();
+                                                tester.chatListRequest().
+                                                    thirdChat().
+                                                    receiveResponse();
 
-                                            tester.contactGroupsRequest().
-                                                forIframe().
-                                                receiveResponse();
+                                                tester.messageListRequest().receiveResponse();
+                                                tester.visitorCardRequest().receiveResponse();
 
-                                            tester.contactGroupsRequest().
-                                                forIframe().
-                                                receiveResponse();
+                                                tester.submoduleInitilizationEvent().
+                                                    contacts().
+                                                    expectToBeSent();
 
-                                            tester.usersRequest().
-                                                forContacts().
-                                                forIframe().
-                                                receiveResponse();
+                                                tester.scheduledMessagesRequest().receiveResponse();
+                                                tester.chatInfoRequest().receiveResponse();
+                                                    
+                                                tester.usersRequest().
+                                                    forContacts().
+                                                    forIframe().
+                                                    receiveResponse();
+
+                                                tester.contactGroupsRequest().
+                                                    forIframe().
+                                                    receiveResponse();
+
+                                                tester.spin.expectNotToExist();
+
+                                                tester.chatList.
+                                                    first.
+                                                    item('Привет').
+                                                    expectToBeVisible();
+                                            });
+                                            it('Отображён спиннер.', function() {
+                                                tester.spin.expectToBeVisible();
+                                            });
                                         });
                                         it('Все опции каналов доступны.', function() {
+                                            tester.spin.expectNotToExist();
+
                                             tester.select.
                                                 option('Нижний Новгород').
                                                 expectToBeEnabled();
@@ -841,6 +862,7 @@ tests.addTest(options => {
                                             expectToBeSent();
 
                                         tester.visitorCardRequest().receiveResponse();
+                                        tester.scheduledMessagesRequest().receiveResponse();
                                         tester.chatInfoRequest().receiveResponse();
                                             
                                         tester.usersRequest().
@@ -1125,6 +1147,11 @@ tests.addTest(options => {
                                 expectToBeSent();
 
                             tester.visitorCardRequest().receiveResponse();
+
+                            tester.scheduledMessagesRequest().
+                                anotherChat().
+                                receiveResponse();
+
                             tester.messageListRequest().receiveResponse();
 
                             tester.chatInfoRequest().
@@ -1377,6 +1404,7 @@ tests.addTest(options => {
 
                             tester.messageListRequest().receiveResponse();
                             tester.visitorCardRequest().receiveResponse();
+                            tester.scheduledMessagesRequest().receiveResponse();
                             tester.chatInfoRequest().receiveResponse();
 
                             tester.button('Отменить').expectNotToExist();
@@ -1396,6 +1424,54 @@ tests.addTest(options => {
                                 option('Нижний Новгород 79283810988').
                                 expectToBeDisabled();
                         });
+                    });
+                    it('Скрываю приложение. Приходит новое сообщение. Отображено уведомление.', function() {
+                        setFocus(false);
+                        tester.newMessage().receive();
+
+                        tester.chatListRequest().
+                            chat().
+                            receiveResponse();
+
+                        tester.countersRequest().
+                            noNewChats().
+                            noClosedChats().
+                            receiveResponse();
+
+                        const notification = notificationTester.
+                            grantPermission().
+                            recentNotification();
+
+                        notification.click();
+                        tester.visitorCardRequest().receiveResponse();
+
+                        tester.scheduledMessagesRequest().
+                            anotherChat().
+                            receiveResponse();
+
+                        tester.messageListRequest().receiveResponse();
+
+                        tester.chatInfoRequest().
+                            anotherChat().
+                            receiveResponse();
+
+                        tester.usersRequest().
+                            forContacts().
+                            forIframe().
+                            receiveResponse();
+
+                        tester.contactGroupsRequest().
+                            forIframe().
+                            receiveResponse();
+
+                        tester.submoduleInitilizationEvent().
+                            contacts().
+                            expectToBeSent();
+
+                        tester.contactBar.expectTextContentToHaveSubstring(
+                            'ФИО ' +
+                            'Помакова Бисерка Драгановна'
+                        );
                     });
                 });
                 describe(
@@ -1421,6 +1497,11 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.visitorCardRequest().receiveResponse();
+
+                        tester.scheduledMessagesRequest().
+                            anotherChat().
+                            receiveResponse();
+
                         tester.messageListRequest().receiveResponse();
 
                         tester.chatInfoRequest().

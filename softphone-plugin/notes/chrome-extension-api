@@ -1,0 +1,4 @@
+chrome.browserAction.setBadgeText(
+  details: object,
+  callback?: function,
+)

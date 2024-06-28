@@ -19,9 +19,6 @@ tests.addTest(function(args) {
             tester.supportRequestSender.respondSuccessfully();
         });
 
-        it('', function() {
-        });
-        return;
         xdescribe('Нажимаю на кнопку "Продолжить".', function() {
             beforeEach(function() {
                 tester.settingsStep('Номер телефона').nextButton().click();

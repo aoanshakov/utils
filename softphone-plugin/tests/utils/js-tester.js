@@ -3171,6 +3171,8 @@ function JsTester_IntersectionObserver ({
     this.unobserve = function (domElement) {
         intersectionObservations.get(domElement)?.delete(callback);
     };
+
+    this.disconnect = () => null;
 }
 
 function JsTester_IntersectionObserverFactory ({
@@ -4017,6 +4019,10 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
 
     this.expectEmptyObject = function () {
         return new JsTests_EmptyObjectExpectaion();
+    };
+
+    this.expectToBeEmpty = function () {
+        return new JsTests_EmptyExpectaion();
     };
 
     this.expectNotToBeEmpty = function () {
@@ -5322,7 +5328,7 @@ function JsTester_FetchResponse (args) {
     };
 
     this.text = function () {
-        return responseText;
+        return Promise.resolve(responseText);
     };
 
     Object.defineProperty(this, 'body', {
@@ -6687,6 +6693,17 @@ function JsTests_NotEmptyExpectaion () {
     };
 }
 
+function JsTests_EmptyExpectaion () {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (actualValue) {
+            throw new Error(
+                'Значение параметра ' + keyDescription + ' должно быть пустым, тогда как значением является ' +
+                JSON.stringify(actualValue) + '.'
+            );
+        }
+    };
+}
+
 function JsTests_LengthExpectaion (expectedLength) {
     this.maybeThrowError = function (actualValue, keyDescription) {
         (new JsTests_StringExpectaion()).maybeThrowError(actualValue, keyDescription);
@@ -6847,6 +6864,7 @@ JsTests_PrefixExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_StringExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_SetInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
 JsTests_NotEmptyExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_EmptyExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_LengthExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_JSONContentExpectation.prototype = JsTests_ParamExpectationPrototype
 
@@ -7893,6 +7911,9 @@ function JsTester_NoWindowMessage () {
         return {};
     };
 
+    this.startsWith = () => false;
+    this.log = () => console.log(`Window message: not exists`);
+
     this.expectMessageToContain = function (expectedContent) {
         throw new Error(
             'Ни одно сообщение не было отправлено в родительское окно, однако должно быть отправлено JSON-сообщение ' +
@@ -7914,6 +7935,17 @@ function JsTester_NoWindowMessage () {
         );
     };
 
+    this.expectMessageToStartsWith = function (expectedPrefix) {
+        if (!this.startsWith(expectedPrefix)) {
+            throw new Error(
+                'В родительское окно должно быть отправлено сообщение начинающееся с "' + expectedPrefix + '", ' +
+                'однако ни одно сообщение не было отправлено.'
+            );
+        }
+
+        return this;
+    };
+
     this.expectNotToExist = function () {};
 }
 
@@ -7923,6 +7955,9 @@ function JsTester_WindowMessage (args) {
         debug = args.debug,
         utils = args.utils,
         callStack = debug.getCallStack();
+
+    this.startsWith = prefix => actualMessage.indexOf(prefix) === 0;
+    this.log = () => console.log(`Window message: ${actualMessage}`);
 
     this.getJSON = function () {
         var data;
@@ -7957,6 +7992,17 @@ function JsTester_WindowMessage (args) {
             throw new Error(
                 'В родительское окно должно быть отправлено сообщение "' + expectedMessage + '", однако было ' +
                 'отправлено сообщение "' + actualMessage + '".' + "\n\n" + callStack
+            );
+        }
+
+        return this;
+    };
+
+    this.expectMessageToStartsWith = function (expectedPrefix) {
+        if (!this.startsWith(expectedPrefix)) {
+            throw new Error(
+                'В родительское окно должно быть отправлено сообщение начинающееся с "' + expectedPrefix + '", ' +
+                'однако было отправлено сообщение "' + actualMessage + '".' + "\n\n" + callStack
             );
         }
 
@@ -8026,7 +8072,7 @@ function JsTester_PostMessageTester ({
         ...message,
         data: typeof message.data == 'string' ? message.data : JSON.stringify(message.data),
     } : {
-        data: JSON.stringify(message),
+        data: typeof message == 'string' ? message : JSON.stringify(message),
         origin: 'https://somedomain.com',
     });
 }

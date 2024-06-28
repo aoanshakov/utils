@@ -1070,6 +1070,10 @@ function EasystartBitrix(args) {
         return tester;
     })();
 
+    this.agreementForm = testersFactory.createFormTester(function () {
+        return EasyStart.getApplication().findComponent('#agreementForm');
+    });
+
     function getRedirectionAuthForm () {
         return document.querySelector('.easystart-comagic-web-auth');
     }

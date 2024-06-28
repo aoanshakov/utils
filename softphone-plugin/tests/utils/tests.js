@@ -30,6 +30,25 @@ document.addEventListener('DOMContentLoaded', function () {
                 tests.afterEach();
             });
 
+            tests.runBeforeTestsExecution(options => {
+                const unfilteredPostMessages = options.postMessages;
+                options.unfilteredPostMessages = unfilteredPostMessages;
+
+                options.postMessages = {
+                    nextMessage: () => {
+                        while (true) {
+                            const message = unfilteredPostMessages.nextMessage();
+
+                            if (!message.startsWith('ignore:')) {
+                                return message;
+                            }
+                        }
+                    },
+
+                    receive: message => unfilteredPostMessages.receive(message),
+                };
+            });
+
             const WrappedTester = function (options) {
                 options.softphoneHost = options.softphoneHost || '$REACT_APP_SOFTPHONE_BACKEND_HOST';
                 options.softphoneTester = new SoftphoneTester(options);

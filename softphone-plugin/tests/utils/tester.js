@@ -37,9 +37,10 @@ define(() => function ({
 
     const mainTester = me;
 
-    me.oauthToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6InBqeWNOMndxTkotbU1mcVpRSllIdHAtMGw0Uk1XNVNkUUF3N2JITmhjc00iLCJ0eXAiOiJKV1QifQ.eyJqdGkiOiI4NjZhZTFkZC02M2E2LTRhMTItOGVkZC1hODcyMmUwNjhlODAiLCJzaWQiOiJmYjZhYWJkMC05YjIzLTQzNDAtYjFkNC1hYTk4ZTIxYjAxYzciLCJpc3MiOiJodHRwczovL3Byb2QtbXNrLXVjLXNzby1hcGkubm92b2Zvbi5ydSIsImF1ZCI6WyJodHRwczovL3Byb2QtbXNrLWRhdGFhcGktanNvbnJwYy5ub3ZvZm9uLnJ1IiwiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJodHRwczovL3Byb2QtbXNrLXNvZnRwaG9uZS1yZXN0LWFwaS5ub3ZvZm9uLnJ1Il0sInN1YiI6IkNvbWFnaWNEQnxub3ZvZm9ufDEwNnw0NTEiLCJzdWJkIjp7ImFwcF9pZCI6MTA2LCJjdXN0b21lcl9pZCI6Mjg5MTU2NCwidXNlcl9pZCI6NDUxLCJsb2dpbiI6ImJpdHJpeHRlc3QiLCJpc19zeXN0ZW0iOmZhbHNlfSwiY2xpZW50X2lkIjoiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJpYXQiOjE3MDk2Mzg2MzR9.G3Irx8UHLLv1mGSnx_fpE-wZoaQud1Jh7hJQrg_17v1eKFQrrzBYD4s_PMUe_bso90c9ooWLudXMHuRrAfQzrJasaEFIkEtalKbnNAxwRac_sWdAUfr5-sxiUcJPPEkUWWxqD3fAAvuo-8lANps89W0f3DN_8WJ7lXUqEwZT8bftOOGcAthbkXKnVyzRUNJfkFnK3jV7qa6uwIbYOd0sJAXpc-rDyG_kWfnwZv-NYZinIHgk92kRT-tOiSnX6HAOKDQ3QbtKOCT-uJqAd78RKMjFcMAbbFRrQBr1q3s9OUJCArYi6wQcHkhiMuT0mXAPK-eAnaiKFfuuT9r1S0tPCKnnnyK6mUQo_K11Ne3kW1xShVYEhK7wtTn-BnJORF-Y0KHLI3Ndp6Jjs7Ak7nbQRztJ64buBpksI0PAKRc9euWdc04HmHxftCCgZ9uc2YjL77sqr_ExzJsMNJDNwEDrFsmMIHhpNvA19P1zuDaiCr2zja1HQEE3vyLr-JAjlYdCTOZkJ5dqRFAmCWBQ-12JJbRihB1kPyhrpbKcWg7Ry1RV47ghbgQ6igv-1BCelu9LT5IvSXLnhNxPLTdi17ukKFdS5V5XugryqFgDujSJiBCWLGAZ1mzT08BVK4yIeSo5GQhs8oNReNDmnDo33tfTzzpFDbQxHwHQAUG1oXYvuEI';
+    me.oauthToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4NjZhZTFkZC02M2E2LTRhMTItOGVkZC1hODcyMmUwNjhlODAiLCJzaWQiOiJmYjZhYWJkMC05YjIzLTQzNDAtYjFkNC1hYTk4ZTIxYjAxYzciLCJpc3MiOiJodHRwczovL3Byb2QtbXNrLXVjLXNzby1hcGkubm92b2Zvbi5ydSIsImF1ZCI6WyJodHRwczovL3Byb2QtbXNrLWRhdGFhcGktanNvbnJwYy5ub3ZvZm9uLnJ1IiwiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJodHRwczovL3Byb2QtbXNrLXNvZnRwaG9uZS1yZXN0LWFwaS5ub3ZvZm9uLnJ1Il0sInN1YiI6IkNvbWFnaWNEQnxub3ZvZm9ufDEwNnw0NTEiLCJzdWJkIjp7ImFwcF9pZCI6MTA2LCJjdXN0b21lcl9pZCI6Mjg5MTU2NCwidXNlcl9pZCI6NDUxLCJsb2dpbiI6ImJpdHJpeHRlc3QiLCJpc19zeXN0ZW0iOmZhbHNlLCJsYyI6InJ1In0sImNsaWVudF9pZCI6Imh0dHBzOi8vbnBvaWRrY2ZmZGdsa2ZtamJtcGhoa29iY2NhaWNiZWguY2hyb21pdW1hcHAub3JnIiwiaWF0IjoxNzA5NjM4NjM0fQ.M1uICzMCt0VZPG2b5nUSN160vslzOSWI_P9mmQj-0L0';
     me.anotherOauthToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic3ViZCI6eyJsb2dpbiI6Im1hc2hhbF9tYXJvdW4iLCJkYXRhX2NlbnRlciI6ImR1YmFpIn0sImlhdCI6MTUxNjIzOTAyMn0.wQZ-FOFf69mY6WN0o83cIrs71N5ulkvew-PkLT4_eYg';
     me.thirdOauthToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic3ViZCI6eyJsb2dpbiI6InJlZGFfamFtYWlsIiwiZGF0YV9jZW50ZXIiOiJkdWJhaSJ9LCJpYXQiOjE1MTYyMzkwMjJ9.dPX4vrLO1akXs73wAwremBZ2PQxYX-PHQZrPrsq0QVY';
+    me.fourthOauthToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4NjZhZTFkZC02M2E2LTRhMTItOGVkZC1hODcyMmUwNjhlODAiLCJzaWQiOiJmYjZhYWJkMC05YjIzLTQzNDAtYjFkNC1hYTk4ZTIxYjAxYzciLCJpc3MiOiJodHRwczovL3Byb2QtbXNrLXVjLXNzby1hcGkubm92b2Zvbi5ydSIsImF1ZCI6WyJodHRwczovL3Byb2QtbXNrLWRhdGFhcGktanNvbnJwYy5ub3ZvZm9uLnJ1IiwiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJodHRwczovL3Byb2QtbXNrLXNvZnRwaG9uZS1yZXN0LWFwaS5ub3ZvZm9uLnJ1Il0sInN1YiI6IkNvbWFnaWNEQnxub3ZvZm9ufDEwNnw0NTEiLCJzdWJkIjp7ImFwcF9pZCI6MTA2LCJjdXN0b21lcl9pZCI6Mjg5MTU2NCwidXNlcl9pZCI6NDUxLCJsb2dpbiI6ImJpdHJpeHRlc3QiLCJpc19zeXN0ZW0iOmZhbHNlLCJsYyI6ImVuIn0sImNsaWVudF9pZCI6Imh0dHBzOi8vbnBvaWRrY2ZmZGdsa2ZtamJtcGhoa29iY2NhaWNiZWguY2hyb21pdW1hcHAub3JnIiwiaWF0IjoxNzA5NjM4NjM0fQ.44cHOgX5AkSFfjKkUWlJAuVwxDhOWYYDKWY40AHpbT0';
 
     const jwtToken = {
         jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
@@ -1019,7 +1020,7 @@ define(() => function ({
                                     'padding: 1px 8px 0px 2px;' +
                                 '"' +
                             '>' +
-                                '{{ icon }} {{ name }}' +
+                                '{{ icon }} {{ phone }} {{ name }}' +
                             '</button>',
 
                             attributes: {
@@ -1052,10 +1053,10 @@ define(() => function ({
                                     'border-radius: 12px;' +
                                     'display: flex;' +
                                     'align-items: center;' +
-                                    'padding: 1px 8px 0px 8px;' +
+                                    'padding: 1px 8px 0px 2px;' +
                                 '"' +
                             '>' +
-                                '{{ name }}' +
+                                '{{ icon }} {{ email }} {{ name }}' +
                             '</button>',
 
                             attributes: {
@@ -1077,14 +1078,45 @@ define(() => function ({
                 storageDataProcessors.push(storageData => {
                     storageData.error = {
                         type: 'settings',
-
-                        message: 'SyntaxError: Unexpected non-whitespace character after JSON at position 4 (line 1 ' +
-                            'column 5)',
+                        message: '500 Internal Server Error Server got itself in trouble',
                     };
 
                     return storageData;
                 });
 
+                return me;
+            };
+
+            me.failedToGetSettingsWithJsonResponse = () => {
+                respond = request => request.respondUnsuccessfullyWith([{
+                    loc: ['root'],
+                    msg: 'Server got itself in trouble',
+                    type: 'value_error.exception'
+                }]);
+
+                storageDataProcessors.push(storageData => {
+                    storageData.error = {
+                        type: 'settings',
+                        message: JSON.stringify([{
+                            loc: ['root'],
+                            msg: 'Server got itself in trouble',
+                            type: 'value_error.exception'
+                        }]),
+                    };
+
+                    return storageData;
+                });
+
+                return me;
+            };
+
+            me.noIntegrations = () => {
+                respond = request => request.respond({
+                    responseObject: '404: Not Found',
+                    status: 404
+                });
+
+                me.noSoftphoneSettings();
                 return me;
             };
 
@@ -1270,6 +1302,15 @@ define(() => function ({
                 return me;
             };
 
+            me.loaded = () => {
+                anotherStorageDataProcessors.push(storageData => {
+                    storageData.loading = 0;
+                    return storageData;
+                });
+
+                return me;
+            };
+
             me.emptyToken = () => {
                 softphoneSettingsProcessors.push(() => null);
                 chatSettingsProcessors.push(() => null);
@@ -1294,6 +1335,14 @@ define(() => function ({
                     softphone: 'my.callgear.ae',
                     chats: 'chats-cg-logic.callgear.ae/v1',
                 };
+
+                return me;
+            };
+
+            me.thirdToken = () => {
+                storageDataProcessors.push(
+                    storageData => (storageData.token = mainTester.fourthOauthToken, storageData)
+                );
 
                 return me;
             };
@@ -1516,6 +1565,11 @@ define(() => function ({
             addPageContent(2);
             this.triggerMutation();
         },
+
+        triplicate() {
+            addPageContent(3);
+            this.triggerMutation();
+        },
     };
 
     {
@@ -1626,10 +1680,16 @@ define(() => function ({
                 userName: '',
             },
             script: 'popup',
+
             addResponseModifiers: (me, message) => {
                 me.userDataFetched = () => (message.data.userName = 'Ганева Стефка', me);
                 me.visible = () => (message.data.visible = true, me);
                 me.disabled = () => (message.data.visible = null, me);
+                    
+                me.longName = () => {
+                    message.data.userName = 'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна';
+                    return me;
+                };
 
                 return me;
             },
@@ -1641,6 +1701,8 @@ define(() => function ({
             script: 'popup',
             addResponseModifiers: (me, message) => {
                 me.visible = () => (message.data = true, me);
+                me.disabled = () => (message.data = null, me);
+
                 return me;
             },
         });
@@ -1655,6 +1717,43 @@ define(() => function ({
             script: 'popup',
         });
     }
+
+    me.logDownloadingRequest = () => {
+        const addResponseModifiers = me => me,
+            response = true;
+
+        const message = {
+            method: 'download_log',
+            data: undefined,
+        };
+
+        return addResponseModifiers({
+            expectResponseToBeSent() {
+                me.chrome.
+                    runtime.
+                    receiveMessage(message).
+                    expectResponseToContain(response);
+            },
+
+            expectToBeSent() {
+                const request = me.chrome.
+                    runtime.
+                    popup.
+                    nextMessage().
+                    expectToContain(message);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.receiveResponse(response);
+                    },
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
         
     me.installmentSettingsProbableUpdatingRequest = () => {
         let script = 'popup';
@@ -1782,6 +1881,55 @@ define(() => function ({
         });
     };
 
+    me.notificationShowingRequest = () => {
+        const expectedMessage = {
+            method: 'show_notification',
+            data: {
+                title: 'Помакова Бисерка Драгановна',
+                options: {
+                    body: 'Я люблю тебя',
+                    icon: 'https://be-in-info.ru/comagic/visitor_type/omni.png',
+                    tag: '16479303',
+                },
+            },
+        };
+
+        return {
+            receive: () => {
+                const id = '93aa1fab-26f1-4182-9185-198a64f50787';
+                expectedMessage.data.id = id;
+
+                postMessages.receive(expectedMessage);
+
+                return {
+                    click: () => ({
+                        expectToBeSent: () => postMessages.nextMessage().expectMessageToContain({
+                            method: 'click_notification',
+                            data: id,
+                        }),
+                    }),
+                };
+            },
+            expectToBeSent: () => {
+                const actualMessage = postMessages.nextMessage();
+                actualMessage.expectMessageToContain(expectedMessage);
+
+                return {
+                    click: () => ({
+                        receive: () => {
+                            postMessages.receive({
+                                method: 'click_notification',
+                                data: actualMessage.getJSON().data.id,
+                            });
+
+                            spendTime(0);
+                        },
+                    }),
+                };
+            },
+        };
+    };
+
     me.chatsHidingRequest = () => {
         const message = { method: 'hide_chats' };
 
@@ -1852,6 +2000,11 @@ define(() => function ({
         };
 
         return {
+            nothingFound() {
+                processors.push(message => message.data.channels = []);
+                return this;
+            },
+
             unavailable() {
                 processors.push(message => message.data.channels[0].is_unavailable = true);
                 return this;
@@ -1877,6 +2030,19 @@ define(() => function ({
                     type: 'telegram_private',
                     type_name: 'Telegram',
                     icon: 'SourceTelegram20',
+                    is_unavailable: false,
+                }));
+
+                return this;
+            },
+
+            addFourthChannel(message) {
+                processors.push(message => message.data.channels.push({
+                    id: 216402,
+                    name: 'Буэнос‑Айрес',
+                    type: 'sms',
+                    type_name: 'SMS',
+                    icon: 'SourceSmsNewsletter20',
                     is_unavailable: false,
                 }));
 
@@ -1922,7 +2088,7 @@ define(() => function ({
                     message.data.channels[0].name = 'Сантьяго';
                     message.data.channels[0].type = 'email';
                     message.data.channels[0].type_name = 'Email';
-                    message.data.channels[0].icon = null;
+                    message.data.channels[0].icon = 'Mail20';
                 });
                     
                 return this;
@@ -1972,6 +2138,7 @@ define(() => function ({
             const message = {
                 method: 'set_notification',
                 data: {
+                    locale: 'ru',
                     success: false,
                     subject: 'login',
                 },
@@ -2381,6 +2548,11 @@ define(() => function ({
                 return addResponseModifiers({
                     fail: () => {
                         authFlow.fail('Failed to open authorization page');
+                        spendTime(0);
+                    },
+                    
+                    cancel: () => {
+                        authFlow.fail('Error: The user did not approve access.');
                         spendTime(0);
                     },
 
@@ -2860,6 +3032,25 @@ define(() => function ({
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
 
+        me.moreIcon = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => utils.element(getRootElement()).querySelector('.cmgui-icon[data-component=MoreVertical20]')
+            );
+
+            const click = tester.click.bind(tester);
+
+            tester.click = () => {
+                click();
+
+                spendTime(0);
+                spendTime(0);
+                spendTime(0);
+                spendTime(0);
+            };
+
+            return tester;
+        })();
+
         me.icon = (() => {
             const tester = testersFactory.createDomElementTester(() => {
                 return utils.element(getRootElement()).querySelector('.cmgui-icon');
@@ -3098,6 +3289,7 @@ define(() => function ({
 
             me.spin = testersFactory.createDomElementTester(getSpin);
             me.spin.atIndex = index => testersFactory.createDomElementTester(() => getSpins()[index]);
+            me.spin.first = me.spin.atIndex(0);
         })();
 
         me.anchor = text => (() => {
@@ -6790,7 +6982,7 @@ define(() => function ({
     me.transferAcceptedMessage = () => {
         const params = {
             chat_id: 7189362,
-            to_employee_id: 20817,
+            to_employee_id: 20818,
         };
 
         return {
@@ -6809,7 +7001,7 @@ define(() => function ({
         const bodyParams = {
             chat_id: 7189362,
             comment: '',
-            employees: [20817, undefined],
+            employees: [20818, undefined],
             is_force: true,
         };
 
@@ -6826,7 +7018,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('POST').
-                    expectPathToContain('$REACT_APP_BASE_URL/transfer').
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/transfer').
                     expectBodyToContain(bodyParams);
 
                 return addResponseModifiers({
@@ -8428,6 +8620,8 @@ define(() => function ({
 
         const addResponseModifiers = me => {
             me.anotherToken = () => (bodyParams.token = mainTester.anotherOauthToken, me);
+            me.thirdToken = () => (bodyParams.token = mainTester.fourthOauthToken, me);
+
             return me;
         };
 
@@ -9320,6 +9514,37 @@ define(() => function ({
                         request.respondSuccessfullyWith({
                             result: true 
                         });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.scheduledMessagesRequest = () => {
+        let id = '7189362';
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            anotherChat() {
+                id = '2718935';
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain(`$REACT_APP_BASE_URL/operator/chats/${id}/scheduled-messages`).
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith([]);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -15753,11 +15978,40 @@ define(() => function ({
             return me;
         };
 
-        const response = {
+        let response = {
             result: { data },
         };
 
         return addResponseModifiers({
+            invalidFormat() {
+                response = {
+                    result: null,
+                    error: {
+                        code: 400,
+                        message: [
+                            {
+                                loc: [
+                                    'contact',
+                                    'phone',
+                                ],
+                                msg: 'Invalid phone format',
+                                type: 'value_error',
+                            },
+                            {
+                                loc: [
+                                    'contact',
+                                    '__root__',
+                                ],
+                                msg: 'Exactly one of email, phone, username must be passed',
+                                type: 'value_error',
+                            },
+                        ],
+                    },
+                };
+
+                return this;
+            },
+            
             forContacts() {
                 path = '$REACT_APP_CHAT_BASE_URL';
                 return this;
@@ -19010,7 +19264,20 @@ define(() => function ({
         const getDomElement = () => utils.querySelector('.ui-notification, .cmgui-notification'),
             tester = testersFactory.createDomElementTester(getDomElement);
 
-        return addTesters(tester, getDomElement);
+        addTesters(tester, getDomElement);
+
+        tester.closeButton = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => getDomElement().querySelector('.cmgui-notification-close-x')
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
+
+        return tester;
     })();
 
     me.softphone = (getRootElement => {
