@@ -779,6 +779,8 @@ tests.addTest(options => {
                 tester.chatsVisibilitySettingRequest().
                     disabled().
                     receiveResponse();
+
+                tester.missedEventsCountSettingRequest().receiveResponse();
             });
 
             describe('Получен токен авторизации и настройки.', function() {
@@ -824,6 +826,7 @@ tests.addTest(options => {
                         describe('Получено событие инициализации субмодуля чатов.', function() {
                             beforeEach(function() {
                                 tester.submoduleInitilizationEvent().receive();
+                                tester.unreadMessagesCountSettingRequest().receive();
 
                                 tester.widgetSettings().
                                     windowMessage().
@@ -837,7 +840,7 @@ tests.addTest(options => {
                                     spendTime(999);
                                 });
 
-                                it('', function() {
+                                it('Настройки изменились. Изменился DOM. Кнопки добавлены.', function() {
                                     tester.widgetSettings().
                                         storageData().
                                         insertAfter().
@@ -1170,6 +1173,10 @@ tests.addTest(options => {
                                     lostCalls(1).
                                     receive();
 
+                                tester.missedEventsCountSettingRequest().
+                                    value(1).
+                                    receiveResponse();
+
                                 tester.visibilityButton.expectToHaveTextContent('Трубочка (1)');
                             });
                             it(
@@ -1189,16 +1196,6 @@ tests.addTest(options => {
 
                                 tester.chatsVisibilitySettingRequest().receiveResponse();
                                 tester.iframe.atIndex(1).expectToBeHidden();
-                            });
-                            it(
-                                'Получено событие инициализации субмодуля контактов. Настройки не были отправлены в ' +
-                                'IFrame.',
-                            function() {
-                                tester.submoduleInitilizationEvent().
-                                    contacts().
-                                    receive();
-
-                                postMessages.nextMessage().expectNotToExist();
                             });
                             it('Кнопка видимости добавлена перед элементом.', function() {
                                 tester.body.expectToHaveTextContent(
@@ -1243,31 +1240,21 @@ tests.addTest(options => {
                             tester.initializednessEvent().expectToBeSent();
                         });
 
-                        describe('Получено событие инициализации субмодуля сотрудников.', function() {
-                            beforeEach(function() {
-                                tester.submoduleInitilizationEvent().
-                                    operatorWorkplace().
-                                    receive();
-                            });
+                        it(
+                            'Получено событие инициализации субмодуля чатов. Был отправлен запрос инициализации ' +
+                            'чатов.',
+                        function() {
+                            tester.submoduleInitilizationEvent().receive();
+                            tester.unreadMessagesCountSettingRequest().receive();
 
-                            it(
-                                'Получено событие инициализации субмодуля чатов. Был отправлен запрос инициализации ' +
-                                'чатов.',
-                            function() {
-                                tester.submoduleInitilizationEvent().receive();
+                            tester.widgetSettings().
+                                windowMessage().
+                                chatsSettings().
+                                expectToBeSent();
 
-                                tester.widgetSettings().
-                                    windowMessage().
-                                    chatsSettings().
-                                    expectToBeSent();
-
-                                tester.initializednessEvent().
-                                    chats().
-                                    expectToBeSent();
-                            });
-                            it('Запрос инициализации чатов не был отправлен.', function() {
-                                postMessages.nextMessage().expectNotToExist();
-                            });
+                            tester.initializednessEvent().
+                                chats().
+                                expectToBeSent();
                         });
                         it('Запрос инициализации чатов не был отправлен.', function() {
                             postMessages.nextMessage().expectNotToExist();
@@ -1291,6 +1278,7 @@ tests.addTest(options => {
                             receive();
 
                         tester.submoduleInitilizationEvent().receive();
+                        tester.unreadMessagesCountSettingRequest().receive();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -1385,6 +1373,7 @@ tests.addTest(options => {
                             receive();
 
                         tester.submoduleInitilizationEvent().receive();
+                        tester.unreadMessagesCountSettingRequest().receive();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -1448,6 +1437,7 @@ tests.addTest(options => {
                                 receive();
 
                             tester.submoduleInitilizationEvent().receive();
+                            tester.unreadMessagesCountSettingRequest().receive();
 
                             tester.widgetSettings().
                                 windowMessage().
@@ -1538,6 +1528,7 @@ tests.addTest(options => {
                             receive();
 
                         tester.submoduleInitilizationEvent().receive();
+                        tester.unreadMessagesCountSettingRequest().receive();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -1645,6 +1636,7 @@ tests.addTest(options => {
                         receive();
 
                     tester.submoduleInitilizationEvent().receive();
+                    tester.unreadMessagesCountSettingRequest().receive();
 
                     tester.widgetSettings().
                         windowMessage().
@@ -1685,6 +1677,7 @@ tests.addTest(options => {
                         receive();
 
                     tester.submoduleInitilizationEvent().receive();
+                    tester.unreadMessagesCountSettingRequest().receive();
 
                     tester.widgetSettings().
                         windowMessage().
@@ -1733,6 +1726,7 @@ tests.addTest(options => {
                         receive();
 
                     tester.submoduleInitilizationEvent().receive();
+                    tester.unreadMessagesCountSettingRequest().receive();
 
                     tester.widgetSettings().
                         anotherToken().
@@ -1957,6 +1951,7 @@ tests.addTest(options => {
                         receive();
 
                     tester.submoduleInitilizationEvent().receive();
+                    tester.unreadMessagesCountSettingRequest().receive();
 
                     tester.widgetSettings().
                         windowMessage().
@@ -2084,6 +2079,7 @@ tests.addTest(options => {
 
                     it('Инициализирован субмодуль чатов. Было отправлено событие инициализации.', function() {
                         tester.submoduleInitilizationEvent().receive();
+                        tester.unreadMessagesCountSettingRequest().receive();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -2262,9 +2258,7 @@ tests.addTest(options => {
                     });
                     it('Нажимаю на кнопку "Обновить настройки". Настройки обновлены.', function() {
                         tester.refreshButton.click();
-
-                        tester.installmentSettingsUpdatingRequest().
-                            expectToBeSent();
+                        tester.installmentSettingsUpdatingRequest().expectToBeSent();
                     });
                     it('Настройки загружаются. Кнопки заблокированы.', function() {
                         tester.widgetSettings().
@@ -2546,6 +2540,22 @@ tests.addTest(options => {
                         settingsLoading().
                         expectToBeSaved();
                 });
+            });
+            it('Нет пропущенных событий. Количество пропущенных событий не отображается.', function() {
+                tester.missedEventsCountSettingRequest().expectResponseToBeSent();
+
+                tester.chrome.
+                    browserAction.
+                    expectToHaveNoBadgeText();
+            });
+            it('Есть пропущенные события. Отображено количество пропущенных событий.', function() {
+                tester.missedEventsCountSettingRequest().
+                    value(75).
+                    expectResponseToBeSent();
+
+                tester.chrome.
+                    browserAction.
+                    expectBadgeTextHaveValue(75);
             });
             it('Получен запрос возможного обновления настроек. Настройки не обновлены.', function() {
                 tester.installmentSettingsProbableUpdatingRequest().expectResponseToBeSent();
@@ -3080,8 +3090,9 @@ tests.addTest(options => {
 
                     it('Получен запрос изменения состояния.', function() {
                         tester.stateSettingRequest().receive();
-                        tester.softphoneVisibilityToggleRequest().expectToBeSent();
+
                         tester.amocrmStateSettingRequest().expectToBeSent();
+                        tester.softphoneVisibilityToggleRequest().expectToBeSent();
 
                         tester.stateSettingRequest().
                             visible().
@@ -4502,6 +4513,7 @@ tests.addTest(options => {
                     success().
                     expectToBeSent();
 
+                tester.missedEventsCountSettingRequest().receiveResponse();
                 tester.popupStateSettingRequest().receiveResponse();
                 tester.chatsVisibilitySettingRequest().receiveResponse();
 
@@ -4522,6 +4534,8 @@ tests.addTest(options => {
                     receive();
 
                 tester.submoduleInitilizationEvent().receive();
+                tester.unreadMessagesCountSettingRequest().receive();
+
                 tester.channelsSearchingRequest().expectToBeSent();
 
                 tester.channelsSearchingRequest().
@@ -4759,6 +4773,10 @@ tests.addTest(options => {
                     tester.unreadMessagesCountSettingRequest().
                         value(75).
                         receive();
+
+                    tester.missedEventsCountSettingRequest().
+                        value(75).
+                        expectToBeSent();
 
                     tester.button('Чаты (75)').expectToBeVisible();
                 });
@@ -5118,6 +5136,7 @@ tests.addTest(options => {
                     disabled().
                     receiveResponse();
 
+                tester.missedEventsCountSettingRequest().receiveResponse();
                 tester.popupStateSettingRequest().receiveResponse();
                 tester.chatsVisibilitySettingRequest().receiveResponse();
 
@@ -5132,6 +5151,7 @@ tests.addTest(options => {
                     receive();
 
                 tester.submoduleInitilizationEvent().receive();
+                tester.unreadMessagesCountSettingRequest().receive();
 
                 tester.widgetSettings().
                     windowMessage().
@@ -5328,6 +5348,7 @@ tests.addTest(options => {
                 disabled().
                 receiveResponse();
 
+            tester.missedEventsCountSettingRequest().receiveResponse();
             tester.chatsVisibilitySettingRequest().receiveResponse();
             tester.stateSettingRequest().receive();
 
@@ -5340,6 +5361,8 @@ tests.addTest(options => {
                 receive();
 
             tester.submoduleInitilizationEvent().receive();
+            tester.unreadMessagesCountSettingRequest().receive();
+
             tester.softphoneVisibilityToggleRequest().expectToBeSent();
 
             tester.widgetSettings().
@@ -5369,6 +5392,7 @@ tests.addTest(options => {
                 disabled().
                 receiveResponse();
 
+            tester.missedEventsCountSettingRequest().receiveResponse();
             tester.popupStateSettingRequest().receiveResponse();
             tester.chatsVisibilitySettingRequest().receiveResponse();
 
@@ -5383,6 +5407,7 @@ tests.addTest(options => {
                 receive();
 
             tester.submoduleInitilizationEvent().receive();
+            tester.unreadMessagesCountSettingRequest().receive();
 
             tester.channelsSearchingRequest().expectToBeSent();
 
@@ -5417,6 +5442,10 @@ tests.addTest(options => {
             tester.unreadMessagesCountSettingRequest().
                 value(75).
                 receive();
+
+            tester.missedEventsCountSettingRequest().
+                value(75).
+                receiveResponse();
 
             tester.body.expectTextContentToHaveSubstringsConsideringOrder(
                 'Александр Аншаков' ,

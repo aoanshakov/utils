@@ -213,12 +213,46 @@ define(() => function ({
     function ChromeTester ({
         tabs,
         messageListeners,
+        browserAction,
         authFlowLaunchings,
         backgroundRuntimeMessageSender,
         popupRuntimeMessageSender,
         localStorage,
         permissions,
     }) {
+        function BrowserAction (browserAction) {
+            const isEmpty = () => ['', null, undefined].includes(browserAction.badgeText?.text);
+
+            this.expectBadgeTextHaveValue = expectedValue => {
+                if (isEmpty()) {
+                    throw new Error(
+                        `Рядом со значком расширения должно быть написано ${JSON.stringify(expectedValue)}, тогда ` +
+                        'как там нет никакой надписи.'
+                    );
+                }
+
+                if (browserAction.badgeText.text !== expectedValue) {
+                    throw new Error(
+                        `Рядом со значком расширения должно быть написано ${JSON.stringify(expectedValue)}, тогда ` +
+                        `как там написано ${JSON.stringify(browserAction.badgeText.text)}.`
+                    );
+                }
+
+                if (browserAction.badgeText.tabId !== 5829373782) {
+                    throw new Error('Текст рядом со значком должен быть установлен для текущей вкладки');
+                }
+            };
+
+            this.expectToHaveNoBadgeText = () => {
+                if (!isEmpty()) {
+                    throw new Error(
+                        `Рядом со значком расширения не должно быть ничего написано тогда , тогда как там ` +
+                        `написано ${JSON.stringify(browserAction.badgeText.text)}.`
+                    );
+                }
+            };
+        }
+
         function Tabs (tabs) {
             this.current = tabs.getCurrentTabMessagesTester();
         }
@@ -288,6 +322,7 @@ define(() => function ({
             };
         }
 
+        this.browserAction = new BrowserAction(browserAction);
         this.tabs = new Tabs(tabs);
         this.runtime = new Runtime(messageListeners);
         this.identity = new Identity(authFlowLaunchings);
@@ -461,7 +496,7 @@ define(() => function ({
 
         this.handleMessage = (message, sendResponse) => {
             listeners.forEach(handle => handle(message, {
-                documentId: '2f82jg9248' ,
+                tab: { id: 5829373782 },
             }, sendResponse));
         };
     }
@@ -623,6 +658,7 @@ define(() => function ({
         authFlowLaunchings,
         backgroundRuntimeMessageSender,
         popupRuntimeMessageSender,
+        browserAction,
         localStorage,
         permissions,
     }) {
@@ -694,6 +730,11 @@ define(() => function ({
             this.request = desiredContent => permissions.request(desiredContent);
         }
 
+        function BrowserAction (browserAction) {
+            this.setBadgeText = value => (browserAction.badgeText = value);
+        }
+
+        this.browserAction = new BrowserAction(browserAction);
         this.tabs = new Tabs(tabs);
         this.runtime = new Runtime(messageListeners);
         this.storage = new Storage();
@@ -708,11 +749,13 @@ define(() => function ({
             backgroundRuntimeMessageSender = new ChromeMessageSender('В background-скрипт'),
             popupRuntimeMessageSender = new ChromeMessageSender('В popup-скрипт'),
             localStorage = new ChromeStorage(storage),
-            permissions = new ChromePermissions(initialPermissions);
+            permissions = new ChromePermissions(initialPermissions),
+            browserAction = {};
 
         window.fakeChrome = new FakeChrome({
             tabs,
             messageListeners,
+            browserAction,
             authFlowLaunchings,
             backgroundRuntimeMessageSender,
             popupRuntimeMessageSender,
@@ -723,6 +766,7 @@ define(() => function ({
         me.chrome = new ChromeTester({
             tabs,
             messageListeners,
+            browserAction,
             authFlowLaunchings,
             backgroundRuntimeMessageSender,
             popupRuntimeMessageSender,
@@ -1865,6 +1909,47 @@ define(() => function ({
             expectToBeSent() {
                 const request = me.chrome.
                     runtime[script].
+                    nextMessage().
+                    expectToContain(message);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        request.receiveResponse(response);
+                    },
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.missedEventsCountSettingRequest = () => {
+        const response = true;
+
+        const message = {
+            method: 'set_missed_events_count',
+            data: 0,
+        };
+
+        const addResponseModifiers = me => {
+            me.value = value => (message.data = value, me);
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectResponseToBeSent() {
+                me.chrome.
+                    runtime.
+                    receiveMessage(message).
+                    expectResponseToContain(response);
+            },
+
+            expectToBeSent() {
+                const request = me.chrome.
+                    runtime.
+                    popup.
                     nextMessage().
                     expectToContain(message);
 
@@ -8859,6 +8944,490 @@ define(() => function ({
                         request.respondSuccessfullyWith({ data });
 
                         Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.visitorExternalSearchingRequest = () => {
+        const processors = [];
+
+        const params = {
+            search_string: undefined,
+            contact: {
+                phone: undefined,
+                email: undefined,
+                username: undefined,
+            },
+        };
+
+        const headers = {
+            Authorization: undefined,
+            'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
+        const response = {
+            result: {
+                data: [{
+                    found_list: [{
+                        chat_channel_id: 101,
+                        chat_channel_state: null,
+                        chat_channel_type: 'telegram',
+                        date_time: '2020-01-20T17:25:22.098210',
+                        id: 7189362,
+                        employee_id: null,
+                        last_message: {
+                            message: 'Сообщение #75',
+                            date: '2022-06-24T16:04:26.0003',
+                            is_operator: false,
+                            resource_type: null,
+                            resource_name: null
+                        },
+                        mark_ids: ['587', '213'],
+                        phone: '79283810988',
+                        site_id: 4663,
+                        status: 'new',
+                        visitor_id: 16479303,
+                        name: 'Памакова Бисерка',
+                        visitor_name: 'Помакова Бисерка Драгановна',
+                        visitor_type: 'omni',
+                        account_id: '425802',
+                        is_phone_auto_filled: false,
+                        unread_message_count: 0
+                    }]
+                }],
+            } 
+        };
+
+        const addResponseModifiers = me => {
+            me.telegramPrivate = () => {
+                response.result.data[0].found_list[0].chat_channel_type = 'telegram_private';
+                return me;
+            };
+
+            me.active = () => {
+                response.result.data[0].found_list[0].status = 'active';
+                return me;
+            };
+
+            me.noVisitorType = () => {
+                response.result.data[0].found_list[0].visitor_type = null;
+                return me;
+            };
+
+            me.addNew = () => {
+                response.result.data[0].found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189365,
+                    employee_id: null,
+                    last_message: {
+                        message: 'Сообщение в новом чате',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addNewChatOfCurrentEmployee = () => {
+                response.result.data[0].found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189367,
+                    employee_id: 20816,
+                    last_message: {
+                        message: 'Сообщение в новом чате авторизованного сотрудника',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addActive = () => {
+                response.result.data[0].found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189366,
+                    employee_id: 20816,
+                    last_message: {
+                        message: 'Сообщение в активном чате',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'active',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addActiveChatOfOtherEmployee = () => {
+                response.result.data[0].found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189368,
+                    employee_id: 20817,
+                    last_message: {
+                        message: 'Сообщение в активном чате другого сотрудника',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'active',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addClosed = () => {
+                response.result.data[0].found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189370,
+                    employee_id: 20816,
+                    last_message: {
+                        message: 'Сообщение в закрытом чате',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'closed',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addClosedChatOfOtherEmployee = () => {
+                response.result.data[0].found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 7189369,
+                    employee_id: 20817,
+                    last_message: {
+                        message: 'Сообщение в закрытом чате дргугого сотрудника',
+                        date: '2022-06-24T16:04:26.0003',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: 'closed',
+                    visitor_id: 16479303,
+                    name: 'Памакова Бисерка',
+                    visitor_name: 'Помакова Бисерка Драгановна',
+                    visitor_type: 'omni',
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+            
+            me.addNotStartedYetWaba = () => {
+                response.result.data[0].found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'waba',
+                    date_time: '2020-02-20T17:26:23.98211',
+                    id: 7189364,
+                    employee_id: null,
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: null,
+                    visitor_id: 16479311,
+                    name: null,
+                    visitor_name: null,
+                    visitor_type: null,
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addNotStartedYetWabaWhatsApp = () => {
+                response.result.data[0].found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'whatsapp',
+                    date_time: '2020-02-20T17:26:23.98211',
+                    id: 7189364,
+                    employee_id: null,
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: null,
+                    visitor_id: 16479311,
+                    name: null,
+                    visitor_name: null,
+                    visitor_type: null,
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.addNotStartedYetWabaTelegram = () => {
+                response.result.data[0].found_list.push({
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-02-20T17:26:23.98211',
+                    id: 7189364,
+                    employee_id: null,
+                    mark_ids: ['587', '213'],
+                    phone: '79283810988',
+                    site_id: 4663,
+                    status: null,
+                    visitor_id: 16479311,
+                    name: null,
+                    visitor_name: null,
+                    visitor_type: null,
+                    account_id: '425802',
+                    is_phone_auto_filled: false,
+                    unread_message_count: 0
+                });
+
+                return me;
+            };
+
+            me.waba = () => {
+                response.result.data[0].found_list[0].chat_channel_type = 'waba';
+                return me;
+            };
+
+            me.whatsApp = () => {
+                response.result.data[0].found_list[0].chat_channel_type = 'whatsapp';
+                return me;
+            };
+
+            me.extIdSpecified = () => {
+                processors.push(() => {
+                    const {phone} = response.result.data[0].found_list[0];
+
+                    response.result.data[0].found_list[0].ext_id = phone;
+                    response.result.data[0].found_list[0].phone = null
+                });
+
+                return me;
+            };
+
+            me.noVisitorName = () => {
+                response.result.data[0].found_list[0].visitor_name = null;
+                return me;
+            };
+
+            me.noName = () => {
+                response.result.data[0].found_list[0].name = null;
+                return me;
+            };
+
+            me.newVisitor = () => {
+                response.result.data[0].found_list[0].visitor_id = 679729;
+                response.result.data[0].found_list[0].status = null;
+                response.result.data[0].found_list[0].name = null;
+                response.result.data[0].found_list[0].visitor_name = null;
+                response.result.data[0].found_list[0].visitor_type = null;
+
+                return me;
+            };
+
+            me.contactExists = () => {
+                response.result.data[0].found_list[0].contact = {
+                    first_name: 'Грета',
+                    last_name: 'Бележкова',
+                    id: 1689283,
+                    email_list: ['endlesssprinп.of@comagic.dev'],
+                    chat_channel_list: [{
+                        type: 'whatsapp',
+                        ext_id: '79283810988',
+                        chat_channel_id: 216395
+                    }, {
+                        type: 'whatsapp',
+                        ext_id: '79283810928' ,
+                        chat_channel_id: 216395
+                    }],
+                    organization_name: 'UIS',
+                    phone_list: ['79162729533'],
+                    group_list: [],
+                    personal_manager_id: 583783,
+                    patronymic: 'Ервиновна',
+                    full_name: 'Бележкова Грета Ервиновна',
+                    is_chat_channel_active: false
+                };
+
+                return me;
+            };
+
+            me.noData = () => {
+                response.result.data[0].found_list = [];
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            anotherToken() {
+                headers.Authorization = `Bearer ${mainTester.oauthToken}`;
+                headers['X-Auth-Token'] = undefined;
+                headers['X-Auth-Type'] = undefined;
+                return this;
+            },
+
+            onlyWhatsAppOut() {
+                params.is_only_whatsapp_out = true;
+                return this;
+            },
+
+            anotherSearchString() {
+                params.contact.phone = '79283810988';
+                return this;
+            },
+
+            thirdSearchString() {
+                params.contact.phone = '79283810989';
+                return this;
+            },
+
+            fourthSearchString() {
+                params.contact.phone = '74951234575';
+                return this;
+            },
+
+            fifthSearchString() {
+                params.contact.phone = '74951234576';
+                return this;
+            },
+
+            sixthSearchString() {
+                params.contact.phone = '79164725823';
+                return this;
+            },
+
+            email() {
+                params.contact.email = 'tomova@gmail.com';
+                response.result.data.found_list[0].chat_channel_type = 'email';
+
+                return this;
+            },
+
+            noSearchString() {
+                //params.search_string = null;
+                return this;
+            },
+
+            emptySearchString() {
+                //params.search_string = '';
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('BASE_URL').
+                    expectToHaveMethod('POST').
+                    expectToHaveHeaders(headers).
+                    expectBodyToContain({
+                        method: 'visitor_external_search',
+                        params,
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        processors.forEach(process => process());
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
                         spendTime(0)
                     }
                 });
