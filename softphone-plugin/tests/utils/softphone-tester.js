@@ -290,7 +290,7 @@ define(function () {
                 '.clct-c-button, ' +
                 '.ui-radio-content, ' +
                 '.cmgui-radio-content, ' +
-                '.cmgui-radio-wrapper, ' +
+                //'.cmgui-radio-wrapper, ' +
                 '.cmg-switch-label, ' +
                 '.misc-core-src-component-styles-module__label, ' +
                 '.misc-core-src-components-menu-styles-module__label, ' +
@@ -301,7 +301,8 @@ define(function () {
                 '.src-components-main-menu-settings-styles-module__label, ' +
                 '.src-components-main-menu-menu-link-styles-module__item a, ' + 
                 //'.cm-chats--chats-menu-link-text, ' +
-                '.cm-chats--chats-menu-item > .label';
+                '.cm-chats--chats-menu-item > .label, ' +
+                '.cmgui-chips';
 
             me.button = (text, logEnabled) => {
                 let domElement = utils.descendantOf(getRootElement()).

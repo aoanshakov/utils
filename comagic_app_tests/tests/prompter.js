@@ -172,7 +172,7 @@ tests.addTest(options => {
                 tester.settingsFetchedMessage().expectToBeSent();
             });
 
-            xdescribe(
+            describe(
                 'Происходит подготовка к подключению ко звонку. Поступил входящий звонок с ожидаемого номера.',
             function() {
                 let incomingCall;
@@ -440,7 +440,7 @@ tests.addTest(options => {
                     tester.body.expectTextContentToHaveSubstring('+7 (916) 123-45-69');
                 });
             });
-            xdescribe('Браузер скрыт. Происходит подготовка к подключению ко звонку.', function() {
+            describe('Браузер скрыт. Происходит подготовка к подключению ко звонку.', function() {
                 let incomingCall;
 
                 beforeEach(function() {
@@ -692,7 +692,7 @@ tests.addTest(options => {
                         expectToBeSent();
                 });
             });
-            xdescribe('Софтфон открыт в другом окне.', function() {
+            describe('Софтфон открыт в другом окне.', function() {
                 beforeEach(function() {
                     tester.eventsWebSocket.disconnect(4429);
 
@@ -988,7 +988,7 @@ tests.addTest(options => {
                     );
                 });
             });
-            xit(
+            it(
                 'Получена информация о звонке. Происходит подготовка к подключению ко звонку. Номер клинета ' +
                 'неизвестен. Поступил входящий звонок с ожидаемого номера. Отображен номер полученный из события ' +
                 'входящего звонка.',
@@ -1140,7 +1140,6 @@ tests.addTest(options => {
                 );
             });
         });
-        return;
         describe('Вкладка является ведомой.', function() {
             beforeEach(function() {
                 tester.masterInfoMessage().isNotMaster().receive();

@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index 6281539c..05b633e1 100644
+index 78534f91..37ffee7f 100644
 --- a/package.json
 +++ b/package.json
-@@ -21,9 +21,6 @@
+@@ -21,34 +21,22 @@
      "url": "https://gitlab.uis.dev/web/sip_lib/issues"
    },
    "homepage": "https://gitlab.uis.dev/web/sip_lib",
@@ -12,12 +12,14 @@ index 6281539c..05b633e1 100644
    "dependencies": {
      "@babel/core": "^7.1.2",
      "@babel/plugin-proposal-class-properties": "^7.8.3",
-@@ -32,22 +29,14 @@
+     "@babel/plugin-proposal-private-methods": "7.13.0",
+     "@babel/preset-env": "^7.1.0",
+-    "@comagic/softphone-core": "^2.0.17",
+-    "@comagic/ui": "2.18.0",
+-    "@comagic/workplace-utils": "^1.0.29",
      "@types/react": "^18.0.28",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
--    "@comagic/softphone-core": "^2.0.17",
--    "@comagic/workplace-utils": "^1.0.27",
      "babel-loader": "^8.0.4",
 -    "classnames": "^2.2.6",
      "exports-loader": "2.0.0",
@@ -33,5 +35,5 @@ index 6281539c..05b633e1 100644
      "react-draggable": "^4.2.0",
 -    "react-intl": "6.3.2",
      "react-list": "0.8.17",
+     "react-router-dom": "6.23.1",
      "sdp-transform": "2.14.1",
-     "simplebar-react": "^2.2.1",

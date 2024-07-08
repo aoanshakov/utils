@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 44a206c..05effe2 100644
+index 0d4d753..05effe2 100644
 --- a/package.json
 +++ b/package.json
 @@ -50,20 +50,21 @@
@@ -9,8 +9,8 @@ index 44a206c..05effe2 100644
 -    "@comagic/core": "^1.17.0",
 -    "@comagic/softphone-core": "^2.0.17",
 -    "@comagic/softphone-widget": "0.0.0-int0",
--    "@comagic/ui": "2.13.2",
--    "@comagic/workplace-utils": "^1.0.27",
+-    "@comagic/ui": "2.18.0",
+-    "@comagic/workplace-utils": "^1.0.30",
 +    "@comagic/core": "./misc/core",
 +    "@comagic/softphone-core": "./misc/sip_lib/uis_webrtc",
 +    "@comagic/softphone-widget": "./misc/sip_lib",
