@@ -5425,7 +5425,7 @@ define(() => function ({
             is_final: true
         };
 
-        const phone = '79161234567';
+        let phone = '79161234567';
 
         const createMessage = () => ({
             phone,
@@ -5450,6 +5450,12 @@ define(() => function ({
             knownContact: function () {
                 params.contact_id = 1689283;
                 params.crm_contact_link = null;
+                return this;
+            },
+            
+            anotherCallingPhoneNumber: function () {
+                phone = '79161234570';
+                params.calling_phone_number = '79161234570';
                 return this;
             },
             
@@ -15793,6 +15799,8 @@ define(() => function ({
             receive: () => {
                 me.eventBus.broadcast('prepare_to_prompter_call', data);
                 Promise.runAll(false, true);
+                spendTime(0);
+                spendTime(0);
             }
         };
     };
@@ -15831,6 +15839,30 @@ define(() => function ({
         expectToBeSent: () => me.eventBus.
             nextEvent().
             expectEventNameToEqual('resize')
+    });
+
+    me.authorizednessSettingRequest = () => ({
+        expectToBeSent: () => me.eventBus.
+            nextEvent().
+            expectEventNameToEqual('set_authorized')
+    });
+
+    me.authorizednessGettingRequest = () => ({
+        expectToBeSent: () => me.eventBus.
+            nextEvent().
+            expectEventNameToEqual('get_authorized')
+    });
+
+    me.submoduleInitilizationRequest = () => ({
+        expectToBeSent: () => me.eventBus.
+            nextEvent().
+            expectEventNameToEqual('submodule_initilized')
+    });
+
+    me.unreadMessagesCountSettingRequest = () => ({
+        expectToBeSent: () => me.eventBus.
+            nextEvent().
+            expectEventNameToEqual('set_unread_messages_count')
     });
 
     me.ipcPrompterCallAwaitMessage = () => {

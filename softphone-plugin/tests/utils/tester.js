@@ -61,7 +61,6 @@ define(() => function ({
     window.employeesStore = null;
     window.softphoneBroadcastChannelCache = {};
     window.destroyMethodCaller?.();
-    window.resetChannels?.();
 
     window.getOrigin = () => url;
     me.changeCurrentUrl = () => (url = 'https://amo2comagicdev.amocrm.ru/leads/list/pipeline/6168778');
@@ -889,20 +888,18 @@ define(() => function ({
                         'Каналы связанные с телефоном {{ phone }}: ' +
 
                         '<ul>' +
-                            '{{ items }}' +
+                            '{% for item in items %} ' +
+                                '<li data-id="{{ item.id }}" class="chat-channel">' +
+                                    '<button style="cursor: pointer;">' +
+                                        '{{ item.icon }} Канал "{{ item.name }}"' +
+                                    '</button>' +
+                                '</li>' +
+                            '{% endfor %}' +
                         '</ul>' +
                     '</div>',
 
                     attributes: {
                         class: 'chat-outer',
-                    },
-
-                    item: {
-                        tag: 'li',
-                        innerHTML: '<button>{{ icon }} Канал "{{ name }}"</button>',
-                        attributes: {
-                            class: 'chat-channel',
-                        },
                     },
                 }],
             };
@@ -1044,40 +1041,58 @@ define(() => function ({
                         tag: 'div',
                         mode: 'insertAfter',
                         phoneXpath: '//input[contains(@class, "control-phone__formatted")]/@value',
-                        innerHTML: '{{ items }}',
+                        innerHTML: '{% for item in items %} ' +
+                            '<div ' +
+                                'data-id="{{ item.id }}" ' +
+                                'style="margin-bottom: 10px;"' +
+                            '>' +
+                                '<button ' +
+                                    'type="button" ' +
+                                    'style="' +
+                                        'cursor: pointer; ' +
+                                        'background: #fff; ' +
+                                        'border: 1px solid #b1b1b1;' +
+                                        'color: #363b44;' +
+                                        'border-radius: 12px;' +
+                                        'display: flex;' +
+                                        'align-items: center;' +
+                                        'padding: 1px 8px 0px 2px;' +
+                                    '"' +
+                                '>' +
+                                    '{{ item.icon }} {{ phone }} {{ item.name }}' +
+                                '</button>' +
+                            '</div>' +
+                        '{% endfor %}',
 
                         attributes: {
                             style: 'margin: 10px 0 0;',
-                        },
-
-                        item: {
-                            tag: 'div',
-
-                            innerHTML: '<button ' +
-                                'type="button" ' +
-                                'style="' +
-                                    'cursor: pointer; ' +
-                                    'background: #fff; ' +
-                                    'border: 1px solid #b1b1b1;' +
-                                    'color: #363b44;' +
-                                    'border-radius: 12px;' +
-                                    'display: flex;' +
-                                    'align-items: center;' +
-                                    'padding: 1px 8px 0px 2px;' +
-                                '"' +
-                            '>' +
-                                '{{ icon }} {{ phone }} {{ name }}' +
-                            '</button>',
-
-                            attributes: {
-                                style: 'margin-bottom: 10px;',
-                            },
                         },
                     }, {
                         elementSelector: '.linked-form__field.linked-form__field-name',
                         tag: 'div',
                         mode: 'insertAfter',
-                        innerHTML: '{{ items }}',
+                        innerHTML: '{% for item in items %} ' +
+                            '<div ' +
+                                'data-id="{{ item.id }}" ' +
+                                'style="margin-bottom: 10px;"' +
+                            '>' +
+                                '<button ' +
+                                    'type="button" ' +
+                                    'style="' +
+                                        'cursor: pointer; ' +
+                                        'background: #fff; ' +
+                                        'border: 1px solid #b1b1b1;' +
+                                        'color: #363b44;' +
+                                        'border-radius: 12px;' +
+                                        'display: flex;' +
+                                        'align-items: center;' +
+                                        'padding: 1px 8px 0px 2px;' +
+                                    '"' +
+                                '>' +
+                                    '{{ item.icon }} {{ email }} {{ item.name }}' +
+                                '</button>' +
+                            '</div>' +
+                        '{% endfor %}',
 
                         attributes: {
                             style: 'margin: 10px 0 0;',
@@ -1769,40 +1784,57 @@ define(() => function ({
     }
 
     me.logDownloadingRequest = () => {
-        const addResponseModifiers = me => me,
-            response = true;
+        const response = true;
 
         const message = {
             method: 'download_log',
             data: undefined,
         };
 
-        return addResponseModifiers({
-            expectResponseToBeSent() {
-                me.chrome.
-                    runtime.
-                    receiveMessage(message).
-                    expectResponseToContain(response);
-            },
-
-            expectToBeSent() {
+        return {
+            windowMessage: () => ({
+                receive: () => postMessages.receive(message),
+                expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
+            }),
+            receive: () => {
                 const request = me.chrome.
                     runtime.
-                    popup.
+                    receiveMessage(message);
+
+                return {
+                    expectNoResponseToBeSent: () => request.expectNoResponseToBeSent(),
+                    expectResponseToBeSent: () => request.expectResponseToContain(response),
+                };
+            },
+            expectResponseToBeSent() {
+                this.receive().expectResponseToBeSent();
+            },
+            expectNoResponseToBeSent() {
+                this.receive().expectNoResponseToBeSent();
+            },
+            expectToBeSent() {
+                const request = me.chrome.
+                    tabs.
+                    current.
                     nextMessage().
                     expectToContain(message);
 
-                return addResponseModifiers({
+                return {
                     receiveResponse: () => {
                         request.receiveResponse(response);
-                    },
-                });
-            },
 
-            receiveResponse() {
-                this.expectToBeSent().receiveResponse();
-            }
-        });
+                        spendTime(0);
+                        spendTime(0);
+                    },
+                    fail: () => {
+                        request.fail();
+
+                        spendTime(0);
+                        spendTime(0);
+                    },
+                };
+            },
+        };
     };
         
     me.installmentSettingsProbableUpdatingRequest = () => {
@@ -2185,7 +2217,10 @@ define(() => function ({
                 return this;
             },
 
-            receive: () => postMessages.receive(getMessage()),
+            receive: () => {
+                postMessages.receive(getMessage());
+                spendTime(0);
+            },
             expectToBeSent: () => {
                 const message = getMessage();
 
@@ -18306,7 +18341,7 @@ define(() => function ({
         const requestProcessors = [],
             secondRequestProcessors = [];
 
-        const response = {
+        let response = {
             result: {
                 data: {
                     lang: 'ru',
@@ -18484,6 +18519,20 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.failed = () => {
+                response = {
+                    id: 'number',
+                    jsonrpc: '2.0',
+                    result: null,
+                    error: {
+                        code: -32001,
+                        message: 'component_operator_workplace_disabled'
+                    }
+                };
+
+                return me;
+            };
+
             me.callGear = () => {
                 response.result.data.project = 'usa';
                 return me;

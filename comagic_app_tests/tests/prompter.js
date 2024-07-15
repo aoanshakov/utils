@@ -16,7 +16,8 @@ tests.addTest(options => {
         blobsTester,
         windowSize,
         notificationTester,
-        setDocumentVisible
+        setDocumentVisible,
+        broadcastChannels,
     } = options;
 
     const getPackage = Tester.createPackagesGetter(options);
@@ -28,6 +29,7 @@ tests.addTest(options => {
 
         beforeEach(function() {
             setNow('2019-12-19T12:10:06');
+            localStorage.setItem('softphone-position-x', '174');
 
             tester = new Tester(options);
 
@@ -79,10 +81,6 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.notificationChannel().
-                    applyLeader().
-                    expectToBeSent();
-
-                tester.masterInfoMessage().
                     applyLeader().
                     expectToBeSent();
 
@@ -165,9 +163,20 @@ tests.addTest(options => {
                     userDataFetched().
                     expectToBeSent();
 
+                tester.authorizednessSettingRequest().expectToBeSent();
+                tester.authorizednessSettingRequest().expectToBeSent();
+                tester.authorizednessGettingRequest().expectToBeSent();
+                tester.authorizednessSettingRequest().expectToBeSent();
+                tester.submoduleInitilizationRequest().expectToBeSent();
                 tester.resizeMessage().expectToBeSent();
+                tester.authorizednessGettingRequest().expectToBeSent();
+                tester.authorizednessSettingRequest().expectToBeSent();
                 tester.appReadyMessage().expectToBeSent();
                 tester.unmaximizeMessage().expectToBeSent();
+                tester.authorizednessGettingRequest().expectToBeSent();
+                tester.authorizednessSettingRequest().expectToBeSent();
+                tester.submoduleInitilizationRequest().expectToBeSent();
+                tester.unreadMessagesCountSettingRequest().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
             });
@@ -179,6 +188,7 @@ tests.addTest(options => {
 
                 beforeEach(function() {
                     tester.ipcPrompterCallPreparationMessage().receive();
+                    tester.othersNotification().prompterCallPreparation().expectToBeSent();
 
                     tester.slavesNotification().
                         additional().
@@ -186,11 +196,18 @@ tests.addTest(options => {
                         visible().
                         expectToBeSent();
 
-                    tester.othersNotification().prompterCallPreparation().expectToBeSent();
                     tester.ipcPrompterCallAwaitMessage().expectToBeSent();
 
                     incomingCall = tester.incomingCall().receive();
                     tester.callStartMessage().expectToBeSent();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        incoming().
+                        progress().
+                        userDataFetched().
+                        expectToBeSent();
 
                     tester.slavesNotification().
                         twoChannels().
@@ -201,14 +218,7 @@ tests.addTest(options => {
                         userDataFetched().
                         expectToBeSent();
 
-                    tester.slavesNotification().
-                        twoChannels().
-                        available().
-                        incoming().
-                        progress().
-                        userDataFetched().
-                        expectToBeSent();
-
+                    tester.accountRequest().receiveResponse();
                     tester.numaRequest().normalizedNumber().receiveResponse();
 
                     tester.firstConnection.connectWebRTC();
@@ -269,7 +279,6 @@ tests.addTest(options => {
                                     twoChannels().
                                     available().
                                     incoming().
-                                    muted().
                                     progress().
                                     userDataFetched().
                                     expectToBeSent();
@@ -278,6 +287,7 @@ tests.addTest(options => {
                                     twoChannels().
                                     available().
                                     incoming().
+                                    muted().
                                     progress().
                                     userDataFetched().
                                     expectToBeSent();
@@ -346,15 +356,15 @@ tests.addTest(options => {
                                     anotherPhoneNumber().
                                     receive();
 
+                                tester.othersNotification().
+                                    prompterCallPreparation().
+                                    anotherPhoneNumber().
+                                    expectToBeSent();
+
                                 tester.slavesNotification().
                                     additional().
                                     fourthContact().
                                     visible().
-                                    expectToBeSent();
-
-                                tester.othersNotification().
-                                    prompterCallPreparation().
-                                    anotherPhoneNumber().
                                     expectToBeSent();
 
                                 tester.ipcPrompterCallAwaitMessage().expectToBeSent();
@@ -381,16 +391,16 @@ tests.addTest(options => {
                             tester.ipcPrompterCallPreparationMessage().
                                 anotherPhoneNumber().
                                 receive();
+                            
+                            tester.othersNotification().
+                                prompterCallPreparation().
+                                anotherPhoneNumber().
+                                expectToBeSent();
 
                             tester.slavesNotification().
                                 additional().
                                 fourthContact().
                                 visible().
-                                expectToBeSent();
-                            
-                            tester.othersNotification().
-                                prompterCallPreparation().
-                                anotherPhoneNumber().
                                 expectToBeSent();
 
                             tester.ipcPrompterCallAwaitMessage().expectToBeSent();
@@ -417,7 +427,7 @@ tests.addTest(options => {
                             tester.holdButton.expectToHaveAttribute('disabled');
                             tester.transferButton.expectToHaveClass('cmg-button-disabled');
 
-                            tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                            tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-disabled');
                             tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
 
                             tester.softphone.expectTextContentToHaveSubstring(
@@ -455,15 +465,16 @@ tests.addTest(options => {
                 describe('Звонок должен прийти с ожидаемого номера.', function() {
                     beforeEach(function() {
                         ipcPrompterCallPreparationMessage.receive();
-                        
+                        tester.accountRequest().receiveResponse();
+
+                        tester.othersNotification().
+                            prompterCallPreparation().
+                            expectToBeSent();
+ 
                         tester.slavesNotification().
                             additional().
                             thirdContact().
                             visible().
-                            expectToBeSent();
-
-                        tester.othersNotification().
-                            prompterCallPreparation().
                             expectToBeSent();
 
                         tester.ipcPrompterCallAwaitMessage().expectToBeSent();
@@ -480,7 +491,6 @@ tests.addTest(options => {
                             twoChannels().
                             available().
                             incoming().
-                            muted().
                             progress().
                             hidden().
                             userDataFetched().
@@ -490,6 +500,7 @@ tests.addTest(options => {
                             twoChannels().
                             available().
                             incoming().
+                            muted().
                             progress().
                             hidden().
                             userDataFetched().
@@ -539,7 +550,6 @@ tests.addTest(options => {
                             twoChannels().
                             available().
                             incoming().
-                            muted().
                             progress().
                             hidden().
                             userDataFetched().
@@ -549,6 +559,7 @@ tests.addTest(options => {
                             twoChannels().
                             available().
                             incoming().
+                            muted().
                             progress().
                             hidden().
                             userDataFetched().
@@ -589,15 +600,17 @@ tests.addTest(options => {
                         anotherPhoneNumber().
                         receive();
 
-                    tester.slavesNotification().
-                        additional().
-                        fourthContact().
-                        visible().
-                        expectToBeSent();
+                    tester.accountRequest().receiveResponse();
 
                     tester.othersNotification().
                         prompterCallPreparation().
                         anotherPhoneNumber().
+                        expectToBeSent();
+
+                    tester.slavesNotification().
+                        additional().
+                        fourthContact().
+                        visible().
                         expectToBeSent();
 
                     tester.ipcPrompterCallAwaitMessage().expectToBeSent();
@@ -631,16 +644,17 @@ tests.addTest(options => {
                     'Звонок принимается автоматически. Уведомление не отображается.',
                 function() {
                     ipcPrompterCallPreparationMessage.dontShowNotification().receive();
-                    
-                    tester.slavesNotification().
-                        additional().
-                        thirdContact().
-                        visible().
-                        expectToBeSent();
+                    tester.accountRequest().receiveResponse();
 
                     tester.othersNotification().
                         prompterCallPreparation().
                         dontShowNotification().
+                        expectToBeSent();
+
+                    tester.slavesNotification().
+                        additional().
+                        thirdContact().
+                        visible().
                         expectToBeSent();
 
                     tester.ipcPrompterCallAwaitMessage().expectToBeSent();
@@ -652,7 +666,6 @@ tests.addTest(options => {
                         twoChannels().
                         available().
                         incoming().
-                        muted().
                         progress().
                         userDataFetched().
                         hidden().
@@ -662,6 +675,7 @@ tests.addTest(options => {
                         twoChannels().
                         available().
                         incoming().
+                        muted().
                         progress().
                         userDataFetched().
                         hidden().
@@ -714,6 +728,17 @@ tests.addTest(options => {
                 describe('На активной вкладке происходит подготовка к подключению ко звонку.', function() {
                     beforeEach(function() {
                         tester.ipcPrompterCallPreparationMessage().receive();
+
+                        tester.othersNotification().
+                            prompterCallPreparation().
+                            expectToBeSent();
+
+                        tester.slavesNotification().expectToBeSent();
+
+                        tester.slavesNotification().
+                            additional().
+                            visible().
+                            expectToBeSent();
                         
                         tester.slavesNotification().
                             additional().
@@ -721,11 +746,8 @@ tests.addTest(options => {
                             visible().
                             expectToBeSent();
 
-                        tester.slavesNotification().additional().visible().expectToBeSent();
-                        tester.slavesNotification().expectToBeSent();
-                        tester.othersNotification().prompterCallPreparation().expectToBeSent();
-
                         tester.authCheckRequest().receiveResponse();
+                        tester.accountRequest().receiveResponse();
                         tester.talkOptionsRequest().receiveResponse();
                         tester.permissionsRequest().receiveResponse();
                         tester.settingsRequest().receiveResponse();
@@ -794,7 +816,6 @@ tests.addTest(options => {
                             twoChannels().
                             available().
                             incoming().
-                            muted().
                             progress().
                             userDataFetched().
                             expectToBeSent();
@@ -803,6 +824,7 @@ tests.addTest(options => {
                             twoChannels().
                             available().
                             incoming().
+                            muted().
                             progress().
                             userDataFetched().
                             expectToBeSent();
@@ -835,7 +857,7 @@ tests.addTest(options => {
                         tester.holdButton.expectToHaveAttribute('disabled');
                         tester.transferButton.expectToHaveClass('cmg-button-disabled');
 
-                        tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                        tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-disabled');
                         tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
 
                         tester.softphone.expectTextContentToHaveSubstring(
@@ -858,15 +880,20 @@ tests.addTest(options => {
                     'Происходит подготовка к подключению ко звонку на другой вкладке. Софтфон активируется заново. ' +
                     'Поступает входящий звонок. Кнопки заблокированы.',
                 function() {
-                    tester.othersNotification().prompterCallPreparation().receive();
+                    tester.othersNotification().
+                        prompterCallPreparation().
+                        receive();
+
+                    tester.slavesNotification().expectToBeSent();
+
+                    tester.slavesNotification().
+                        additional().
+                        expectToBeSent();
                     
                     tester.slavesNotification().
                         additional().
                         thirdContact().
                         expectToBeSent();
-
-                    tester.slavesNotification().additional().expectToBeSent();
-                    tester.slavesNotification().expectToBeSent();
 
                     tester.authCheckRequest().receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();
@@ -931,7 +958,6 @@ tests.addTest(options => {
                         twoChannels().
                         available().
                         incoming().
-                        muted().
                         progress().
                         userDataFetched().
                         expectToBeSent();
@@ -940,11 +966,13 @@ tests.addTest(options => {
                         twoChannels().
                         available().
                         incoming().
+                        muted().
                         progress().
                         userDataFetched().
                         expectToBeSent();
 
                     tester.numaRequest().receiveResponse();
+                    tester.accountRequest().receiveResponse();
 
                     tester.firstConnection.connectWebRTC();
                     tester.firstConnection.callTrackHandler();
@@ -957,7 +985,9 @@ tests.addTest(options => {
 
                     tester.resizeMessage().expectToBeSent();
 
-                    incomingCall.expectOkToBeSent().receiveResponse();
+                    incomingCall.
+                        expectOkToBeSent().
+                        receiveResponse();
 
                     tester.slavesNotification().
                         available().
@@ -973,7 +1003,7 @@ tests.addTest(options => {
                     tester.holdButton.expectToHaveAttribute('disabled');
                     tester.transferButton.expectToHaveClass('cmg-button-disabled');
 
-                    tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                    tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-disabled');
                     tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
 
                     tester.softphone.expectTextContentToHaveSubstring(
@@ -993,24 +1023,32 @@ tests.addTest(options => {
                 'неизвестен. Поступил входящий звонок с ожидаемого номера. Отображен номер полученный из события ' +
                 'входящего звонка.',
             function() {
-                tester.outCallEvent().anotherContactNumber().receive();
-                tester.outCallEvent().anotherContactNumber().slavesNotification().expectToBeSent();
+                tester.outCallEvent().receive();
 
-                tester.ipcPrompterCallPreparationMessage().noSubscriberNumber().receive();
-                        
-                tester.slavesNotification().
-                    additional().
-                    thirdContact().
-                    visible().
-                    outCallEvent().anotherContactNumber().include().
+                tester.outCallEvent().
+                    slavesNotification().
                     expectToBeSent();
+
+                tester.ipcPrompterCallPreparationMessage().
+                    noSubscriberNumber().
+                    receive();
+
+                tester.accountRequest().receiveResponse();
 
                 tester.othersNotification().
                     prompterCallPreparation().
                     noSubscriberNumber().
                     expectToBeSent();
-
+                        
                 tester.ipcPrompterCallAwaitMessage().expectToBeSent();
+
+                tester.slavesNotification().
+                    additional().
+                    thirdContact().
+                    visible().
+                    outCallEvent().include().
+                    expectToBeSent();
+
                 incomingCall = tester.incomingCall().receive();
 
                 tester.resizeMessage().expectToBeSent();
@@ -1020,7 +1058,6 @@ tests.addTest(options => {
                     twoChannels().
                     available().
                     incoming().
-                    muted().
                     progress().
                     userDataFetched().
                     expectToBeSent();
@@ -1029,6 +1066,7 @@ tests.addTest(options => {
                     twoChannels().
                     available().
                     incoming().
+                    muted().
                     progress().
                     userDataFetched().
                     expectToBeSent();
@@ -1055,7 +1093,7 @@ tests.addTest(options => {
                 tester.softphone.expectTextContentToHaveSubstring(
                     'Шалева Дора ' +
 
-                    '+7 (916) 123-45-70 00:00 ' +
+                    '+7 (916) 123-45-67 00:00 ' +
 
                     'Путь лида ' +
 
@@ -1070,7 +1108,7 @@ tests.addTest(options => {
                 tester.othersNotification().
                     prompterCallPreparation().
                     receive();
-                
+
                 tester.slavesNotification().
                     additional().
                     thirdContact().
@@ -1083,7 +1121,6 @@ tests.addTest(options => {
                     twoChannels().
                     available().
                     incoming().
-                    muted().
                     progress().
                     userDataFetched().
                     expectToBeSent();
@@ -1092,11 +1129,13 @@ tests.addTest(options => {
                     twoChannels().
                     available().
                     incoming().
+                    muted().
                     progress().
                     userDataFetched().
                     expectToBeSent();
 
                 tester.numaRequest().receiveResponse();
+                tester.accountRequest().receiveResponse();
 
                 tester.firstConnection.connectWebRTC();
                 tester.firstConnection.callTrackHandler();
@@ -1125,7 +1164,7 @@ tests.addTest(options => {
                 tester.holdButton.expectToHaveAttribute('disabled');
                 tester.transferButton.expectToHaveClass('cmg-button-disabled');
 
-                tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-disabled');
                 tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
 
                 tester.softphone.expectTextContentToHaveSubstring(
@@ -1142,8 +1181,17 @@ tests.addTest(options => {
         });
         describe('Вкладка является ведомой.', function() {
             beforeEach(function() {
-                tester.masterInfoMessage().isNotMaster().receive();
-                tester.masterNotification().tabOpened().expectToBeSent();
+                tester.masterInfoMessage().
+                    isNotMaster().
+                    receive();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterNotification().
+                    tabOpened().
+                    expectToBeSent();
 
                 authCheckRequest.receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
@@ -1155,7 +1203,14 @@ tests.addTest(options => {
 
                 tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
 
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
+
                 notificationTester.grantPermission();
 
                 tester.numberCapacityRequest().receiveResponse();
@@ -1167,9 +1222,20 @@ tests.addTest(options => {
                     available().
                     receive();
 
+                tester.authorizednessSettingRequest().expectToBeSent();
+                tester.authorizednessSettingRequest().expectToBeSent();
+                tester.authorizednessGettingRequest().expectToBeSent();
+                tester.authorizednessSettingRequest().expectToBeSent();
+                tester.submoduleInitilizationRequest().expectToBeSent();
                 tester.resizeMessage().expectToBeSent();
+                tester.authorizednessGettingRequest().expectToBeSent();
+                tester.authorizednessSettingRequest().expectToBeSent();
                 tester.appReadyMessage().expectToBeSent();
                 tester.unmaximizeMessage().expectToBeSent();
+                tester.authorizednessGettingRequest().expectToBeSent();
+                tester.authorizednessSettingRequest().expectToBeSent();
+                tester.submoduleInitilizationRequest().expectToBeSent();
+                tester.unreadMessagesCountSettingRequest().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
                 tester.settingsFetchedMessage().expectToBeSent();
 
@@ -1183,6 +1249,8 @@ tests.addTest(options => {
                     additional().
                     visible().
                     receive();
+
+                tester.accountRequest().receiveResponse();
             });
 
             describe('Софтфон открыт в другом окне.', function() {
@@ -1214,7 +1282,17 @@ tests.addTest(options => {
                         tester.settingsRequest().receiveResponse();
 
                         tester.authenticatedUserRequest().receiveResponse();
-                        tester.notificationChannel().tellIsLeader().expectToBeSent();
+
+                        tester.employeesBroadcastChannel().
+                            tellIsLeader().
+                            expectToBeSent();
+
+                        tester.employeesWebSocket.connect();
+                        tester.employeesInitMessage().expectToBeSent();
+
+                        tester.notificationChannel().
+                            tellIsLeader().
+                            expectToBeSent();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -1273,6 +1351,7 @@ tests.addTest(options => {
                             receive();
 
                         tester.callStartMessage().expectToBeSent();
+                        tester.accountRequest().receiveResponse();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -1299,7 +1378,7 @@ tests.addTest(options => {
                         tester.holdButton.expectToHaveAttribute('disabled');
                         tester.transferButton.expectToHaveClass('cmg-button-disabled');
 
-                        tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                        tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-disabled');
                         tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
 
                         tester.softphone.expectTextContentToHaveSubstring(
@@ -1333,7 +1412,17 @@ tests.addTest(options => {
                     tester.permissionsRequest().receiveResponse();
                     tester.settingsRequest().receiveResponse();
 
-                    tester.notificationChannel().tellIsLeader().expectToBeSent();
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.employeesWebSocket.connect();
+                    tester.employeesInitMessage().expectToBeSent();
+
+                    tester.notificationChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
                     tester.authenticatedUserRequest().receiveResponse();
 
                     tester.slavesNotification().
@@ -1386,6 +1475,7 @@ tests.addTest(options => {
                         userDataFetched().
                         receive();
 
+                    tester.accountRequest().receiveResponse();
                     tester.callStartMessage().expectToBeSent();
 
                     tester.slavesNotification().
@@ -1413,7 +1503,7 @@ tests.addTest(options => {
                     tester.holdButton.expectToHaveAttribute('disabled');
                     tester.transferButton.expectToHaveClass('cmg-button-disabled');
 
-                    tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                    tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-disabled');
                     tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
 
                     tester.softphone.expectTextContentToHaveSubstring(
@@ -1512,7 +1602,7 @@ tests.addTest(options => {
                 tester.holdButton.expectToHaveAttribute('disabled');
                 tester.transferButton.expectToHaveClass('cmg-button-disabled');
 
-                tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-disabled');
                 tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
 
                 tester.softphone.expectTextContentToHaveSubstring(
@@ -1582,7 +1672,7 @@ tests.addTest(options => {
                 tester.holdButton.expectToHaveAttribute('disabled');
                 tester.transferButton.expectToHaveClass('cmg-button-disabled');
 
-                tester.dialpadVisibilityButton.expectToHaveClass('cmg-button-disabled');
+                tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-disabled');
                 tester.dialpadVisibilityButton.expectNotToHaveClass('cmg-button-pressed');
 
                 tester.softphone.expectTextContentToHaveSubstring(

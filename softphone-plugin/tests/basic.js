@@ -84,6 +84,15 @@ tests.addTest(options => {
                 describe('Используется русский язык.', function() {
                     beforeEach(function() {
                         widgetSettings.receive();
+
+                        unfilteredPostMessages.nextMessage().expectMessageToStartsWith(
+                            'ignore:log:Window message received'
+                        );
+
+                        unfilteredPostMessages.nextMessage().expectMessageToStartsWith(
+                            'ignore:log:Tab state is unknown'
+                        );
+
                         tester.masterInfoMessage().receive();
 
                         tester.slavesNotification().
@@ -279,6 +288,13 @@ tests.addTest(options => {
                                                     tester.statusesList.
                                                         item('Нет на месте').
                                                         expectNotToBeSelected();
+                                                });
+                                                it('Нажимаю на кнопку скачивания лога.', function() {
+                                                    tester.bugButton.click();
+
+                                                    tester.logDownloadingRequest().
+                                                        windowMessage().
+                                                        expectToBeSent();
                                                 });
                                                 it('Софтфон готов к использованию.', function() {
                                                     tester.phoneField.expectToBeVisible();
@@ -706,6 +722,10 @@ tests.addTest(options => {
                 it('Нажимаю на кнопку "Войти. Отправлен запрос получения кода авторизации.', function() {
                     tester.button('Войти').click();
                     tester.authorizationRequest().receiveResponse();
+                });
+                it('Нажимаю на кнопку "Скачать лог". Отправлен запрос скачивания лога.', function() {
+                    tester.button('Скачать лог').click();
+                    tester.logDownloadingRequest().expectToBeSent();
                 });
                 it('Кнопки видимости софтфона скрыты.', function() {
                     tester.refreshButton.expectNotToExist();
@@ -1196,6 +1216,18 @@ tests.addTest(options => {
 
                                 tester.chatsVisibilitySettingRequest().receiveResponse();
                                 tester.iframe.atIndex(1).expectToBeHidden();
+                            });
+                            it('Получен запрос скачивание лога из софтфона. Лог скачен.', function() {
+                                tester.logDownloadingRequest().
+                                    windowMessage().
+                                    receive();
+
+                                tester.anchor.
+                                    withFileName('20191219.121006.000.log.txt').
+                                    expectHrefToBeBlobWithSubstring(
+                                        'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
+                                        'Storage data {}'
+                                    );
                             });
                             it('Кнопка видимости добавлена перед элементом.', function() {
                                 tester.body.expectToHaveTextContent(
@@ -2144,6 +2176,10 @@ tests.addTest(options => {
                     'ignore:log:Set token after operator-workplace submodule initialization'
                 );
 
+                unfilteredPostMessages.
+                    nextMessage().
+                    expectNotToExist();
+
                 tester.logDownloadingRequest().expectResponseToBeSent();
 
                 tester.anchor.
@@ -2157,7 +2193,7 @@ tests.addTest(options => {
                     withFileName('20191219.121006.000.log.txt').
                     expectHrefToBeBlobWithSubstring(
                         'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
-                        'Storage data {"token":null,"settings":null}'
+                        'Storage data {}'
                     );
             });
             it('IFrame отсутствует.', function() {
@@ -2839,6 +2875,27 @@ tests.addTest(options => {
                         '[+7 (495) 123-45-63]'
                     );
                 });
+                
+            });
+            it('Получено сообщение от вложенного IFrame. Сообщение передано родителю.', function() {
+                postMessages.nextMessage().expectNotToExist();
+                postMessages.receive('ignore:log:Message to parent');
+
+                unfilteredPostMessages.
+                    nextMessage().
+                    expectMessageToStartsWith('ignore:log:Message to parent');
+            });
+            it('Получен запрос скачивания логов. Логи не скачиваются.', function() {
+                tester.logDownloadingRequest().expectResponseToBeSent();
+
+                tester.anchor.
+                    withFileName('20191219.121006.000.log.txt').
+                    expectNotToExist();
+            });
+            it('Сообщения в лог передаются родительскому окну.', function() {
+                unfilteredPostMessages.
+                    nextMessage().
+                    expectMessageToStartsWith('ignore:log:[softphone]');
             });
             it('Кнопки не были добавлены.', function() {
                 tester.body.expectToHaveTextContent(
@@ -3536,6 +3593,7 @@ tests.addTest(options => {
                 );
 
                 tester.submoduleInitilizationEvent().expectToBeSent();
+                tester.unreadMessagesCountSettingRequest().expectToBeSent();
 
                 widgetSettings = tester.widgetSettings().
                     windowMessage().
@@ -3578,8 +3636,6 @@ tests.addTest(options => {
                         accountRequest.
                             operatorWorkplaceAvailable().
                             receiveResponse();
-
-                        tester.unreadMessagesCountSettingRequest().expectToBeSent();
 
                         tester.employeesBroadcastChannel().
                             applyLeader().
@@ -4276,6 +4332,13 @@ tests.addTest(options => {
                         tester.anchor('79162729533').expectNotToExist();
                     });
                 });
+                it('Не удалось получить данные аккаунта. Чаты скрыты.', function() {
+                    accountRequest.
+                        failed().
+                        receiveResponse();
+
+                    tester.body.expectToHaveTextContent('Недостаточно прав на раздел чатов');
+                });
                 it('Чаты недоступны. Чаты скрыты.', function() {
                     accountRequest.
                         softphoneFeatureFlagDisabled().
@@ -4337,8 +4400,6 @@ tests.addTest(options => {
                     accountRequest.
                         operatorWorkplaceAvailable().
                         receiveResponse();
-
-                    tester.unreadMessagesCountSettingRequest().expectToBeSent();
 
                     tester.employeesBroadcastChannel().
                         applyLeader().
@@ -4586,7 +4647,7 @@ tests.addTest(options => {
                                 receive();
                         });
 
-                        it('Повторно получен список каналов. Список каналов не был обновлён.', function() {
+                        it('Повторно получен список каналов. Список каналов был обновлён.', function() {
                             tester.channelsSearchingResponse().
                                 addChannel().
                                 receive();
@@ -4614,8 +4675,8 @@ tests.addTest(options => {
 
                                 'Каналы связанные с телефоном 74951234575: ' +
 
+                                    'Канал "Нижний Новгород" ' +
                                     'Канал "Белгород" ' +
-                                    'Канал "Астана" ' +
 
                                 'Каналы связанные с телефоном 74951234576: ' +
 
