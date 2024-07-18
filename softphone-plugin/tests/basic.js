@@ -110,6 +110,8 @@ tests.addTest(options => {
                         let authCheckRequest;
 
                         beforeEach(function() {
+                            postMessages.nextMessage().expectNotToExist();
+
                             authTokenRequest.receiveResponse()
                             authCheckRequest = tester.authCheckRequest().expectToBeSent();
                         });
@@ -571,6 +573,12 @@ tests.addTest(options => {
                                 visible().
                                 destroyed().
                                 expectToBeSent();
+
+                            unfilteredPostMessages.nextMessage().
+                                expectMessageToStartsWith('ignore:log:Broadcast message sent');
+
+                            unfilteredPostMessages.nextMessage().
+                                expectMessageToStartsWith('ignore:log:Time consumed 0 ms');
                         });
                     });
                     it('Отображено сообщение о том, что происходит авторизация.', function() {
@@ -724,7 +732,7 @@ tests.addTest(options => {
                     tester.authorizationRequest().receiveResponse();
                 });
                 it('Нажимаю на кнопку "Скачать лог". Отправлен запрос скачивания лога.', function() {
-                    tester.button('Скачать лог').click();
+                    tester.bugButton.click();
                     tester.logDownloadingRequest().expectToBeSent();
                 });
                 it('Кнопки видимости софтфона скрыты.', function() {
@@ -1226,7 +1234,7 @@ tests.addTest(options => {
                                     withFileName('20191219.121006.000.log.txt').
                                     expectHrefToBeBlobWithSubstring(
                                         'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
-                                        'Storage data {}'
+                                        'Storage data values for keys: "error"'
                                     );
                             });
                             it('Кнопка видимости добавлена перед элементом.', function() {
@@ -2193,7 +2201,7 @@ tests.addTest(options => {
                     withFileName('20191219.121006.000.log.txt').
                     expectHrefToBeBlobWithSubstring(
                         'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
-                        'Storage data {}'
+                        'Storage data values for keys: "error"'
                     );
             });
             it('IFrame отсутствует.', function() {
@@ -2895,7 +2903,12 @@ tests.addTest(options => {
             it('Сообщения в лог передаются родительскому окну.', function() {
                 unfilteredPostMessages.
                     nextMessage().
-                    expectMessageToStartsWith('ignore:log:[softphone]');
+                    expectMessageToStartsWith(
+                        'ignore:log:Settings' + "\n\n" +
+
+                        'URL: https://app.uiscom.ru' + "\n" +
+                        'Type: softphone'
+                    );
             });
             it('Кнопки не были добавлены.', function() {
                 tester.body.expectToHaveTextContent(
@@ -3587,10 +3600,6 @@ tests.addTest(options => {
                 tester.submoduleInitilizationEvent().
                     operatorWorkplace().
                     expectToBeSent();
-
-                unfilteredPostMessages.nextMessage().expectMessageToStartsWith(
-                    'ignore:log:Set token after operator-workplace submodule initialization'
-                );
 
                 tester.submoduleInitilizationEvent().expectToBeSent();
                 tester.unreadMessagesCountSettingRequest().expectToBeSent();
@@ -4337,6 +4346,10 @@ tests.addTest(options => {
                         failed().
                         receiveResponse();
 
+                    unfilteredPostMessages.
+                        nextMessage().
+                        expectMessageToStartsWith('ignore:log:Window message received');
+
                     tester.body.expectToHaveTextContent('Недостаточно прав на раздел чатов');
                 });
                 it('Чаты недоступны. Чаты скрыты.', function() {
@@ -4355,10 +4368,18 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.employeeSettingsRequest().receiveResponse();
+                    postMessages.nextMessage().expectNotToExist();
 
                     tester.employeeRequest().
                         oauthToken().
                         receiveResponse();
+
+                    unfilteredPostMessages.
+                        nextMessage().
+                        expectMessageToStartsWith(
+                            'ignore:log:Time consumed 0 ms' + "\n\n" +
+                            'GET $REACT_APP_BASE_URL/api/v1/employees/20816'
+                        );
 
                     tester.body.expectToHaveTextContent('Недостаточно прав на раздел чатов');
                 });

@@ -115,12 +115,12 @@ tests.addTest(options => {
                         authCheckRequest.receiveResponse();
                         tester.talkOptionsRequest().receiveResponse();
                         permissionsRequest = tester.permissionsRequest().expectToBeSent();
-                        settingsRequest = tester.settingsRequest().expectToBeSent();
                     });
 
                     describe('Получены права.', function() {
                         beforeEach(function() {
                             permissionsRequest.receiveResponse();
+                            settingsRequest = tester.settingsRequest().expectToBeSent();
                         });
 
                         describe('Получены настройки софтфона.', function() {
@@ -1104,6 +1104,17 @@ tests.addTest(options => {
                                                             tester.reportsListRequest().receiveResponse();
                                                             tester.reportTypesRequest().receiveResponse();
 
+                                                            tester.employeesWebSocket.connect();
+                                                            tester.employeesInitMessage().expectToBeSent();
+
+                                                            tester.talkOptionsRequest().receiveResponse();
+                                                            tester.permissionsRequest().receiveResponse();
+
+                                                            tester.employeeStatusesRequest().receiveResponse();
+                                                            tester.employeeSettingsRequest().receiveResponse();
+                                                            tester.employeeRequest().receiveResponse();
+                                                            tester.ticketsContactsRequest().receiveResponse();
+
                                                             tester.masterInfoMessage().receive();
 
                                                             tester.masterInfoMessage().
@@ -1117,17 +1128,8 @@ tests.addTest(options => {
                                                                 visible().
                                                                 expectToBeSent();
 
-                                                            broadcastChannels.
-                                                                nextMessage().
-                                                                expectNotToExist();
-
-                                                            tester.employeesWebSocket.connect();
-                                                            tester.employeesInitMessage().expectToBeSent();
-
-                                                            tester.talkOptionsRequest().receiveResponse();
-                                                            tester.permissionsRequest().receiveResponse();
                                                             tester.settingsRequest().receiveResponse();
-                                                            tester.employeeStatusesRequest().receiveResponse();
+                                                            tester.accountRequest().receiveResponse();
 
                                                             tester.slavesNotification().
                                                                 twoChannels().
@@ -1150,10 +1152,6 @@ tests.addTest(options => {
                                                                 softphoneServerConnected().
                                                                 expectToBeSent();
 
-                                                            tester.employeeSettingsRequest().receiveResponse();
-                                                            tester.employeeRequest().receiveResponse();
-                                                            tester.ticketsContactsRequest().receiveResponse();
-                                                            tester.accountRequest().receiveResponse();
                                                             tester.authenticatedUserRequest().receiveResponse();
 
                                                             tester.slavesNotification().
@@ -1478,6 +1476,47 @@ tests.addTest(options => {
                                                         tester.softphone.expectToHaveTextContent(
                                                             'Устанавливается соединение...'
                                                         );
+                                                    });
+                                                });
+                                                describe('Выбирай другой статус.', function() {
+                                                    let employeeUpdatingRequest;
+
+                                                    beforeEach(function() {
+                                                        tester.softphone.userName.click();
+
+                                                        tester.statusesList.
+                                                            item('Нет на месте').
+                                                            click();
+
+                                                        employeeUpdatingRequest = tester.employeeUpdatingRequest().
+                                                            expectToBeSent();
+                                                    });
+
+                                                    it(
+                                                        'Не удалось выбрать другой статус. Отображён прежний статус.',
+                                                    function() {
+                                                        employeeUpdatingRequest.
+                                                            internalError().
+                                                            receiveResponse();
+
+                                                        tester.softphone.
+                                                            userName.
+                                                            icon.
+                                                            expectAttributeToHaveValue('color', '#cc5d35');
+                                                    });
+                                                    it('Другой статус выбран.', function() {
+                                                        employeeUpdatingRequest.receiveResponse();
+
+                                                        tester.slavesNotification().
+                                                            twoChannels().
+                                                            anotherStatus().
+                                                            available().
+                                                            expectToBeSent();
+
+                                                        tester.softphone.
+                                                            userName.
+                                                            icon.
+                                                            expectAttributeToHaveValue('color', '#ebb03b');
                                                     });
                                                 });
                                                 it(
@@ -1982,6 +2021,11 @@ tests.addTest(options => {
                                                             shouldPlayCallEndingSignal: false
                                                         }
                                                     );
+
+                                                    tester.softphone.
+                                                        userName.
+                                                        icon.
+                                                        expectAttributeToHaveValue('color', '#cc5d35');
                                                 });
                                             });
                                             it('Не удалось зарегистрировать SIP-линию.', function() {
@@ -2627,7 +2671,10 @@ tests.addTest(options => {
                         describe('Пользователь имеет права на список номеров.', function() {
                             beforeEach(function() {
                                 permissionsRequest = permissionsRequest.allowNumberCapacitySelect();
-                                settingsRequest = settingsRequest.allowNumberCapacitySelect();
+
+                                settingsRequest = tester.settingsRequest().
+                                    allowNumberCapacitySelect().
+                                    expectToBeSent();
                             });
 
                             describe('У выбранного номера нет комментария.', function() {
@@ -3249,6 +3296,7 @@ tests.addTest(options => {
                         describe('Пользователь не имеет права на список номеров.', function() {
                             beforeEach(function() {
                                 permissionsRequest.receiveResponse();
+                                settingsRequest = tester.settingsRequest().expectToBeSent();
                             });
 
                             describe('Включено управление звонками на другом устройстве.', function() {
@@ -3302,7 +3350,7 @@ tests.addTest(options => {
                                             anotherStatus().
                                             slavesNotification().
                                             expectToBeSent();
-                                            
+ 
                                         tester.slavesNotification().
                                             userDataFetched().
                                             twoChannels().

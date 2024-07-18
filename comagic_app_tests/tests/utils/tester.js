@@ -539,14 +539,19 @@ define(() => function ({
             return tester;
         })();
 
-        me.userName = me.accountButton = (tester => {
+        me.userName = me.accountButton = (selector => {
+            const getDomElement = () => utils.element(getRootElement()).querySelector(selector),
+                tester = testersFactory.createDomElementTester(getDomElement);
+
             const putMouseOver = tester.putMouseOver.bind(tester);
             tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100), spendTime(0), spendTime(0));
 
+            tester.icon = testersFactory.createDomElementTester(
+                () => getDomElement().querySelector('.ui-account-status-icon svg')
+            );
+
             return softphoneTester.createBottomButtonTester(tester);
-        })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector(
-            '.cm-user-only-account--username, .ui-account, .cmgui-account, .cm-chats--account'
-        )));
+        })('.cm-user-only-account--username, .ui-account, .cmgui-account, .cm-chats--account');
 
         (() => {
             const selector =
@@ -2309,21 +2314,25 @@ define(() => function ({
 
         const addResponseModifiers = me => {
             me.accessTokenExpired = () => {
-                respond = request => request.respondUnauthorizedWith([{
-                    loc: ['__root__'],
-                    msg: 'Token has been expired',
-                    type: 'value_error.auth',
-                }]);
+                respond = request => request.respondUnauthorizedWith({
+                    error: 'The token is expired',
+                });
 
                 return me;
             };
             
             me.accessTokenInvalid = () => {
-                respond = request => request.respondUnauthorizedWith([{
-                    loc: ['__root__'],
-                    msg: 'Token is not active or invalid',
-                    type: 'value_error.auth',
-                }]);
+                respond = request => request.respondUnauthorizedWith({
+                    error: 'The token is invalid',
+                });
+
+                return me;
+            };
+
+            me.internalError = () => {
+                respond = request => request.respondUnsuccessfullyWith(
+                    '500 Internal Server Error Server got itself in trouble'
+                );
 
                 return me;
             };
@@ -2369,6 +2378,8 @@ define(() => function ({
 
                         Promise.runAll(false, true);
                         spendTime(0)
+                        spendTime(0);
+                        spendTime(0);
                     }
                 });
             },

@@ -19841,7 +19841,7 @@ define(() => function ({
     })();
 
     me.bugButton = (() => {
-        const tester = testersFactory.createDomElementTester('.cmg-bug-icon');
+        const tester = testersFactory.createDomElementTester('.cmg-bug-icon, .cmgui-icon[data-component=Bug20]');
 
         const click = tester.click.bind(tester);
         tester.click = () => (click(), spendTime(0));

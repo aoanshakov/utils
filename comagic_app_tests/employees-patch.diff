@@ -1,13 +1,13 @@
 diff --git a/package.json b/package.json
-index c1637af..c64059d 100644
+index 98f0798..587266d 100644
 --- a/package.json
 +++ b/package.json
-@@ -59,17 +59,7 @@
+@@ -61,17 +61,7 @@
      "webpack-dev-server": "^4.9.3"
    },
    "dependencies": {
 -    "@comagic/core": "^0.7.0",
--    "@comagic/workplace-utils": "0.0.0-int0",
+-    "@comagic/workplace-utils": "^1.0.26",
 -    "axios": "^0.24.0",
 -    "magic-ui": "0.0.0-int1",
 -    "mobx": "^6.6.1",
