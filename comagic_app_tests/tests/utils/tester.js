@@ -16,6 +16,7 @@ define(() => function ({
     image,
     softphoneHost,
     hasSSOAuth,
+    shouldShowNewSoftphone,
 }) {
     let history,
         eventBus,
@@ -142,7 +143,8 @@ define(() => function ({
         setChatsRootStore: value => (chatsRootStore = value),
         setNotification: value => (notification = value),
         setModal: value => (Modal = value),
-        appName
+        appName,
+        shouldShowNewSoftphone,
     });
 
     notification?.destroyAll();
@@ -951,7 +953,7 @@ define(() => function ({
 
         me.callStartingButton = (() => {
             const tester = testersFactory.createDomElementTester(
-                () => rootTester.querySelector('.cmg-call-button-start')
+                () => rootTester.querySelector('.cmg-call-button-start, .cmgui-icon[data-component=Call20]')
             );
 
             const click = tester.click.bind(tester);
@@ -5558,6 +5560,7 @@ define(() => function ({
 
             receive: () => {
                 me.eventsWebSocket.receiveMessage(createMessage().message);
+                spendTime(0);
                 spendTime(0);
                 spendTime(0);
             } 

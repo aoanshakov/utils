@@ -1,18 +1,19 @@
 diff --git a/package.json b/package.json
-index 78534f91..a789d49a 100644
+index 30dc1401..a789d49a 100644
 --- a/package.json
 +++ b/package.json
-@@ -29,9 +29,6 @@
+@@ -29,10 +29,6 @@
      "@babel/plugin-proposal-class-properties": "^7.8.3",
      "@babel/plugin-proposal-private-methods": "7.13.0",
      "@babel/preset-env": "^7.1.0",
--    "@comagic/softphone-core": "^2.0.17",
+-    "@comagic/softphone-core": "0.0.0-int0",
+-    "@comagic/core": "1.25.1",
 -    "@comagic/ui": "2.18.0",
--    "@comagic/workplace-utils": "^1.0.29",
+-    "@comagic/workplace-utils": "0.0.0-int0",
      "@types/react": "^18.0.28",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
-@@ -40,7 +37,6 @@
+@@ -41,7 +37,6 @@
      "exports-loader": "2.0.0",
      "history": "^5.3.0",
      "jssip": "3.3.4",
@@ -20,7 +21,7 @@ index 78534f91..a789d49a 100644
      "mobx": "^6.12.0",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.5",
-@@ -48,7 +44,6 @@
+@@ -49,7 +44,6 @@
      "prop-types": "^15.6.2",
      "qs": "6.7.0",
      "react-draggable": "^4.2.0",

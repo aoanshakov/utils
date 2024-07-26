@@ -275,6 +275,7 @@ define(function () {
                 '.clct-c-button, ' +
                 '.ui-radio-content, ' +
                 '.cmgui-radio-content, ' +
+                '.cmgui-radio-wrapper, ' +
                 '.cmg-switch-label, ' +
                 '.misc-core-src-component-styles-module__label, ' +
                 '.misc-core-src-components-menu-styles-module__label, ' +
@@ -827,7 +828,7 @@ define(function () {
 
             tester.click = () => (click(), spendTime(0), spendTime(0));
             return tester;
-        })(testersFactory.createDomElementTester('#cmg-transfer-button'));
+        })(testersFactory.createDomElementTester('#cmg-transfer-button, .cmgui-icon[data-component=CallRedirect20]'));
 
         this.firstLineButton = (() => {
             const tester = testersFactory.createDomElementTester(function () {
@@ -1238,6 +1239,7 @@ define(function () {
                 tester.name.click = () => {
                     click();
 
+                    spendTime(0);
                     spendTime(0);
                     spendTime(0);
                     spendTime(0);

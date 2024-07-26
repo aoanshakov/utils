@@ -28,6 +28,7 @@ define(() => function ({
     lang = 'ru',
     amocrmLead,
     renderAmocrmLead,
+    renderAmocrmCallgearLead,
 }) {
     let history,
         eventBus,
@@ -1132,6 +1133,201 @@ define(() => function ({
                 return me;
             };
 
+            me.amocrmCallGearExtension = () => {
+                const transform = 'transform="translate(3, 3)" ';
+
+                chatSettingsProcessors.push(settings => {
+                    settings.button = {
+                        elementSelector: '#nav_menu',
+                        mode: 'insertInto',
+                        tag: 'div',
+
+                        innerHTML: '<div class="nav__menu__item__icon" style="width: 38px; height: 38px;"' +
+                        '>' +
+                            '<svg ' +
+                                'width="38" ' +
+                                'height="38" ' +
+                                'viewBox="0 0 38 38" ' +
+                                'fill="none" ' +
+                                'xmlns="http://www.w3.org/2000/svg"' +
+                            '>' +
+                                '<circle ' +
+                                    'cx="19" ' +
+                                    'cy="19" ' +
+                                    'r="18" ' +
+                                    'fill="none" ' +
+                                    'stroke="#9da8ae"' +
+                                '></circle>' +
+
+                                '<path ' +
+                                    transform +
+                                    'd="' +
+                                        'M13.5 10.8571C13.5 10.3838 13.0523 10 12.5 10C11.9477 10 11.5 10.3838 11.5 ' +
+                                        '10.8571V21.1429C11.5 21.6162 11.9477 22 12.5 22C13.0523 22 13.5 21.6162 ' +
+                                        '13.5 21.1429V10.8571Z' +
+                                    '" ' +
+
+                                    'fill="#9da8ae" ' +
+                                '/>' +
+
+                                '<path ' +
+                                    transform +
+                                    'd="' +
+                                        'M19.5 13C19.5 12.4477 19.0523 12 18.5 12C17.9477 12 17.5 12.4477 17.5 ' +
+                                        '13V19C17.5 19.5523 17.9477 20 18.5 20C19.0523 20 19.5 19.5523 19.5 19V13Z' +
+                                    '" ' +
+
+                                    'fill="#9da8ae" ' +
+                                '/>' +
+
+                                '<path ' +
+                                    transform +
+                                    'd="' +
+                                        'M22.5 16C22.5 15.4477 22.0523 15 21.5 15C20.9477 15 20.5 15.4477 20.5 ' +
+                                        '16C20.5 16.5523 20.9477 17 21.5 17C22.0523 17 22.5 16.5523 22.5 16Z' +
+                                    '" ' +
+
+                                    'fill="#9da8ae" ' +
+                                '/>' +
+
+                                '<path ' +
+                                    transform +
+                                    'd="' +
+                                        'M16.5 7.9C16.5 7.40294 16.0523 7 15.5 7C14.9477 7 14.5 7.40294 14.5 ' +
+                                        '7.9V24.1C14.5 24.5971 14.9477 25 15.5 25C16.0523 25 16.5 24.5971 16.5 ' +
+                                        '24.1V7.9Z' +
+                                    '" ' +
+ 
+                                    'fill="#9da8ae" ' +
+                                '/>' +
+                            '</svg>' +
+                        '</div>' +
+
+                        '<div class="nav__menu__item__title" style="color: #9da8ae;">CallGear</div>' +
+
+                        '{% if missedEventsCount > 0 %}' +
+                            '<div ' +
+                                'style="' +
+                                    'position: absolute;' +
+                                    'line-height: 21px;' +
+                                    'color: #fff;' +
+                                    'background: #f50034;' +
+                                    'border-radius: 11px;' +
+                                    'font-size: 10px;' +
+                                    'padding: 0 6px;' +
+                                    'font-weight: bold;' +
+                                    'top: 0;' +
+                                    'right: 3px;' +
+                                '"' +
+                            '>{{ missedEventsCount }}</div>' +
+                        '{% endif %}',
+
+                        attributes: {
+                            style: 
+                                'margin: 16px 0 0;' +
+                                'position: relative;' +
+                                'cursor: pointer;' +
+                                'line-height: 70px;' +
+                                'text-align: center;',
+                        },
+                    };
+
+                    settings.handlers = [{
+                        elementSelector: '.linked-form__field.linked-form__field-name',
+                        tag: 'div',
+                        mode: 'insertAfter',
+                        phoneXpath: '//input[contains(@class, "control-phone__formatted")]/@value',
+                        innerHTML: '{% for item in items %} ' +
+                            '<div ' +
+                                'data-id="{{ item.id }}" ' +
+                                'style="margin-bottom: 10px;"' +
+                            '>' +
+                                '<button ' +
+                                    'type="button" ' +
+                                    'style="' +
+                                        'cursor: pointer; ' +
+                                        'background: #fff; ' +
+                                        'border: 1px solid #b1b1b1;' +
+                                        'color: #363b44;' +
+                                        'border-radius: 12px;' +
+                                        'display: flex;' +
+                                        'align-items: center;' +
+                                        'padding: 1px 8px 0px 2px;' +
+                                    '"' +
+                                '>' +
+                                    '{{ item.icon }} {{ phone }} {{ item.name }}' +
+                                '</button>' +
+                            '</div>' +
+                        '{% endfor %}',
+
+                        attributes: {
+                            style: 'margin: 10px 0 0;',
+                        },
+                    }, {
+                        elementSelector: '.linked-form__field.linked-form__field-name',
+                        tag: 'div',
+                        mode: 'insertAfter',
+                        innerHTML: '{% for item in items %} ' +
+                            '<div ' +
+                                'data-id="{{ item.id }}" ' +
+                                'style="margin-bottom: 10px;"' +
+                            '>' +
+                                '<button ' +
+                                    'type="button" ' +
+                                    'style="' +
+                                        'cursor: pointer; ' +
+                                        'background: #fff; ' +
+                                        'border: 1px solid #b1b1b1;' +
+                                        'color: #363b44;' +
+                                        'border-radius: 12px;' +
+                                        'display: flex;' +
+                                        'align-items: center;' +
+                                        'padding: 1px 8px 0px 2px;' +
+                                    '"' +
+                                '>' +
+                                    '{{ item.icon }} {{ email }} {{ item.name }}' +
+                                '</button>' +
+                            '</div>' +
+                        '{% endfor %}',
+
+                        attributes: {
+                            style: 'margin: 10px 0 0;',
+                        },
+
+                        phoneXpath: '//input[@data-type="email"]/@value',
+                        searchField: 'email',
+
+                        item: {
+                            tag: 'div',
+
+                            innerHTML: '<button ' +
+                                'type="button" ' +
+                                'style="' +
+                                    'cursor: pointer; ' +
+                                    'background: #fff; ' +
+                                    'border: 1px solid #b1b1b1;' +
+                                    'color: #363b44;' +
+                                    'border-radius: 12px;' +
+                                    'display: flex;' +
+                                    'align-items: center;' +
+                                    'padding: 1px 8px 0px 2px;' +
+                                '"' +
+                            '>' +
+                                '{{ icon }} {{ email }} {{ name }}' +
+                            '</button>',
+
+                            attributes: {
+                                style: 'margin-bottom: 10px;',
+                            },
+                        },
+                    }];
+                    
+                    return settings;
+                });
+
+                return me;
+            };
+
             me.failedToGetSettings = () => {
                 respond = request =>
                     request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
@@ -1435,6 +1631,19 @@ define(() => function ({
                 return me;
             };
 
+            me.prependChild = () => {
+                softphoneSettingsProcessors.push(
+                    softphoneSettings => {
+                        softphoneSettings.button.mode = 'prependChild';
+                        softphoneSettings.button.elementSelector = '.elements-groups';
+
+                        return softphoneSettings
+                    },
+                );
+
+                return me;
+            };
+
             me.insertInto = () => {
                 softphoneSettingsProcessors.push(
                     softphoneSettings => {
@@ -1614,6 +1823,7 @@ define(() => function ({
             areSettingsExpired && storageData.expired();
             anotherWildcart && storageData.anotherWildcart();
             renderAmocrmLead && storageData.amocrmExtension();
+            renderAmocrmCallgearLead && storageData.amocrmCallGearExtension(); 
 
             storageData.receive();
         }
@@ -1739,6 +1949,9 @@ define(() => function ({
             data: {
                 type: 'softphone',
                 visible: false,
+                initialized: false,
+                showed: false,
+                settingsFetched: false,
                 userName: '',
             },
             script: 'popup',
@@ -1746,7 +1959,9 @@ define(() => function ({
             addResponseModifiers: (me, message) => {
                 me.userDataFetched = () => (message.data.userName = 'Ганева Стефка', me);
                 me.visible = () => (message.data.visible = true, me);
-                me.disabled = () => (message.data.visible = null, me);
+                me.initialized = () => (message.data.initialized = true, me);
+                me.showed = () => (message.data.showed = true, me);
+                me.settingsFetched = () => (message.data.settingsFetched = true, me);
                     
                 me.longName = () => {
                     message.data.userName = 'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна';
@@ -1762,11 +1977,16 @@ define(() => function ({
             data: {
                 type: 'chats',
                 visible: false,
+                initialized: false,
+                settingsFetched: false,
+                showed: false,
             },
             script: 'popup',
             addResponseModifiers: (me, message) => {
                 me.visible = () => (message.data.visible = true, me);
-                me.disabled = () => (message.data.visible = null, me);
+                me.initialized = () => (message.data.initialized = true, me);
+                me.settingsFetched = () => (message.data.settingsFetched = true, me);
+                me.showed = () => (message.data.showed = true, me);
 
                 return me;
             },
@@ -2915,7 +3135,7 @@ define(() => function ({
         document.getElementById('pages-container').appendChild(pageContainer);
         const processPhone = value => value + (number - 1) * 9;
 
-        pageContainer.innerHTML = renderAmocrmLead ? amocrmLead : (
+        pageContainer.innerHTML = renderAmocrmLead || renderAmocrmCallgearLead ? amocrmLead : (
             '<div class="elements-groups">' +
                 '<div class="first-element">Первый элемент #' + number + '</div>' + 
                 '<div class="some-element">Некий элемент #' + number + '</div>' +
@@ -2973,7 +3193,7 @@ define(() => function ({
         const pagesContainer = document.createElement('div');
         pagesContainer.id = 'pages-container';
 
-        renderAmocrmLead && pagesContainer.classList.add('pages-container-amocrm-lead');
+        (renderAmocrmLead || renderAmocrmCallgearLead) && pagesContainer.classList.add('pages-container-amocrm-lead');
 
         document.body.appendChild(pagesContainer);
         addPageContent(1);

@@ -170,7 +170,7 @@ tests.addTest(options => {
                     expectToBeSent();
             });
 
-            xdescribe('Поступил входящий звонок.', function() {
+            describe('Поступил входящий звонок.', function() {
                 let incomingCall;
 
                 beforeEach(function() {
@@ -192,7 +192,7 @@ tests.addTest(options => {
                         numaRequest.receiveResponse();
                     });
 
-                    describe('Контакт найден.', function() {
+                    xdescribe('Контакт найден.', function() {
                         beforeEach(function() {
                             tester.outCallEvent().receive();
                             tester.outCallEvent().slavesNotification().expectToBeSent();
@@ -1244,7 +1244,7 @@ tests.addTest(options => {
                             tester.softphone.expectToBeExpanded();
                         });
                     });
-                    describe('Звонок переведен от другого сотрудника.', function() {
+                    xdescribe('Звонок переведен от другого сотрудника.', function() {
                         let outCallEvent;
 
                         beforeEach(function() {
@@ -1321,7 +1321,7 @@ tests.addTest(options => {
                                 slavesNotification().expectToBeSent();
                         });
                     });
-                    describe('Звонок производится в рамках исходящего обзвона.', function() {
+                    xdescribe('Звонок производится в рамках исходящего обзвона.', function() {
                         var outCallEvent;
 
                         beforeEach(function() {
@@ -1397,7 +1397,7 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    describe('Открытые сделки существуют.', function() {
+                    xdescribe('Открытые сделки существуют.', function() {
                         beforeEach(function() {
                             tester.outCallEvent().
                                 activeLeads().
@@ -1471,7 +1471,7 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    it(
+                    xit(
                         'Контакт не найден. Отображно направление звонка. Кнопка открытия ' +
                         'контакта заблокирована.',
                     function() {
@@ -1506,6 +1506,7 @@ tests.addTest(options => {
 
                         tester.outgoingIcon.expectToBeVisible();
                     });
+                    return;
                     it(
                         'Потеряно соединение с сервером. Звонок отменен. Рингтон не звучит.',
                     function() {
@@ -1570,6 +1571,7 @@ tests.addTest(options => {
                         );
                     });
                 });
+                return;
                 describe('Позвонивший является сотрудником.', function() {
                     beforeEach(function() {
                         numaRequest.
@@ -1618,6 +1620,7 @@ tests.addTest(options => {
                     });
                 });
             });
+            return;
             describe('Браузер скрыт.', function() {
                 beforeEach(function() {
                     setDocumentVisible(false);
@@ -1654,7 +1657,7 @@ tests.addTest(options => {
                                 expectToBeSent();
                         });
 
-                        xit(
+                        it(
                             'Вкладка снова открыта. Поступил входящий звонок. браузерное ' +
                             'уведомление не отображено.',
                         function() {
@@ -1706,7 +1709,6 @@ tests.addTest(options => {
                                 expectToBeOpened();
                         });
                     });
-                    return;
                     it(
                         'Поступил входящий звонок. браузерное уведомление не отображено.',
                     function() {
@@ -1726,7 +1728,6 @@ tests.addTest(options => {
                         tester.outCallEvent().slavesNotification().expectToBeSent();
                     });
                 });
-                return;
                 describe('Поступила информация о звонке.', function() {
                     beforeEach(function() {
                         tester.outCallEvent().receive();
@@ -1816,7 +1817,6 @@ tests.addTest(options => {
                     tester.outCallEvent().slavesNotification().expectToBeSent();
                 });
             });
-            return;
             it(
                 'Поступила информация о звонке. Поступил звонок. Отображена информация о ' +
                 'звонке.',

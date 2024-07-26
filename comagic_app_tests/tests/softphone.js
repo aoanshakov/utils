@@ -372,37 +372,37 @@ tests.addTest(options => {
                                                                 name.
                                                                 click();
 
-                                                            tester.usersRequest().
-                                                                forContacts().
-                                                                receiveResponse();
-
-                                                            tester.contactsRequest().
-                                                                differentNames().
-                                                                receiveResponse();
-
-                                                            tester.contactGroupsRequest().receiveResponse();
-
-                                                            const requests = ajax.inAnyOrder();
-
                                                             const usersRequest = tester.usersRequest().
                                                                 forContacts().
-                                                                expectToBeSent(requests);
+                                                                expectToBeSent();
+
+                                                            const secondUsersRequest = tester.usersRequest().
+                                                                forContacts().
+                                                                expectToBeSent();
 
                                                             const contactRequest = tester.contactRequest().
-                                                                expectToBeSent(requests);
+                                                                expectToBeSent();
 
                                                             const contactCommunicationsRequest =
                                                                 tester.contactCommunicationsRequest().
-                                                                    expectToBeSent(requests);
+                                                                    expectToBeSent();
 
-                                                            requests.expectToBeSent();
+                                                            const contactGroupsRequest =
+                                                                tester.contactGroupsRequest().expectToBeSent();
+
+                                                            const contactsRequest = tester.contactsRequest().
+                                                                differentNames().
+                                                                expectToBeSent();
 
                                                             usersRequest.receiveResponse();
+                                                            secondUsersRequest.receiveResponse();
                                                             contactRequest.receiveResponse();
                                                             contactCommunicationsRequest.receiveResponse();
+                                                            contactGroupsRequest.receiveResponse();
+                                                            contactsRequest.receiveResponse();
 
-                                                            tester.contactGroupsRequest().receiveResponse();
-                                                            tester.groupsContainingContactRequest().receiveResponse();
+                                                            tester.groupsContainingContactRequest().
+                                                                receiveResponse();
                                                         });
                                                         it(
                                                             'Нажимаю на кнопку сворачивания софтфона. Отображено ' +
@@ -419,7 +419,9 @@ tests.addTest(options => {
                                                             tester.phoneField.expectToBeVisible();
                                                         });
                                                         it('Отображены иконки направлений.', function() {
-                                                            tester.callsHistoryRow.withText('Гяурова Марийка').callIcon.
+                                                            tester.callsHistoryRow.
+                                                                withText('Гяурова Марийка').
+                                                                callIcon.
                                                                 expectNotToHaveAttribute('disabled');
 
                                                             tester.callsHistoryRow.
@@ -503,17 +505,15 @@ tests.addTest(options => {
                                                             forContacts().
                                                             receiveResponse();
 
-                                                        tester.contactsRequest().
-                                                            differentNames().
-                                                            receiveResponse();
-
-                                                        tester.contactGroupsRequest().receiveResponse();
-
                                                         tester.usersRequest().
                                                             forContacts().
                                                             receiveResponse();
 
                                                         tester.contactGroupsRequest().receiveResponse();
+
+                                                        tester.contactsRequest().
+                                                            differentNames().
+                                                            receiveResponse();
 
                                                         tester.contactBar.expectTextContentToHaveSubstring(
                                                             'Телефоны ' +
@@ -649,14 +649,26 @@ tests.addTest(options => {
                                                         tester.talkOptionsRequest().receiveResponse();
                                                         tester.permissionsRequest().receiveResponse();
 
-                                                        tester.settingsRequest().
-                                                            anotherAuthorizationToken().
-                                                            receiveResponse();
-
                                                         tester.employeeStatusesRequest().
                                                             anotherAuthorizationToken().
                                                             noNotAtWorkplace().
                                                             includesAutoCall().
+                                                            receiveResponse();
+
+                                                        tester.employeeSettingsRequest().receiveResponse();
+
+                                                        tester.employeeRequest().
+                                                            anotherAuthorizationToken().
+                                                            receiveResponse();
+
+                                                        tester.ticketsContactsRequest().receiveResponse();
+
+                                                        tester.accountRequest().
+                                                            anotherAuthorizationToken().
+                                                            receiveResponse();
+
+                                                        tester.settingsRequest().
+                                                            anotherAuthorizationToken().
                                                             receiveResponse();
 
                                                         tester.slavesNotification().
@@ -679,18 +691,6 @@ tests.addTest(options => {
                                                             softphoneServerConnected().
                                                             webRTCServerConnected().
                                                             expectToBeSent();
-
-                                                        tester.employeeSettingsRequest().receiveResponse();
-
-                                                        tester.employeeRequest().
-                                                            anotherAuthorizationToken().
-                                                            receiveResponse();
-
-                                                        tester.ticketsContactsRequest().receiveResponse();
-
-                                                        tester.accountRequest().
-                                                            anotherAuthorizationToken().
-                                                            receiveResponse();
 
                                                         tester.authenticatedUserRequest().receiveResponse();
 
@@ -1718,14 +1718,26 @@ tests.addTest(options => {
                                                     tester.talkOptionsRequest().receiveResponse();
                                                     tester.permissionsRequest().receiveResponse();
 
+                                                    tester.employeeStatusesRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
+
+                                                    tester.employeeSettingsRequest().receiveResponse();
+
+                                                    tester.employeeRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
+
+                                                    tester.ticketsContactsRequest().receiveResponse();
+
+                                                    tester.accountRequest().
+                                                        anotherAuthorizationToken().
+                                                        receiveResponse();
+
                                                     tester.settingsRequest().
                                                         anotherAuthorizationToken().
                                                         receiveResponse();
 
-                                                    tester.employeeStatusesRequest().
-                                                        anotherAuthorizationToken().
-                                                        receiveResponse();
-                                                    
                                                     tester.slavesNotification().
                                                         twoChannels().
                                                         enabled().
@@ -1746,18 +1758,6 @@ tests.addTest(options => {
                                                         webRTCServerConnected().
                                                         softphoneServerConnected().
                                                         expectToBeSent();
-
-                                                    tester.employeeSettingsRequest().receiveResponse();
-
-                                                    tester.employeeRequest().
-                                                        anotherAuthorizationToken().
-                                                        receiveResponse();
-
-                                                    tester.ticketsContactsRequest().receiveResponse();
-
-                                                    tester.accountRequest().
-                                                        anotherAuthorizationToken().
-                                                        receiveResponse();
 
                                                     tester.authenticatedUserRequest().receiveResponse();
 
@@ -2671,14 +2671,20 @@ tests.addTest(options => {
                         describe('Пользователь имеет права на список номеров.', function() {
                             beforeEach(function() {
                                 permissionsRequest = permissionsRequest.allowNumberCapacitySelect();
-
-                                settingsRequest = tester.settingsRequest().
-                                    allowNumberCapacitySelect().
-                                    expectToBeSent();
+                                settingsRequest = tester.settingsRequest().allowNumberCapacitySelect();
                             });
 
-                            describe('У выбранного номера нет комментария.', function() {
+                            describe(
+                                'У выбранного номера нет комментария. Пользователь имеет права на выбор номера.',
+                            function() {
+                                let authenticatedUserRequest,
+                                    numberCapacityRequest;
+
                                 beforeEach(function() {
+                                    permissionsRequest.
+                                        allowNumberCapacityUpdate().
+                                        receiveResponse();
+
                                     settingsRequest.receiveResponse();
 
                                     tester.slavesNotification().
@@ -2687,223 +2693,6 @@ tests.addTest(options => {
                                         expectToBeSent();
 
                                     notificationTester.grantPermission();
-                                });
-
-                                describe('Пользователь имеет права на выбор номера.', function() {
-                                    let authenticatedUserRequest,
-                                        numberCapacityRequest;
-
-                                    beforeEach(function() {
-                                        permissionsRequest.
-                                            allowNumberCapacityUpdate().
-                                            receiveResponse();
-
-                                        tester.connectEventsWebSocket();
-
-                                        tester.slavesNotification().
-                                            twoChannels().
-                                            enabled().
-                                            softphoneServerConnected().
-                                            expectToBeSent();
-
-                                        tester.connectSIPWebSocket();
-
-                                        tester.slavesNotification().
-                                            twoChannels().
-                                            webRTCServerConnected().
-                                            softphoneServerConnected().
-                                            expectToBeSent();
-
-                                        tester.allowMediaInput();
-
-                                        tester.slavesNotification().
-                                            twoChannels().
-                                            webRTCServerConnected().
-                                            softphoneServerConnected().
-                                            microphoneAccessGranted().
-                                            expectToBeSent();
-
-                                        numberCapacityRequest = tester.numberCapacityRequest().expectToBeSent();
-
-                                        tester.registrationRequest().receiveUnauthorized();
-
-                                        tester.registrationRequest().
-                                            authorization().
-                                            receiveResponse();
-
-                                        tester.slavesNotification().
-                                            twoChannels().
-                                            webRTCServerConnected().
-                                            softphoneServerConnected().
-                                            microphoneAccessGranted().
-                                            registered().
-                                            expectToBeSent();
-
-                                        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-                                    });
-
-                                    describe('У пользователя есть несколько номеров.', function() {
-                                        beforeEach(function() {
-                                            numberCapacityRequest.receiveResponse();
-                                        });
-
-                                        describe('SIP-линия зарегистрирована.', function() {
-                                            beforeEach(function() {
-                                                authenticatedUserRequest.receiveResponse();
-
-                                                tester.slavesNotification().
-                                                    twoChannels().
-                                                    available().
-                                                    expectToBeSent();
-                                            });
-
-                                            describe('Раскрываю список номеров.', function() {
-                                                beforeEach(function() {
-                                                    tester.select.arrow.click();
-                                                    tester.numberCapacityRequest().receiveResponse();
-                                                });
-
-                                                describe('Выбираю номер. Отправлен запрос смены номера.', function() {
-                                                    beforeEach(function() {
-                                                        tester.select.option('+7 (916) 123-89-29 Некий номер').click();
-
-                                                        tester.numberCapacitySavingRequest().receiveResponse();
-
-                                                        tester.othersNotification().
-                                                            widgetStateUpdate().
-                                                            fixedNumberCapacityRule().
-                                                            anotherNumberCapacity().
-                                                            expectToBeSent();
-                                                    });
-
-                                                    it(
-                                                        'Нажимаю на кнопку открытия диалпада. Отображен выбранный ' +
-                                                        'номер с комментарием.',
-                                                    function() {
-                                                        tester.dialpadVisibilityButton.click();
-
-                                                        tester.softphone.expectTextContentToHaveSubstring(
-                                                            '+7 (916) 123-89-29 ' +
-                                                            'Некий номер'
-                                                        );
-                                                    });
-                                                    it('Отображен выбранный номер.', function() {
-                                                        tester.softphone.expectToHaveTextContent('+7 (916) 123-89-29');
-                                                    });
-                                                });
-                                                describe('Ввожу номер в поле поиска.', function() {
-                                                    beforeEach(function() {
-                                                        tester.input.withPlaceholder('Найти').fill('62594');
-                                                    });
-
-                                                    it(
-                                                        'Стираю введенное в поле поиска значение. Отображены все ' +
-                                                        'номера.',
-                                                    function() {
-                                                        tester.input.withPlaceholder('Найти').clear();
-
-                                                        tester.select.popup.expectTextContentToHaveSubstring(
-                                                            '+7 (916) 123-89-27'
-                                                        );
-                                                    });
-                                                    it('Номер найден.', function() {
-                                                        tester.select.popup.
-                                                            expectToHaveTextContent('+7 (916) 259-47-27 Другой номер');
-                                                    });
-                                                });
-                                                it('Ввожу комментарий в поле поиска. Номер найден.', function() {
-                                                    tester.input.
-                                                        withPlaceholder('Найти').
-                                                        fill('один');
-
-                                                    tester.select.
-                                                        popup.
-                                                        expectToHaveTextContent('+7 (916) 123-89-35 Еще один номер');
-                                                });
-                                                it('Выбранный номер выделен.', function() {
-                                                    tester.select.
-                                                        option('+7 (916) 123-89-27').
-                                                        expectNotToHaveClass('ui-list-option-selected');
-
-                                                    tester.select.
-                                                        option('+7 (495) 021-68-06').
-                                                        expectToHaveClass('ui-list-option-selected');
-
-                                                    tester.select.popup.expectNotToHaveTopOffset(4);
-                                                    tester.select.popup.expectToHaveHeight(331);
-
-                                                    tester.button('Отменить').expectNotToExist();
-                                                });
-                                            });
-                                            it(
-                                                'Софтфон открыт в другом окне. Отображено сообщение о том, что ' +
-                                                'софтфон открыт в другом окне.',
-                                            function() {
-                                                tester.eventsWebSocket.disconnect(4429);
-
-                                                tester.slavesNotification().
-                                                    userDataFetched().
-                                                    twoChannels().
-                                                    appAlreadyOpened().
-                                                    microphoneAccessGranted().
-                                                    enabled().
-                                                    expectToBeSent();
-
-                                                tester.authLogoutRequest().receiveResponse();
-                                                tester.registrationRequest().expired().receiveResponse();
-                                                
-                                                spendTime(2000);
-                                                tester.webrtcWebsocket.finishDisconnecting();
-
-                                                tester.softphone.
-                                                    expectTextContentToHaveSubstring('Софтфон открыт в другом окне');
-
-                                                tester.select.expectNotToExist();
-                                            });
-                                            it('Отображен выбранный номер телефона.', function() {
-                                                tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
-                                            });
-                                        });
-                                        it(
-                                            'SIP-линия не зарегистрирована. Отображено сообщение о том, что ' +
-                                            'SIP-линия не зарегистрирована.',
-                                        function() {
-                                            authenticatedUserRequest.sipIsOffline().receiveResponse();
-
-                                            tester.slavesNotification().
-                                                userDataFetched().
-                                                sipIsOffline().
-                                                twoChannels().
-                                                softphoneServerConnected().
-                                                webRTCServerConnected().
-                                                registered().
-                                                microphoneAccessGranted().
-                                                expectToBeSent();
-
-                                            tester.softphone.expectToHaveTextContent(
-                                                'Sip-линия не зарегистрирована ' +
-                                                '+7 (495) 021-68-06'
-                                            );
-                                        });
-                                        it('Отображен выбранный номер телефона.', function() {
-                                            tester.softphone.expectToHaveTextContent('+7 (495) 021-68-06');
-                                        });
-                                    });
-                                    it('Доступен только один номер. Отображен выбранный номер.', function() {
-                                        numberCapacityRequest.onlyOneNumber().receiveResponse();
-                                        
-                                        authenticatedUserRequest.receiveResponse();
-
-                                        tester.slavesNotification().
-                                            twoChannels().
-                                            available().
-                                            expectToBeSent();
-
-                                        tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
-                                    });
-                                });
-                                it('Безуспешно пытаюсь выбрать номер.', function() {
-                                    permissionsRequest.receiveResponse();
 
                                     tester.connectEventsWebSocket();
 
@@ -2930,16 +2719,7 @@ tests.addTest(options => {
                                         microphoneAccessGranted().
                                         expectToBeSent();
 
-                                    tester.numberCapacityRequest().receiveResponse();
-                                    tester.authenticatedUserRequest().receiveResponse();
-
-                                    tester.slavesNotification().
-                                        userDataFetched().
-                                        twoChannels().
-                                        webRTCServerConnected().
-                                        softphoneServerConnected().
-                                        microphoneAccessGranted().
-                                        expectToBeSent();
+                                    numberCapacityRequest = tester.numberCapacityRequest().expectToBeSent();
 
                                     tester.registrationRequest().receiveUnauthorized();
 
@@ -2949,15 +2729,173 @@ tests.addTest(options => {
 
                                     tester.slavesNotification().
                                         twoChannels().
+                                        webRTCServerConnected().
+                                        softphoneServerConnected().
+                                        microphoneAccessGranted().
+                                        registered().
+                                        expectToBeSent();
+
+                                    authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                                });
+
+                                describe('У пользователя есть несколько номеров.', function() {
+                                    beforeEach(function() {
+                                        numberCapacityRequest.receiveResponse();
+                                    });
+
+                                    describe('SIP-линия зарегистрирована.', function() {
+                                        beforeEach(function() {
+                                            authenticatedUserRequest.receiveResponse();
+
+                                            tester.slavesNotification().
+                                                twoChannels().
+                                                available().
+                                                expectToBeSent();
+                                        });
+
+                                        describe('Раскрываю список номеров.', function() {
+                                            beforeEach(function() {
+                                                tester.select.arrow.click();
+                                                tester.numberCapacityRequest().receiveResponse();
+                                            });
+
+                                            describe('Выбираю номер. Отправлен запрос смены номера.', function() {
+                                                beforeEach(function() {
+                                                    tester.select.option('+7 (916) 123-89-29 Некий номер').click();
+
+                                                    tester.numberCapacitySavingRequest().receiveResponse();
+
+                                                    tester.othersNotification().
+                                                        widgetStateUpdate().
+                                                        fixedNumberCapacityRule().
+                                                        anotherNumberCapacity().
+                                                        expectToBeSent();
+                                                });
+
+                                                it(
+                                                    'Нажимаю на кнопку открытия диалпада. Отображен выбранный ' +
+                                                    'номер с комментарием.',
+                                                function() {
+                                                    tester.dialpadVisibilityButton.click();
+
+                                                    tester.softphone.expectTextContentToHaveSubstring(
+                                                        '+7 (916) 123-89-29 ' +
+                                                        'Некий номер'
+                                                    );
+                                                });
+                                                it('Отображен выбранный номер.', function() {
+                                                    tester.softphone.expectToHaveTextContent('+7 (916) 123-89-29');
+                                                });
+                                            });
+                                            describe('Ввожу номер в поле поиска.', function() {
+                                                beforeEach(function() {
+                                                    tester.input.withPlaceholder('Найти').fill('62594');
+                                                });
+
+                                                it(
+                                                    'Стираю введенное в поле поиска значение. Отображены все ' +
+                                                    'номера.',
+                                                function() {
+                                                    tester.input.withPlaceholder('Найти').clear();
+
+                                                    tester.select.popup.expectTextContentToHaveSubstring(
+                                                        '+7 (916) 123-89-27'
+                                                    );
+                                                });
+                                                it('Номер найден.', function() {
+                                                    tester.select.popup.
+                                                        expectToHaveTextContent('+7 (916) 259-47-27 Другой номер');
+                                                });
+                                            });
+                                            it('Ввожу комментарий в поле поиска. Номер найден.', function() {
+                                                tester.input.
+                                                    withPlaceholder('Найти').
+                                                    fill('один');
+
+                                                tester.select.
+                                                    popup.
+                                                    expectToHaveTextContent('+7 (916) 123-89-35 Еще один номер');
+                                            });
+                                            it('Выбранный номер выделен.', function() {
+                                                tester.select.
+                                                    option('+7 (916) 123-89-27').
+                                                    expectNotToHaveClass('ui-list-option-selected');
+
+                                                tester.select.
+                                                    option('+7 (495) 021-68-06').
+                                                    expectToHaveClass('ui-list-option-selected');
+
+                                                tester.select.popup.expectNotToHaveTopOffset(4);
+                                                tester.select.popup.expectToHaveHeight(331);
+
+                                                tester.button('Отменить').expectNotToExist();
+                                            });
+                                        });
+                                        it(
+                                            'Софтфон открыт в другом окне. Отображено сообщение о том, что ' +
+                                            'софтфон открыт в другом окне.',
+                                        function() {
+                                            tester.eventsWebSocket.disconnect(4429);
+
+                                            tester.slavesNotification().
+                                                userDataFetched().
+                                                twoChannels().
+                                                appAlreadyOpened().
+                                                microphoneAccessGranted().
+                                                enabled().
+                                                expectToBeSent();
+
+                                            tester.authLogoutRequest().receiveResponse();
+                                            tester.registrationRequest().expired().receiveResponse();
+                                            
+                                            spendTime(2000);
+                                            tester.webrtcWebsocket.finishDisconnecting();
+
+                                            tester.softphone.
+                                                expectTextContentToHaveSubstring('Софтфон открыт в другом окне');
+
+                                            tester.select.expectNotToExist();
+                                        });
+                                        it('Отображен выбранный номер телефона.', function() {
+                                            tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
+                                        });
+                                    });
+                                    it(
+                                        'SIP-линия не зарегистрирована. Отображено сообщение о том, что ' +
+                                        'SIP-линия не зарегистрирована.',
+                                    function() {
+                                        authenticatedUserRequest.sipIsOffline().receiveResponse();
+
+                                        tester.slavesNotification().
+                                            userDataFetched().
+                                            sipIsOffline().
+                                            twoChannels().
+                                            softphoneServerConnected().
+                                            webRTCServerConnected().
+                                            registered().
+                                            microphoneAccessGranted().
+                                            expectToBeSent();
+
+                                        tester.softphone.expectToHaveTextContent(
+                                            'Sip-линия не зарегистрирована ' +
+                                            '+7 (495) 021-68-06'
+                                        );
+                                    });
+                                    it('Отображен выбранный номер телефона.', function() {
+                                        tester.softphone.expectToHaveTextContent('+7 (495) 021-68-06');
+                                    });
+                                });
+                                it('Доступен только один номер. Отображен выбранный номер.', function() {
+                                    numberCapacityRequest.onlyOneNumber().receiveResponse();
+                                    
+                                    authenticatedUserRequest.receiveResponse();
+
+                                    tester.slavesNotification().
+                                        twoChannels().
                                         available().
                                         expectToBeSent();
 
-                                    tester.select.arrow.click();
-                                    tester.numberCapacityRequest().receiveResponse();
-
-                                    tester.select.
-                                        option('+7 (916) 123-89-29 Некий номер').
-                                        click();
+                                    tester.select.expectToHaveTextContent('+7 (495) 021-68-06');
                                 });
                             });
                             describe(
@@ -2966,6 +2904,7 @@ tests.addTest(options => {
                                 let authenticatedUserRequest;
 
                                 beforeEach(function() {
+                                    permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
                                     settingsRequest.numberCapacityComment().receiveResponse();
 
                                     tester.slavesNotification().
@@ -2974,7 +2913,6 @@ tests.addTest(options => {
                                         expectToBeSent();
 
                                     notificationTester.grantPermission();
-                                    permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
 
                                     tester.connectEventsWebSocket();
 
@@ -3080,6 +3018,10 @@ tests.addTest(options => {
                             });
                             describe('В качестве устройства для приема звонков исползуется IP-телефон.', function() {
                                 beforeEach(function() {
+                                    permissionsRequest.
+                                        allowNumberCapacityUpdate().
+                                        receiveResponse();
+
                                     settingsRequest.
                                         callsAreManagedByAnotherDevice().
                                         receiveResponse();
@@ -3090,11 +3032,6 @@ tests.addTest(options => {
                                         expectToBeSent();
 
                                     notificationTester.grantPermission();
-
-                                    permissionsRequest.
-                                        allowNumberCapacityUpdate().
-                                        receiveResponse();
-
                                     tester.connectEventsWebSocket();
 
                                     tester.slavesNotification().
@@ -3215,6 +3152,7 @@ tests.addTest(options => {
                             });
                             describe('У выбранного номера есть длинный комментарий.', function() {
                                 beforeEach(function() {
+                                    permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
                                     settingsRequest.longNumberCapacityComment().receiveResponse();
 
                                     tester.slavesNotification().
@@ -3223,7 +3161,6 @@ tests.addTest(options => {
                                         expectToBeSent();
 
                                     notificationTester.grantPermission();
-                                    permissionsRequest.allowNumberCapacityUpdate().receiveResponse();
 
                                     tester.connectEventsWebSocket();
 
@@ -3291,6 +3228,71 @@ tests.addTest(options => {
                                         'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна'
                                     );
                                 });
+                            });
+                            it('У выбранного номера нет комментария. Безуспешно пытаюсь выбрать номер.', function() {
+                                permissionsRequest.receiveResponse();
+                                settingsRequest.receiveResponse();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    enabled().
+                                    expectToBeSent();
+
+                                notificationTester.grantPermission();
+
+                                tester.connectEventsWebSocket();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    enabled().
+                                    softphoneServerConnected().
+                                    expectToBeSent();
+
+                                tester.connectSIPWebSocket();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    webRTCServerConnected().
+                                    softphoneServerConnected().
+                                    expectToBeSent();
+
+                                tester.allowMediaInput();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    webRTCServerConnected().
+                                    softphoneServerConnected().
+                                    microphoneAccessGranted().
+                                    expectToBeSent();
+
+                                tester.numberCapacityRequest().receiveResponse();
+                                tester.authenticatedUserRequest().receiveResponse();
+
+                                tester.slavesNotification().
+                                    userDataFetched().
+                                    twoChannels().
+                                    webRTCServerConnected().
+                                    softphoneServerConnected().
+                                    microphoneAccessGranted().
+                                    expectToBeSent();
+
+                                tester.registrationRequest().receiveUnauthorized();
+
+                                tester.registrationRequest().
+                                    authorization().
+                                    receiveResponse();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    available().
+                                    expectToBeSent();
+
+                                tester.select.arrow.click();
+                                tester.numberCapacityRequest().receiveResponse();
+
+                                tester.select.
+                                    option('+7 (916) 123-89-29 Некий номер').
+                                    click();
                             });
                         });
                         describe('Пользователь не имеет права на список номеров.', function() {
@@ -3438,7 +3440,6 @@ tests.addTest(options => {
                                         differentNames().
                                         receiveResponse();
 
-                                    tester.contactGroupsRequest().receiveResponse();
                                     tester.dialpadButton(1).expectNotToExist();
                                 });
                                 it('Открываю список сотрудников.', function() {
@@ -4218,6 +4219,12 @@ tests.addTest(options => {
 
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
+
+                    tester.employeeStatusesRequest().receiveResponse();
+                    tester.employeeSettingsRequest().receiveResponse();
+                    tester.employeeRequest().receiveResponse();
+                    tester.ticketsContactsRequest().receiveResponse();
+
                     tester.settingsRequest().receiveResponse();
 
                     tester.slavesNotification().
@@ -4242,11 +4249,7 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     notificationTester.grantPermission();
-
-                    tester.employeeStatusesRequest().receiveResponse();
-                    tester.employeeSettingsRequest().receiveResponse();
-                    tester.employeeRequest().receiveResponse();
-                    tester.ticketsContactsRequest().receiveResponse();
+                    
                     tester.accountRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
@@ -4343,6 +4346,12 @@ tests.addTest(options => {
 
                     tester.talkOptionsRequest().receiveResponse();
                     tester.permissionsRequest().receiveResponse();
+
+                    tester.employeeStatusesRequest().receiveResponse();
+                    tester.employeeSettingsRequest().receiveResponse();
+                    tester.employeeRequest().receiveResponse();
+                    tester.ticketsContactsRequest().receiveResponse();
+
                     tester.settingsRequest().receiveResponse();
 
                     tester.slavesNotification().
@@ -4368,10 +4377,6 @@ tests.addTest(options => {
 
                     notificationTester.grantPermission();
 
-                    tester.employeeStatusesRequest().receiveResponse();
-                    tester.employeeSettingsRequest().receiveResponse();
-                    tester.employeeRequest().receiveResponse();
-                    tester.ticketsContactsRequest().receiveResponse();
                     tester.accountRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
@@ -5070,7 +5075,7 @@ tests.addTest(options => {
 
                 tester.talkOptionsRequest().receiveResponse();
                 permissionsRequest = tester.permissionsRequest().expectToBeSent();
-                settingsRequest = tester.settingsRequest().expectToBeSent();
+                settingsRequest = tester.settingsRequest();
 
                 tester.button('Софтфон').click();
 

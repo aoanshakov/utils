@@ -25,7 +25,7 @@ tests.addTest(options => {
         let tester,
             reportGroupsRequest,
             settingsRequest,
-           accountRequest,
+            accountRequest,
             permissionsRequest;
 
         beforeEach(function() {

@@ -448,12 +448,25 @@ tests.addTest(options => {
                                         softphoneServerConnected().
                                         expectToBeSent();
 
+                                    postMessages.nextMessage().expectNotToExist();
+
                                     postMessages.receive({
                                         method: 'start_call',
                                         data: '79161234567',
                                     });
 
                                     tester.click2CallRequest().receiveResponse();
+
+                                    unfilteredPostMessages.
+                                        nextMessage().
+                                        expectMessageToStartsWith('ignore:log:Window message received');
+
+                                    unfilteredPostMessages.
+                                        nextMessage().
+                                        expectMessageToStartsWith([
+                                            'ignore:log:Time consumed 0 ms',
+                                            'POST https://somedomain.com/click2call/79161234567'
+                                        ].join("\n\n"));
                                 });
                             });
                             it('Выбор номер разрешён.', function() {
@@ -800,13 +813,8 @@ tests.addTest(options => {
 
                 tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
 
-                tester.popupStateSettingRequest().
-                    disabled().
-                    receiveResponse();
-
-                tester.chatsVisibilitySettingRequest().
-                    disabled().
-                    receiveResponse();
+                tester.popupStateSettingRequest().receiveResponse();
+                tester.chatsVisibilitySettingRequest().receiveResponse();
 
                 tester.missedEventsCountSettingRequest().receiveResponse();
             });
@@ -822,8 +830,13 @@ tests.addTest(options => {
                     beforeEach(function() {
                         widgetSettings.receive();
 
-                        tester.popupStateSettingRequest().receiveResponse();
-                        tester.chatsVisibilitySettingRequest().receiveResponse();
+                        tester.popupStateSettingRequest().
+                            settingsFetched().
+                            receiveResponse();
+
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            receiveResponse();
 
                         tester.stateSettingRequest().
                             userDataFetched().
@@ -831,6 +844,8 @@ tests.addTest(options => {
 
                         tester.popupStateSettingRequest().
                             userDataFetched().
+                            settingsFetched().
+                            initialized().
                             receiveResponse();
 
                         tester.notificationSettingRequest().
@@ -855,6 +870,11 @@ tests.addTest(options => {
                             beforeEach(function() {
                                 tester.submoduleInitilizationEvent().receive();
                                 tester.unreadMessagesCountSettingRequest().receive();
+
+                                tester.chatsVisibilitySettingRequest().
+                                    initialized().
+                                    settingsFetched().
+                                    receiveResponse();
 
                                 tester.widgetSettings().
                                     windowMessage().
@@ -1028,6 +1048,8 @@ tests.addTest(options => {
 
                                     tester.chatsVisibilitySettingRequest().
                                         visible().
+                                        initialized().
+                                        settingsFetched().
                                         receiveResponse();
 
                                     tester.chatListOpeningRequest().expectToBeSent();
@@ -1038,7 +1060,11 @@ tests.addTest(options => {
                                 });
                                 it('Получаю запрос скрытия окна чатов. Окно скрыто.', function() {
                                     tester.chatsHidingRequest().receive();
-                                    tester.chatsVisibilitySettingRequest().receiveResponse();
+
+                                    tester.chatsVisibilitySettingRequest().
+                                        initialized().
+                                        settingsFetched().
+                                        receiveResponse();
 
                                     tester.iframe.atIndex(1).expectToBeHidden();
                                     tester.iframe.first.expectToBeHidden();
@@ -1057,6 +1083,8 @@ tests.addTest(options => {
 
                                     tester.popupStateSettingRequest().
                                         userDataFetched().
+                                        settingsFetched().
+                                        initialized().
                                         visible().
                                         receiveResponse();
                                 });
@@ -1068,6 +1096,8 @@ tests.addTest(options => {
 
                                     tester.popupStateSettingRequest().
                                         userDataFetched().
+                                        settingsFetched().
+                                        initialized().
                                         receiveResponse();
 
                                     tester.iframe.atIndex(1).expectToBeHidden();
@@ -1108,6 +1138,8 @@ tests.addTest(options => {
 
                                     tester.chatsVisibilitySettingRequest().
                                         visible().
+                                        initialized().
+                                        settingsFetched().
                                         receiveResponse();
 
                                     tester.iframe.
@@ -1220,9 +1252,15 @@ tests.addTest(options => {
 
                                 tester.popupStateSettingRequest().
                                     userDataFetched().
+                                    settingsFetched().
+                                    initialized().
                                     receiveResponse();
 
-                                tester.chatsVisibilitySettingRequest().receiveResponse();
+                                tester.chatsVisibilitySettingRequest().
+                                    initialized().
+                                    settingsFetched().
+                                    receiveResponse();
+
                                 tester.iframe.atIndex(1).expectToBeHidden();
                             });
                             it('Получен запрос скачивание лога из софтфона. Лог скачен.', function() {
@@ -1286,6 +1324,11 @@ tests.addTest(options => {
                         function() {
                             tester.submoduleInitilizationEvent().receive();
                             tester.unreadMessagesCountSettingRequest().receive();
+                                
+                            tester.chatsVisibilitySettingRequest().
+                                settingsFetched().
+                                initialized().
+                                receiveResponse();
 
                             tester.widgetSettings().
                                 windowMessage().
@@ -1307,7 +1350,9 @@ tests.addTest(options => {
                             anotherSoftphoneWildcart().
                             receive();
 
-                        tester.chatsVisibilitySettingRequest().receiveResponse();
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            receiveResponse();
 
                         tester.notificationSettingRequest().
                             success().
@@ -1320,6 +1365,11 @@ tests.addTest(options => {
                         tester.submoduleInitilizationEvent().receive();
                         tester.unreadMessagesCountSettingRequest().receive();
 
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            initialized().
+                            receiveResponse();
+
                         tester.widgetSettings().
                             windowMessage().
                             chatsSettings().
@@ -1330,7 +1380,10 @@ tests.addTest(options => {
                     describe('Получен запрос отображения софтфона.', function() {
                         beforeEach(function() {
                             tester.toggleWidgetVisibilityRequest().receive();
-                            tester.popupStateSettingRequest().receiveResponse();
+
+                            tester.popupStateSettingRequest().
+                                showed().
+                                receiveResponse();
                         });
 
                         it('Получен запрос изменения состояния софтфона.', function() {
@@ -1341,9 +1394,14 @@ tests.addTest(options => {
                                 windowMessage().
                                 expectToBeSent();
 
+                            tester.popupStateSettingRequest().
+                                showed().
+                                initialized().
+                                receiveResponse();
+
                             tester.softphoneVisibilityToggleRequest().expectToBeSent();
                         });
-                        it('Отображен IFrame софтфона.', function() {
+                        it('IFrame софтфона существует.', function() {
                             tester.iframe.atIndex(1).expectAttributeToHaveValue(
                                 'src',
                                 'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/softphone',
@@ -1357,12 +1415,12 @@ tests.addTest(options => {
                     });
                     it('Получен запрос видимости. В ответ на запрос было отправлено текущее состояние.', function() {
                         tester.stateRequest().expectResponseToBeSent();
+                        tester.popupStateSettingRequest().receiveResponse();
 
-                        tester.popupStateSettingRequest().
-                            disabled().
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            initialized().
                             receiveResponse();
-
-                        tester.chatsVisibilitySettingRequest().receiveResponse();
                     });
                     it('Кнопка видимости не была добавлена.', function() {
                         tester.body.expectToHaveTextContent(
@@ -1394,14 +1452,24 @@ tests.addTest(options => {
                             rawPhone().
                             receive();
 
+                        tester.popupStateSettingRequest().
+                            settingsFetched().
+                            receiveResponse();
+
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            receiveResponse();
+
                         tester.notificationSettingRequest().
                             success().
                             expectToBeSent();
 
                         tester.stateSettingRequest().receive();
 
-                        tester.popupStateSettingRequest().receiveResponse();
-                        tester.chatsVisibilitySettingRequest().receiveResponse();
+                        tester.popupStateSettingRequest().
+                            settingsFetched().
+                            initialized().
+                            receiveResponse();
 
                         tester.widgetSettings().
                             rawPhone().
@@ -1414,6 +1482,11 @@ tests.addTest(options => {
 
                         tester.submoduleInitilizationEvent().receive();
                         tester.unreadMessagesCountSettingRequest().receive();
+
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            initialized().
+                            receiveResponse();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -1462,10 +1535,20 @@ tests.addTest(options => {
                                 success().
                                 expectToBeSent();
 
-                            tester.popupStateSettingRequest().receiveResponse();
-                            tester.chatsVisibilitySettingRequest().receiveResponse();
+                            tester.popupStateSettingRequest().
+                                settingsFetched().
+                                receiveResponse();
+
+                            tester.chatsVisibilitySettingRequest().
+                                settingsFetched().
+                                receiveResponse();
 
                             tester.stateSettingRequest().receive();
+
+                            tester.popupStateSettingRequest().
+                                settingsFetched().
+                                initialized().
+                                receiveResponse();
 
                             tester.widgetSettings().
                                 textSelectorRegExp().
@@ -1478,6 +1561,11 @@ tests.addTest(options => {
 
                             tester.submoduleInitilizationEvent().receive();
                             tester.unreadMessagesCountSettingRequest().receive();
+
+                            tester.chatsVisibilitySettingRequest().
+                                settingsFetched().
+                                initialized().
+                                receiveResponse();
 
                             tester.widgetSettings().
                                 windowMessage().
@@ -1548,14 +1636,24 @@ tests.addTest(options => {
                             insertHandlerAfterElement().
                             receive();
 
+                        tester.popupStateSettingRequest().
+                            settingsFetched().
+                            receiveResponse();
+
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            receiveResponse();
+
                         tester.notificationSettingRequest().
                             success().
                             expectToBeSent();
 
                         tester.stateSettingRequest().receive();
 
-                        tester.popupStateSettingRequest().receiveResponse();
-                        tester.chatsVisibilitySettingRequest().receiveResponse();
+                        tester.popupStateSettingRequest().
+                            settingsFetched().
+                            initialized().
+                            receiveResponse();
 
                         tester.widgetSettings().
                             textSelectorRegExp().
@@ -1569,6 +1667,11 @@ tests.addTest(options => {
 
                         tester.submoduleInitilizationEvent().receive();
                         tester.unreadMessagesCountSettingRequest().receive();
+
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            initialized().
+                            receiveResponse();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -1591,10 +1694,20 @@ tests.addTest(options => {
                             success().
                             expectToBeSent();
 
-                        tester.popupStateSettingRequest().receiveResponse();
-                        tester.chatsVisibilitySettingRequest().receiveResponse();
+                        tester.popupStateSettingRequest().
+                            settingsFetched().
+                            receiveResponse();
+
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            receiveResponse();
 
                         tester.stateSettingRequest().receive();
+
+                        tester.popupStateSettingRequest().
+                            settingsFetched().
+                            initialized().
+                            receiveResponse();
 
                         tester.widgetSettings().
                             insertAfter().
@@ -1618,9 +1731,7 @@ tests.addTest(options => {
                             noSettings().
                             expectToBeSent();
 
-                        tester.chatsVisibilitySettingRequest().
-                            disabled().
-                            receiveResponse();
+                        tester.chatsVisibilitySettingRequest().receiveResponse();
 
                         tester.body.expectToHaveTextContent(
                             'Первый элемент #1 ' +
@@ -1661,10 +1772,20 @@ tests.addTest(options => {
                         success().
                         expectToBeSent();
 
-                    tester.popupStateSettingRequest().receiveResponse();
-                    tester.chatsVisibilitySettingRequest().receiveResponse();
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        receiveResponse();
 
                     tester.stateSettingRequest().receive();
+
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
 
                     tester.widgetSettings().
                         windowMessage().
@@ -1678,6 +1799,11 @@ tests.addTest(options => {
                     tester.submoduleInitilizationEvent().receive();
                     tester.unreadMessagesCountSettingRequest().receive();
 
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
+
                     tester.widgetSettings().
                         windowMessage().
                         chatsSettings().
@@ -1686,6 +1812,8 @@ tests.addTest(options => {
                     tester.toggleChatsVisibilityRequest().expectResponseToBeSent();
 
                     tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        initialized().
                         visible().
                         receiveResponse();
 
@@ -1703,10 +1831,20 @@ tests.addTest(options => {
                         success().
                         expectToBeSent();
 
-                    tester.popupStateSettingRequest().receiveResponse();
-                    tester.chatsVisibilitySettingRequest().receiveResponse();
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        receiveResponse();
 
                     tester.stateSettingRequest().receive();
+
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
 
                     tester.widgetSettings().
                         windowMessage().
@@ -1719,6 +1857,11 @@ tests.addTest(options => {
                     tester.submoduleInitilizationEvent().receive();
                     tester.unreadMessagesCountSettingRequest().receive();
 
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
+
                     tester.widgetSettings().
                         windowMessage().
                         chatsSettings().
@@ -1728,6 +1871,8 @@ tests.addTest(options => {
                     tester.toggleChatsVisibilityRequest().expectResponseToBeSent();
 
                     tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        initialized().
                         visible().
                         receiveResponse();
 
@@ -1745,8 +1890,13 @@ tests.addTest(options => {
                         success().
                         expectToBeSent();
 
-                    tester.popupStateSettingRequest().receiveResponse();
-                    tester.chatsVisibilitySettingRequest().receiveResponse();
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        receiveResponse();
 
                     tester.stateSettingRequest().
                         userDataFetched().
@@ -1754,6 +1904,8 @@ tests.addTest(options => {
 
                     tester.popupStateSettingRequest().
                         userDataFetched().
+                        settingsFetched().
+                        initialized().
                         receiveResponse();
 
                     tester.widgetSettings().
@@ -1767,6 +1919,11 @@ tests.addTest(options => {
 
                     tester.submoduleInitilizationEvent().receive();
                     tester.unreadMessagesCountSettingRequest().receive();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
 
                     tester.widgetSettings().
                         anotherToken().
@@ -1787,14 +1944,24 @@ tests.addTest(options => {
                         insertBeforeNonExistingElement().
                         receive();
 
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
                     tester.notificationSettingRequest().
                         success().
                         expectToBeSent();
 
                     tester.stateSettingRequest().receive();
 
-                    tester.popupStateSettingRequest().receiveResponse();
-                    tester.chatsVisibilitySettingRequest().receiveResponse();
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
 
                     tester.widgetSettings().
                         insertBeforeNonExistingElement().
@@ -1822,14 +1989,24 @@ tests.addTest(options => {
                         insertAfterLastElement().
                         receive();
 
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
                     tester.notificationSettingRequest().
                         success().
                         expectToBeSent();
 
                     tester.stateSettingRequest().receive();
 
-                    tester.popupStateSettingRequest().receiveResponse();
-                    tester.chatsVisibilitySettingRequest().receiveResponse();
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
 
                     tester.widgetSettings().
                         insertAfterLastElement().
@@ -1851,11 +2028,20 @@ tests.addTest(options => {
                     );
                 });
                 it(
-                    'Кнопка видимости должна добавляться внутрь элемента. Кнопка видимости добавлена внурть элемента.',
+                    'Кнопка видимости должна добавляться внутрь элемента последней. Кнопка видимости добавлена ' +
+                    'внурть элемента последней.',
                 function() {
                     widgetSettings.
                         insertInto().
                         receive();
+
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        receiveResponse();
 
                     tester.notificationSettingRequest().
                         success().
@@ -1863,8 +2049,10 @@ tests.addTest(options => {
 
                     tester.stateSettingRequest().receive();
 
-                    tester.popupStateSettingRequest().receiveResponse();
-                    tester.chatsVisibilitySettingRequest().receiveResponse();
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
 
                     tester.widgetSettings().
                         insertInto().
@@ -1887,12 +2075,20 @@ tests.addTest(options => {
                     );
                 });
                 it(
-                    'Использую XPath для поиска элемента, перед которым нужно вставить кнопку видиомсти. Кнопка ' +
-                    'видимости вставлена.',
+                    'Кнопка видимости должна добавляться внутрь элемента. Кнопка видимости добавлена внурть элемента ' +
+                    'первой.',
                 function() {
                     widgetSettings.
-                        buttonElementXpath().
+                        prependChild().
                         receive();
+
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        receiveResponse();
 
                     tester.notificationSettingRequest().
                         success().
@@ -1900,8 +2096,57 @@ tests.addTest(options => {
 
                     tester.stateSettingRequest().receive();
 
-                    tester.popupStateSettingRequest().receiveResponse();
-                    tester.chatsVisibilitySettingRequest().receiveResponse();
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
+
+                    tester.widgetSettings().
+                        prependChild().
+                        windowMessage().
+                        expectToBeSent();
+
+                    tester.body.expectToHaveTextContent(
+                        'Трубочка ' +
+
+                        'Первый элемент #1 ' +
+                        'Некий элемент #1 ' +
+                        'Последний элемент #1 ' +
+
+                        'Телефон: 74951234568 ' +
+                        'Телефон: 74951234570 ' +
+                        'Номер телефона: +74951234572 (74951234571) ' +
+                        'Номер телефона: +74951234574 (74951234573) ' +
+                        '[+7 (495) 123-45-64] ' +
+                        '[+7 (495) 123-45-63]'
+                    );
+                });
+                it(
+                    'Использую XPath для поиска элемента, перед которым нужно вставить кнопку видиомсти. Кнопка ' +
+                    'видимости вставлена.',
+                function() {
+                    widgetSettings.
+                        buttonElementXpath().
+                        receive();
+
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.notificationSettingRequest().
+                        success().
+                        expectToBeSent();
+
+                    tester.stateSettingRequest().receive();
+
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
 
                     tester.widgetSettings().
                         buttonElementXpath().
@@ -1930,14 +2175,24 @@ tests.addTest(options => {
                         phoneListXpath().
                         receive();
 
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
                     tester.notificationSettingRequest().
                         success().
                         expectToBeSent();
 
                     tester.stateSettingRequest().receive();
 
-                    tester.popupStateSettingRequest().receiveResponse();
-                    tester.chatsVisibilitySettingRequest().receiveResponse();
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
 
                     tester.widgetSettings().
                         phoneListXpath().
@@ -1964,20 +2219,27 @@ tests.addTest(options => {
                         noPadding().
                         receive();
 
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
                     tester.notificationSettingRequest().
                         success().
                         expectToBeSent();
 
                     tester.notificationsClosingRequest().receive();
 
-                    tester.popupStateSettingRequest().receiveResponse();
-                    tester.chatsVisibilitySettingRequest().receiveResponse();
-
                     tester.stateSettingRequest().
                         visible().
                         receive();
 
                     tester.popupStateSettingRequest().
+                        settingsFetched().
+                        initialized().
                         visible().
                         receiveResponse();
 
@@ -1992,6 +2254,11 @@ tests.addTest(options => {
 
                     tester.submoduleInitilizationEvent().receive();
                     tester.unreadMessagesCountSettingRequest().receive();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
 
                     tester.widgetSettings().
                         windowMessage().
@@ -2047,7 +2314,9 @@ tests.addTest(options => {
                         anotherChatsWildcart().
                         receive();
 
-                    tester.popupStateSettingRequest().receiveResponse();
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        receiveResponse();
 
                     tester.notificationSettingRequest().
                         success().
@@ -2059,6 +2328,8 @@ tests.addTest(options => {
 
                     tester.popupStateSettingRequest().
                         userDataFetched().
+                        settingsFetched().
+                        initialized().
                         receiveResponse();
 
                     tester.notificationsClosingRequest().receive();
@@ -2095,8 +2366,13 @@ tests.addTest(options => {
                             success().
                             expectToBeSent();
 
-                        tester.popupStateSettingRequest().receiveResponse();
-                        tester.chatsVisibilitySettingRequest().receiveResponse();
+                        tester.popupStateSettingRequest().
+                            settingsFetched().
+                            receiveResponse();
+
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            receiveResponse();
 
                         tester.stateSettingRequest().
                             userDataFetched().
@@ -2104,6 +2380,8 @@ tests.addTest(options => {
 
                         tester.popupStateSettingRequest().
                             userDataFetched().
+                            settingsFetched().
+                            initialized().
                             receiveResponse();
 
                         tester.widgetSettings().
@@ -2120,6 +2398,11 @@ tests.addTest(options => {
                     it('Инициализирован субмодуль чатов. Было отправлено событие инициализации.', function() {
                         tester.submoduleInitilizationEvent().receive();
                         tester.unreadMessagesCountSettingRequest().receive();
+
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            initialized().
+                            receiveResponse();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -2231,163 +2514,215 @@ tests.addTest(options => {
                 tester.stateRequest().receiveResponse();
             });
             
-            describe('Получено имя сотрудника.', function() {
-                let popupStateSettingRequest;
-
+            describe('Настройки софтфона еще не получены.', function() {
                 beforeEach(function() {
-                    popupStateSettingRequest = tester.popupStateSettingRequest();
+                    tester.popupStateSettingRequest().expectResponseToBeSent();
                 });
 
-                describe('Софтон скрыт.', function() {
+                describe('Получены настройки софтфтона.', function() {
                     beforeEach(function() {
-                        popupStateSettingRequest.
-                            userDataFetched().
-                            expectResponseToBeSent();
-                    });
-
-                    describe('Чаты скрыты.', function() {
-                        beforeEach(function() {
-                            tester.chatsVisibilitySettingRequest().expectResponseToBeSent();
-                        });
-
-                        it('Нажимаю на кнопку чатов. Отправлен запрос отображения чатов.', function() {
-                            tester.switchButton('Показать чаты').click();
-
-                            tester.chrome.
-                                permissions.
-                                nextRequest().
-                                grant();
-
-                            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-                            tester.toggleChatsVisibilityRequest().expectToBeSent();
-                        });
-                        it('Кнопка чатов не нажата.', function() {
-                            tester.switchButton('Показать чаты').expectNotToBeChecked();
-                        });
-                    });
-                    describe('Получено сообщение о безуспешной попытке получить настройки.', function() {
-                        beforeEach(function() {
-                            tester.widgetSettings().
-                                failedToGetSettings().
-                                storageData().
-                                receive();
-                        });
-
-                        it('Получены настройки. Сообщение об ошибке скрыто.', function() {
-                            tester.widgetSettings().
-                                anotherTime().
-                                storageData().
-                                receive();
-                            
-                            tester.body.expectTextContentNotToHaveSubstring('Не удалось получить настройки');
-                        });
-                        it('Отображено сообщение об ошибке.', function() {
-                            tester.body.expectTextContentToHaveSubstring('Не удалось получить настройки');
-
-                            tester.widgetSettings().
-                                storageData().
-                                expectToBeSaved();
-                        });
-                    });
-                    it('Чаты видимы. Кнопка чатов нажата.', function() {
-                        tester.chatsVisibilitySettingRequest().
-                            visible().
-                            expectResponseToBeSent();
-
-                        tester.switchButton('Показать чаты').expectToBeChecked();
-                    });
-                    it('Нажимаю на кнопку выхода. Отправлен запрос выхода.', function() {
-                        tester.popupLogoutButton.click();
-                        tester.logoutRequest().receiveResponse();
-                    });
-                    it('Нажимаю на кнопку "Обновить настройки". Настройки обновлены.', function() {
-                        tester.refreshButton.click();
-                        tester.installmentSettingsUpdatingRequest().expectToBeSent();
-                    });
-                    it('Настройки загружаются. Кнопки заблокированы.', function() {
-                        tester.widgetSettings().
-                            storageData().
-                            settingsLoading().
-                            receive();
-
-                        tester.popupLogoutButton.expectToHaveAttribute('disabled');
-                        tester.switchButton('Показать софтфон').expectToBeDisabled();
-                        tester.refreshButton.expectToHaveAttribute('disabled');
-                    });
-                    it('Кнопка входа скрыта.', function() {
-                        tester.button('Войти').expectNotToExist();
-                        tester.switchButton('Показать софтфон').expectNotToBeChecked();
-
-                        tester.body.expectTextContentToHaveSubstring('Ганева Стефка');
-                    });
-                });
-                describe('Софтфон видим.', function() {
-                    beforeEach(function() {
-                        popupStateSettingRequest.
-                            visible().
-                            expectResponseToBeSent();
-                    });
-
-                    it('Нажимаю на кнопку "Показать софтфон". Отправлен запрос изменения видимости.', function() {
-                        tester.switchButton('Показать софтфон').click();
-
-                        tester.chrome.
-                            permissions.
-                            nextRequest().
-                            grant();
-
-                        tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-                        tester.toggleWidgetVisibilityRequest().receiveResponse();
-
-                        tester.switchButton('Показать софтфон').expectToBeEnabled();
-                    });
-                    it('Кнопка "Показать софтфон" отмечена.', function() {
-                        tester.switchButton('Показать софтфон').expectToBeChecked();
-                        tester.switchButton('Показать чаты').expectNotToBeChecked();
-                    });
-                });
-                describe('Софтфон отсутствует. Нажимаю на кнопку видимости софтфона.', function() {
-                    beforeEach(function() {
-                        popupStateSettingRequest.
-                            disabled().
-                            expectResponseToBeSent();
-
-                        tester.switchButton('Показать софтфон').click();
-
-                        tester.chrome.
-                            permissions.
-                            nextRequest().
-                            grant();
-
-                        tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-                        tester.toggleWidgetVisibilityRequest().receiveResponse();
-                    });
-
-                    it('Получено сообщение о видимости софтфона. Кнопка видимости софтфона доступна.', function() {
                         tester.popupStateSettingRequest().
-                            visible().
+                            settingsFetched().
                             expectResponseToBeSent();
+                    });
 
-                        tester.switchButton('Показать софтфон').expectToBeEnabled();
+                    describe('Софтфон инициализирован.', function() {
+                        beforeEach(function() {
+                            tester.popupStateSettingRequest().
+                                settingsFetched().
+                                initialized().
+                                expectResponseToBeSent();
+                        });
+
+                        describe('Получено имя сотрудника.', function() {
+                            let popupStateSettingRequest;
+
+                            beforeEach(function() {
+                                popupStateSettingRequest = tester.popupStateSettingRequest().
+                                    settingsFetched().
+                                    initialized();
+                            });
+
+                            describe('Софтон скрыт.', function() {
+                                beforeEach(function() {
+                                    popupStateSettingRequest.
+                                        userDataFetched().
+                                        expectResponseToBeSent();
+                                });
+
+                                describe('Чаты скрыты.', function() {
+                                    beforeEach(function() {
+                                        tester.chatsVisibilitySettingRequest().
+                                            settingsFetched().
+                                            initialized().
+                                            expectResponseToBeSent();
+                                    });
+
+                                    it('Нажимаю на кнопку чатов. Отправлен запрос отображения чатов.', function() {
+                                        tester.switchButton('Показать чаты').click();
+
+                                        tester.chrome.
+                                            permissions.
+                                            nextRequest().
+                                            grant();
+
+                                        tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+                                        tester.toggleChatsVisibilityRequest().expectToBeSent();
+                                    });
+                                    it('Кнопка чатов не нажата.', function() {
+                                        tester.switchButton('Показать чаты').expectNotToBeChecked();
+                                    });
+                                });
+                                describe('Получено сообщение о безуспешной попытке получить настройки.', function() {
+                                    beforeEach(function() {
+                                        tester.widgetSettings().
+                                            failedToGetSettings().
+                                            storageData().
+                                            receive();
+                                    });
+
+                                    it('Получены настройки. Сообщение об ошибке скрыто.', function() {
+                                        tester.widgetSettings().
+                                            anotherTime().
+                                            storageData().
+                                            receive();
+                                        
+                                        tester.body.expectTextContentNotToHaveSubstring(
+                                            'Не удалось получить настройки'
+                                        );
+                                    });
+                                    it('Отображено сообщение об ошибке.', function() {
+                                        tester.body.expectTextContentToHaveSubstring('Не удалось получить настройки');
+
+                                        tester.widgetSettings().
+                                            storageData().
+                                            expectToBeSaved();
+                                    });
+                                });
+                                it('Чаты видимы. Кнопка чатов нажата.', function() {
+                                    tester.chatsVisibilitySettingRequest().
+                                        settingsFetched().
+                                        initialized().
+                                        visible().
+                                        expectResponseToBeSent();
+
+                                    tester.switchButton('Показать чаты').expectToBeChecked();
+                                });
+                                it('Нажимаю на кнопку выхода. Отправлен запрос выхода.', function() {
+                                    tester.popupLogoutButton.click();
+                                    tester.logoutRequest().receiveResponse();
+                                });
+                                it('Нажимаю на кнопку "Обновить настройки". Настройки обновлены.', function() {
+                                    tester.refreshButton.click();
+                                    tester.installmentSettingsUpdatingRequest().expectToBeSent();
+                                });
+                                it('Настройки загружаются. Кнопки заблокированы.', function() {
+                                    tester.widgetSettings().
+                                        storageData().
+                                        settingsLoading().
+                                        receive();
+
+                                    tester.popupLogoutButton.expectToHaveAttribute('disabled');
+                                    tester.switchButton('Показать софтфон').expectToBeDisabled();
+                                    tester.refreshButton.expectToHaveAttribute('disabled');
+                                });
+                                it('Кнопка входа скрыта.', function() {
+                                    tester.button('Войти').expectNotToExist();
+                                    tester.switchButton('Показать софтфон').expectNotToBeChecked();
+
+                                    tester.body.expectTextContentToHaveSubstring('Ганева Стефка');
+                                });
+                            });
+                            describe('Софтфон видим.', function() {
+                                beforeEach(function() {
+                                    popupStateSettingRequest.
+                                        visible().
+                                        expectResponseToBeSent();
+                                });
+
+                                it(
+                                    'Нажимаю на кнопку "Показать софтфон". Отправлен запрос изменения видимости.',
+                                function() {
+                                    tester.switchButton('Показать софтфон').click();
+
+                                    tester.chrome.
+                                        permissions.
+                                        nextRequest().
+                                        grant();
+
+                                    tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+                                    tester.toggleWidgetVisibilityRequest().receiveResponse();
+
+                                    tester.switchButton('Показать софтфон').expectToBeEnabled();
+                                });
+                                it('Кнопка "Показать софтфон" отмечена.', function() {
+                                    tester.switchButton('Показать софтфон').expectToBeChecked();
+                                    tester.switchButton('Показать чаты').expectNotToBeChecked();
+                                });
+                            });
+                            it('Получено длинное имя. Отображено имя.', function() {
+                                popupStateSettingRequest.
+                                    longName().
+                                    expectResponseToBeSent();
+
+                                tester.body.expectTextContentToHaveSubstring(
+                                    'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна'
+                                );
+                            });
+                        });
+                        it('Кнопка видимости софтфона доступна.', function() {
+                            tester.switchButton('Показать софтфон').expectToBeEnabled();
+                        });
                     });
                     it('Кнопка видимости софтфона заблокирована.', function() {
                         tester.switchButton('Показать софтфон').expectToBeDisabled();
                     });
                 });
-                it('Получено длинное имя. Отображено имя.', function() {
-                    popupStateSettingRequest.
-                        longName().
-                        expectResponseToBeSent();
+                describe('Софтфон был принудитльно показан.', function() {
+                    beforeEach(function() {
+                        tester.popupStateSettingRequest().
+                            showed().
+                            expectResponseToBeSent();
+                    });
 
-                    tester.body.expectTextContentToHaveSubstring(
-                        'Кобыла и трупоглазые жабы искали цезию, нашли поздно утром свистящего хна'
-                    );
+                    describe('Получены настройки софтфтона.', function() {
+                        beforeEach(function() {
+                            tester.popupStateSettingRequest().
+                                showed().
+                                settingsFetched().
+                                expectResponseToBeSent();
+                        });
+
+                        describe('Софтфон инициализирован.', function() {
+                            beforeEach(function() {
+                                tester.popupStateSettingRequest().
+                                    showed().
+                                    settingsFetched().
+                                    initialized().
+                                    expectResponseToBeSent();
+                            });
+
+                            it('Кнопка видимости софтфона доступна.', function() {
+                                tester.switchButton('Показать софтфон').expectToBeEnabled();
+                            });
+                        });
+
+                        it('Кнопка видимости софтфона доступна.', function() {
+                            tester.switchButton('Показать софтфон').expectToBeDisabled();
+                        });
+                    });
+                    it('Кнопка видимости софтфона заблокирована.', function() {
+                        tester.switchButton('Показать софтфон').expectToBeDisabled();
+                    });
+                });
+                it('Кнопка видимости софтфона доступна.', function() {
+                    tester.switchButton('Показать софтфон').expectToBeEnabled();
                 });
             });
             it('Отображён логин авторизованного пользователя.', function() {
                 tester.body.expectTextContentToHaveSubstring('bitrixtest');
-                tester.switchButton('Показать чаты').expectToBeVisible();
-                tester.switchButton('Показать софтфон').expectToBeVisible();
+                tester.switchButton('Показать чаты').expectToBeDisabled();
+                tester.switchButton('Показать софтфон').expectToBeDisabled();
                 tester.body.expectTextContentNotToHaveSubstring('Вы не авторизованы');
             });
         });
@@ -3830,8 +4165,8 @@ tests.addTest(options => {
                                                 contacts().
                                                 expectToBeSent();
 
-                                            tester.visitorCardRequest().receiveResponse();
                                             tester.scheduledMessagesRequest().receiveResponse();
+                                            tester.visitorCardRequest().receiveResponse();
                                             tester.chatInfoRequest().receiveResponse();
 
                                             tester.usersRequest().
@@ -4079,8 +4414,8 @@ tests.addTest(options => {
                                             contacts().
                                             expectToBeSent();
 
-                                        tester.visitorCardRequest().receiveResponse();
                                         tester.scheduledMessagesRequest().receiveResponse();
+                                        tester.visitorCardRequest().receiveResponse();
                                         tester.chatInfoRequest().receiveResponse();
 
                                         tester.usersRequest().
@@ -4149,12 +4484,11 @@ tests.addTest(options => {
                                     click().
                                     receive();
 
-                                tester.visitorCardRequest().receiveResponse();
-
                                 tester.scheduledMessagesRequest().
                                     anotherChat().
                                     receiveResponse();
 
+                                tester.visitorCardRequest().receiveResponse();
                                 tester.messageListRequest().receiveResponse();
 
                                 tester.chatInfoRequest().
@@ -4203,12 +4537,11 @@ tests.addTest(options => {
                                     contacts().
                                     expectToBeSent();
 
-                                tester.visitorCardRequest().receiveResponse();
-
                                 tester.scheduledMessagesRequest().
                                     anotherChat().
                                     receiveResponse();
 
+                                tester.visitorCardRequest().receiveResponse();
                                 tester.messageListRequest().receiveResponse();
 
                                 tester.chatInfoRequest().
@@ -4300,12 +4633,11 @@ tests.addTest(options => {
                             contacts().
                             expectToBeSent();
 
-                        tester.visitorCardRequest().receiveResponse();
-
                         tester.scheduledMessagesRequest().
                             anotherChat().
                             receiveResponse();
 
+                        tester.visitorCardRequest().receiveResponse();
                         tester.messageListRequest().receiveResponse();
 
                         tester.chatInfoRequest().
@@ -4577,25 +4909,28 @@ tests.addTest(options => {
 
                 tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
 
-                tester.popupStateSettingRequest().
-                    disabled().
-                    receiveResponse();
+                tester.popupStateSettingRequest().receiveResponse(); 
+                tester.chatsVisibilitySettingRequest().receiveResponse();
 
-                tester.chatsVisibilitySettingRequest().
-                    disabled().
-                    receiveResponse();
+                tester.missedEventsCountSettingRequest().receiveResponse();
 
                 tester.widgetSettings().
                     storageData().
                     receive();
 
+                tester.popupStateSettingRequest().
+                    settingsFetched().
+                    receiveResponse();
+
+                tester.chatsVisibilitySettingRequest().
+                    settingsFetched().
+                    receiveResponse();
+
                 tester.notificationSettingRequest().
                     success().
                     expectToBeSent();
 
-                tester.missedEventsCountSettingRequest().receiveResponse();
-                tester.popupStateSettingRequest().receiveResponse();
-                tester.chatsVisibilitySettingRequest().receiveResponse();
+                tester.notificationsClosingRequest().receive();
 
                 tester.stateSettingRequest().
                     userDataFetched().
@@ -4603,6 +4938,8 @@ tests.addTest(options => {
 
                 tester.popupStateSettingRequest().
                     userDataFetched().
+                    settingsFetched().
+                    initialized().
                     receiveResponse();
 
                 tester.widgetSettings().
@@ -4615,6 +4952,11 @@ tests.addTest(options => {
 
                 tester.submoduleInitilizationEvent().receive();
                 tester.unreadMessagesCountSettingRequest().receive();
+
+                tester.chatsVisibilitySettingRequest().
+                    settingsFetched().
+                    initialized().
+                    receiveResponse();
 
                 tester.channelsSearchingRequest().expectToBeSent();
 
@@ -4834,6 +5176,8 @@ tests.addTest(options => {
                     tester.chatListOpeningRequest().expectToBeSent();
 
                     tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        initialized().
                         visible().
                         receiveResponse();
 
@@ -4869,6 +5213,18 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        initialized().
+                        visible().
+                        receiveResponse();
+                });
+                it('Получен запрос открытия чата. Отправлен запрос открытия чата.', function() {
+                    tester.chatOpeningRequest().receive();
+                    tester.chatOpeningRequest().expectToBeSent();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        initialized().
                         visible().
                         receiveResponse();
                 });
@@ -5083,6 +5439,22 @@ tests.addTest(options => {
                             receive();
                     });
 
+                    it('Сообщение об инициализации чатов получено повторно. Отображён список каналов.', function() {
+                        tester.initializednessEvent().
+                            chats().
+                            receive();
+
+                        tester.body.expectTextContentToHaveSubstring(
+                            'Каналы связанные с телефоном 74951234575: ' +
+
+                                'Канал "Нижний Новгород" ' +
+                                'Канал "Белгород" ' +
+
+                            'Каналы связанные с телефоном 74951234576: ' +
+
+                                'Канал "Ереван"'
+                        );
+                    });
                     it('Нажимаю на кнопку канала. Отправлен запрос открытия чата.', function() {
                         tester.channelButton.first.click();
 
@@ -5123,6 +5495,64 @@ tests.addTest(options => {
                         'Номер телефона: +74951234574 (74951234573) ' +
                         '[+7 (495) 123-45-64] ' +
                         '[+7 (495) 123-45-63] ' +
+                        '74951234575 ' +
+                        '74951234576'
+                    );
+                });
+            });
+            describe('Получены сообщения об инициализации софтфона и чатов.', function() {
+                beforeEach(function() {
+                    tester.initializednessEvent().receive();
+
+                    tester.initializednessEvent().
+                        chats().
+                        receive();
+                });
+                
+                it('Получены настройки. Отображён список каналов.', function() {
+                    widgetSettings.receive();
+                    tester.nestedContentScriptRegistrationRequest().receiveResponse();
+
+                    tester.channelsSearchingRequest().expectToBeSent();
+
+                    tester.channelsSearchingRequest().
+                        anotherPhone().
+                        expectToBeSent();
+
+                    tester.channelsSearchingResponse().
+                        addChannel().
+                        receive();
+
+                    tester.channelsSearchingResponse().
+                        anotherChannel().
+                        receive();
+
+                    tester.body.expectTextContentToHaveSubstring(
+                        'Каналы связанные с телефоном 74951234575: ' +
+
+                            'Канал "Нижний Новгород" ' +
+                            'Канал "Белгород" ' +
+
+                        'Каналы связанные с телефоном 74951234576: ' +
+
+                            'Канал "Ереван"'
+                    );
+                });
+                it('Кнопки чатов не были добавлены.', function() {
+                    tester.body.expectToHaveTextContent(
+                        'Первый элемент #1 ' +
+                        'Некий элемент #1 ' +
+                        'Последний элемент #1 ' +
+                        'Ещё один элемент #1 ' +
+
+                        '+74951234568 ' +
+                        '+74951234570 ' +
+                        '+74951234572 ' +
+                        '+74951234574 ' +
+
+                        '[+7 (495) 123-45-64] ' +
+                        '[+7 (495) 123-45-63] ' +
+
                         '74951234575 ' +
                         '74951234576'
                     );
@@ -5208,19 +5638,25 @@ tests.addTest(options => {
 
                 tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
 
-                tester.popupStateSettingRequest().
-                    disabled().
-                    receiveResponse();
-
-                tester.chatsVisibilitySettingRequest().
-                    disabled().
-                    receiveResponse();
-
-                tester.missedEventsCountSettingRequest().receiveResponse();
                 tester.popupStateSettingRequest().receiveResponse();
                 tester.chatsVisibilitySettingRequest().receiveResponse();
 
+                tester.missedEventsCountSettingRequest().receiveResponse();
+
+                tester.popupStateSettingRequest().
+                    settingsFetched().
+                    receiveResponse();
+
+                tester.chatsVisibilitySettingRequest().
+                    settingsFetched().
+                    receiveResponse();
+
                 tester.stateSettingRequest().receive();
+
+                tester.popupStateSettingRequest().
+                    settingsFetched().
+                    initialized().
+                    receiveResponse();
 
                 tester.widgetSettings().
                     windowMessage().
@@ -5232,6 +5668,11 @@ tests.addTest(options => {
 
                 tester.submoduleInitilizationEvent().receive();
                 tester.unreadMessagesCountSettingRequest().receive();
+
+                tester.chatsVisibilitySettingRequest().
+                    settingsFetched().
+                    initialized().
+                    receiveResponse();
 
                 tester.widgetSettings().
                     windowMessage().
@@ -5260,19 +5701,34 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.popupStateSettingRequest().
-                    disabled().
+                    initialized().
                     receiveResponse();
 
                 tester.chatsVisibilitySettingRequest().
-                    disabled().
+                    initialized().
                     receiveResponse();
 
                 tester.widgetSettings().
                     storageData().
                     receive();
 
-                tester.popupStateSettingRequest().receiveResponse();
-                tester.chatsVisibilitySettingRequest().receiveResponse();
+                tester.popupStateSettingRequest().
+                    initialized().
+                    settingsFetched().
+                    receiveResponse();
+
+                tester.chatsVisibilitySettingRequest().
+                    initialized().
+                    settingsFetched().
+                    receiveResponse();
+
+                tester.chatsVisibilitySettingRequest().
+                    settingsFetched().
+                    receiveResponse();
+
+                tester.popupStateSettingRequest().
+                    settingsFetched().
+                    receiveResponse();
 
                 tester.notificationSettingRequest().
                     success().
@@ -5422,15 +5878,31 @@ tests.addTest(options => {
                 recentNotification();
 
             tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-            tester.popupStateSettingRequest().receiveResponse();
 
-            tester.chatsVisibilitySettingRequest().
-                disabled().
+            tester.popupStateSettingRequest().
+                showed().
                 receiveResponse();
 
-            tester.missedEventsCountSettingRequest().receiveResponse();
             tester.chatsVisibilitySettingRequest().receiveResponse();
+
+            tester.missedEventsCountSettingRequest().receiveResponse();
+
+            tester.popupStateSettingRequest().
+                showed().
+                settingsFetched().
+                receiveResponse();
+
+            tester.chatsVisibilitySettingRequest().
+                settingsFetched().
+                receiveResponse();
+
             tester.stateSettingRequest().receive();
+
+            tester.popupStateSettingRequest().
+                showed().
+                settingsFetched().
+                initialized().
+                receiveResponse();
 
             tester.widgetSettings().
                 windowMessage().
@@ -5443,6 +5915,11 @@ tests.addTest(options => {
             tester.submoduleInitilizationEvent().receive();
             tester.unreadMessagesCountSettingRequest().receive();
 
+            tester.chatsVisibilitySettingRequest().
+                settingsFetched().
+                initialized().
+                receiveResponse();
+
             tester.softphoneVisibilityToggleRequest().expectToBeSent();
 
             tester.widgetSettings().
@@ -5450,7 +5927,7 @@ tests.addTest(options => {
                 chatsSettings().
                 expectToBeSent();
         });
-        it('Открываю страницу с расширением в amoCRM. Добавлены кнопки каналов.', function() {
+        it('Открываю страницу с расширением UIS в amoCRM. Добавлены кнопки каналов.', function() {
             tester = new Tester({
                 softphoneHost: 'my.uiscom.ru',
                 isAuthorized: true,
@@ -5464,19 +5941,25 @@ tests.addTest(options => {
 
             tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
 
-            tester.popupStateSettingRequest().
-                disabled().
-                receiveResponse();
-
-            tester.chatsVisibilitySettingRequest().
-                disabled().
-                receiveResponse();
-
-            tester.missedEventsCountSettingRequest().receiveResponse();
             tester.popupStateSettingRequest().receiveResponse();
             tester.chatsVisibilitySettingRequest().receiveResponse();
 
+            tester.missedEventsCountSettingRequest().receiveResponse();
+
+            tester.popupStateSettingRequest().
+                settingsFetched().
+                receiveResponse();
+
+            tester.chatsVisibilitySettingRequest().
+                settingsFetched().
+                receiveResponse();
+
             tester.stateSettingRequest().receive();
+
+            tester.popupStateSettingRequest().
+                settingsFetched().
+                initialized().
+                receiveResponse();
 
             tester.widgetSettings().
                 windowMessage().
@@ -5488,6 +5971,11 @@ tests.addTest(options => {
 
             tester.submoduleInitilizationEvent().receive();
             tester.unreadMessagesCountSettingRequest().receive();
+
+            tester.chatsVisibilitySettingRequest().
+                settingsFetched().
+                initialized().
+                receiveResponse();
 
             tester.channelsSearchingRequest().expectToBeSent();
 
@@ -5503,6 +5991,105 @@ tests.addTest(options => {
                 windowMessage().
                 chatsSettings().
                 amocrmExtension().
+                expectToBeSent();
+
+            tester.channelsSearchingResponse().
+                addChannel().
+                addThirdChannel().
+                receive();
+
+            tester.channelsSearchingResponse().
+                email().
+                receive();
+
+            tester.channelsSearchingResponse().
+                anotherChannel().
+                addFourthChannel().
+                receive();
+
+            tester.unreadMessagesCountSettingRequest().
+                value(75).
+                receive();
+
+            tester.missedEventsCountSettingRequest().
+                value(75).
+                receiveResponse();
+
+            tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                'Александр Аншаков' ,
+
+                'a.anshakov@comagic.dev Сантьяго ' +
+                '74951234576 Ереван ' +
+                '74951234576 Буэнос‑Айрес ' +
+                '74951234575 Нижний Новгород ' +
+                '74951234575 Белгород ' +
+                '74951234575 Астана'
+            );
+        });
+        it('Открываю страницу с расширением CallGear в amoCRM. Добавлены кнопки каналов.', function() {
+            tester = new Tester({
+                softphoneHost: 'my.uiscom.ru',
+                isAuthorized: true,
+                renderAmocrmCallgearLead: true,
+                ...options,
+            });
+
+            notificationTester.
+                grantPermission().
+                recentNotification();
+
+            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+
+            tester.popupStateSettingRequest().receiveResponse();
+            tester.chatsVisibilitySettingRequest().receiveResponse();
+
+            tester.missedEventsCountSettingRequest().receiveResponse();
+
+            tester.popupStateSettingRequest().
+                settingsFetched().
+                receiveResponse();
+
+            tester.chatsVisibilitySettingRequest().
+                settingsFetched().
+                receiveResponse();
+
+            tester.stateSettingRequest().receive();
+
+            tester.popupStateSettingRequest().
+                settingsFetched().
+                initialized().
+                receiveResponse();
+
+            tester.widgetSettings().
+                windowMessage().
+                expectToBeSent();
+
+            tester.submoduleInitilizationEvent().
+                operatorWorkplace().
+                receive();
+
+            tester.submoduleInitilizationEvent().receive();
+            tester.unreadMessagesCountSettingRequest().receive();
+
+            tester.chatsVisibilitySettingRequest().
+                settingsFetched().
+                initialized().
+                receiveResponse();
+
+            tester.channelsSearchingRequest().expectToBeSent();
+
+            tester.channelsSearchingRequest().
+                anotherPhone().
+                expectToBeSent();
+
+            tester.channelsSearchingRequest().
+                email().
+                expectToBeSent();
+
+            tester.widgetSettings().
+                windowMessage().
+                chatsSettings().
+                amocrmCallGearExtension().
                 expectToBeSent();
 
             tester.channelsSearchingResponse().

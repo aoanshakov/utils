@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0579dd31..24ceafce 100644
+index 0579dd31..08d5d23a 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -208,7 +208,7 @@ index 0579dd31..24ceafce 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -352,17 +425,166 @@ module.exports = {
+@@ -352,17 +425,169 @@ module.exports = {
                      },
                  ],
              },
@@ -260,8 +260,10 @@ index 0579dd31..24ceafce 100644
 +            'contacts/ContactSelect':
 +                `${miscDirectory}/contacts/src/components/contact-bar/start-channel-select/ContactSelectWrapper.tsx`,
 +            'contacts/ContactSettings': `${miscDirectory}/contacts/src/components/settings`,
++            'contacts/ContactList': 'contacts/src/components/contact-list-table',
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'leadgen/TemplatesSettings': `${miscDirectory}/Stub.js`,
++            'softphone/NewSoftphone': 'softphone/src/NewSoftphone.tsx',
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
 +            'softphone/AccountHeader': 'softphone/src/AccountHeader.tsx',
@@ -284,6 +286,7 @@ index 0579dd31..24ceafce 100644
 +            'chats/Counter': 'chats/src/components/chats/chat-panel/Counter.tsx',
 +            'chats/MenuItemCounter': 'chats/src/components/main/menu/counter.tsx',
 +            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,
++            'chats/ContactSelect': 'chats/src/components/chats/channel-search/start-channel-select/ContactSelectWrapped.tsx',
 +            'callTracking/CalltrackingSubstitutionControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingTrafficControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
@@ -541,10 +544,10 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 32137f8d..3283a63c 100644
+index 32137f8d..258a9dda 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,13 +1,17 @@
+@@ -1,13 +1,18 @@
 -import { CoreProvider } from '@comagic/core';
 +import { CoreProvider, eventBus } from '@comagic/core';
  import * as Sentry from '@sentry/react';
@@ -558,13 +561,14 @@ index 32137f8d..3283a63c 100644
 +import { notification, Modal } from 'magic-ui';
 +import { notification as newNotification } from '@comagic/ui';
 +import createIconFactory from '@/utils/createIcon';
++import { Provider as SoftphoneModeProvider } from '@/components/main/menu/softphone/index';
  
 -import { Provider, rootStore } from '@models/RootStore';
 +import { Provider, rootStore, createRootStore } from '@models/RootStore';
  
  import history from '@/history';
  
-@@ -15,7 +19,7 @@ import App, { Props } from './App';
+@@ -15,7 +20,7 @@ import App, { Props } from './App';
  import './global';
  import { getIntlLocale, getIntlMessages, getProject } from './i18n';
  
@@ -573,16 +577,18 @@ index 32137f8d..3283a63c 100644
  
  if (sentryDSN) {
      Sentry.init({
-@@ -48,7 +52,7 @@ if (sentryDSN) {
+@@ -47,8 +52,8 @@ if (sentryDSN) {
+     });
  }
  
- const Root: React.FC<Props> = observer(props => {
+-const Root: React.FC<Props> = observer(props => {
 -    const { accountStore, notificationStore, isGodMode } = rootStore;
++const Root: React.FC<Props> = observer(({ shouldShowNewSoftphone, ...props }) => {
 +    const { accountStore, notificationStore, isGodMode, authStore } = rootStore;
      const {
          projectData: { locale },
      } = accountStore;
-@@ -63,6 +67,7 @@ const Root: React.FC<Props> = observer(props => {
+@@ -63,23 +68,122 @@ const Root: React.FC<Props> = observer(props => {
          <HistoryRouter history={history}>
              <CoreProvider
                  isHostApp
@@ -590,7 +596,24 @@ index 32137f8d..3283a63c 100644
                  isGodMode={isGodMode}
                  accountStore={accountStore}
                  locale={locale}
-@@ -80,6 +85,101 @@ const Root: React.FC<Props> = observer(props => {
+                 history={history}
+                 notificationStore={notificationStore}
+             >
+-                <Provider value={rootStore}>
+-                    <IntlProvider locale={getIntlLocale(locale)} messages={getIntlMessages(locale)}>
+-                        <App {...(props || {})} />
+-                    </IntlProvider>
+-                </Provider>
++                <SoftphoneModeProvider value={shouldShowNewSoftphone}>
++                    <Provider value={rootStore}>
++                        <IntlProvider locale={getIntlLocale(locale)} messages={getIntlMessages(locale)}>
++                            <App {...(props || {})} />
++                        </IntlProvider>
++                    </Provider>
++                </SoftphoneModeProvider>
+             </CoreProvider>
+         </HistoryRouter>
+     );
  });
  
  const container = document.getElementById('root');
@@ -655,7 +678,8 @@ index 32137f8d..3283a63c 100644
 +        setChatsRootStore = () => null,
 +        setNotification = () => null,
 +        setModal = () => null,
-+        appName = ''
++        appName = '',
++        shouldShowNewSoftphone = false,
 +    }) {
 +        const Unit = units[appName];
 +
@@ -680,7 +704,7 @@ index 32137f8d..3283a63c 100644
 +        document.body.appendChild(container);
 +
 +        root = createRoot(container);
-+        root.render(Unit ? <TestBody><Unit /></TestBody> : <Root appName={appName} />);
++        root.render(Unit ? <TestBody><Unit /></TestBody> : <Root {...{ appName, shouldShowNewSoftphone }} />);
 +    },
 +
 +    exit() {
@@ -695,7 +719,7 @@ index 32137f8d..3283a63c 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 8ae6e87b..2c023818 100644
+index 8ae6e87b..3f403b14 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -5,6 +5,7 @@ import * as fileSaver from 'file-saver';
@@ -885,15 +909,19 @@ index 8ae6e87b..2c023818 100644
              setUpdateReceived = (value: boolean) => (self.isUpdateReceived = !!value),
              setCredentials = (value: Array<CredentialsSnapshot>) => (self.credentials = cast(value));
  
-@@ -465,6 +497,7 @@ export const RootStore = types
+@@ -465,6 +497,11 @@ export const RootStore = types
              handleLogsCollected,
              toggleSoftphoneVisiblity,
              setSoftphoneVisiblity,
 +            updateWindowHeight,
++            log: (messages: Array<any>) => {
++                console.log('LOGGGG', messages);
++                logger.log(messages);
++            },
          };
      });
  
-@@ -475,7 +508,8 @@ export type DependencyInjection = {
+@@ -475,7 +512,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;
