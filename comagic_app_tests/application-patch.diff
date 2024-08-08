@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0579dd31..08d5d23a 100644
+index 0579dd31..c2d71542 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -208,7 +208,7 @@ index 0579dd31..08d5d23a 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -352,17 +425,169 @@ module.exports = {
+@@ -352,17 +425,170 @@ module.exports = {
                      },
                  ],
              },
@@ -261,6 +261,7 @@ index 0579dd31..08d5d23a 100644
 +                `${miscDirectory}/contacts/src/components/contact-bar/start-channel-select/ContactSelectWrapper.tsx`,
 +            'contacts/ContactSettings': `${miscDirectory}/contacts/src/components/settings`,
 +            'contacts/ContactList': 'contacts/src/components/contact-list-table',
++            'contacts/ContactListNew': 'contacts/src/components/contact-list',
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'leadgen/TemplatesSettings': `${miscDirectory}/Stub.js`,
 +            'softphone/NewSoftphone': 'softphone/src/NewSoftphone.tsx',
@@ -719,7 +720,7 @@ index 32137f8d..258a9dda 100644
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 8ae6e87b..3f403b14 100644
+index 8ae6e87b..538d9eec 100644
 --- a/src/models/RootStore.ts
 +++ b/src/models/RootStore.ts
 @@ -5,6 +5,7 @@ import * as fileSaver from 'file-saver';
@@ -909,19 +910,16 @@ index 8ae6e87b..3f403b14 100644
              setUpdateReceived = (value: boolean) => (self.isUpdateReceived = !!value),
              setCredentials = (value: Array<CredentialsSnapshot>) => (self.credentials = cast(value));
  
-@@ -465,6 +497,11 @@ export const RootStore = types
+@@ -465,6 +497,8 @@ export const RootStore = types
              handleLogsCollected,
              toggleSoftphoneVisiblity,
              setSoftphoneVisiblity,
 +            updateWindowHeight,
-+            log: (messages: Array<any>) => {
-+                console.log('LOGGGG', messages);
-+                logger.log(messages);
-+            },
++            log: (messages: Array<any>) => logger.log(messages),
          };
      });
  
-@@ -475,7 +512,8 @@ export type DependencyInjection = {
+@@ -475,7 +509,8 @@ export type DependencyInjection = {
  export type RootInstance = Instance<typeof RootStore>;
  export const RootStoreContext = React.createContext<null | RootInstance>(null);
  export const Provider = RootStoreContext.Provider;

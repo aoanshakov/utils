@@ -7926,6 +7926,13 @@ function JsTester_ClipboardTester (getValue) {
     };
 }
 
+function JsTester_ClipboardTextWriter(writeText) {
+    return function (text) {
+        writeText(text);
+        return Promise.resolve();
+    };
+}
+
 function JsTester_Tests (factory) {
     Object.defineProperty(window, 'MessageChannel', {
         get: function () {
@@ -8106,7 +8113,7 @@ function JsTester_Tests (factory) {
             events: ['devicechange']
         }),
         clipboard = new JsTester_Variable(),
-        writeText = clipboard.createSetter(),
+        writeText = new JsTester_ClipboardTextWriter(clipboard.createSetter()),
         clipboardTester = new JsTester_ClipboardTester(clipboard.createGetter()),
         navigatorMock = new JsTester_NavigatorMock({
             writeText,

@@ -5003,288 +5003,6 @@ tests.addTest(options => {
                 windowOpener.expectNoWindowToBeOpened();
             });
         });
-        describe('Используеся проект CallGear.', function() {
-            let reportsListRequest,
-                reportTypesRequest,
-                employeeStatusesRequest,
-                employeeRequest;
-
-            beforeEach(function() {
-                accountRequest.callGear().receiveResponse();
-
-                tester.notificationChannel().
-                    applyLeader().
-                    expectToBeSent();
-
-                tester.masterInfoMessage().receive();
-
-                tester.employeesBroadcastChannel().
-                    applyLeader().
-                    expectToBeSent();
-
-                tester.notificationChannel().
-                    applyLeader().
-                    expectToBeSent();
-
-                tester.masterInfoMessage().
-                    applyLeader().
-                    expectToBeSent();
-
-                tester.employeesBroadcastChannel().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.employeesWebSocket.connect();
-                tester.employeesInitMessage().expectToBeSent();
-
-                tester.notificationChannel().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.masterInfoMessage().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.slavesNotification().expectToBeSent();
-
-                tester.slavesNotification().
-                    additional().
-                    expectToBeSent();
-
-                tester.ticketsContactsRequest().receiveResponse();
-
-                const requests = ajax.inAnyOrder();
-                
-                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
-                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
-                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests);
-                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
-                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
-
-                requests.expectToBeSent();
-
-                authCheckRequest.receiveResponse();
-                reportGroupsRequest.receiveResponse();
-                reportsListRequest.receiveResponse();
-                reportTypesRequest.receiveResponse();
-                employeeStatusesRequest.receiveResponse();
-                employeeSettingsRequest.receiveResponse();
-                employeeRequest.receiveResponse();
-
-                tester.talkOptionsRequest().receiveResponse();
-                permissionsRequest = tester.permissionsRequest().expectToBeSent();
-                settingsRequest = tester.settingsRequest();
-
-                tester.button('Софтфон').click();
-
-                tester.accountRequest().
-                    callGear().
-                    receiveResponse();
-
-                tester.slavesNotification().
-                    additional().
-                    visible().
-                    expectToBeSent();
-
-                permissionsRequest.receiveResponse();
-            });
-
-            describe('Ввожу в софтфоне номер с буквой "g".', function() {
-                beforeEach(function() {
-                    settingsRequest.receiveResponse();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        enabled().
-                        expectToBeSent();
-
-                    tester.connectEventsWebSocket();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        enabled().
-                        softphoneServerConnected().
-                        expectToBeSent();
-
-                    tester.connectSIPWebSocket();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        webRTCServerConnected().
-                        softphoneServerConnected().
-                        expectToBeSent();
-
-                    notificationTester.grantPermission();
-
-                    authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-                    registrationRequest = tester.registrationRequest().expectToBeSent();
-
-                    tester.allowMediaInput();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        softphoneServerConnected().
-                        webRTCServerConnected().
-                        microphoneAccessGranted().
-                        expectToBeSent();
-
-                    authenticatedUserRequest.receiveResponse();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        softphoneServerConnected().
-                        webRTCServerConnected().
-                        microphoneAccessGranted().
-                        userDataFetched().
-                        expectToBeSent();
-
-                    registrationRequest.receiveResponse();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        available().
-                        expectToBeSent();
-
-                    tester.phoneField.fill('79161234567gh');
-                });
-
-                it('Нажимаю на кнопку вызова. Совершается вызов по номеру, содержащему букву "g".', function() {
-                    tester.callStartingButton.click();
-                    
-                    tester.firstConnection.connectWebRTC();
-                    tester.allowMediaInput();
-
-                    tester.outgoingCall().
-                        seventhPhone().
-                        expectToBeSent();
-
-                    tester.slavesNotification().
-                        available().
-                        userDataFetched().
-                        twoChannels().
-                        sending().
-                        seventhPhone().
-                        expectToBeSent();
-
-                    tester.numaRequest().
-                        seventhPhone().
-                        expectToBeSent();
-                });
-                it('В поле номера введен номер с буквой "g".', function() {
-                    tester.phoneField.expectToHaveValue('79161234567g');
-                });
-            });
-            it('Необходимо подключиться к Janus. Подключаюсь.', function() {
-                tester.setTwoCallGearJanusUrls();
-                settingsRequest.receiveResponse();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
-                    expectToBeSent();
-                
-                notificationTester.grantPermission();
-
-                tester.connectEventsWebSocket();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
-                    softphoneServerConnected().
-                    expectToBeSent();
-
-                tester.connectSIPWebSocket();
-                tester.janusTransactionCreationRequest().receiveResponse();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    webRTCServerConnected().
-                    softphoneServerConnected().
-                    expectToBeSent();
-
-                tester.allowMediaInput();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    webRTCServerConnected().
-                    softphoneServerConnected().
-                    microphoneAccessGranted().
-                    expectToBeSent();
-
-                tester.authenticatedUserRequest().receiveResponse();
-
-                tester.slavesNotification().
-                    userDataFetched().
-                    twoChannels().
-                    webRTCServerConnected().
-                    softphoneServerConnected().
-                    microphoneAccessGranted().
-                    expectToBeSent();
-
-                tester.janusPluginAttachRequest().receiveResponse();
-                tester.janusRegisterRequest().receiveResponse();
-                tester.janusRegisteredMessage().receive();
-
-                tester.janusPluginAttachRequest().
-                    expectToBeSent().
-                    setHelper().
-                    receiveResponse();
-
-                tester.janusRegisterRequest().
-                    setHelper().
-                    expectToBeSent().
-                    receiveResponse();
-
-                tester.janusRegisteredMessage().
-                    setHelper().
-                    receive();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
-                    expectToBeSent();
-
-                tester.webrtcWebsocket.disconnectAbnormally();
-
-                spendTime(200);
-                tester.connectSIPWebSocket(1);
-
-                tester.janusTransactionCreationRequest().
-                    setAnotherSession().
-                    receiveResponse();
-
-                tester.janusPluginAttachRequest().
-                    setAnotherSession().
-                    receiveResponse();
-
-                tester.janusRegisterRequest().
-                    setAnotherSession().
-                    receiveResponse();
-
-                tester.janusRegisteredMessage().
-                    setAnotherSession().
-                    receive();
-
-                tester.janusPluginAttachRequest().
-                    setAnotherSession().
-                    expectToBeSent().
-                    setHelper().
-                    receiveResponse();
-
-                tester.janusRegisterRequest().
-                    setAnotherSession().
-                    setHelper().
-                    expectToBeSent().
-                    receiveResponse();
-
-                tester.janusRegisteredMessage().
-                    setAnotherSession().
-                    setHelper().
-                    receive();
-            });
-        });
         describe('Цифры в имени контакта должны быть скрыты при скрытии номеров.', function() {
             let settingsRequest;
 
@@ -5572,6 +5290,199 @@ tests.addTest(options => {
                     );
                 });
             });
+        });
+        it('Используеся проект CallGear. Необходимо подключиться к Janus. Подключаюсь.', function() {
+            let reportsListRequest,
+                reportTypesRequest,
+                employeeStatusesRequest,
+                employeeRequest;
+
+            accountRequest.callGear().receiveResponse();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().receive();
+
+            tester.employeesBroadcastChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                applyLeader().
+                expectToBeSent();
+
+            tester.employeesBroadcastChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
+
+            tester.notificationChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.slavesNotification().expectToBeSent();
+
+            tester.slavesNotification().
+                additional().
+                expectToBeSent();
+
+            tester.ticketsContactsRequest().receiveResponse();
+
+            const requests = ajax.inAnyOrder();
+            
+            authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+            reportsListRequest = tester.reportsListRequest().expectToBeSent(requests);
+            reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
+            employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests);
+            employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
+            employeeRequest = tester.employeeRequest().expectToBeSent(requests);
+
+            requests.expectToBeSent();
+
+            authCheckRequest.receiveResponse();
+            reportGroupsRequest.receiveResponse();
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse();
+            employeeRequest.receiveResponse();
+
+            tester.talkOptionsRequest().receiveResponse();
+            permissionsRequest = tester.permissionsRequest().expectToBeSent();
+            settingsRequest = tester.settingsRequest();
+
+            tester.button('Софтфон').click();
+
+            tester.accountRequest().
+                callGear().
+                receiveResponse();
+
+            tester.slavesNotification().
+                additional().
+                visible().
+                expectToBeSent();
+
+            permissionsRequest.receiveResponse();
+
+            tester.setTwoCallGearJanusUrls();
+            settingsRequest.receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                expectToBeSent();
+            
+            notificationTester.grantPermission();
+
+            tester.connectEventsWebSocket();
+
+            tester.slavesNotification().
+                twoChannels().
+                enabled().
+                softphoneServerConnected().
+                expectToBeSent();
+
+            tester.connectSIPWebSocket();
+            tester.janusTransactionCreationRequest().receiveResponse();
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
+                expectToBeSent();
+
+            tester.allowMediaInput();
+
+            tester.slavesNotification().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
+                microphoneAccessGranted().
+                expectToBeSent();
+
+            tester.authenticatedUserRequest().receiveResponse();
+
+            tester.slavesNotification().
+                userDataFetched().
+                twoChannels().
+                webRTCServerConnected().
+                softphoneServerConnected().
+                microphoneAccessGranted().
+                expectToBeSent();
+
+            tester.janusPluginAttachRequest().receiveResponse();
+            tester.janusRegisterRequest().receiveResponse();
+            tester.janusRegisteredMessage().receive();
+
+            tester.janusPluginAttachRequest().
+                expectToBeSent().
+                setHelper().
+                receiveResponse();
+
+            tester.janusRegisterRequest().
+                setHelper().
+                expectToBeSent().
+                receiveResponse();
+
+            tester.janusRegisteredMessage().
+                setHelper().
+                receive();
+
+            tester.slavesNotification().
+                twoChannels().
+                available().
+                expectToBeSent();
+
+            tester.webrtcWebsocket.disconnectAbnormally();
+
+            spendTime(200);
+            tester.connectSIPWebSocket(1);
+
+            tester.janusTransactionCreationRequest().
+                setAnotherSession().
+                receiveResponse();
+
+            tester.janusPluginAttachRequest().
+                setAnotherSession().
+                receiveResponse();
+
+            tester.janusRegisterRequest().
+                setAnotherSession().
+                receiveResponse();
+
+            tester.janusRegisteredMessage().
+                setAnotherSession().
+                receive();
+
+            tester.janusPluginAttachRequest().
+                setAnotherSession().
+                expectToBeSent().
+                setHelper().
+                receiveResponse();
+
+            tester.janusRegisterRequest().
+                setAnotherSession().
+                setHelper().
+                expectToBeSent().
+                receiveResponse();
+
+            tester.janusRegisteredMessage().
+                setAnotherSession().
+                setHelper().
+                receive();
         });
         it('Фичафлаг софтфона выключен. Кнопка софтфона скрыта.', function() {
             accountRequest.softphoneFeatureFlagDisabled().receiveResponse();

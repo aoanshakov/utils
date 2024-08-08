@@ -192,7 +192,7 @@ tests.addTest(options => {
                         numaRequest.receiveResponse();
                     });
 
-                    xdescribe('Контакт найден.', function() {
+                    describe('Контакт найден.', function() {
                         beforeEach(function() {
                             tester.outCallEvent().receive();
                             tester.outCallEvent().slavesNotification().expectToBeSent();
@@ -664,11 +664,23 @@ tests.addTest(options => {
                                             });
                                         });
                                         it(
+                                            'Не для всех сотрудников указан номер телефона. Сотрудники без номера не ' +
+                                            'отображаются.',
+                                        function() {
+                                            usersRequest.noShortPhone().receiveResponse();
+
+                                            tester.softphone.expectToHaveTextContent(
+                                                'Сотрудники Группы ' +
+
+                                                'Божилова Йовка 296 ' +
+                                                'Шалева Дора 8258'
+                                            );
+                                        });
+                                        it(
                                             'Один из номеров включает в себя другой. Ввожу один ' +
                                             'из номеров в поле поиска.',
                                         function() {
                                             usersRequest.anotherShortPhone().receiveResponse();
-
                                             tester.softphone.input.fill('296');
 
                                             tester.softphone.expectToHaveTextContent(
@@ -1227,6 +1239,7 @@ tests.addTest(options => {
 
                             tester.contactOpeningButton.
                                 expectNotToHaveClass('cmg-button-disabled');
+
                             tester.incomingIcon.expectToBeVisible();
 
                             tester.softphone.expectTextContentToHaveSubstring(
@@ -1238,13 +1251,14 @@ tests.addTest(options => {
 
                             tester.firstLineButton.
                                 expectToHaveClass('cmg-bottom-button-selected');
+
                             tester.secondLineButton.
                                 expectNotToHaveClass('cmg-bottom-button-selected');
 
                             tester.softphone.expectToBeExpanded();
                         });
                     });
-                    xdescribe('Звонок переведен от другого сотрудника.', function() {
+                    describe('Звонок переведен от другого сотрудника.', function() {
                         let outCallEvent;
 
                         beforeEach(function() {
@@ -1317,11 +1331,14 @@ tests.addTest(options => {
                         function() {
                             outCallEvent.needAutoAnswer().receive();
 
-                            tester.outCallEvent().needAutoAnswer().isTransfer().
-                                slavesNotification().expectToBeSent();
+                            tester.outCallEvent().
+                                needAutoAnswer().
+                                isTransfer().
+                                slavesNotification().
+                                expectToBeSent();
                         });
                     });
-                    xdescribe('Звонок производится в рамках исходящего обзвона.', function() {
+                    describe('Звонок производится в рамках исходящего обзвона.', function() {
                         var outCallEvent;
 
                         beforeEach(function() {
@@ -1397,14 +1414,16 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    xdescribe('Открытые сделки существуют.', function() {
+                    describe('Открытые сделки существуют.', function() {
                         beforeEach(function() {
                             tester.outCallEvent().
                                 activeLeads().
+                                subscriberCommentSpecified().
                                 receive();
 
                             tester.outCallEvent().
                                 activeLeads().
+                                subscriberCommentSpecified().
                                 slavesNotification().
                                 expectToBeSent();
                         });
@@ -1439,10 +1458,15 @@ tests.addTest(options => {
                                 'Какой-то поисковый запрос, который не помещается в одну строчку ' +
 
                                 'Рекламная кампания ' +
-                                'Некая рекламная кампания'
+                                'Некая рекламная кампания ' +
+
+                                'Комментарий ' +
+                                'Некий комментарий'
                             );
                         });
                         it('Открытые сделки отображены.', function() {
+                            tester.triggerScrollRecalculation();
+
                             tester.softphone.expectTextContentToHaveSubstring(
                                 'Шалева Дора ' +
                                 '+7 (916) 123-45-67 ' +
@@ -1467,11 +1491,14 @@ tests.addTest(options => {
                                 'Какой-то поисковый запрос, который не помещается в одну строчку ' +
 
                                 'Рекламная кампания ' +
-                                'Некая рекламная кампания'
+                                'Некая рекламная кампания ' +
+
+                                'Комментарий ' +
+                                'Некий комментарий'
                             );
                         });
                     });
-                    xit(
+                    it(
                         'Контакт не найден. Отображно направление звонка. Кнопка открытия ' +
                         'контакта заблокирована.',
                     function() {
@@ -1506,7 +1533,6 @@ tests.addTest(options => {
 
                         tester.outgoingIcon.expectToBeVisible();
                     });
-                    return;
                     it(
                         'Потеряно соединение с сервером. Звонок отменен. Рингтон не звучит.',
                     function() {
@@ -1571,7 +1597,6 @@ tests.addTest(options => {
                         );
                     });
                 });
-                return;
                 describe('Позвонивший является сотрудником.', function() {
                     beforeEach(function() {
                         numaRequest.
@@ -1620,7 +1645,6 @@ tests.addTest(options => {
                     });
                 });
             });
-            return;
             describe('Браузер скрыт.', function() {
                 beforeEach(function() {
                     setDocumentVisible(false);
@@ -1845,7 +1869,6 @@ tests.addTest(options => {
                 );
             });
         });
-        return;
         describe('Софтофон должен скрываться при завершении звонка.', function() {
             let incomingCall;
 

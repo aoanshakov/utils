@@ -179,7 +179,11 @@ define(function () {
 
             {
                 const getInputs = () => Array.prototype.slice.call(
-                    (getRootElement() || new JsTester_NoElement()).querySelectorAll('input[type=text]'), 0
+                    (getRootElement() || new JsTester_NoElement()).querySelectorAll(
+                        'input[type=text],' +
+                        'input:not([type])'
+                    ),
+                    0,
                 );
 
                 const getInput = () => utils.getVisibleSilently(getInputs());
@@ -1072,20 +1076,25 @@ define(function () {
             return tester;
         };
 
-        this.dialpad = (() => {
-            const tester = testersFactory.createDomElementTester(getDialpad);
-            tester.button = me.dialpadButton;
-
-            return tester;
-        })();
-
         this.removeDigitButton = (() => {
             const tester = testersFactory.createDomElementTester(function () {
-                return document.querySelector('.clct-adress-book__dialpad-header-clear');
+                return document.querySelector(
+                    '.clct-adress-book__dialpad-header-clear,' +
+                    '.cmgui-icon[data-component=BackspaceFilled24]'
+                );
             });
 
             const click = tester.click.bind(tester);
             tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
+
+        this.dialpad = (() => {
+            const tester = testersFactory.createDomElementTester(getDialpad);
+
+            tester.button = me.dialpadButton;
+            tester.removeButton = me.removeDigitButton;
 
             return tester;
         })();
@@ -1733,6 +1742,11 @@ define(function () {
                 },
 
                 seventhPhone: function () {
+                    numa = '79161234567gh';
+                    return this;
+                },
+
+                eighthPhone: function () {
                     numa = '79161234567g';
                     return this;
                 },
@@ -2130,6 +2144,7 @@ define(function () {
                 };
 
                 me.anotherShortPhone = () => (processors.push(data => (data[2].short_phone = '2963')), me);
+                me.noShortPhone = () => (processors.push(data => (data[2].short_phone = '')), me);
 
                 me.addMoreUsers = me.addMore = me.many = function () {
                     var i;
@@ -4243,6 +4258,10 @@ define(function () {
                     return this.setNumberFromCallsGrid();
                 },
                 seventhPhone: function () {
+                    phoneNumber = '79161234567gh';
+                    return this;
+                },
+                eighthPhone: function () {
                     phoneNumber = '79161234567g';
                     return this;
                 },
@@ -7069,6 +7088,11 @@ define(function () {
                         return this;
                     },
                     seventhPhone: function () {
+                        updateChannel(channel);
+                        phoneNumbers[channel] = '79161234567gh';
+                        return this;
+                    },
+                    eighthPhone: function () {
                         updateChannel(channel);
                         phoneNumbers[channel] = '79161234567g';
                         return this;

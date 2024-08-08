@@ -337,11 +337,23 @@ define(() => function ({
 
         me.copyIcon = (() => {
             const tester = testersFactory.createDomElementTester(
-                () => utils.element(getRootElement()).querySelector('.cmg-copy-icon')
+                () => utils.element(getRootElement()).querySelector(
+                    '.cmg-copy-icon, .cmgui-icon[data-component=Copy16]'
+                )
             );
 
             const putMouseOver = tester.putMouseOver.bind(tester);
             tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+            return tester;
+        })();
+
+        me.phone = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => utils.element(getRootElement()).querySelector(
+                    '.misc-softphone-misc-sip_lib-src-new-softphone-call-data-styles-module__phone-number'
+                )
+            );
 
             return tester;
         })();
@@ -15340,6 +15352,11 @@ define(() => function ({
         const addResponseModifiers = me => {
             me.callGear = () => {
                 response.result.data.project = 'usa';
+                return me;
+            };
+
+            me.rolands = () => {
+                response.result.data.project = 'rolands';
                 return me;
             };
 
