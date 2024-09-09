@@ -24,7 +24,7 @@ tests.addTest(options => {
 
     const getPackage = Tester.createPackagesGetter(options);
 
-    describe('Открываю новый личный кабинет.', function() {
+    describe('', function() {
         let tester,
             reportGroupsRequest,
             settingsRequest,
@@ -42,279 +42,393 @@ tests.addTest(options => {
                 ...options,
                 shouldShowNewSoftphone: true,
             });
-
-            tester.input.withFieldLabel('Логин').fill('botusharova');
-            tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
-
-            tester.button('Войти').click();
-
-            tester.loginRequest().receiveResponse();
-            accountRequest = tester.accountRequest().expectToBeSent();
-
-            accountRequest.receiveResponse();
-            tester.notificationChannel().applyLeader().expectToBeSent();
-
-            const requests = ajax.inAnyOrder();
-
-            reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
-            const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
-                reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
-                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
-                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
-            authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-
-            requests.expectToBeSent();
-
-            ticketsContactsRequest.receiveResponse();
-            reportsListRequest.receiveResponse();
-            reportTypesRequest.receiveResponse();
-            employeeStatusesRequest.receiveResponse();
-            employeeSettingsRequest.receiveResponse(),
-            employeeRequest.receiveResponse();
-
-            tester.masterInfoMessage().receive();
-
-            tester.employeesBroadcastChannel().
-                applyLeader().
-                expectToBeSent();
-
-            tester.notificationChannel().
-                applyLeader().
-                expectToBeSent();
-
-            tester.masterInfoMessage().
-                applyLeader().
-                expectToBeSent();
-
-            tester.employeesBroadcastChannel().
-                tellIsLeader().
-                expectToBeSent();
-
-            tester.notificationChannel().
-                tellIsLeader().
-                expectToBeSent();
-
-            tester.masterInfoMessage().
-                tellIsLeader().
-                expectToBeSent();
-
-            tester.employeesWebSocket.connect();
-            tester.employeesInitMessage().expectToBeSent();
-
-            tester.slavesNotification().expectToBeSent();
-
-            tester.slavesNotification().
-                additional().
-                expectToBeSent();
-
-            authCheckRequest.receiveResponse();
-            tester.callsRequest().receiveResponse();
-            tester.talkOptionsRequest().receiveResponse();
-            permissionsRequest = tester.permissionsRequest().expectToBeSent();
-
-            permissionsRequest.receiveResponse();
-            settingsRequest = tester.settingsRequest().expectToBeSent();
         });
 
-        describe('Нет необходимости скрывать номера.', function() {
+        describe('Открываю новый личный кабинет.', function() {
             beforeEach(function() {
-                settingsRequest.receiveResponse();
+                tester.input.withFieldLabel('Логин').fill('botusharova');
+                tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
+                tester.button('Войти').click();
+
+                tester.loginRequest().receiveResponse();
+                tester.accountRequest().receiveResponse();
+
+                tester.notificationChannel().applyLeader().expectToBeSent();
+
+                tester.masterInfoMessage().receive();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
                     expectToBeSent();
 
-                tester.connectEventsWebSocket();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    enabled().
-                    softphoneServerConnected().
+                tester.notificationChannel().
+                    applyLeader().
                     expectToBeSent();
 
-                tester.connectSIPWebSocket();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    webRTCServerConnected().
-                    softphoneServerConnected().
+                tester.masterInfoMessage().
+                    applyLeader().
                     expectToBeSent();
 
-                notificationTester.grantPermission();
-                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-
-                tester.registrationRequest().receiveUnauthorized();
-
-                registrationRequest = tester.registrationRequest().
-                    authorization().
-                    expectToBeSent();
-                
-                tester.allowMediaInput();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    softphoneServerConnected().
-                    webRTCServerConnected().
-                    microphoneAccessGranted().
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
                     expectToBeSent();
 
-                authenticatedUserRequest.receiveResponse();
-
-                tester.slavesNotification().
-                    twoChannels().
-                    softphoneServerConnected().
-                    webRTCServerConnected().
-                    microphoneAccessGranted().
-                    userDataFetched().
+                tester.notificationChannel().
+                    tellIsLeader().
                     expectToBeSent();
 
-                reportGroupsRequest.receiveResponse();
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
 
-                tester.button('Софтфон').click();
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
+
+                tester.slavesNotification().expectToBeSent();
 
                 tester.slavesNotification().
                     additional().
-                    visible().
                     expectToBeSent();
 
-                registrationRequest.receiveResponse();
+                const requests = ajax.inAnyOrder();
 
-                tester.slavesNotification().
-                    twoChannels().
-                    available().
-                    expectToBeSent();
+                const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests);
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
+                    employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
+                    employeeRequest = tester.employeeRequest().expectToBeSent(requests),
+                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests);
+                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+
+                requests.expectToBeSent();
+
+                ticketsContactsRequest.receiveResponse();
+                reportGroupsRequest.receiveResponse();
+                reportsListRequest.receiveResponse();
+                reportTypesRequest.receiveResponse();
+                employeeSettingsRequest.receiveResponse();
+                employeeStatusesRequest.receiveResponse();
+                employeeRequest.receiveResponse();
+
+                tester.callsRequest().receiveResponse();
+
+                authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                permissionsRequest = tester.permissionsRequest().expectToBeSent();
             });
 
-            describe('Поступил входящий звонок.', function() {
-               let incomingCall;
-                
+            describe('Пользователь не имеет права на список номеров.', function() {
                 beforeEach(function() {
-                    incomingCall = tester.incomingCall().receive();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        available().
-                        incoming().
-                        progress().
-                        expectToBeSent();
-
-                    tester.numaRequest().receiveResponse();
+                    permissionsRequest.receiveResponse();
+                    settingsRequest = tester.settingsRequest().expectToBeSent();
                 });
 
-                describe('Получены данные звонка.', function() {
+                describe('Нет необходимости скрывать номера.', function() {
                     beforeEach(function() {
-                        tester.outCallEvent().receive();
-                        tester.outCallEvent().slavesNotification().expectToBeSent();
+                        settingsRequest.receiveResponse();
 
-                        tester.usersRequest().forContacts().receiveResponse();
-                        tester.contactGroupsRequest().receiveResponse();
+                        tester.slavesNotification().
+                            twoChannels().
+                            enabled().
+                            expectToBeSent();
+
+                        tester.connectEventsWebSocket();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            enabled().
+                            softphoneServerConnected().
+                            expectToBeSent();
+
+                        tester.connectSIPWebSocket();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            webRTCServerConnected().
+                            softphoneServerConnected().
+                            expectToBeSent();
+
+                        notificationTester.grantPermission();
+                        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+
+                        tester.registrationRequest().receiveUnauthorized();
+
+                        registrationRequest = tester.registrationRequest().
+                            authorization().
+                            expectToBeSent();
+                        
+                        tester.allowMediaInput();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            microphoneAccessGranted().
+                            expectToBeSent();
+
+                        authenticatedUserRequest.receiveResponse();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            softphoneServerConnected().
+                            webRTCServerConnected().
+                            microphoneAccessGranted().
+                            userDataFetched().
+                            expectToBeSent();
+
+                        tester.button('Софтфон').click();
+
+                        tester.slavesNotification().
+                            additional().
+                            visible().
+                            expectToBeSent();
+
+                        registrationRequest.receiveResponse();
+
+                        tester.slavesNotification().
+                            twoChannels().
+                            available().
+                            expectToBeSent();
                     });
 
-                    describe('Принимаю звонок.', function() {
+                    describe('Поступил входящий звонок.', function() {
+                       let incomingCall;
+                        
                         beforeEach(function() {
-                            tester.callStartingButton.click();
-
-                            tester.firstConnection.connectWebRTC();
-                            tester.firstConnection.callTrackHandler();
-
-                            tester.allowMediaInput();
-                            tester.firstConnection.addCandidate();
-
-                            incomingCall.expectOkToBeSent().receiveAck();
+                            incomingCall = tester.incomingCall().receive();
 
                             tester.slavesNotification().
-                                available().
                                 twoChannels().
+                                available().
                                 incoming().
-                                confirmed().
+                                progress().
                                 expectToBeSent();
+
+                            tester.numaRequest().receiveResponse();
                         });
 
-                        describe('Нажимаю на кнопку трансфера.', function() {
-                            let usersRequest;
-
+                        describe('Получены данные звонка.', function() {
                             beforeEach(function() {
-                                tester.transferButton.click();
-                                usersRequest = tester.usersRequest().expectToBeSent();
+                                tester.outCallEvent().receive();
+                                tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                                tester.usersRequest().forContacts().receiveResponse();
+                                tester.contactGroupsRequest().receiveResponse();
                             });
 
-                            describe('Сотрудников мало.', function() {
+                            describe('Принимаю звонок.', function() {
                                 beforeEach(function() {
-                                    usersRequest.receiveResponse();
+                                    tester.callStartingButton.click();
+
+                                    tester.firstConnection.connectWebRTC();
+                                    tester.firstConnection.callTrackHandler();
+
+                                    tester.allowMediaInput();
+                                    tester.firstConnection.addCandidate();
+
+                                    incomingCall.expectOkToBeSent().receiveAck();
+
+                                    tester.slavesNotification().
+                                        available().
+                                        twoChannels().
+                                        incoming().
+                                        confirmed().
+                                        expectToBeSent();
                                 });
 
-                                describe('Открываю вкладку "Группы".', function() {
-                                    let usersRequest,
-                                        usersInGroupsRequest,
-                                        groupsRequest;
+                                describe('Нажимаю на кнопку трансфера.', function() {
+                                    let usersRequest;
 
                                     beforeEach(function() {
-                                        tester.button('Группы').click();
-
+                                        tester.transferButton.click();
                                         usersRequest = tester.usersRequest().expectToBeSent();
-                                        usersInGroupsRequest = tester.usersInGroupsRequest().expectToBeSent();
-                                        groupsRequest = tester.groupsRequest().expectToBeSent();
                                     });
 
-                                    it('Раскрываю выпадающий список групп. Отображён список групп.', function() {
-                                        usersRequest.receiveResponse();
-                                        usersInGroupsRequest.receiveResponse();
-                                        groupsRequest.receiveResponse();
+                                    describe('Сотрудников мало.', function() {
+                                        beforeEach(function() {
+                                            usersRequest.receiveResponse();
+                                        });
 
-                                        tester.select.click();
+                                        describe('Открываю вкладку "Группы".', function() {
+                                            let usersRequest,
+                                                usersInGroupsRequest,
+                                                groupsRequest;
 
-                                        tester.select.
-                                            option(
-                                                'Отдел дистрибуции ' +
-                                                '1 /1 298'
-                                            ).
-                                            findElement(
-                                                '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                'module__list-item'
-                                            ).
-                                            expectNotToHaveClass(
-                                                'misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                'module__disabled'
-                                            );
-                                            
-                                        tester.select.
-                                            option(
-                                                'Отдел по работе с ключевыми клиентами ' +
-                                                '0 /1 726'
-                                            ).
-                                            findElement(
-                                                '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                'module__list-item'
-                                            ).
-                                            expectToHaveClass(
-                                                'misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                'module__disabled'
-                                            );
+                                            beforeEach(function() {
+                                                tester.button('Группы').click();
+
+                                                usersRequest = tester.usersRequest().expectToBeSent();
+                                                usersInGroupsRequest = tester.usersInGroupsRequest().expectToBeSent();
+                                                groupsRequest = tester.groupsRequest().expectToBeSent();
+                                            });
+
+                                            it('Раскрываю выпадающий список групп. Отображён список групп.', function() {
+                                                usersRequest.receiveResponse();
+                                                usersInGroupsRequest.receiveResponse();
+                                                groupsRequest.receiveResponse();
+
+                                                tester.select.click();
+
+                                                tester.select.
+                                                    option(
+                                                        'Отдел дистрибуции ' +
+                                                        '1 /1 298'
+                                                    ).
+                                                    findElement(
+                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
+                                                        'module__list-item'
+                                                    ).
+                                                    expectNotToHaveClass(
+                                                        'misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
+                                                        'module__disabled'
+                                                    );
+                                                    
+                                                tester.select.
+                                                    option(
+                                                        'Отдел по работе с ключевыми клиентами ' +
+                                                        '0 /1 726'
+                                                    ).
+                                                    findElement(
+                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
+                                                        'module__list-item'
+                                                    ).
+                                                    expectToHaveClass(
+                                                        'misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
+                                                        'module__disabled'
+                                                    );
 
 
-                                        tester.body.expectTextContentToHaveSubstring(
-                                            'Отдел дистрибуции ' +
-                                            '1 /1 298 ' +
+                                                tester.body.expectTextContentToHaveSubstring(
+                                                    'Отдел дистрибуции ' +
+                                                    '1 /1 298 ' +
 
-                                            'Отдел по работе с ключевыми клиентами ' +
-                                            '0 /1 726 ' +
+                                                    'Отдел по работе с ключевыми клиентами ' +
+                                                    '0 /1 726 ' +
 
-                                            'Отдел региональных продаж ' +
-                                            '2 /2 828'
-                                        );
+                                                    'Отдел региональных продаж ' +
+                                                    '2 /2 828'
+                                                );
+                                            });
+                                            /*
+                                            it(
+                                                'Групп много. Очень часто меняются статусы. Не смотря на это список не тормозит.',
+                                            function() {
+                                                let time = (new Date()).getTime();
+
+                                                groupsRequest.addMore().receiveResponse();
+                                                usersRequest.addMore().receiveResponse();
+                                                usersInGroupsRequest.addMore().receiveResponse();
+
+                                                console.log('BEFORE OPEN LIST', (new Date()).getTime() - time);
+                                                time = (new Date()).getTime();
+
+                                                tester.select.click();
+                                                console.log('AFTER OPEN LIST', (new Date()).getTime() - time);
+
+                                                time = (new Date()).getTime();
+
+                                                for (let i = 0; i < 20; i ++) {
+                                                    const time = (new Date()).getTime();
+
+                                                    tester.entityChangeEvent().
+                                                        fourthEmployee().
+                                                        receive();
+
+                                                    tester.entityChangeEvent().
+                                                        fourthEmployee().
+                                                        slavesNotification().
+                                                        expectToBeSent();
+
+                                                    tester.entityChangeEvent().
+                                                        fourthEmployee().
+                                                        thirdStatus().
+                                                        receive();
+
+                                                    tester.entityChangeEvent().
+                                                        fourthEmployee().
+                                                        thirdStatus().
+                                                        slavesNotification().
+                                                        expectToBeSent();
+
+                                                    console.log('ITERATION', (new Date()).getTime() - time);
+                                                }
+
+                                                console.log('DONE', (new Date()).getTime() - time);
+                                            });
+                                            */
+                                        });
+                                        describe('Раскрываю выпадающий список сотрудников.', function() {
+                                            beforeEach(function() {
+                                                tester.select.click();
+                                            });
+
+                                            it('Нажимаю на доступную опцию. Опция выбрана.', function() {
+                                                tester.select.
+                                                    option('Господинова Николина 295').
+                                                    findElement(
+                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
+                                                        'module__list-item'
+                                                    ).
+                                                    click();
+
+                                                spendTime(0);
+                                                spendTime(0);
+
+                                                tester.select.expectToHaveTextContent('Господинова Николина 295');
+                                            });
+                                            it('Нажимаю на заблокированную опцию. Опция не выбрана.', function() {
+                                                tester.select.
+                                                    option('Божилова Йовка 296').
+                                                    findElement(
+                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
+                                                        'module__list-item'
+                                                    ).
+                                                    click();
+
+                                                spendTime(0);
+                                                spendTime(0);
+
+                                                tester.select.expectToHaveTextContent('Выберите сотрудника *');
+                                            });
+                                            it('Отображён список сотрудников.', function() {
+                                                tester.select.
+                                                    option('Божилова Йовка 296').
+                                                    findElement(
+                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
+                                                        'module__list-item'
+                                                    ).
+                                                    expectToHaveClass(
+                                                        'misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
+                                                        'module__disabled'
+                                                    );
+                                                    
+                                                tester.select.
+                                                    option('Господинова Николина 295').
+                                                    findElement(
+                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
+                                                        'module__list-item'
+                                                    ).
+                                                    expectNotToHaveClass(
+                                                        'misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
+                                                        'module__disabled'
+                                                    );
+
+                                                tester.body.expectTextContentToHaveSubstring(
+                                                    'Божилова Йовка 296 ' +
+                                                    'Господинова Николина 295 ' +
+                                                    'Шалева Дора 8258'
+                                                );
+                                            });
+                                        });
                                     });
                                     /*
                                     it(
-                                        'Групп много. Очень часто меняются статусы. Не смотря на это список не тормозит.',
+                                        'Сотрудников много. Очень часто меняются статусы. Не смотря на это список не тормозит.',
                                     function() {
                                         let time = (new Date()).getTime();
-
-                                        groupsRequest.addMore().receiveResponse();
                                         usersRequest.addMore().receiveResponse();
-                                        usersInGroupsRequest.addMore().receiveResponse();
 
                                         console.log('BEFORE OPEN LIST', (new Date()).getTime() - time);
                                         time = (new Date()).getTime();
@@ -354,320 +468,515 @@ tests.addTest(options => {
                                     });
                                     */
                                 });
-                                describe('Раскрываю выпадающий список сотрудников.', function() {
-                                    beforeEach(function() {
-                                        tester.select.click();
-                                    });
+                                it('Отображено время разговора.', function() {
+                                    tester.body.expectTextContentToHaveSubstring(
+                                        'ШД Шалева Дора ' +
+                                        '00:00'
+                                    );
 
-                                    it('Нажимаю на доступную опцию. Опция выбрана.', function() {
-                                        tester.select.
-                                            option('Господинова Николина 295').
-                                            findElement(
-                                                '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                'module__list-item'
-                                            ).
-                                            click();
-
-                                        spendTime(0);
-                                        spendTime(0);
-
-                                        tester.select.expectToHaveTextContent('Господинова Николина 295');
-                                    });
-                                    it('Нажимаю на заблокированную опцию. Опция не выбрана.', function() {
-                                        tester.select.
-                                            option('Божилова Йовка 296').
-                                            findElement(
-                                                '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                'module__list-item'
-                                            ).
-                                            click();
-
-                                        spendTime(0);
-                                        spendTime(0);
-
-                                        tester.select.expectToHaveTextContent('Выберите сотрудника');
-                                    });
-                                    it('Отображён список сотрудников.', function() {
-                                        tester.select.
-                                            option('Божилова Йовка 296').
-                                            findElement(
-                                                '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                'module__list-item'
-                                            ).
-                                            expectToHaveClass(
-                                                'misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                'module__disabled'
-                                            );
-                                            
-                                        tester.select.
-                                            option('Господинова Николина 295').
-                                            findElement(
-                                                '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                'module__list-item'
-                                            ).
-                                            expectNotToHaveClass(
-                                                'misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                'module__disabled'
-                                            );
-
-                                        tester.body.expectTextContentToHaveSubstring(
-                                            'Божилова Йовка 296 ' +
-                                            'Господинова Николина 295 ' +
-                                            'Шалева Дора 8258'
-                                        );
-                                    });
+                                    tester.body.expectTextContentToHaveSubstring(
+                                        '1 Линия: В разговоре 00:00'
+                                    );
                                 });
                             });
-                            /*
                             it(
-                                'Сотрудников много. Очень часто меняются статусы. Не смотря на это список не тормозит.',
+                                'Поступил второй входящий звонок. Отображено сообщение о звонке ' +
+                                'на вторую линию.',
                             function() {
-                                let time = (new Date()).getTime();
-                                usersRequest.addMore().receiveResponse();
+                                tester.incomingCall().thirdNumber().receive();
 
-                                console.log('BEFORE OPEN LIST', (new Date()).getTime() - time);
-                                time = (new Date()).getTime();
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    available().
+                                    incoming().
+                                    progress().
+                                    secondChannel().
+                                        incoming().
+                                        progress().
+                                        fifthPhoneNumber().
+                                    expectToBeSent();
 
-                                tester.select.click();
-                                console.log('AFTER OPEN LIST', (new Date()).getTime() - time);
+                                tester.numaRequest().thirdNumber().receiveResponse();
 
-                                time = (new Date()).getTime();
+                                tester.outCallEvent().
+                                    anotherPerson().
+                                    receive();
 
-                                for (let i = 0; i < 20; i ++) {
-                                    const time = (new Date()).getTime();
+                                tester.outCallEvent().
+                                    anotherPerson().
+                                    slavesNotification().
+                                    expectToBeSent();
 
-                                    tester.entityChangeEvent().
-                                        fourthEmployee().
-                                        receive();
-
-                                    tester.entityChangeEvent().
-                                        fourthEmployee().
-                                        slavesNotification().
-                                        expectToBeSent();
-
-                                    tester.entityChangeEvent().
-                                        fourthEmployee().
-                                        thirdStatus().
-                                        receive();
-
-                                    tester.entityChangeEvent().
-                                        fourthEmployee().
-                                        thirdStatus().
-                                        slavesNotification().
-                                        expectToBeSent();
-
-                                    console.log('ITERATION', (new Date()).getTime() - time);
-                                }
-
-                                console.log('DONE', (new Date()).getTime() - time);
+                                tester.body.expectTextContentToHaveSubstring(
+                                    'Гигова Петранка Входящий (2-ая линия)...'
+                                );
                             });
-                            */
+                            it('Нажимаю на номер телефона. Номер телефона скопирован.', function() {
+                                tester.phone.click();
+                                clipboard.expectToHaveValue('79161234567');
+                            });
+                            it('Нажимаю на кнопку копирования номера телефона. Номер телефона скопирован.', function() {
+                                tester.copyIcon.click();
+                                clipboard.expectToHaveValue('79161234567');
+                            });
+                            it('Отображёна информация о звонке.', function() {
+                                tester.body.expectTextContentToHaveSubstring(
+                                    'ШД Шалева Дора ' +
+                                    'Входящий звонок ' +
+
+                                    'Информация о звонке ' +
+
+                                    'Номер абонента ' +
+                                    '+7 (916) 123-45-67 ' +
+
+                                    'Виртуальный номер ' +
+                                    '+7 (916) 123-45-68 ' +
+
+                                    'Сайт ' +
+                                    'somesite.com ' +
+
+                                    'Поисковый запрос ' +
+                                    'Какой-то поисковый запрос, который не помещается в одну строчку ' +
+
+                                    'Рекламная кампания ' +
+                                    'Некая рекламная кампания'
+                                );
+
+                                tester.body.expectTextContentToHaveSubstring('1 Линия: Входящий звонок');
+
+                                tester.body.expectTextContentNotToHaveSubstring('Найти контакт');
+                                tester.body.expectTextContentNotToHaveSubstring('Кампания исходящего обзвона');
+                                tester.body.expectTextContentNotToHaveSubstring('Комментарий');
+
+                                tester.body.expectTextContentToHaveSubstring(
+                                    'О контакте ' +
+
+                                    'ФИО ' +
+                                    '980925456 ' +
+
+                                    'Телефоны ' +
+                                    '79161234567'
+                                );
+                            });
                         });
-                        it('Отображено время разговора.', function() {
+                        it('Звонок оказался исходящим проведенным из CRM. Звонок отображается, как исходящий.', function() {
+                            tester.outCallEvent().
+                                outgoing().
+                                receive();
+
+                            tester.outCallEvent().
+                                outgoing().
+                                slavesNotification().
+                                expectToBeSent();
+
+                            tester.usersRequest().forContacts().receiveResponse();
+                            tester.contactGroupsRequest().receiveResponse();
+
                             tester.body.expectTextContentToHaveSubstring(
                                 'ШД Шалева Дора ' +
-                                '00:00'
+                                'Идет вызов ' +
+                                
+                                'Информация о звонке ' +
+
+                                'Номер абонента ' +
+                                '+7 (916) 123-45-67 ' +
+
+                                'Виртуальный номер ' +
+                                '+7 (916) 123-45-68 ' +
+
+                                'Сайт ' +
+                                'somesite.com ' +
+
+                                'Поисковый запрос ' +
+                                'Какой-то поисковый запрос, который не помещается в одну строчку ' +
+
+                                'Рекламная кампания ' +
+                                'Некая рекламная кампания'
                             );
 
                             tester.body.expectTextContentToHaveSubstring(
-                                '1 Линия: В разговоре 00:00'
+                                '1 Линия: Исходящий звонок'
                             );
                         });
+                        it(
+                            'Звонок был совершён в рамках кампании исходящего обзвона. Отображено название кампании.',
+                        function() {
+                            tester.outCallEvent().
+                                subscriberCommentSpecified().
+                                autoCallCampaignName().
+                                receive();
+
+                            tester.outCallEvent().
+                                subscriberCommentSpecified().
+                                autoCallCampaignName().
+                                slavesNotification().
+                                expectToBeSent();
+
+                            tester.usersRequest().forContacts().receiveResponse();
+                            tester.contactGroupsRequest().receiveResponse();
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'ШД Шалева Дора ' +
+                                'Идет вызов ' +
+                                
+                                'Информация о звонке ' +
+
+                                'Номер абонента ' +
+                                '+7 (916) 123-45-67 ' +
+
+                                'Кампания исходящего обзвона ' +
+                                'Обзвон лидов ЖК Солнцево Парк ' +
+
+                                'Комментарий ' +
+                                'Некий комментарий'
+                            );
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                '1 Линия: Исходящий звонок'
+                            );
+                        });
+                        it('Звонок был переведён от другого сотрудника.', function() {
+                            tester.outCallEvent().
+                                isTransfer().
+                                receive();
+
+                            tester.outCallEvent().
+                                isTransfer().
+                                slavesNotification().
+                                expectToBeSent();
+
+                            tester.usersRequest().forContacts().receiveResponse();
+                            tester.contactGroupsRequest().receiveResponse();
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'ШД Шалева Дора ' +
+                                'Идёт переадресация 00:00 ' +
+
+                                'Трансфер от Бисерка Макавеева'
+                            );
+                        });
+                        it('Отображён номер телефона.', function() {
+                            tester.body.expectTextContentToHaveSubstring(
+                                '+7 (916) 123-45-67 ' +
+                                'Входящий звонок ' +
+
+                                'Информация о звонке ' +
+
+                                'Номер абонента ' +
+                                '+7 (916) 123-45-67'
+                            );
+
+                            tester.body.expectTextContentToHaveSubstring('Найти контакт');
+                        });
                     });
-                    it(
-                        'Поступил второй входящий звонок. Отображено сообщение о звонке ' +
-                        'на вторую линию.',
-                    function() {
-                        tester.incomingCall().thirdNumber().receive();
+                    describe('Запролняю поле ввода номера телефона.', function() {
+                        beforeEach(function() {
+                            tester.input.fill('79161234567ghi');
+                        });
 
-                        tester.slavesNotification().
-                            twoChannels().
-                            available().
-                            incoming().
-                            progress().
-                            secondChannel().
-                                incoming().
-                                progress().
-                                fifthPhoneNumber().
-                            expectToBeSent();
-
-                        tester.numaRequest().thirdNumber().receiveResponse();
-
-                        tester.outCallEvent().
-                            anotherPerson().
-                            receive();
-
-                        tester.outCallEvent().
-                            anotherPerson().
-                            slavesNotification().
-                            expectToBeSent();
+                        it('Нажимаю на кнопку удаления цифры. Цифра удалена.', function() {
+                            tester.dialpad.removeButton.click();
+                            tester.input.expectToHaveValue('7916123456');
+                        });
+                        it('Поле заполнено.', function() {
+                            tester.input.expectToHaveValue('79161234567');
+                        });
+                    });
+                    it('Отображена история звонков.', function() {
+                        tester.dialpad.removeButton.expectNotToExist();
 
                         tester.body.expectTextContentToHaveSubstring(
-                            'Гигова Петранка Входящий (2-ая линия)...'
-                        );
-                    });
-                    it('Нажимаю на номер телефона. Номер телефона скопирован.', function() {
-                        tester.phone.click();
-                        clipboard.expectToHaveValue('79161234567');
-                    });
-                    it('Нажимаю на кнопку копирования номера телефона. Номер телефона скопирован.', function() {
-                        tester.copyIcon.click();
-                        clipboard.expectToHaveValue('79161234567');
-                    });
-                    it('Отображёна информация о звонке.', function() {
-                        tester.body.expectTextContentToHaveSubstring(
-                            'ШД Шалева Дора ' +
-                            'Входящий звонок ' +
+                            'Информация ' +
+                            'История звонков Контакты ' +
 
-                            'Информация о звонке ' +
+                            'Сегодня ' +
 
-                            'Номер абонента ' +
-                            '+7 (916) 123-45-67 ' +
+                            'Гяурова Марийка ' +
+                            'Входящий 08:03 ' +
 
-                            'Виртуальный номер ' +
-                            '+7 (916) 123-45-68 ' +
+                            'Вчера ' +
 
-                            'Сайт ' +
-                            'somesite.com ' +
+                            'Манова Тома ' +
+                            'Исходящий 18:08 ' +
 
-                            'Поисковый запрос ' +
-                            'Какой-то поисковый запрос, который не помещается в одну строчку ' +
+                            '17 декабря 2019 ' +
 
-                            'Рекламная кампания ' +
-                            'Некая рекламная кампания'
-                        );
+                            'Сотирова Атанаска ' +
+                            'Входящий 12:02 ' +
 
-                        tester.body.expectTextContentToHaveSubstring('1 Линия: Входящий звонок');
-
-                        tester.body.expectTextContentNotToHaveSubstring('Найти контакт');
-                        tester.body.expectTextContentNotToHaveSubstring('Кампания исходящего обзвона');
-                        tester.body.expectTextContentNotToHaveSubstring('Комментарий');
-
-                        tester.body.expectTextContentToHaveSubstring(
-                            'О контакте ' +
-
-                            'ФИО ' +
-                            '980925456 ' +
-
-                            'Телефоны ' +
-                            '79161234567'
+                            'Сотирова Атанаска ' +
+                            'Входящий 05:57'
                         );
                     });
                 });
-                it(
-                    'Звонок был совершён в рамках кампании исходящего обзвона. Отображено название кампании.',
-                function() {
-                    tester.outCallEvent().
-                        subscriberCommentSpecified().
-                        autoCallCampaignName().
-                        receive();
+                it('Нужно скрывать номера. Поступил входящий звонок. Кнопка копирования скрыта.', function() {
+                    settingsRequest.
+                        shouldHideNumbers().
+                        receiveResponse();
 
-                    tester.outCallEvent().
-                        subscriberCommentSpecified().
-                        autoCallCampaignName().
-                        slavesNotification().
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
                         expectToBeSent();
+
+                    tester.connectEventsWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        enabled().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    tester.connectSIPWebSocket();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        webRTCServerConnected().
+                        softphoneServerConnected().
+                        expectToBeSent();
+
+                    notificationTester.grantPermission();
+                    authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+
+                    tester.registrationRequest().receiveUnauthorized();
+
+                    registrationRequest = tester.registrationRequest().
+                        authorization().
+                        expectToBeSent();
+                    
+                    tester.allowMediaInput();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        expectToBeSent();
+
+                    authenticatedUserRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        softphoneServerConnected().
+                        webRTCServerConnected().
+                        microphoneAccessGranted().
+                        userDataFetched().
+                        expectToBeSent();
+
+                    tester.button('Софтфон').click();
+
+                    tester.slavesNotification().
+                        additional().
+                        visible().
+                        expectToBeSent();
+
+                    registrationRequest.receiveResponse();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        expectToBeSent();
+
+                    tester.incomingCall().receive();
+
+                    tester.slavesNotification().
+                        twoChannels().
+                        available().
+                        incoming().
+                        progress().
+                        expectToBeSent();
+
+                    tester.numaRequest().receiveResponse();
+
+                    tester.outCallEvent().receive();
+                    tester.outCallEvent().slavesNotification().expectToBeSent();
 
                     tester.usersRequest().forContacts().receiveResponse();
                     tester.contactGroupsRequest().receiveResponse();
 
-                    tester.body.expectTextContentToHaveSubstring(
-                        'ШД Шалева Дора ' +
-                        'Идет вызов ' +
-                        
-                        'Информация о звонке ' +
+                    tester.copyIcon.expectNotToExist();
+                    tester.phone.click();
 
-                        'Номер абонента ' +
-                        '+7 (916) 123-45-67 ' +
-
-                        'Кампания исходящего обзвона ' +
-                        'Обзвон лидов ЖК Солнцево Парк ' +
-
-                        'Комментарий ' +
-                        'Некий комментарий'
-                    );
-
-                    tester.body.expectTextContentToHaveSubstring(
-                        '1 Линия: Исходящий звонок'
-                    );
-                });
-                it('Звонок был переведён от другого сотрудника.', function() {
-                    tester.outCallEvent().
-                        isTransfer().
-                        receive();
-
-                    tester.outCallEvent().
-                        isTransfer().
-                        slavesNotification().
-                        expectToBeSent();
-
-                    tester.usersRequest().forContacts().receiveResponse();
-                    tester.contactGroupsRequest().receiveResponse();
-
-                    tester.body.expectTextContentToHaveSubstring(
-                        'ШД Шалева Дора ' +
-                        'Идёт переадресация 00:00 ' +
-
-                        'Трансфер от Бисерка Макавеева'
-                    );
-                });
-                it('Отображён номер телефона.', function() {
-                    tester.body.expectTextContentToHaveSubstring(
-                        '+7 (916) 123-45-67 ' +
-                        'Входящий звонок ' +
-
-                        'Информация о звонке ' +
-
-                        'Номер абонента ' +
-                        '+7 (916) 123-45-67'
-                    );
-
-                    tester.body.expectTextContentToHaveSubstring('Найти контакт');
+                    clipboard.expectToHaveValue(null);
                 });
             });
-            describe('Запролняю поле ввода номера телефона.', function() {
-                beforeEach(function() {
-                    tester.input.fill('79161234567ghi');
-                });
+            it('Пользователь имеет права на список номеров.', function() {
+                 permissionsRequest.
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
 
-                it('Нажимаю на кнопку удаления цифры. Цифра удалена.', function() {
-                    tester.dialpad.removeButton.click();
-                    tester.input.expectToHaveValue('7916123456');
-                });
-                it('Поле заполнено.', function() {
-                    tester.input.expectToHaveValue('79161234567');
-                });
-            });
-            it('Отображена история звонков.', function() {
-                tester.dialpad.removeButton.expectNotToExist();
+                tester.settingsRequest().
+                    allowNumberCapacitySelect().
+                    receiveResponse();
 
-                tester.body.expectTextContentToHaveSubstring(
-                    'Информация ' +
-                    'История звонков Контакты ' +
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    expectToBeSent();
 
-                    'Сегодня ' +
+                tester.connectEventsWebSocket();
 
-                    'Гяурова Марийка ' +
-                    'Входящий 08:03 ' +
+                tester.slavesNotification().
+                    twoChannels().
+                    enabled().
+                    softphoneServerConnected().
+                    expectToBeSent();
 
-                    'Вчера ' +
+                tester.connectSIPWebSocket();
 
-                    'Манова Тома ' +
-                    'Исходящий 18:08 ' +
+                tester.slavesNotification().
+                    twoChannels().
+                    webRTCServerConnected().
+                    softphoneServerConnected().
+                    expectToBeSent();
 
-                    '17 декабря 2019 ' +
+                notificationTester.grantPermission();
 
-                    'Сотирова Атанаска ' +
-                    'Входящий 12:02 ' +
+                tester.numberCapacityRequest().receiveResponse();
+                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
-                    'Сотирова Атанаска ' +
-                    'Входящий 05:57'
-                );
+                tester.registrationRequest().receiveUnauthorized();
+
+                registrationRequest = tester.registrationRequest().
+                    authorization().
+                    expectToBeSent();
+                
+                tester.allowMediaInput();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    expectToBeSent();
+
+                authenticatedUserRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    softphoneServerConnected().
+                    webRTCServerConnected().
+                    microphoneAccessGranted().
+                    userDataFetched().
+                    expectToBeSent();
+
+                registrationRequest.receiveResponse();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    expectToBeSent();
             });
         });
-        it('Нужно скрывать номера. Поступил входящий звонок. Кнопка копирования скрыта.', function() {
-            settingsRequest.
-                shouldHideNumbers().
+        it(
+            'Открываю новый личный кабинет. Использую SSO. Запрос истории звонков не отправляется раньше логина.',
+        function() {
+            localStorage.setItem('softphone-position-x', '174');
+            setNow('2019-12-19T12:10:06');
+
+            tester = new Tester({
+                ...options,
+                shouldShowNewSoftphone: true,
+                hasSSOAuth: true,
+            });
+
+            tester.ssoCheckRequest().receiveResponse();
+
+            tester.input.withFieldLabel('Логин').fill('botusharova');
+            tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+            tester.button('Войти').click();
+            tester.apiLoginRequest().receiveResponse();
+
+            tester.accountRequest().
+                noAuthorizationHeader().
+                receiveResponse();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().receive();
+
+            tester.employeesBroadcastChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                applyLeader().
+                expectToBeSent();
+
+            tester.employeesBroadcastChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.notificationChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.employeesWebSocket.
+                ssoAuth().
+                connect();
+
+            tester.employeesInitMessage().
+                ssoAuth().
+                expectToBeSent();
+
+            tester.slavesNotification().expectToBeSent();
+
+            tester.slavesNotification().
+                additional().
+                expectToBeSent();
+
+            const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent();
+
+            const reportGroupsRequest = tester.reportGroupsRequest().
+                noAuthorizationHeader().
+                expectToBeSent();
+
+            const reportsListRequest = tester.reportsListRequest().expectToBeSent(),
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent();
+
+            const employeeStatusesRequest = tester.employeeStatusesRequest().
+                noAuthorizationHeader().
+                expectToBeSent();
+
+            employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(),
+
+            employeeRequest = tester.employeeRequest().
+                noAuthorizationHeader().
+                expectToBeSent();
+
+            authTokenRequest = tester.authTokenRequest().expectToBeSent();
+
+            ticketsContactsRequest.receiveResponse();
+            reportGroupsRequest.receiveResponse();
+            reportsListRequest.receiveResponse();
+            reportTypesRequest.receiveResponse();
+            employeeStatusesRequest.receiveResponse();
+            employeeSettingsRequest.receiveResponse();
+            employeeRequest.receiveResponse();
+            authTokenRequest.receiveResponse();
+
+            const authCheckRequest = tester.authCheckRequest().
+                ssoAuth().
+                receiveResponse();
+
+            tester.callsRequest().receiveResponse();
+            tester.talkOptionsRequest().receiveResponse();
+            tester.permissionsRequest().receiveResponse();
+
+            tester.settingsRequest().
+                ssoAuth().
                 receiveResponse();
 
             tester.slavesNotification().
@@ -718,44 +1027,9 @@ tests.addTest(options => {
                 microphoneAccessGranted().
                 userDataFetched().
                 expectToBeSent();
-
-            reportGroupsRequest.receiveResponse();
-
-            tester.button('Софтфон').click();
-
-            tester.slavesNotification().
-                additional().
-                visible().
-                expectToBeSent();
-
-            registrationRequest.receiveResponse();
-
-            tester.slavesNotification().
-                twoChannels().
-                available().
-                expectToBeSent();
-
-            tester.incomingCall().receive();
-
-            tester.slavesNotification().
-                twoChannels().
-                available().
-                incoming().
-                progress().
-                expectToBeSent();
-
-            tester.numaRequest().receiveResponse();
-
-            tester.outCallEvent().receive();
-            tester.outCallEvent().slavesNotification().expectToBeSent();
-
-            tester.usersRequest().forContacts().receiveResponse();
-            tester.contactGroupsRequest().receiveResponse();
-
-            tester.copyIcon.expectNotToExist();
-            tester.phone.click();
-
-            clipboard.expectToHaveValue(null);
+                
+            tester.ssoWsCheckingRequest().receiveResponse();
+            tester.ssoWsCheckingRequest().receiveResponse();
         });
     });
 });

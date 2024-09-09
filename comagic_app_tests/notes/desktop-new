@@ -1,0 +1,12 @@
+@/routes/constants/softphone
+
+    SOFTPHONE_CALL_STATS_PATH,
+    SOFTPHONE_DIALPAD_PATH,
+
+import { getCurrentWindowId } from '@/utils';
+import styles from './styles.module.less';
+import { Topbar } from './components/topbar';
+import { useGetReportTypeByPath } from './hooks/useGetReportTypeByPath';
+
+comagic_app/src/App.tsx - Softphone from './components/main/menu/softphone'
+rootStore.themeStore

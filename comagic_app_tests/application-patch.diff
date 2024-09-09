@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0579dd31..c2d71542 100644
+index 0579dd31..965ee3bc 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -208,7 +208,7 @@ index 0579dd31..c2d71542 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -352,17 +425,170 @@ module.exports = {
+@@ -352,17 +425,172 @@ module.exports = {
                      },
                  ],
              },
@@ -273,6 +273,7 @@ index 0579dd31..c2d71542 100644
 +            'softphone/CallStats': 'softphone/src/call_stats/index.tsx',
 +            'softphone/LostCallsCount': 'softphone/src/call_history/counter.tsx',
 +            'softphone/FeedbackWebModal': 'softphone/src/feedback/feedbackWeb/index.tsx',
++            'softphone/RootStore': 'softphone/src/models/RootStore.ts',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
 +            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
@@ -288,6 +289,7 @@ index 0579dd31..c2d71542 100644
 +            'chats/MenuItemCounter': 'chats/src/components/main/menu/counter.tsx',
 +            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,
 +            'chats/ContactSelect': 'chats/src/components/chats/channel-search/start-channel-select/ContactSelectWrapped.tsx',
++            'chats/RootStore': 'chats/src/models/RootStore.ts',
 +            'callTracking/CalltrackingSubstitutionControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingTrafficControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
@@ -545,7 +547,7 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 32137f8d..258a9dda 100644
+index 32137f8d..fa5d0791 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,18 @@
@@ -589,7 +591,15 @@ index 32137f8d..258a9dda 100644
      const {
          projectData: { locale },
      } = accountStore;
-@@ -63,23 +68,122 @@ const Root: React.FC<Props> = observer(props => {
+@@ -59,27 +64,130 @@ const Root: React.FC<Props> = observer(props => {
+         }
+     }, [accountStore.account.project]);
+ 
++    useEffect(() => {
++        rootStore.setShouldShowNewSoftphone(shouldShowNewSoftphone);
++    }, [shouldShowNewSoftphone]);
++
+     return (
          <HistoryRouter history={history}>
              <CoreProvider
                  isHostApp
@@ -620,8 +630,7 @@ index 32137f8d..258a9dda 100644
  const container = document.getElementById('root');
 -const root = createRoot(container);
 +const TestBody = ({children}) => <div className="cm-test-body">{children}</div>;
- 
--root.render(<Root {...(window.rootConfig || {})} />);
++
 +const platforms = {
 +    mac: {
 +        height: 88,
@@ -714,223 +723,512 @@ index 32137f8d..258a9dda 100644
 +        if (!container) {
 +            return;
 +        }
-+
+ 
+-root.render(<Root {...(window.rootConfig || {})} />);
 +        container.firstChild && root && root.unmount();
 +        container.remove();
 +    }
 +};
 diff --git a/src/models/RootStore.ts b/src/models/RootStore.ts
-index 8ae6e87b..538d9eec 100644
+deleted file mode 100644
+index 8ae6e87b..00000000
 --- a/src/models/RootStore.ts
-+++ b/src/models/RootStore.ts
-@@ -5,6 +5,7 @@ import * as fileSaver from 'file-saver';
- import { Instance, SnapshotOut, applySnapshot, cast, getSnapshot, types } from 'mobx-state-tree';
- import moment from 'moment';
- import React from 'react';
-+import { autorun } from 'mobx';
- 
- import { AuthStore, getToken } from '@models/auth/AuthStore';
- import { MenuStore } from '@models/menu/MenuStore';
-@@ -15,7 +16,7 @@ import { getProject } from '@/i18n';
- import { httpRpc, httpRpcAuth } from '@/rpc';
- import { HttpRpc } from '@/rpc/httpRpc';
- import { url as authUrl } from '@/rpc/httpRpcAuth';
++++ /dev/null
+@@ -1,492 +0,0 @@
+-import { AccountStore, NotificationStore, eventBus, projectsData } from '@comagic/core';
+-import { Logger, LoggerStrategy } from '@comagic/workplace-utils';
+-import axios, { AxiosRequestConfig } from 'axios';
+-import * as fileSaver from 'file-saver';
+-import { Instance, SnapshotOut, applySnapshot, cast, getSnapshot, types } from 'mobx-state-tree';
+-import moment from 'moment';
+-import React from 'react';
+-
+-import { AuthStore, getToken } from '@models/auth/AuthStore';
+-import { MenuStore } from '@models/menu/MenuStore';
+-import { RootReportStore } from '@models/reports/RootReportStore';
+-
+-import { GOD_MODE } from '@/config';
+-import { getProject } from '@/i18n';
+-import { httpRpc, httpRpcAuth } from '@/rpc';
+-import { HttpRpc } from '@/rpc/httpRpc';
+-import { url as authUrl } from '@/rpc/httpRpcAuth';
 -import { createIconFactory, getWorkplaceAvailability, isSoftphoneAvailable } from '@/utils';
-+import { createIconFactory, getWorkplaceAvailability, isSoftphoneAvailable, getIpcRender } from '@/utils';
- 
- const loginUrl = `${authUrl}?method=login`;
- const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
-@@ -36,12 +37,6 @@ type HttpRpcErrorModel = {
- 
- type RequestToRefresh = (nextResolve: boolean) => void;
- 
+-
+-const loginUrl = `${authUrl}?method=login`;
+-const ACCESS_TOKEN_EXPIRED = 'access_token_expired';
+-const ACCESS_TOKEN_INVALID = 'access_token_invalid';
+-const IP_NOT_WHITELISTED = 'ip_not_whitelisted';
+-const LOGOUT_USER = 'logout.user';
+-
+-const isGodMode = () => {
+-    return localStorage.getItem(GOD_MODE) === '*';
+-};
+-
+-type HttpRpcErrorModel = {
+-    code: number;
+-    message: string;
+-    data: any;
+-    request: any | null;
+-};
+-
+-type RequestToRefresh = (nextResolve: boolean) => void;
+-
 -const getIpcRender = () =>
 -    (window.rootConfig?.appName === 'softphone' && (window.require || (() => null))('electron')?.ipcRenderer) || {
 -        on: (): void => null,
 -        send: (): void => null,
 -    };
 -
- const log = (message: string) =>
-     getIpcRender().send('log', (typeof message === 'object' ? JSON.stringify(message) : `${message}`).trim());
- 
-@@ -101,15 +96,19 @@ const filterPassword = (messages: Array<string>) => {
-     return messages;
- };
- 
+-const log = (message: string) =>
+-    getIpcRender().send('log', (typeof message === 'object' ? JSON.stringify(message) : `${message}`).trim());
+-
+-window.addEventListener('error', function (event) {
+-    log((error => (error ? error + '' : ''))(event?.error?.stack || event?.message).trim());
+-    return false;
+-});
+-
+-export class DesktopLoggerStrategy {
+-    #rootStore: RootInstance = null;
+-
+-    constructor(rootStore: RootInstance) {
+-        this.#rootStore = rootStore;
+-        const ipcRenderer = getIpcRender();
+-
+-        ipcRenderer.on('logs_collected', (event: unknown, data: BlobPart, index: number) =>
+-            rootStore.handleLogsCollected(data, index)
+-        );
+-    }
+-
+-    getLogs() {
+-        return new Promise<BlobPart>(resolve => {
+-            this.#rootStore.collectLogs(resolve);
+-        });
+-    }
+-
+-    log(message: string) {
+-        log(message);
+-    }
+-}
+-
+-const filterPassword = (messages: Array<string>) => {
+-    [0, 1].forEach(index => {
+-        if (messages?.[index] !== `POST ${loginUrl}`) {
+-            return;
+-        }
+-
+-        index++;
+-
+-        const params = (message => {
+-            if (typeof message === 'object') {
+-                return message;
+-            }
+-
+-            try {
+-                return JSON.parse(message);
+-            } catch (e) {
+-                console.error(e);
+-                return {};
+-            }
+-        })(messages[index]);
+-
+-        params?.params?.password && (params.params.password = '***');
+-        messages[index] = params;
+-    });
+-
+-    return messages;
+-};
+-
 -const addClickListener = (() => {
-+const createListenerAssigner = getTarget => {
-     let previousHandler: () => void;
- 
+-    let previousHandler: () => void;
+-
 -    return (handler: () => void) => {
 -        previousHandler && document.body.removeEventListener('click', handler);
-+    return (eventName: string, handler: () => void) => {
-+        previousHandler && getTarget().removeEventListener(eventName, handler);
-         previousHandler = handler;
+-        previousHandler = handler;
 -        document.body.addEventListener('click', handler);
-+        getTarget().addEventListener(eventName, handler);
-     };
+-    };
 -})();
-+};
-+
-+const addBodyListener = createListenerAssigner(() => document.body),
-+    addClickListener = (handler: () => void) => addBodyListener('click', handler),
-+    addWindowListener = createListenerAssigner(() => window);
- 
- const Credentials = types.model({
-     login: types.optional(types.maybeNull(types.string), null),
-@@ -129,6 +128,7 @@ export const RootStore = types
-         isGodMode: types.optional(types.boolean, isGodMode()),
-         isIpDisallowed: types.optional(types.boolean, false),
-         isLogDownloading: types.optional(types.boolean, false),
-+        windowHeight: types.optional(types.number, 0),
-         authStore: types.optional(AuthStore, {}),
-         accountStore: types.optional(AccountStore, {}),
-         menuStore: types.optional(MenuStore, {}),
-@@ -158,9 +158,9 @@ export const RootStore = types
-                 : new LoggerStrategy();
- 
-         const logger = new Logger(loggerStrategy);
-+        localStorage.getItem('debugMode') === '1' && logger.enableDebugMode();
- 
-         logger.filter(filterPassword);
+-
+-const Credentials = types.model({
+-    login: types.optional(types.maybeNull(types.string), null),
+-    password: types.optional(types.maybeNull(types.string), null),
+-    project: types.optional(types.maybeNull(types.string), null),
+-});
+-
+-type CredentialsSnapshot = SnapshotOut<typeof Credentials>;
+-
+-export const RootStore = types
+-    .model('RootStore', {
+-        credentials: types.optional(types.array(Credentials), []),
+-        authError: types.optional(types.string, ''),
+-        isUpdateReceived: types.optional(types.boolean, false),
+-        isSoftphoneVisible: types.optional(types.boolean, true),
+-        isMaximized: types.optional(types.boolean, false),
+-        isGodMode: types.optional(types.boolean, isGodMode()),
+-        isIpDisallowed: types.optional(types.boolean, false),
+-        isLogDownloading: types.optional(types.boolean, false),
+-        authStore: types.optional(AuthStore, {}),
+-        accountStore: types.optional(AccountStore, {}),
+-        menuStore: types.optional(MenuStore, {}),
+-        reportStore: types.optional(RootReportStore, {}),
+-        notificationStore: types.optional(NotificationStore, {}),
+-    })
+-    .actions(self => {
+-        const setIsIpDisallowed = (isIpDisallowed: boolean) => {
+-            self.isIpDisallowed = isIpDisallowed;
+-        };
+-
+-        return { setIsIpDisallowed };
+-    })
+-    .actions(self => {
+-        let callbacks: Array<(data: BlobPart) => void> = [];
+-        let initialState: RootInstanceSnapshotOut;
+-        let requestsToRefresh: RequestToRefresh[] = [];
+-        let isRefreshRequesting = false;
+-        let clicked = false;
+-
+-        const setSoftphoneVisiblity = (value: boolean) => (self.isSoftphoneVisible = value),
+-            toggleSoftphoneVisiblity = () => setSoftphoneVisiblity(!self.isSoftphoneVisible);
+-
+-        const loggerStrategy =
+-            window.rootConfig?.appName === 'softphone'
+-                ? new DesktopLoggerStrategy(self as RootInstance)
+-                : new LoggerStrategy();
+-
+-        const logger = new Logger(loggerStrategy);
+-
+-        logger.filter(filterPassword);
 -        logger.applyToAxios(axios);
- 
-         const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
-             const auth = getToken();
-@@ -241,7 +241,7 @@ export const RootStore = types
-                 }
-             );
- 
--            axios.interceptors.response.use(
-+            window.axiosInterceptors = [axios.interceptors.response.use(
-                 response => {
-                     if (response.data.error) {
-                         const {
-@@ -298,7 +298,7 @@ export const RootStore = types
- 
-                     return Promise.reject(error);
-                 }
+-
+-        const refreshAccessToken = (error: HttpRpcErrorModel, config: AxiosRequestConfig): Promise<any> => {
+-            const auth = getToken();
+-            let method;
+-            try {
+-                method = JSON.parse(config.data).method;
+-            } catch {
+-                // REST case
+-            }
+-            if (!auth || method === LOGOUT_USER) {
+-                return Promise.reject(error);
+-            }
+-
+-            if (!isRefreshRequesting) {
+-                isRefreshRequesting = true;
+-
+-                self.authStore
+-                    .fetchRefresh()
+-                    .then(() => {
+-                        requestsToRefresh.forEach(cb => cb(true));
+-                    })
+-                    .catch(() => {
+-                        requestsToRefresh.forEach(cb => cb(false));
+-                    })
+-                    .finally(() => {
+-                        requestsToRefresh = [];
+-                        isRefreshRequesting = false;
+-                    });
+-            }
+-
+-            return new Promise((resolve, reject) => {
+-                const requestToRefresh = (resolveNext: boolean) => {
+-                    if (resolveNext) {
+-                        resolve(axios(config));
+-                    }
+-
+-                    reject(error);
+-                };
+-
+-                requestsToRefresh.push(requestToRefresh);
+-            });
+-        };
+-
+-        const setHttpRequestsDefault = () => {
+-            axios.defaults.headers.post['Accept'] = 'application/json';
+-            axios.defaults.headers.post['Content-Type'] = 'application/json';
+-
+-            axios.interceptors.request.use(
+-                config => {
+-                    const auth = getToken();
+-
+-                    if (auth) {
+-                        const { jwt } = auth;
+-                        const headers = config.headers;
+-
+-                        // todo проблема с РМР - протестировали на БОЮ =)
+-                        // let configData = config.data;
+-                        //
+-                        // if (typeof configData === 'string') {
+-                        //     configData = JSON.parse(configData);
+-                        // }
+-                        //
+-                        // const method = configData?.method;
+-                        // if (method) {
+-                        //     headers['Authorization'] = `Bearer ${jwt}`;
+-                        // } else {
+-                        //     headers['X-Auth-Token'] = jwt;
+-                        // }
+-                        headers['Authorization'] = `Bearer ${jwt}`;
+-                        headers['X-Auth-Token'] = jwt;
+-                        headers['X-Auth-Type'] = 'jwt';
+-                    }
+-
+-                    return config;
+-                },
+-                error => {
+-                    return Promise.reject(error);
+-                }
 -            );
-+            ), logger.applyToAxios(axios)];
-         };
- 
-         const collectLogs = (callback: (data: BlobPart) => void) => {
-@@ -314,7 +314,25 @@ export const RootStore = types
-             callbacks[index]?.(data);
-         };
- 
-+        const updateWindowHeight = () => {
-+            self.windowHeight = document.documentElement.clientHeight;
-+        };
-+
-+        addWindowListener('resize', () => self.updateWindowHeight());
-+
-         const afterCreate = () => {
-+            window.axiosInterceptors !== undefined && window.axiosInterceptors.forEach(
-+                interceptor => axios.interceptors.response.eject(interceptor)
-+            );
-+
-+            const classList = document?.body?.classList;
-+
-+            window.rootConfig?.appName === 'softphone' ?
-+                classList?.add('cm-body-desktop') :
-+                classList?.remove('cm-body-desktop');
-+
-+            self.updateWindowHeight();
-+
-             callbacks = [];
-             let isMaximizedCurrently = false;
- 
-@@ -324,6 +342,7 @@ export const RootStore = types
-             };
- 
-             const createIcon = createIconFactory(window.rootConfig?.platform === 'mac' ? 'mac' : 'windows');
-+            const toNumber = value => (value ? (typeof value === 'number' ? value : parseInt(value, 0)) : 0);
- 
-             const setCounter = (values: Partial<typeof counters>) => {
-                 let oldValue = 0,
-@@ -331,7 +350,7 @@ export const RootStore = types
- 
-                 Object.keys(counters).forEach((key: keyof typeof counters) => {
-                     oldValue += counters[key];
+-
+-            axios.interceptors.response.use(
+-                response => {
+-                    if (response.data.error) {
+-                        const {
+-                            config,
+-                            data: { error },
+-                        } = response;
+-                        const errorMnemonic = error?.data?.mnemonic;
+-
+-                        if (errorMnemonic === ACCESS_TOKEN_EXPIRED) {
+-                            return refreshAccessToken(error, config);
+-                        } else if (errorMnemonic === ACCESS_TOKEN_INVALID) {
+-                            self.authStore.logout();
+-
+-                            return Promise.reject(error);
+-                        } else if (errorMnemonic === IP_NOT_WHITELISTED) {
+-                            self.setIsIpDisallowed(true);
+-                        }
+-                    } else {
+-                        if (response.config.url === loginUrl && !self.authStore.dontKeepMeSignedIn) {
+-                            const params = (params => {
+-                                if (!params) {
+-                                    return {};
+-                                }
+-
+-                                try {
+-                                    return JSON.parse(params);
+-                                } catch (e) {
+-                                    return {};
+-                                }
+-                            })(response.config.data);
+-
+-                            getIpcRender().send('login', {
+-                                login: params.params?.login,
+-                                password: params.params?.password,
+-                                project: params.params?.project,
+-                            });
+-                        }
+-                    }
+-
+-                    return response;
+-                },
+-                error => {
+-                    if (error?.response?.status === 401) {
+-                        const errorMnemonic = error.response.data.split(' ').slice(-1)[0];
+-                        if (errorMnemonic === ACCESS_TOKEN_EXPIRED) {
+-                            return refreshAccessToken(error, error.response.config);
+-                        } else if (
+-                            errorMnemonic === ACCESS_TOKEN_INVALID ||
+-                            error.response.data === '401: "Authorization" header not found'
+-                        ) {
+-                            self.authStore.logout();
+-                        }
+-                    }
+-
+-                    return Promise.reject(error);
+-                }
+-            );
+-        };
+-
+-        const collectLogs = (callback: (data: BlobPart) => void) => {
+-            const index = callbacks.length;
+-            self.isLogDownloading = true;
+-
+-            callbacks.push(callback);
+-            getIpcRender().send('collect_logs', index);
+-        };
+-
+-        const handleLogsCollected = (data: BlobPart, index: number) => {
+-            self.isLogDownloading = false;
+-            callbacks[index]?.(data);
+-        };
+-
+-        const afterCreate = () => {
+-            callbacks = [];
+-            let isMaximizedCurrently = false;
+-
+-            const counters = {
+-                lostCallsCount: 0,
+-                chatsAndOfflineMessagesCount: 0,
+-            };
+-
+-            const createIcon = createIconFactory(window.rootConfig?.platform === 'mac' ? 'mac' : 'windows');
+-
+-            const setCounter = (values: Partial<typeof counters>) => {
+-                let oldValue = 0,
+-                    newValue = 0;
+-
+-                Object.keys(counters).forEach((key: keyof typeof counters) => {
+-                    oldValue += counters[key];
 -                    key in values && (counters[key] = values[key]);
-+                    key in values && (counters[key] = toNumber(values[key]));
-                     newValue += counters[key];
-                 });
- 
-@@ -339,6 +358,7 @@ export const RootStore = types
-                     return;
-                 }
- 
-+                logger.log('Set missing event counter', newValue);
-                 getIpcRender().send('set-icon', createIcon(newValue));
-             };
- 
-@@ -384,6 +404,8 @@ export const RootStore = types
-                 getIpcRender().send('autolauncherchange', value)
-             );
- 
-+            eventBus.subscribe('open-logs-dir', () => getIpcRender().send('open-logs-dir'));
-+
-             getIpcRender().on('maximize', () => (self as RootInstance).setMaximized(true));
-             getIpcRender().on('unmaximize', () => (self as RootInstance).setMaximized(false));
- 
-@@ -408,6 +430,8 @@ export const RootStore = types
-                     eventBus.broadcast('checkstartminimize', data.isStartMinimize)
-                 );
- 
-+                getIpcRender().on('app-version', (event, version) => eventBus.broadcast('app-version', version));
-+                getIpcRender().on('update-available', (event, data) => eventBus.broadcast('update-available', data));
-                 getIpcRender().on('update-downloaded', () => (self as RootInstance).setUpdateReceived(true));
-                 getIpcRender().on('maximize', () => eventBus.broadcast('maximize'));
-                 getIpcRender().on('unmaximize', () => eventBus.broadcast('unmaximize'));
-@@ -425,6 +449,8 @@ export const RootStore = types
- 
-             eventBus.subscribe('get-clicked', (callback: (clicked: boolean) => void) => callback(clicked));
-             eventBus.subscribe('set-not-clicked', () => (clicked = false));
-+
-+            eventBus.subscribe('download', (url: string) => getIpcRender().send('download', url));
-         };
- 
-         const resetStore = () => {
-@@ -436,8 +462,14 @@ export const RootStore = types
-             });
-         };
- 
+-                    newValue += counters[key];
+-                });
+-
+-                if (oldValue === newValue) {
+-                    return;
+-                }
+-
+-                getIpcRender().send('set-icon', createIcon(newValue));
+-            };
+-
+-            const maximizednessChangeHandler = (isMaximized: boolean) => {
+-                (self as RootInstance).setMaximized(isMaximized);
+-
+-                isMaximized !== isMaximizedCurrently && getIpcRender().send(isMaximized ? 'maximize' : 'unmaximize');
+-                isMaximizedCurrently = isMaximized;
+-            };
+-
+-            setHttpRequestsDefault();
+-
+-            getIpcRender().send('opened');
+-            eventBus.subscribe('set_auth_error', (value: string) => (self as RootInstance).setAuthError(value));
+-
+-            eventBus.subscribe('call_start', (toTopOnCall: string) => {
+-                getIpcRender().send('call-start', toTopOnCall);
+-                toTopOnCall && (self as RootInstance).setSoftphoneVisiblity(true);
+-            });
+-
+-            eventBus.subscribe('call_end', (closeOnCallEnd: string) => {
+-                getIpcRender().send('call-end', closeOnCallEnd);
+-                closeOnCallEnd && (self as RootInstance).setSoftphoneVisiblity(false);
+-            });
+-
+-            eventBus.subscribe('collect_logs', (callback: (logs: string) => void) =>
+-                loggerStrategy.getLogs().then(callback)
+-            );
+-
+-            eventBus.subscribe('log', (message: string) => loggerStrategy.log(message));
+-            eventBus.subscribe('maximize', () => maximizednessChangeHandler(true));
+-            eventBus.subscribe('unmaximize', () => maximizednessChangeHandler(false));
+-
+-            eventBus.subscribe('resize', (size: { width: number; height: number }) =>
+-                getIpcRender().send('resize', size)
+-            );
+-
+-            eventBus.subscribe('startminimizechange', (value: boolean) =>
+-                getIpcRender().send('startminimizechange', value)
+-            );
+-
+-            eventBus.subscribe('autolauncherchange', (value: boolean) =>
+-                getIpcRender().send('autolauncherchange', value)
+-            );
+-
+-            getIpcRender().on('maximize', () => (self as RootInstance).setMaximized(true));
+-            getIpcRender().on('unmaximize', () => (self as RootInstance).setMaximized(false));
+-
+-            eventBus.subscribe('set_lost_call_count', (value: number) =>
+-                setCounter({
+-                    lostCallsCount: value,
+-                })
+-            );
+-
+-            eventBus.subscribe('set_chats_and_offline_messages_count', (value: number) =>
+-                setCounter({
+-                    chatsAndOfflineMessagesCount: value,
+-                })
+-            );
+-
+-            eventBus.subscribe('app_ready', () => {
+-                getIpcRender().on('checkautolauncher', (event: unknown, data: { isStartApp: boolean }) =>
+-                    eventBus.broadcast('checkautolauncher', data.isStartApp)
+-                );
+-
+-                getIpcRender().on('checkstartminimize', (event: unknown, data: { isStartMinimize: boolean }) =>
+-                    eventBus.broadcast('checkstartminimize', data.isStartMinimize)
+-                );
+-
+-                getIpcRender().on('update-downloaded', () => (self as RootInstance).setUpdateReceived(true));
+-                getIpcRender().on('maximize', () => eventBus.broadcast('maximize'));
+-                getIpcRender().on('unmaximize', () => eventBus.broadcast('unmaximize'));
+-
+-                getIpcRender().send('app-ready');
+-            });
+-
+-            initialState = getSnapshot(self);
+-
+-            getIpcRender().on('credentials', (event: unknown, data: Array<CredentialsSnapshot>) =>
+-                (self as RootInstance).setCredentials(data)
+-            );
+-
+-            addClickListener(() => (clicked = true));
+-
+-            eventBus.subscribe('get-clicked', (callback: (clicked: boolean) => void) => callback(clicked));
+-            eventBus.subscribe('set-not-clicked', () => (clicked = false));
+-        };
+-
+-        const resetStore = () => {
+-            applySnapshot(self, {
+-                ...initialState,
+-                authError: self.authError,
+-                isMaximized: self.isMaximized,
+-                credentials: self.credentials,
+-            });
+-        };
+-
 -        const setMaximized = (value: boolean) => (self.isMaximized = value),
 -            setAuthError = (value: string) => (self.authError = value),
-+        const setMaximized = (value: boolean) => {
-+            self.isMaximized = value;
-+            const classList = document?.body?.classList;
-+
-+            value ? classList?.add('cm-body-maximized') : classList?.remove('cm-body-maximized');
-+        };
-+
-+        const setAuthError = (value: string) => (self.authError = value),
-             setUpdateReceived = (value: boolean) => (self.isUpdateReceived = !!value),
-             setCredentials = (value: Array<CredentialsSnapshot>) => (self.credentials = cast(value));
- 
-@@ -465,6 +497,8 @@ export const RootStore = types
-             handleLogsCollected,
-             toggleSoftphoneVisiblity,
-             setSoftphoneVisiblity,
-+            updateWindowHeight,
-+            log: (messages: Array<any>) => logger.log(messages),
-         };
-     });
- 
-@@ -475,7 +509,8 @@ export type DependencyInjection = {
- export type RootInstance = Instance<typeof RootStore>;
- export const RootStoreContext = React.createContext<null | RootInstance>(null);
- export const Provider = RootStoreContext.Provider;
+-            setUpdateReceived = (value: boolean) => (self.isUpdateReceived = !!value),
+-            setCredentials = (value: Array<CredentialsSnapshot>) => (self.credentials = cast(value));
+-
+-        const deleteLogin = (login: string) =>
+-            getIpcRender().send('delete-login', {
+-                login,
+-                project: getProject(),
+-            });
+-
+-        const quitAndInstall = () => {
+-            setUpdateReceived(false);
+-            getIpcRender().send('quit-and-install');
+-        };
+-
+-        return {
+-            afterCreate,
+-            resetStore,
+-            deleteLogin,
+-            quitAndInstall,
+-            setUpdateReceived,
+-            setCredentials,
+-            setMaximized,
+-            setAuthError,
+-            collectLogs,
+-            handleLogsCollected,
+-            toggleSoftphoneVisiblity,
+-            setSoftphoneVisiblity,
+-        };
+-    });
+-
+-export type DependencyInjection = {
+-    httpRpc: HttpRpc;
+-    httpRpcAuth: HttpRpc;
+-};
+-export type RootInstance = Instance<typeof RootStore>;
+-export const RootStoreContext = React.createContext<null | RootInstance>(null);
+-export const Provider = RootStoreContext.Provider;
 -export const rootStore = RootStore.create({}, { httpRpc, httpRpcAuth });
-+export let rootStore;
-+export const createRootStore = () => (rootStore = RootStore.create({}, { httpRpc, httpRpcAuth }));
- 
- type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
- 
+-
+-type RootInstanceSnapshotOut = SnapshotOut<typeof RootStore>;
+-
+-if (process.env.NODE_ENV === 'development' || isGodMode()) {
+-    window.rootStore = rootStore;
+-}
+-
+-export const updateTitleAndFavicon = (project: string): void => {
+-    const faviconLinkElement = document.querySelector('link[rel="icon"]');
+-    const { title, faviconUrl } = projectsData[project];
+-
+-    document.title = title;
+-    faviconLinkElement.setAttribute('href', faviconUrl);
+-};
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index fa214b30..0399e06a 100644
+index fa214b30..5086b250 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -1,19 +1,51 @@
@@ -1099,7 +1397,7 @@ index fa214b30..0399e06a 100644
          const cancelNotifications = () => {
              notificationStore.stackingNotificationInstance?.destroyAll();
              notificationStore.cancelNotifications();
-@@ -125,19 +199,33 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -125,19 +199,41 @@ export const AuthStore = Loader.named('AuthStore')
              setAuthorized(false);
              cancelPendingRequests('canceled by logout');
              eventBus.broadcast('logout');
@@ -1117,10 +1415,12 @@ index fa214b30..0399e06a 100644
 -            self.dontKeepMeSignedIn = dontKeepMeSignedIn;
 +        const loginSSO = flow(function* (username: string, password: string, is_checked: boolean) {
 +            try {
++                const project = getProject();
++
 +                yield httpSSOClient('api-login', {
 +                    username,
 +                    password,
-+                    project: getProject(),
++                    project,
 +                    identity_provider: 'comagic_db',
 +                    sliding_expiration: !is_checked,
 +                });
@@ -1128,6 +1428,12 @@ index fa214b30..0399e06a 100644
 +                setAuthorized(true);
 +                window.dispatchEvent(new Event('loginSSO'));
 +                // setToken({ jwt: localStorage.getItem('auth'), refresh: 'sso' }, is_checked);
++ 
++                getIpcRender().send('login', {
++                    login: username,
++                    password,
++                    project,
++                });
 +            } catch (e) {
 +                return Promise.reject(e);
 +            } finally {
@@ -1141,7 +1447,7 @@ index fa214b30..0399e06a 100644
  
              try {
                  const token = getToken();
-@@ -148,10 +236,18 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -148,10 +244,18 @@ export const AuthStore = Loader.named('AuthStore')
                      password,
                      project: getProject(),
                      old_jwt,
@@ -1162,7 +1468,7 @@ index fa214b30..0399e06a 100644
              } catch (e) {
                  removeToken();
  
-@@ -161,7 +257,34 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -161,7 +265,34 @@ export const AuthStore = Loader.named('AuthStore')
              }
          });
  
@@ -1197,7 +1503,7 @@ index fa214b30..0399e06a 100644
              try {
                  setIsTokenRefreshing(true);
  
-@@ -170,24 +293,42 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -170,24 +301,42 @@ export const AuthStore = Loader.named('AuthStore')
                  const nextAuth = yield httpRpcAuth('refresh', auth);
  
                  setToken(nextAuth);
@@ -1247,7 +1553,7 @@ index fa214b30..0399e06a 100644
              } catch (e) {
                  return Promise.reject(e);
              } finally {
-@@ -195,11 +336,86 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -195,11 +344,86 @@ export const AuthStore = Loader.named('AuthStore')
              }
          });
  
@@ -1335,7 +1641,7 @@ index fa214b30..0399e06a 100644
                  }
              });
              window.addEventListener('doRefreshToken', (event: CustomEvent) => {
-@@ -207,10 +423,6 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -207,10 +431,6 @@ export const AuthStore = Loader.named('AuthStore')
                  if (eventWindowId !== authStore.windowId) {
                      authStore
                          .fetchRefresh()
@@ -1346,7 +1652,7 @@ index fa214b30..0399e06a 100644
                          .catch(e => console.error(e));
                  }
              });
-@@ -226,6 +438,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -226,6 +446,8 @@ export const AuthStore = Loader.named('AuthStore')
                          if (accountStoreUserId !== null && jwtUserId !== accountStoreUserId) {
                              window.location.href = '/';
                          }
@@ -1355,7 +1661,7 @@ index fa214b30..0399e06a 100644
                      }
                  }
              }, 1000);
-@@ -233,10 +447,20 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -233,10 +455,20 @@ export const AuthStore = Loader.named('AuthStore')
  
          return {
              fetchLoginUser,
@@ -1416,10 +1722,10 @@ index 05ee942e..bb7ab355 100644
  const prepareName = (name: string) => encodeURIComponent(name.replace(/([.$?*|{}()[\]\\/+^])/g, '\\$1'));
  
 diff --git a/src/utils/index.ts b/src/utils/index.ts
-index 09650fcc..19e5cbaf 100644
+index 09650fcc..a875bac8 100644
 --- a/src/utils/index.ts
 +++ b/src/utils/index.ts
-@@ -5,6 +5,9 @@ export { default as getComagicWebUrl } from './getComagicWebUrl';
+@@ -5,6 +5,11 @@ export { default as getComagicWebUrl } from './getComagicWebUrl';
  export { default as loadTheme } from './loadTheme';
  export { default as setAxiosGlobalInterceptors } from './setAxiosGlobalInterceptors';
  export { default as getWorkplaceAvailability } from './getWorkplaceAvailability';
@@ -1430,3 +1736,5 @@ index 09650fcc..19e5cbaf 100644
 +export { default as getIpcRender } from './getIpcRender';
 +
 +export const createIconFactory = (os = 'windows') => counter => [os, counter].join(', ');
++export { getCurrentWindowId } from './getCurrentWindowId';
++export { getInitials } from './getInitials';

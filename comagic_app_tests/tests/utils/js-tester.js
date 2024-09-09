@@ -418,6 +418,7 @@ function JsTester_NavigatorMock (args) {
     this.getUserMedia = getUserMedia;
     this.userAgent = navigator.userAgent;
     this.vendor = navigator.vendor;
+    this.platform = navigator.platform;
 }
 
 function JsTester_RTCConnectionSender (track) {
@@ -3156,9 +3157,13 @@ function JsTester_IntersectionObserver ({
     intersectionObservations,
     intersectionObservationHandlers
 }) {
+    const domElements = new Set();
+
     this.observe = function (domElement) {
         !intersectionObservations.has(domElement) && intersectionObservations.set(domElement, new Set());
         intersectionObservations.get(domElement).add(callback);
+
+        domElement.add(domElement);
 
         Promise.resolve().then(() => {
             const uniqueHandlers = new Set();
@@ -3176,6 +3181,8 @@ function JsTester_IntersectionObserver ({
     this.unobserve = function (domElement) {
         intersectionObservations.get(domElement)?.delete(callback);
     };
+
+    this.disconnect = () => null;
 }
 
 function JsTester_IntersectionObserverFactory ({

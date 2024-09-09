@@ -4547,7 +4547,6 @@ define(function () {
             return message;
         };
         
-
         this.callSessionFinish = function () {
             var call_session_id = 980925456;
 

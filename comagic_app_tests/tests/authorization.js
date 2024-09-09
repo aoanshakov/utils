@@ -155,6 +155,11 @@ tests.addTest(options => {
             }
 
             tester.messageTemplatesSettingsRequest().receiveResponse();
+
+            tester.chatChannelSearchRequest().
+                emptySearchString().
+                receiveResponse();
+
             countersRequest = tester.countersRequest().expectToBeSent();
 
             tester.offlineMessageCountersRequest().receiveResponse();
@@ -206,6 +211,8 @@ tests.addTest(options => {
                     noVisitorName().
                     extIdSpecified().
                     receiveResponse();
+
+                tester.scheduledMessagesRequest().receiveResponse();
 
                 visitorCardRequest = tester.visitorCardRequest().
                     expectToBeSent();
@@ -625,6 +632,11 @@ tests.addTest(options => {
 
                     tester.messageTemplatesSettingsRequest().receiveResponse();
                     tester.authCheckRequest().receiveResponse();
+
+                    tester.chatChannelSearchRequest().
+                        emptySearchString().
+                        receiveResponse();
+
                     countersRequest = tester.countersRequest().expectToBeSent();
 
                     tester.offlineMessageCountersRequest().receiveResponse();
@@ -912,6 +924,10 @@ tests.addTest(options => {
                 processedOfflineMessageListRequest.receiveResponse();
 
                 secondAccountRequest.receiveResponse();
+
+                tester.chatChannelSearchRequest().
+                    emptySearchString().
+                    receiveResponse();
             }
         });
     });
@@ -1007,7 +1023,9 @@ tests.addTest(options => {
                     tellIsLeader().
                     expectToBeSent();
 
-                tester.employeesWebSocket.connect();
+                tester.employeesWebSocket.
+                    ssoAuth().
+                    connect();
 
                 tester.employeesInitMessage().
                     ssoAuth().
@@ -1044,11 +1062,8 @@ tests.addTest(options => {
                     receiveResponse();
 
                 tester.talkOptionsRequest().receiveResponse();
-                permissionsRequest = tester.permissionsRequest().expectToBeSent();
-                settingsRequest = tester.settingsRequest().ssoAuth().expectToBeSent();
-
-                permissionsRequest.receiveResponse();
-                settingsRequest.receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+                tester.settingsRequest().ssoAuth().receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().
@@ -1105,6 +1120,9 @@ tests.addTest(options => {
                     twoChannels().
                     available().
                     expectToBeSent();
+
+                tester.ssoWsCheckingRequest().receiveResponse();
+                tester.ssoWsCheckingRequest().receiveResponse();
             });
 
             describe('Выхожу из аккаунта.', function() {
@@ -1288,6 +1306,9 @@ tests.addTest(options => {
                         additional().
                         visible().
                         expectToBeSent();
+
+                    tester.ssoWsCheckingRequest().receiveResponse();
+                    tester.ssoWsCheckingRequest().receiveResponse();
                 });
                 it('Отображена форма входа.', function() {
                     tester.input.withFieldLabel('Логин').expectToBeVisible();
@@ -1379,11 +1400,8 @@ tests.addTest(options => {
 
                 authCheckRequest.receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
-                permissionsRequest = tester.permissionsRequest().expectToBeSent();
-                settingsRequest = tester.settingsRequest().expectToBeSent();
-
-                permissionsRequest.receiveResponse();
-                settingsRequest.receiveResponse();
+                tester.permissionsRequest().receiveResponse();
+                tester.settingsRequest().receiveResponse();
 
                 tester.slavesNotification().
                     twoChannels().

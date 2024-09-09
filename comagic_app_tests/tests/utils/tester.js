@@ -312,6 +312,22 @@ define(() => function ({
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
 
+        me.searchIcon = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => {
+                    const button = utils.element(getRootElement()).
+                        querySelector('.cmgui-icon[data-component=Search20]');
+
+                    return button;
+                } 
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
+
         me.moreIcon = () => testersFactory.createDomElementTester(
             () => utils.element(getRootElement()).querySelector('.cmgui-icon[data-component=MoreVertical20]')
         );
@@ -3517,6 +3533,31 @@ define(() => function ({
         });
     };
 
+    me.ssoWsCheckingRequest = () => {
+        const data = {},
+            addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : fetch.recentRequest()).
+                    expectPathToContain('$REACT_APP_SSO_CHECK_WS_URL');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith(data);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.offlineMessageCountersRequest = () => {
         const data = {
             new_message_count: 0,
@@ -3877,7 +3918,7 @@ define(() => function ({
     const createWebSocketTester = (() => {
         let lastIndex = -1;
 
-        return () => {
+        return url => {
             let index;
 
             const getWebSocket = () => {
@@ -3885,7 +3926,7 @@ define(() => function ({
                     throw new Error('Индекс не указан.');
                 }
 
-                return webSockets.getSocket('$REACT_APP_WS_URL', index);
+                return webSockets.getSocket(url, index);
             };
 
             return {
@@ -3915,6 +3956,7 @@ define(() => function ({
         };
 
         const tester = {};
+        let url = '$REACT_APP_WS_URL';
 
         const applyMethods = () => {
             tester.finishDisconnecting = throwError;
@@ -3922,9 +3964,10 @@ define(() => function ({
             tester.receive = throwError;
             tester.disconnect = throwError;
             tester.disconnectAbnormally = throwError;
+            tester.ssoAuth = () => (url = '$REACT_APP_SSO_WS_URL', tester),
 
             tester.connect = () => {
-                const value = createWebSocketTester();
+                const value = createWebSocketTester(url);
 
                 tester.disconnect = code => {
                     value.disconnect(code);
@@ -5514,6 +5557,11 @@ define(() => function ({
             anotherPerson: function () {
                 this.anotherPhone();
                 params.contact_full_name = 'Гигова Петранка';
+                return this;
+            },
+
+            outgoing: function () {
+                params.direction = 'out';
                 return this;
             },
 
@@ -13126,90 +13174,310 @@ define(() => function ({
         });
     };
 
+    me.scheduledMessagesRequest = () => {
+        let id = '7189362';
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            anotherChat() {
+                id = '2718935';
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain(`$REACT_APP_BASE_URL/operator/chats/${id}/scheduled-messages`).
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith([]);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatChannelSearchRequest = () => {
         const processors = [];
+        let path = '$REACT_APP_BASE_URL/operator';
 
         const params = {
             contact: {
                 phone: '79283810988',
+                email: undefined,
             },
         };
 
-        const data = [{
+        let data = [{
             channel_id: 216395,
-            channel_name: 'WhatsApp',
+            channel_name: 'Москва',
             channel_type: 'whatsapp',
             channel_ext_identity: '79283810988',
             chats: [{
                 id: 7189362,
                 status: 'active',
                 employee_id: 20816,
+                is_available_for_current_employee: true,
             }] 
         }];
 
         const addResponseModifiers = me => {
+            me.noData = () => (data = [], me);
             me.anotherPhone = () => (data[0].channel_ext_identity = '79357818431', me);
             me.anotherEmployee = () => (data[0].chats[0].employee_id = 57292, me);
+            me.chatUnavailable = () => (data[0].chats[0].is_available_for_current_employee = false, me);
+
+            me.addClosedChat = () => {
+                data[0].chats.push({
+                    id: 7189371,
+                    status: 'closed',
+                    employee_id: 20816,
+                    is_available_for_current_employee: true,
+                });
+
+                return me;
+            };
+
+            me.addAnotherEmployeeUnavailableClosedChat = () => {
+                data[0].chats.push({
+                    id: 7189371,
+                    status: 'closed',
+                    employee_id: 57292,
+                    is_available_for_current_employee: false,
+                });
+
+                return me;
+            };
+
+            me.addAnotherEmployeeUnavailableActiveChat = () => {
+                data[0].chats.push({
+                    id: 7189371,
+                    status: 'active',
+                    employee_id: 57292,
+                    is_available_for_current_employee: false,
+                });
+
+                return me;
+            };
 
             me.telegram = () => {
                 data[0].channel_type = 'telegram'; 
-                data[0].channel_name = 'Telegram';
+                data[0].channel_name = 'Санкт-Петербург';
                 return me;
             };
 
             me.telegramPrivate = () => {
                 data[0].channel_type = 'telegram_private';
-                data[0].channel_name = 'Telegram private';
+                data[0].channel_name = 'Нижний Новгород';
+                return me;
+            };
+
+            me.anotherChannel = () => {
+                data[0].channel_id = 216397;
+                data[0].channel_name = 'Ереван';
+                return me;
+            };
+
+            me.thirdChannel = () => {
+                data[0].channel_id = 216398;
+                data[0].channel_name = 'Тбилиси';
                 return me;
             };
 
             me.noChat = () => (processors.push(() => data.forEach(item => item.chats = [])), me);
             me.closed = () => (data[0].chats[0].status = 'closed', me);
 
+            me.new = () => {
+                data[0].chats[0].status = 'new';
+                data[0].chats[0].employee_id = null;
+
+                return me;
+            };
+
             me.addTelegramPrivate = () => (data.push({
-                channel_id: 216396,
-                channel_name: 'Telegram private',
+                channel_id: 216405,
+                channel_name: 'Белгород',
                 channel_type: 'telegram_private',
                 channel_ext_identity: '79283810988',
                 chats: [{
                     id: 7189363,
                     status: 'active',
                     employee_id: 20816,
+                    is_available_for_current_employee: true,
                 }] 
             }), me);
 
             me.addTelegram = () => (data.push({
                 channel_id: 216396,
-                channel_name: 'Telegram',
+                channel_name: 'Брянск',
                 channel_type: 'telegram',
                 channel_ext_identity: '79283810988',
                 chats: [{
                     id: 7189363,
                     status: 'active',
                     employee_id: 20816,
+                    is_available_for_current_employee: true,
                 }] 
             }), me);
 
             me.addWhatsApp = () => (data.push({
                 channel_id: 216396,
-                channel_name: 'WhatsApp',
+                channel_name: 'Якутск',
                 channel_type: 'whatsapp',
                 channel_ext_identity: '79283810988',
                 chats: [{
                     id: 7189363,
                     status: 'active',
                     employee_id: 20816,
+                    is_available_for_current_employee: true,
                 }] 
+            }), me);
+
+            me.addWaba = () => (data.push({
+                channel_id: 216396,
+                channel_name: 'Южно-Сахалинск',
+                channel_type: 'waba',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                    is_available_for_current_employee: true,
+                }] 
+            }), me);
+
+            me.addAnotherWhatsApp = () => (data.push({
+                channel_id: 216399,
+                channel_name: 'Белград',
+                channel_type: 'whatsapp',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                    is_available_for_current_employee: true,
+                }] 
+            }), me);
+
+            me.addAnotherTelegram = () => (data.push({
+                channel_id: 216399,
+                channel_name: 'Тула',
+                channel_type: 'telegram',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                    is_available_for_current_employee: true,
+                }] 
+            }), me);
+
+            me.addThirdTelegramPrivate = () => (data.push({
+                channel_id: 216403,
+                channel_name: 'Мурманск',
+                channel_type: 'telegram_private',
+                channel_ext_identity: '79283810988',
+                chats: [{
+                    id: 7189363,
+                    status: 'active',
+                    employee_id: 20816,
+                    is_available_for_current_employee: true,
+                }] 
+            }), me);
+
+            me.addEmail = () => (data.push({
+                channel_id: 216406,
+                channel_name: 'Баку',
+                channel_type: 'email',
+                channel_ext_identity: '79283810988',
+                chats: [],
             }), me);
 
             return me;
         };
 
-        const response = {
+        let response = {
             result: { data },
         };
 
         return addResponseModifiers({
+            invalidFormat() {
+                response = {
+                    result: null,
+                    error: {
+                        code: 400,
+                        message: [
+                            {
+                                loc: [
+                                    'contact',
+                                    'phone',
+                                ],
+                                msg: 'Invalid phone format',
+                                type: 'value_error',
+                            },
+                            {
+                                loc: [
+                                    'contact',
+                                    '__root__',
+                                ],
+                                msg: 'Exactly one of email, phone, username must be passed',
+                                type: 'value_error',
+                            },
+                        ],
+                    },
+                };
+
+                return this;
+            },
+            
+            forContacts() {
+                path = '$REACT_APP_CHAT_BASE_URL';
+                return this;
+            },
+
+            anotherSearchString() {
+                params.contact.phone = '79283810989';
+                return this;
+            },
+
+            thirdSearchString() {
+                params.contact.phone = '74951234575';
+                return this;
+            },
+
+            fourthSearchString() {
+                params.contact.phone = '74951234576';
+                return this;
+            },
+
+            fifthSearchString() {
+                params.contact.phone = '79164725823';
+                return this;
+            },
+
+            email() {
+                params.contact.phone = undefined;
+                params.contact.email = 'tomova@gmail.com';
+
+                data[0].channel_type = 'email';
+                data[0].channel_name = 'Дели';
+
+                return this;
+            },
+            
+            emptySearchString() {
+                params.contact = null;
+                return this;
+            },
+            
             noPhone() {
                 params.contact.phone = null;
                 return this;
@@ -13217,7 +13485,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_CHAT_BASE_URL').
+                    expectToHavePath(path).
                     expectToHaveMethod('POST').
                     expectBodyToContain({
                         method: 'get_chat_start_chat_channel_search',
@@ -13230,6 +13498,7 @@ define(() => function ({
                         request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
+                        spendTime(0)
                         spendTime(0)
                         spendTime(0)
                     }

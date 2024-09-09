@@ -12,18 +12,18 @@ index e331fde..989140c 100644
      if (multiple) {
          inputElement.multiple = multiple;
 diff --git a/src/components/file-drop/file-drop.tsx b/src/components/file-drop/file-drop.tsx
-index cc0fc9d..9a4787e 100644
+index 786af31..c99a10f 100644
 --- a/src/components/file-drop/file-drop.tsx
 +++ b/src/components/file-drop/file-drop.tsx
-@@ -50,6 +50,7 @@ const FileDrop: React.ForwardRefRenderFunction<unknown, FileDropProps> = (props,
-         onRemove,
+@@ -46,6 +46,7 @@ const FileDrop: React.ForwardRefRenderFunction<unknown, FileDropProps> = (props,
+         onDownload,
      } = props;
  
 +    const isTest = process.env.REACT_APP_TEST_MODE === 'true';
      const [isDrag, setDrag] = useState(false);
      const [isErrorFileType, setErrorFileType] = useState(false);
  
-@@ -235,7 +236,14 @@ const FileDrop: React.ForwardRefRenderFunction<unknown, FileDropProps> = (props,
+@@ -231,7 +232,14 @@ const FileDrop: React.ForwardRefRenderFunction<unknown, FileDropProps> = (props,
      const handleClick = () => {
          if (isLoadDefault) {
              const element = initInput(accept.join(','), multiple);
@@ -40,10 +40,10 @@ index cc0fc9d..9a4787e 100644
                  beforeUpload((target as HTMLInputElement).files);
              };
 diff --git a/src/components/icon/icon.tsx b/src/components/icon/icon.tsx
-index 8e24390..574a415 100644
+index 7a9d9b6..57b7b1f 100644
 --- a/src/components/icon/icon.tsx
 +++ b/src/components/icon/icon.tsx
-@@ -115,6 +115,9 @@ const Icon: React.ForwardRefRenderFunction<unknown, PropsWithChildren<IconProps>
+@@ -116,6 +116,9 @@ const Icon: React.ForwardRefRenderFunction<unknown, PropsWithChildren<IconProps>
              onMouseLeave={onMouseLeave}
              test-id={testId}
              ref={ref as React.MutableRefObject<HTMLSpanElement>}

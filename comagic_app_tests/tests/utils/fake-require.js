@@ -209,7 +209,12 @@ define(function () {
                                     }
 
                                     messages.add(new Message(Array.prototype.slice.call(arguments, 0)));
-                                }
+                                },
+                                removeAllListeners: eventName => 
+                                    messageHandlers[eventName] && messageHandlers[eventName].splice(
+                                        0,
+                                        messageHandlers[eventName].length,
+                                    ),
                             }
                         },
                         'electron-log': {
