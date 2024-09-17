@@ -26,6 +26,7 @@ define(() => function ({
     active = false,
     chatsPhoneNumbers = false,
     lang = 'ru',
+    search = '',
     amocrmLead,
     renderAmocrmLead,
     renderAmocrmCallgearLead,
@@ -1043,11 +1044,10 @@ define(() => function ({
                         mode: 'insertAfter',
                         phoneXpath: '//input[contains(@class, "control-phone__formatted")]/@value',
                         innerHTML: '{% for item in items %} ' +
-                            '<div ' +
-                                'data-id="{{ item.id }}" ' +
-                                'style="margin-bottom: 10px;"' +
-                            '>' +
+                            '<div style="margin-bottom: 10px;">' +
                                 '<button ' +
+                                    'data-id="{{ item.id }}" ' +
+                                    'class="chat-channel" ' +
                                     'type="button" ' +
                                     'style="' +
                                         'cursor: pointer; ' +
@@ -3122,7 +3122,9 @@ define(() => function ({
         } else if (application == 'amocrmIframeContent') {
             me.history.push('/amocrm');
         } else if (application == 'chatsIframe') {
-            me.history.push('/chrome/chats');
+            me.history.push(`/chrome/chats${search ? `/messages?search=${search}` : ''}`);
+        } else if (application == 'bitrixChatsIframe') {
+            me.history.push(`/bitrix/chats${search ? `/messages?search=${search}` : ''}`);
         } else if (application == 'notificationsIframe') {
             me.history.push('/chrome/notifications');
         }
@@ -3385,6 +3387,22 @@ define(() => function ({
 
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
+
+        me.searchIcon = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => {
+                    const button = utils.element(getRootElement()).
+                        querySelector('.cmgui-icon[data-component=Search20]');
+
+                    return button;
+                } 
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
 
         me.templateIcon = (() => {
             const tester = testersFactory.createDomElementTester(
@@ -4440,7 +4458,7 @@ define(() => function ({
     })();
 
     me.channelButton = (() => {
-        const selector = 'li.chat-channel',
+        const selector = 'li.chat-channel,button.chat-channel',
             tester = testersFactory.createDomElementTester(selector);
 
         tester.atIndex = index =>
@@ -9762,6 +9780,11 @@ define(() => function ({
                 response.result.data.found_list[0].visitor_name = null;
                 response.result.data.found_list[0].visitor_type = null;
 
+                return me;
+            };
+
+            me.anotherLastMessage = () => {
+                response.result.data.found_list[0].last_message.message = 'Сообщение #76';
                 return me;
             };
 
@@ -19399,7 +19422,7 @@ define(() => function ({
     })();
 
     const addCommunicationPanelTestingMethods = selector => {
-        const getDomElement = () => utils.querySelector(selector, true),
+        const getDomElement = () => utils.querySelector(selector),
             getHeader = () => getDomElement().closest('.cm-chats--history-wrapper'),
             tester = addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement),
             downloadAnchors = new Set(),
@@ -20184,10 +20207,15 @@ define(() => function ({
                 textEquals('Выход').
                 find();
 
-            domElement instanceof JsTester_NoElement && (domElement = utils.descendantOfBody().
+            utils.isNonExisting(domElement) && (domElement = utils.descendantOfBody().
                 matchesSelector('.ui-account-popup--item, .cmgui-account-popup--item').
                 textEquals('Выход').
                 find());
+
+            utils.isNonExisting(domElement) && (domElement = utils.querySelector(
+                '.Logout_svg__cmg-logout-icon, ' +
+                '.cmg-chrome-extension-logout'
+            ));
 
             return domElement;
         });

@@ -4582,8 +4582,8 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
 
     var element = this.element(() => document.body);
 
-    this.querySelector = function (selector) {
-        return element.querySelector(selector);
+    this.querySelector = function (selector, isLogEnabled) {
+        return element.querySelector(selector, isLogEnabled);
     };
 
     this.isIntersecting = function (container, contained) {

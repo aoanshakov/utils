@@ -56,7 +56,6 @@ actions['fix-permissions'] =
     [`if [ -n "$APPLICATION_OWNER" ]; then chown -R $APPLICATION_OWNER:$APPLICATION_OWNER $1 ${application}; fi`];
 
 const chatOverridenFiles = 'package.json ' +
-    'src/App.tsx ' +
     'src/models/auth/AuthStore.ts ' +
     'src/models/account/AccountStore.ts ' +
     'src/components/chats/chat-panel/styles.less';

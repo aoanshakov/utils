@@ -1,8 +1,8 @@
 diff --git a/package.json b/package.json
-index c1637af..c64059d 100644
+index ecc9d47..a95edce 100644
 --- a/package.json
 +++ b/package.json
-@@ -59,17 +59,7 @@
+@@ -61,17 +61,7 @@
      "webpack-dev-server": "^4.9.3"
    },
    "dependencies": {
