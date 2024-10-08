@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 4d180a94..e103075a 100644
+index e903d3e1..e103075a 100644
 --- a/package.json
 +++ b/package.json
 @@ -26,9 +26,7 @@
@@ -20,7 +20,7 @@ index 4d180a94..e103075a 100644
      "@comagic/crud": "2.42.1",
      "@comagic/reports": "2.15.2",
 -    "@comagic/ui": "2.23.5",
--    "@comagic/workplace-utils": "1.0.33",
+-    "@comagic/workplace-utils": "^1.1.0",
      "@sentry/react": "^7.73.0",
      "async-mutex": "^0.3.2",
      "axios": "0.27.2",

@@ -62,7 +62,6 @@ define(() => function ({
     window.chatsStore = null;
     window.employeesStore = null;
     window.softphoneBroadcastChannelCache = {};
-    window.destroyMethodCaller?.();
 
     window.getOrigin = () => url;
     me.changeCurrentUrl = () => (url = 'https://amo2comagicdev.amocrm.ru/leads/list/pipeline/6168778');

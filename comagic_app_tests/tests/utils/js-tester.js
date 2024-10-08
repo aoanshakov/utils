@@ -8027,7 +8027,7 @@ function JsTester_Tests (factory) {
             spendTime,
             args,
         }),
-        broadcastChannelMessages = new JsTester_Stack(new JsTester_NoBroadcastChannelMessage(), true),
+        broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage()),
         broadcastChannelHandlers = {},
         broadcastChannelShortcutHandlers = {},
         broadcastChannelMessageEventFirers = {},

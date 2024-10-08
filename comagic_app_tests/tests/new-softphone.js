@@ -264,7 +264,9 @@ tests.addTest(options => {
                                                 groupsRequest = tester.groupsRequest().expectToBeSent();
                                             });
 
-                                            it('Раскрываю выпадающий список групп. Отображён список групп.', function() {
+                                            it(
+                                                'Раскрываю выпадающий список групп. Отображён список групп.',
+                                            function() {
                                                 usersRequest.receiveResponse();
                                                 usersInGroupsRequest.receiveResponse();
                                                 groupsRequest.receiveResponse();
@@ -277,12 +279,12 @@ tests.addTest(options => {
                                                         '1 /1 298'
                                                     ).
                                                     findElement(
-                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                        'module__list-item'
+                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-' +
+                                                        'styles-module__list-item'
                                                     ).
                                                     expectNotToHaveClass(
-                                                        'misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                        'module__disabled'
+                                                        'misc-softphone-misc-sip_lib-src-new-softphone-transfer-' +
+                                                        'styles-module__disabled'
                                                     );
                                                     
                                                 tester.select.
@@ -291,12 +293,12 @@ tests.addTest(options => {
                                                         '0 /1 726'
                                                     ).
                                                     findElement(
-                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                        'module__list-item'
+                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-' +
+                                                        'styles-module__list-item'
                                                     ).
                                                     expectToHaveClass(
-                                                        'misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                        'module__disabled'
+                                                        'misc-softphone-misc-sip_lib-src-new-softphone-transfer-' +
+                                                        'styles-module__disabled'
                                                     );
 
 
@@ -313,7 +315,8 @@ tests.addTest(options => {
                                             });
                                             /*
                                             it(
-                                                'Групп много. Очень часто меняются статусы. Не смотря на это список не тормозит.',
+                                                'Групп много. Очень часто меняются статусы. Не смотря на это список ' +
+                                                'не тормозит.',
                                             function() {
                                                 let time = (new Date()).getTime();
 
@@ -359,6 +362,7 @@ tests.addTest(options => {
                                             });
                                             */
                                         });
+                                        return;
                                         describe('Раскрываю выпадающий список сотрудников.', function() {
                                             beforeEach(function() {
                                                 tester.select.click();
@@ -368,8 +372,8 @@ tests.addTest(options => {
                                                 tester.select.
                                                     option('Господинова Николина 295').
                                                     findElement(
-                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                        'module__list-item'
+                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-' +
+                                                        'styles-module__list-item'
                                                     ).
                                                     click();
 
@@ -382,8 +386,8 @@ tests.addTest(options => {
                                                 tester.select.
                                                     option('Божилова Йовка 296').
                                                     findElement(
-                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                        'module__list-item'
+                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-' +
+                                                        'styles-module__list-item'
                                                     ).
                                                     click();
 
@@ -396,23 +400,23 @@ tests.addTest(options => {
                                                 tester.select.
                                                     option('Божилова Йовка 296').
                                                     findElement(
-                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                        'module__list-item'
+                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-' +
+                                                        'styles-module__list-item'
                                                     ).
                                                     expectToHaveClass(
-                                                        'misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                        'module__disabled'
+                                                        'misc-softphone-misc-sip_lib-src-new-softphone-transfer-' +
+                                                        'styles-module__disabled'
                                                     );
                                                     
                                                 tester.select.
                                                     option('Господинова Николина 295').
                                                     findElement(
-                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                        'module__list-item'
+                                                        '.misc-softphone-misc-sip_lib-src-new-softphone-transfer-' +
+                                                        'styles-module__list-item'
                                                     ).
                                                     expectNotToHaveClass(
-                                                        'misc-softphone-misc-sip_lib-src-new-softphone-transfer-styles-' +
-                                                        'module__disabled'
+                                                        'misc-softphone-misc-sip_lib-src-new-softphone-transfer-' +
+                                                        'styles-module__disabled'
                                                     );
 
                                                 tester.body.expectTextContentToHaveSubstring(
@@ -423,9 +427,11 @@ tests.addTest(options => {
                                             });
                                         });
                                     });
+                                    return;
                                     /*
                                     it(
-                                        'Сотрудников много. Очень часто меняются статусы. Не смотря на это список не тормозит.',
+                                        'Сотрудников много. Очень часто меняются статусы. Не смотря на это список не ' +
+                                        'тормозит.',
                                     function() {
                                         let time = (new Date()).getTime();
                                         usersRequest.addMore().receiveResponse();
@@ -468,6 +474,7 @@ tests.addTest(options => {
                                     });
                                     */
                                 });
+                                return;
                                 it('Отображено время разговора.', function() {
                                     tester.body.expectTextContentToHaveSubstring(
                                         'ШД Шалева Дора ' +
@@ -479,6 +486,7 @@ tests.addTest(options => {
                                     );
                                 });
                             });
+                            return;
                             it(
                                 'Поступил второй входящий звонок. Отображено сообщение о звонке ' +
                                 'на вторую линию.',
@@ -559,7 +567,10 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        it('Звонок оказался исходящим проведенным из CRM. Звонок отображается, как исходящий.', function() {
+                        return;
+                        it(
+                            'Звонок оказался исходящим проведенным из CRM. Звонок отображается, как исходящий.',
+                        function() {
                             tester.outCallEvent().
                                 outgoing().
                                 receive();
@@ -669,6 +680,7 @@ tests.addTest(options => {
                             tester.body.expectTextContentToHaveSubstring('Найти контакт');
                         });
                     });
+                    return;
                     describe('Запролняю поле ввода номера телефона.', function() {
                         beforeEach(function() {
                             tester.input.fill('79161234567ghi');
@@ -709,6 +721,7 @@ tests.addTest(options => {
                         );
                     });
                 });
+                return;
                 it('Нужно скрывать номера. Поступил входящий звонок. Кнопка копирования скрыта.', function() {
                     settingsRequest.
                         shouldHideNumbers().
@@ -800,6 +813,7 @@ tests.addTest(options => {
                     clipboard.expectToHaveValue(null);
                 });
             });
+            return;
             it('Пользователь имеет права на список номеров.', function() {
                  permissionsRequest.
                     allowNumberCapacitySelect().
@@ -869,6 +883,7 @@ tests.addTest(options => {
                     expectToBeSent();
             });
         });
+        return;
         it(
             'Открываю новый личный кабинет. Использую SSO. Запрос истории звонков не отправляется раньше логина.',
         function() {

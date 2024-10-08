@@ -6137,6 +6137,11 @@ define(() => function ({
                 return this;
             },
 
+            xWidgetType() {
+                processors.push(headers => (headers['X-Widget-Type'] = 'call_center_web'));
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const headers = getHeaders();
                 processors.forEach(process => process(headers));
@@ -15469,6 +15474,7 @@ define(() => function ({
                         'contact_channel_creating',
                         'telegram_contact_channel',
                         'chat_pinning',
+                        'x_widget_type_header',
                     ],
                     call_center_role: 'employee',
                     components: [
@@ -15712,6 +15718,10 @@ define(() => function ({
 
             me.interceptionDisabled = () =>
                 ((response.result.data.feature_flags.push('interception_disabled')), me);
+
+            me.xWidgetTypeHeaderDisabled = () =>
+                ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>
+                    featureFlag != 'x_widget_type_header')), me);
 
             me.chatPinningDisabled = () =>
                 ((response.result.data.feature_flags = response.result.data.feature_flags.filter(featureFlag =>

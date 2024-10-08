@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 90edb1c..f0ca2ad 100644
+index f6db73b..2d71732 100644
 --- a/package.json
 +++ b/package.json
 @@ -73,24 +73,13 @@
@@ -8,8 +8,8 @@ index 90edb1c..f0ca2ad 100644
    "dependencies": {
 -    "@comagic/core": "^0.7.0",
      "@comagic/crud": "2.42.3",
--    "@comagic/ui": "2.18.3",
--    "@comagic/workplace-utils": "^1.0.26",
+-    "@comagic/ui": "2.31.6",
+-    "@comagic/workplace-utils": "^1.1.0",
 -    "axios": "^0.27.2",
      "classnames": "^2.3.1",
      "formik": "^2.2.9",
@@ -18,7 +18,7 @@ index 90edb1c..f0ca2ad 100644
 -    "mobx-react-lite": "^3.4.0",
 -    "mobx-state-tree": "^5.4.0",
      "nanoid": "^3.2.0",
-     "qs": "6.7.0",
+     "qs": "6.13.0",
 -    "react": "^18.2.0",
 -    "react-dom": "^18.2.0",
      "react-hook-form": "^7.37.0",

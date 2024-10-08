@@ -60,7 +60,10 @@ tests.addTest(options => {
                     employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                     employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
                     employeeRequest = tester.employeeRequest().expectToBeSent(requests);
-                authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+
+                authCheckRequest = tester.authCheckRequest().
+                    xWidgetType().
+                    expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
@@ -76,37 +79,37 @@ tests.addTest(options => {
                 beforeEach(function() {
                     tester.masterInfoMessage().receive();
 
-                    tester.employeesBroadcastChannel().
-                        applyLeader().
-                        expectToBeSent();
-
-                    tester.notificationChannel().
-                        applyLeader().
-                        expectToBeSent();
-
-                    tester.masterInfoMessage().
-                        applyLeader().
-                        expectToBeSent();
-
-                    tester.employeesBroadcastChannel().
-                        tellIsLeader().
-                        expectToBeSent();
-
-                    tester.notificationChannel().
-                        tellIsLeader().
-                        expectToBeSent();
-
-                    tester.masterInfoMessage().
-                        tellIsLeader().
-                        expectToBeSent();
-
                     tester.employeesWebSocket.connect();
                     tester.employeesInitMessage().expectToBeSent();
 
-                    tester.slavesNotification().expectToBeSent();
-
                     tester.slavesNotification().
                         additional().
+                        expectToBeSent();
+
+                    tester.slavesNotification().expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.notificationChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.notificationChannel().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
                         expectToBeSent();
                 });
 
