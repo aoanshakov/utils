@@ -67,12 +67,13 @@ tests.addTest(options => {
                     ...options,
                 });
 
+                tester.unreadMessagesCountSettingRequest().expectToBeSent();
+
                 tester.submoduleInitilizationEvent().
                     operatorWorkplace().
                     expectToBeSent();
 
                 tester.submoduleInitilizationEvent().expectToBeSent();
-                tester.unreadMessagesCountSettingRequest().expectToBeSent();
 
                 widgetSettings = tester.widgetSettings().
                     windowMessage().
@@ -844,6 +845,7 @@ tests.addTest(options => {
                         expectMessageToStartsWith('ignore:log:Window message received');
 
                     tester.body.expectToHaveTextContent('Недостаточно прав на раздел чатов');
+                    tester.closeButton.expectToBeVisible();
                 });
                 it('Чаты недоступны. Чаты скрыты.', function() {
                     accountRequest.
@@ -1072,6 +1074,8 @@ tests.addTest(options => {
             });
 
             describe('Получаю российский токен.', function() {
+                let searchResultsRequest;
+
                 beforeEach(function() {
                     postMessages.receive({
                         method: 'set_token',
@@ -1152,7 +1156,7 @@ tests.addTest(options => {
                         operatorWorkplaceAvailable().
                         expectToBeSent(requests);
 
-                    const searchResultsRequest = tester.searchResultsRequest().
+                    searchResultsRequest = tester.searchResultsRequest().
                         anotherToken().
                         anotherSearchString().
                         expectToBeSent(requests);
@@ -1162,7 +1166,6 @@ tests.addTest(options => {
                     accountRequest.receiveResponse();
                     employeeSettingsRequest.receiveResponse();
                     employeeRequest.receiveResponse();
-                    searchResultsRequest.receiveResponse();
 
                     tester.chatChannelSearchRequest().
                         emptySearchString().
@@ -1200,21 +1203,35 @@ tests.addTest(options => {
                     tester.offlineMessageListRequest().processed().receiveResponse();
                 });
 
-                it('Нажимаю на кнопку скачивания лога. Лог скачан.', function() {
-                    tester.bugButton.click();
+                describe('Получен ответ на запрос чатов.', function() {
+                    beforeEach(function() {
+                        searchResultsRequest.receiveResponse();
+                    });
 
-                    tester.anchor.
-                        withFileName('20191219.121006.000.log.txt').
-                        expectHrefToBeBlobWithSubstring(
-                            'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) Time consumed 0 ms' + "\n\n" +
-                            'POST https://dev-int0-chats-logic.uis.st/v1/operator?method=get_account'
-                        );
+                    it('Нажимаю на кнопку скачивания лога. Лог скачан.', function() {
+                        tester.bugButton.click();
+
+                        tester.anchor.
+                            withFileName('20191219.121006.000.log.txt').
+                            expectHrefToBeBlobWithSubstring(
+                                'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) Time consumed 0 ms' + "\n\n" +
+                                'POST https://dev-int0-chats-logic.uis.st/v1/operator?method=get_account'
+                            );
+                    });
+                    it('Отображён список чатов.', function() {
+                        tester.chatListItem('Сообщение #75').expectToBeVisible();
+                        tester.chatListItem('Сообщение #76').expectNotToExist();
+
+                        tester.input.expectToHaveValue('79283810988');
+                    });
                 });
-                it('Отображён список чатов.', function() {
-                    tester.chatListItem('Сообщение #75').expectToBeVisible();
-                    tester.chatListItem('Сообщение #76').expectNotToExist();
+                it('Сотрудник не авторизован.', function() {
+                    searchResultsRequest.
+                        unauthorized().
+                        receiveResponse();
 
-                    tester.input.expectToHaveValue('79283810988');
+                    tester.chatsWebSocket.finishDisconnecting();
+                    tester.employeesWebSocket.finishDisconnecting();
                 });
             });
             it('Получаю дубайский токен.', function() {

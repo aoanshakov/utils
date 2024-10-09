@@ -55,6 +55,7 @@ define(() => function ({
     };
 
     window.resetElectronCookiesManager?.();
+    window.destroyMethodCaller?.();
 
     window.isIframe = !!isIframe;
     window.stores = null;
@@ -9467,7 +9468,14 @@ define(() => function ({
             } 
         };
 
+        let respond = request => request.respondSuccessfullyWith(response);
+
         const addResponseModifiers = me => {
+            me.unauthorized = () => {
+                respond = request => request.respondUnauthorizedWith('401 Unauthorized');
+                return me;
+            };
+
             me.telegramPrivate = () => {
                 response.result.data.found_list[0].chat_channel_type = 'telegram_private';
                 return me;
@@ -9890,7 +9898,7 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse() {
                         processors.forEach(process => process());
-                        request.respondSuccessfullyWith(response);
+                        respond(request);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -9901,7 +9909,7 @@ define(() => function ({
 
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
-            }
+            },
         });
     };
 

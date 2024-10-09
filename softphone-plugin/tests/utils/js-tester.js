@@ -367,6 +367,10 @@ function JsTester_NavigatorMock (args) {
         set: function () {}
     });
 
+    this.mediaSession = {
+        setActionHandler: () => null,
+    };
+
     this.mediaDevices = {
         getUserMedia: getMediaDevicesUserMedia,
         addEventListener: function (eventName, listener) {
@@ -7050,10 +7054,12 @@ function JsTester_TimeoutCallbackRunner (setterName, clearerName, DelayedTask, l
         );
 
         tasks[lastId] = task;
-        return task;
+        return lastId;
     };
 
-    window[clearerName] = function (task) {
+    window[clearerName] = function (id) {
+        const task = id && tasks[id];
+
         if (task && typeof task.remove == 'function') {
             task.remove();
         }
