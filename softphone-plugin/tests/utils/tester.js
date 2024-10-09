@@ -1702,6 +1702,23 @@ define(() => function ({
                 return me;
             };
 
+            me.elementDependentPadding = () => {
+                chatSettingsProcessors.push(settings => (settings.padding = {
+                    top: {
+                        elementSelector: '#pages-container',
+                        side: 'bottom',
+                    },
+                    right: 10,
+                    bottom: 100,
+                    left: {
+                        elementSelector: '#pages-container',
+                        side: 'right',
+                    },
+                }, settings));
+
+                return me;
+            };
+
             return me;
         };
 
@@ -1830,7 +1847,10 @@ define(() => function ({
     }
 
     me.page = {
-        triggerMutation: () => triggerMutation(document.body, { childList: true }),
+        triggerMutation: () => {
+            triggerMutation(document.body, { childList: true });
+            spendTime(0);
+        },
 
         duplicate() {
             addPageContent(2);

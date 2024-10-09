@@ -1763,7 +1763,81 @@ tests.addTest(options => {
                         );
                     });
                 });
-                it( 'Получены стили. Открываю окно чатов. Стили применены.', function() {
+                describe(
+                    'Получены настройки размера окна чатов зависимые от элемента. Открываю окно чатов.',
+                function() {
+                    beforeEach(function() {
+                        widgetSettings.
+                            elementDependentPadding().
+                            receive();
+
+                        tester.notificationSettingRequest().
+                            success().
+                            expectToBeSent();
+
+                        tester.popupStateSettingRequest().
+                            settingsFetched().
+                            receiveResponse();
+
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            receiveResponse();
+
+                        tester.stateSettingRequest().receive();
+
+                        tester.popupStateSettingRequest().
+                            settingsFetched().
+                            initialized().
+                            receiveResponse();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            expectToBeSent();
+
+                        tester.submoduleInitilizationEvent().
+                            operatorWorkplace().
+                            receive();
+
+                        tester.submoduleInitilizationEvent().receive();
+                        tester.unreadMessagesCountSettingRequest().receive();
+
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            initialized().
+                            receiveResponse();
+
+                        tester.widgetSettings().
+                            windowMessage().
+                            chatsSettings().
+                            elementDependentPadding().
+                            expectToBeSent();
+
+                        tester.toggleChatsVisibilityRequest().expectResponseToBeSent();
+
+                        tester.chatsVisibilitySettingRequest().
+                            settingsFetched().
+                            initialized().
+                            visible().
+                            receiveResponse();
+
+                        tester.chatListOpeningRequest().expectToBeSent();
+                    });
+
+                    it('Размер элемента зменен. Размер окна чатов изменен.', function() {
+                        document.querySelector('#pages-container').style.width = '270px';
+                        document.querySelector('#pages-container').style.height = '250px';
+
+                        tester.page.triggerMutation();
+
+                        tester.iframe.first.expectToHaveTopOffset(250);
+                        tester.iframe.first.expectToHaveLeftOffset(270);
+                    });
+                    it('Окно чатов имеет указаный в настройках размер.', function() {
+                        tester.iframe.first.expectToHaveTopOffset(247);
+                        tester.iframe.first.expectToHaveLeftOffset(265);
+                    });
+                });
+                it('Получены стили. Открываю окно чатов. Стили применены.', function() {
                     widgetSettings.
                         style().
                         receive();
