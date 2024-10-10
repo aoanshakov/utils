@@ -372,6 +372,10 @@ function JsTester_NavigatorMock (args) {
         writeText,
     };
 
+    this.mediaSession = {
+        setActionHandler: () => null,
+    };
+
     this.mediaDevices = {
         getUserMedia: getMediaDevicesUserMedia,
         addEventListener: function (eventName, listener) {
@@ -4815,9 +4819,14 @@ function JsTester_Request (request, utils, callStack) {
 
         return this;
     };
+    this.networkError = function() {
+        request.responseError();
+        return this;
+    };
     this.respondSuccessfullyWith = function (responseObject) {
         request.respondWith({
             status: 200,
+            statusText: 'OK',
             responseText: typeof responseObject == 'string' ? responseObject : JSON.stringify(responseObject)
         });
 
@@ -4834,7 +4843,8 @@ function JsTester_Request (request, utils, callStack) {
     this.respondUnsuccessfullyWith = function (responseObject) {
         respond({
             responseObject: responseObject,
-            status: 500
+            status: 500,
+            statusText: 'Internal server error',
         });
 
         return this;
@@ -4842,7 +4852,8 @@ function JsTester_Request (request, utils, callStack) {
     this.respondUnauthorizedWith = function (responseObject) {
         respond({
             responseObject: responseObject,
-            status: 401
+            status: 401,
+            statusText: 'Unauthorized',
         });
 
         return this;
@@ -5203,11 +5214,16 @@ function JsTester_FetchMock (args) {
 
         var method = options.method,
             body = options.body,
-            resolver = new JsTester_FunctionVariable(function () {});
+            resolver = new JsTester_FunctionVariable(function () {}),
+            rejector = new JsTester_FunctionVariable(function () {});
 
-        var promise = new Promise(function (resolve) {
+        var promise = new Promise(function (resolve, reject) {
             resolver.setValue(function (response) {
                 resolve(response);
+            });
+
+            rejector.setValue(function (error) {
+                reject(error);
             });
         });
 
@@ -5216,7 +5232,8 @@ function JsTester_FetchMock (args) {
             method: method,
             body: method == 'GET' ? null : body,
             utils: utils,
-            resolve: resolver.createValueCaller()
+            resolve: resolver.createValueCaller(),
+            reject: rejector.createValueCaller(),
         }));
         
         return promise;
@@ -5229,6 +5246,7 @@ function JsTester_FetchRequest (args) {
         body = args.body,
         utils = args.utils,
         resolve = args.resolve,
+        reject = args.reject,
         data;
 
     body = utils.maybeDecodeArrayBuffer(body);
@@ -5267,6 +5285,10 @@ function JsTester_FetchRequest (args) {
 
     this.respondWith = function (args) {
         resolve(new JsTester_FetchResponse(args));
+    };
+
+    this.responseError = function (args) {
+        reject(new Error('Network error'));
     };
 }
 

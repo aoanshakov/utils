@@ -1702,19 +1702,38 @@ define(() => function ({
                 return me;
             };
 
+            const elementDependentPadding = {
+                top: {
+                    elementSelector: '#pages-container',
+                    side: 'bottom',
+                },
+                left: {
+                    elementSelector: '#pages-container',
+                    side: 'right',
+                },
+            };
+
             me.elementDependentPadding = () => {
                 chatSettingsProcessors.push(settings => (settings.padding = {
-                    top: {
-                        elementSelector: '#pages-container',
-                        side: 'bottom',
-                    },
                     right: 10,
                     bottom: 100,
-                    left: {
-                        elementSelector: '#pages-container',
-                        side: 'right',
-                    },
+                    ...elementDependentPadding,
                 }, settings));
+
+                return me;
+            };
+
+            me.elementDependentPaddingInDifferentProperty = () => {
+                chatSettingsProcessors.push(
+                    settings => (settings.elementDependentPadding = {
+                        right: null,
+                        bottom: {
+                            elementSelector: null,
+                            side: null,
+                        },
+                        ...elementDependentPadding
+                    }, settings)
+                );
 
                 return me;
             };

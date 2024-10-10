@@ -2359,6 +2359,11 @@ define(() => function ({
                 return me;
             };
 
+            me.networkError = () => {
+                respond = request => request.networkError();
+                return me;
+            };
+
             me.internalError = () => {
                 respond = request => request.respondUnsuccessfullyWith(
                     '500 Internal Server Error Server got itself in trouble'

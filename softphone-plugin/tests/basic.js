@@ -1837,6 +1837,68 @@ tests.addTest(options => {
                         tester.iframe.first.expectToHaveLeftOffset(265);
                     });
                 });
+                it(
+                    'Получены настройки размера окна чатов зависимые от элемента в другом свойстве. Открываю окно ' +
+                    'чатов. Окно чатов имеет указаный в настройках размер.',
+                function() {
+                    widgetSettings.
+                        elementDependentPaddingInDifferentProperty().
+                        receive();
+
+                    tester.notificationSettingRequest().
+                        success().
+                        expectToBeSent();
+
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        receiveResponse();
+
+                    tester.stateSettingRequest().receive();
+
+                    tester.popupStateSettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
+
+                    tester.widgetSettings().
+                        windowMessage().
+                        expectToBeSent();
+
+                    tester.submoduleInitilizationEvent().
+                        operatorWorkplace().
+                        receive();
+
+                    tester.submoduleInitilizationEvent().receive();
+                    tester.unreadMessagesCountSettingRequest().receive();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        initialized().
+                        receiveResponse();
+
+                    tester.widgetSettings().
+                        windowMessage().
+                        chatsSettings().
+                        elementDependentPaddingInDifferentProperty().
+                        expectToBeSent();
+
+                    tester.toggleChatsVisibilityRequest().expectResponseToBeSent();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        initialized().
+                        visible().
+                        receiveResponse();
+
+                    tester.chatListOpeningRequest().expectToBeSent();
+
+                    tester.iframe.first.expectToHaveTopOffset(247);
+                    tester.iframe.first.expectToHaveLeftOffset(265);
+                });
                 it('Получены стили. Открываю окно чатов. Стили применены.', function() {
                     widgetSettings.
                         style().
