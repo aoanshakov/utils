@@ -2051,6 +2051,22 @@ define(() => function ({
         };
 
         return {
+            broadcastMessage: () => {
+                const message = {
+                    type: 'message',
+                    data: {
+                        type: 'notify_master',
+                        data: {
+                            action: 'download_log',
+                        },
+                    },
+                };
+
+                return {
+                    expectToBeSent: () => me.recentCrosstabMessage().expectToContain(message),
+                    receive: () => (me.receiveCrosstabMessage(message), spendTime(0))
+                };
+            },
             windowMessage: () => ({
                 receive: () => postMessages.receive(message),
                 expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
@@ -2806,6 +2822,7 @@ define(() => function ({
                         userName: '',
                         missedEventsCount: 0,
                         visible: false,
+                        role: null,
                         size: expanded ?
                             noIdleChannels ? {
                                 width: 340,
@@ -2830,6 +2847,16 @@ define(() => function ({
         };
 
         return {
+            leader() {
+                processors.push(message => (message.data.data.role = 'leader'));
+                return this;
+            },
+
+            follower() {
+                processors.push(message => (message.data.data.role = 'follower'));
+                return this;
+            },
+
             userDataFetched() {
                 processors.push(message => (message.data.data.userName = 'Ганева Стефка'));
                 return this;
