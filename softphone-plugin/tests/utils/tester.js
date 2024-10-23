@@ -35,6 +35,7 @@ define(() => function ({
         eventBus,
         chatsRootStore,
         notification,
+        uuid,
         Modal;
 
     const mainTester = me;
@@ -53,6 +54,11 @@ define(() => function ({
         jwt: '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf',
         refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
     };
+
+    window.getUUID = () => uuid;
+    me.setUuid = value => (uuid = value);
+
+    me.setUuid('5314f800-0f23-425d-bf20-683f0d149675');
 
     window.resetElectronCookiesManager?.();
     window.destroyMethodCaller?.();
@@ -527,6 +533,7 @@ define(() => function ({
         };
 
         this.get = keys => keys.reduce((result, key) => (result[key] = items[key], result), {});
+
         this.addListener = listener => listeners.push(listener);
 
         function Tester (storage) {
@@ -940,6 +947,16 @@ define(() => function ({
                 error: null,
                 token: mainTester.oauthToken,
                 loading: 0,
+                log: {
+                    'https://somedomain.com': {
+                        time: 1576746606000,
+                        message: 'Second message',
+                    },
+                    'https://otherdomain.com': {
+                        time: 1576660206000,
+                        message: 'First message',
+                    },
+                },
                 settings: {
                     time: '2019-12-19T12:10:06',
                     ...getSettings(),
@@ -1336,6 +1353,22 @@ define(() => function ({
                     storageData.error = {
                         type: 'settings',
                         message: '500 Internal Server Error Server got itself in trouble',
+                    };
+
+                    return storageData;
+                });
+
+                return me;
+            };
+
+            me.failedToGetSettingsBecauseOfNetworkError = () => {
+                respond = request =>
+                    request.networkError('Network error');
+
+                storageDataProcessors.push(storageData => {
+                    storageData.error = {
+                        type: 'settings',
+                        message: 'Error: Network error',
                     };
 
                     return storageData;
@@ -1786,7 +1819,7 @@ define(() => function ({
                         getTime = (time, defaultValue = 0) => time ? utils.expectTime(time) : defaultValue;
 
                     const content = {
-                        ...encodeJSON(storageData),
+                        ...(storageData => (delete(storageData.log), storageData))(encodeJSON(storageData)),
                         loading: storageData.loading === undefined ? undefined : getTime(storageData.loading, '0'),
                         error: storageData.error === undefined ?
                             undefined :
@@ -1843,6 +1876,15 @@ define(() => function ({
                 receive: () => postMessages.receive(getMessage()),
             }),
         });
+    };
+
+    me.renderContact = () => {
+        window.application.render();
+
+        const element = document.createElement('div');
+        element.id = 'card_fields';
+        
+        document.body.appendChild(element);
     };
 
     me.openSettings = () => {
@@ -2042,6 +2084,51 @@ define(() => function ({
         });
     }
 
+    me.logsRequest = () => {
+        const requestMessage = {
+            method: 'get_logs',
+            data: undefined,
+        };
+
+        return {
+            receive: () => {
+                postMessages.receive(requestMessage);
+
+                return {
+                    expectResponseToBeSent: () => postMessages.
+                        nextMessage().
+                        expectMessageToContain({
+                            method: 'set_logs',
+                            data: utils.expectToStartWith(
+                                'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) Storage data values for keys:'
+                            )
+                        })
+                };
+            },
+
+            expectToBeSent: () => {
+                postMessages.
+                    nextMessage().
+                    expectMessageToContain(requestMessage);
+
+                return {
+                    receiveResponse: () => postMessages.receive({
+                        method: 'set_logs',
+                        data: 'Message from leader',
+                    }),
+                };
+            },
+
+            expectResponseToBeSent() {
+                this.receive().expectResponseToBeSent();
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            },
+        };
+    };
+
     me.logDownloadingRequest = () => {
         const response = true;
 
@@ -2051,23 +2138,63 @@ define(() => function ({
         };
 
         return {
-            broadcastMessage: () => {
-                const message = {
-                    type: 'message',
-                    data: {
-                        type: 'notify_master',
+            broadcastMessage: () => ({
+                forLeader: () => {
+                    const message = {
+                        type: 'message',
                         data: {
-                            action: 'download_log',
+                            type: 'notify_master',
+                            data: {
+                                action: 'download_log',
+                                id: '5314f800-0f23-425d-bf20-683f0d149675',
+                            },
                         },
-                    },
-                };
 
-                return {
-                    expectToBeSent: () => me.recentCrosstabMessage().expectToContain(message),
-                    receive: () => (me.receiveCrosstabMessage(message), spendTime(0))
-                };
-            },
+                    };
+
+                    return {
+                        expectToBeSent: () => me.recentCrosstabMessage().expectToContain(message),
+                        receive: () => (me.receiveCrosstabMessage(message), spendTime(0))
+                    };
+                },
+
+                forFollower: () => {
+                    const message = {
+                        type: 'message',
+                        data: {
+                            type: 'notify_slaves',
+                            data: {
+                                action: 'download_log',
+                                id: '5314f800-0f23-425d-bf20-683f0d149675',
+                                data: 'Message from leader',
+                            },
+                        },
+
+                    };
+
+                    return {
+                        anotherId() {
+                            message.data.data.id = '28296h82-28g3-682b-an34-8602838710n0';
+                            return this;
+                        },
+
+                        expectToBeSent: () => me.recentCrosstabMessage().expectToContain(message),
+                        receive: () => (me.receiveCrosstabMessage(message), spendTime(0))
+                    };
+                },
+            }),
             windowMessage: () => ({
+                withMessageFromLeader() {
+                    message.data = [
+                        'LEADER TAB',
+                        'Message from leader',
+                        'FOLLOWER TAB',
+                        '',
+                    ].join("\n\n");
+
+                    return this;
+                },
+
                 receive: () => postMessages.receive(message),
                 expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
             }),
@@ -2802,6 +2929,11 @@ define(() => function ({
         };
 
         return {
+            chats() {
+                processors.push(message => delete(message.data.url));
+                return this;
+            },
+
             receive: () => postMessages.receive(getMessage()),
             expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
         };
@@ -3253,18 +3385,82 @@ define(() => function ({
     };
 
     Array.prototype.forEach.call(
-        document.querySelectorAll('.cmg-softphone-chrome-extension-visibility-button, #pages-container'),
+        document.querySelectorAll(
+            '.cmg-softphone-chrome-extension-visibility-button, ' +
+            '#pages-container, ' +
+            '#card_fields, ' +
+            'div[data-widget-item="uismarketplace.uis2_chats_widget"]'
+        ),
         element => element.remove(),
     );
 
-    if (application == 'softphone') {
-        const pagesContainer = document.createElement('div');
-        pagesContainer.id = 'pages-container';
+    switch (application) {
+        case 'softphone': {
+            const pagesContainer = document.createElement('div');
+            pagesContainer.id = 'pages-container';
 
-        (renderAmocrmLead || renderAmocrmCallgearLead) && pagesContainer.classList.add('pages-container-amocrm-lead');
+            (renderAmocrmLead || renderAmocrmCallgearLead) &&
+                pagesContainer.classList.add('pages-container-amocrm-lead');
 
-        document.body.appendChild(pagesContainer);
-        addPageContent(1);
+            document.body.appendChild(pagesContainer);
+            addPageContent(1);
+
+            break;
+        }
+        case 'amocrmChats': {
+            const element = document.createElement('div'),
+                getUrl = url => `/tests/utils/amocrm/${url}`;
+
+            element.innerHTML = (
+                '<a class="nav__menu__item__link" href="/widget_page/uismarketplace/uis_chats_widget">' +
+                    '<div class="nav__menu__item__icon ">' +
+                        '<svg ' +
+                            'width="38" ' +
+                            'height="38" ' +
+                            'viewBox="0 0 38 38" ' +
+                            'fill="none" ' +
+                            'xmlns="http://www.w3.org/2000/svg"' +
+                        '>' +
+                            '<circle ' +
+                                'cx="19" ' +
+                                'cy="19" ' +
+                                'r="18" ' +
+                                'fill="none" ' +
+                                'stroke="#9da8ae"' +
+                            '></circle>' +
+
+                            '<path ' +
+                                'transform="translate(3, 3)" ' +
+                                'fill-rule="evenodd" ' +
+                                'clip-rule="evenodd" ' +
+                                'fill="#9da8ae" ' +
+                                'd="' +
+                                    'M15.214 15.288c1.402-1.461 2.483-2.588 4.516-2.588 3.25 0 4.909 3.69 ' +
+                                    '5.47 6.71h-2.42c-.72-3.007-1.806-4.562-3.08-4.562-.854 ' +
+                                    '0-1.344.504-2.315 1.504l-.409.419-.274.281-.001.001c-1.085 1.119-2.39 ' +
+                                    '2.463-4.351 2.463-3.331 0-4.713-3.408-5.108-6.715h2.415c.526 3.237 1.56 ' +
+                                    '4.55 2.728 4.55.847 0 1.631-.817 2.666-1.894l.127-.132.036-.037z' +
+                                '"' +
+                            '></path>' +
+                        '</svg>' +
+                    '</div>' +
+                    '<div class="nav__menu__item__title">UIS Чаты</div>' +
+                '</a>' +
+                
+                `<link rel="stylesheet" type="text/css" href="${getUrl('app.css')}" />`
+            );
+
+            element.className = 'nav__menu__item nav__menu__item__icon-integration';
+
+            Object.entries({
+                'data-widget-code': 'uismarketplace',
+                'data-widget-item': 'uismarketplace.uis2_chats_widget',
+                'data-entity': 'widget-page',
+            }).forEach(([key, value]) => element.setAttribute(key, value));
+
+            document.body.appendChild(element);
+            break;
+        }
     }
 
     notification?.destroyAll();
@@ -3288,6 +3484,8 @@ define(() => function ({
 
     spendTime(0);
     spendTime(0);
+
+    me.navMenuItem = testersFactory.createDomElementTester('.nav__menu__item');
 
     me.iframe = (() => {
         const getIframes = () => Array.prototype.slice.call(document.querySelectorAll('iframe') || [], 0) || [];

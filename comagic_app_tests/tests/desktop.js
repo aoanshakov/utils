@@ -17,7 +17,8 @@ tests.addTest(options => {
         blobsTester,
         windowSize,
         notificationTester,
-        setDocumentVisible
+        setDocumentVisible,
+        broadcastChannels,
     } = options;
 
     const getPackage = Tester.createPackagesGetter(options);
@@ -63,6 +64,10 @@ tests.addTest(options => {
 
                         getPackage('electron').ipcRenderer.
                             nextSentMessage().
+                            expectToBeSentToChannel('darkmode:disable');
+
+                        getPackage('electron').ipcRenderer.
+                            nextSentMessage().
                             expectToBeSentToChannel('login').
                             expectToBeSentWithArguments({
                                 login: 'botusharova',
@@ -101,30 +106,30 @@ tests.addTest(options => {
 
                             tester.masterInfoMessage().receive();
 
-                            tester.employeesBroadcastChannel().
-                                applyLeader().
+                            tester.slavesNotification().
+                                additional().
                                 expectToBeSent();
 
-                            tester.notificationChannel().
-                                applyLeader().
-                                expectToBeSent();
-
-                            tester.employeesWebSocket.connect();
-                            tester.employeesInitMessage().expectToBeSent();
-
-                            tester.employeesBroadcastChannel().
-                                tellIsLeader().
-                                expectToBeSent();
+                            tester.slavesNotification().expectToBeSent();
 
                             tester.masterInfoMessage().
                                 tellIsLeader().
                                 expectToBeSent();
 
-                            tester.slavesNotification().expectToBeSent();
-
-                            tester.slavesNotification().
-                                additional().
+                            tester.employeesBroadcastChannel().
+                                tellIsLeader().
                                 expectToBeSent();
+
+                            tester.employeesBroadcastChannel().
+                                applyLeader().
+                                expectToBeSent();
+
+                            tester.employeesBroadcastChannel().
+                                applyLeader().
+                                expectToBeSent();
+
+                            tester.employeesWebSocket.connect();
+                            tester.employeesInitMessage().expectToBeSent();
 
                             const requests = ajax.inAnyOrder();
 
@@ -155,12 +160,12 @@ tests.addTest(options => {
                                 authCheckRequest.receiveResponse();
                                 tester.talkOptionsRequest().receiveResponse();
 
+                                tester.employeeStatusesRequest().receiveResponse();
+
                                 tester.permissionsRequest().
                                     allowNumberCapacitySelect().
                                     allowNumberCapacityUpdate().
                                     receiveResponse();
-
-                                tester.employeeStatusesRequest().receiveResponse();
 
                                 tester.settingsRequest().
                                     allowNumberCapacitySelect().
@@ -289,7 +294,7 @@ tests.addTest(options => {
                                                     expectToBeSent();
                                             });
 
-                                            xdescribe('Нажимаю на кнопку настроек.', function() {
+                                            describe('Нажимаю на кнопку настроек.', function() {
                                                 beforeEach(function() {
                                                     tester.settingsButton.click();
 
@@ -697,7 +702,7 @@ tests.addTest(options => {
                                                     tester.collapsednessToggleButton.expectToBeExpanded();
                                                 });
                                             });
-                                            xdescribe(
+                                            describe(
                                                 'Поступает входящий звонок от пользователя имеющего открытые сделки.',
                                             function() {
                                                 let incomingCall;
@@ -856,7 +861,7 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            xdescribe('Нажимаю на кнопку максимизации.', function() {
+                                            describe('Нажимаю на кнопку максимизации.', function() {
                                                 beforeEach(function() {
                                                     tester.maximizednessButton.click();
 
@@ -2094,7 +2099,7 @@ tests.addTest(options => {
                                                     }
                                                 });
                                             });
-                                            xdescribe(
+                                            describe(
                                                 'Зафиксирую ширину окна. Нажимаю на кнопку максимизации.',
                                             function() {
                                                 beforeEach(function() {
@@ -2195,7 +2200,7 @@ tests.addTest(options => {
                                                     tester.button('Показать все статусы').expectToBeVisible();
                                                 });
                                             });
-                                            xdescribe('Открываю историю звонков.', function() {
+                                            describe('Открываю историю звонков.', function() {
                                                 let callsRequest;
 
                                                 beforeEach(function() {
@@ -2273,7 +2278,7 @@ tests.addTest(options => {
                                                     tester.spin.expectToBeVisible();
                                                 });
                                             });
-                                            xdescribe('Раскрываю список статусов.', function() {
+                                            describe('Раскрываю список статусов.', function() {
                                                 beforeEach(function() {
                                                     tester.userName.click();
                                                 });
@@ -2538,7 +2543,7 @@ tests.addTest(options => {
                                                     tester.statusesList.expectToHaveHeight(172);
                                                 });
                                             });
-                                            xdescribe('Открываю таблицу сотрудников. Токен истек.', function() {
+                                            describe('Открываю таблицу сотрудников. Токен истек.', function() {
                                                 let refreshRequest;
 
                                                 beforeEach(function() {
@@ -2750,7 +2755,7 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            xdescribe(
+                                            describe(
                                                 'Ввожу номер телефона. Нажимаю на кнпоку вызова. Поступил входящий ' +
                                                 'звонок.',
                                             function() {
@@ -2873,7 +2878,7 @@ tests.addTest(options => {
                                                     );
                                                 });
                                             });
-                                            xdescribe(
+                                            describe(
                                                 'Получено событие изменения сотрудника. Статус сотрудника изменился.',
                                             function() {
                                                 let employeeChangedEvent;
@@ -2901,7 +2906,7 @@ tests.addTest(options => {
                                                     tester.statusesList.item('Не беспокоить').expectNotToBeSelected();
                                                 });
                                             });
-                                            xdescribe('Открываю список номеров.', function() {
+                                            describe('Открываю список номеров.', function() {
                                                 beforeEach(function() {
                                                     tester.select.arrow.click();
                                                     tester.numberCapacityRequest().receiveResponse();
@@ -2947,7 +2952,6 @@ tests.addTest(options => {
                                                         expectTextContentToHaveSubstring('Получено обновление');
                                                 });
                                             });
-return;
                                             describe('Нажимаю на кнопку развернутости.', function() {
                                                 beforeEach(function() {
                                                     tester.collapsednessToggleButton.click();
@@ -3477,6 +3481,21 @@ return;
                                                 tester.employeesWebSocket.connect();
                                                 tester.employeesInitMessage().expectToBeSent();
                                             });
+                                            it(
+                                                'Получен запрос логов с ведомой вкладки. В ведомую вкладку ' +
+                                                'отправлена пустая строка.',
+                                            function() {
+                                                tester.logDownloadingRequest().
+                                                    broadcastMessage().
+                                                    forLeader().
+                                                    receive();
+
+                                                tester.logDownloadingRequest().
+                                                    broadcastMessage().
+                                                    forFollower().
+                                                    noData().
+                                                    expectToBeSent();
+                                            });
                                             it('Отображен сотфтон.', function() {
                                                 tester.phoneField.expectNotToBeFocused();
 
@@ -3582,7 +3601,6 @@ return;
                                                 }
                                             });
                                         });
-return;
                                         it('Доступ к микрофону отклонен.', function() {
                                             tester.disallowMediaInput();
 
@@ -3601,7 +3619,6 @@ return;
                                             );
                                         });
                                     });
-return;
                                     describe('Получен доступ к микрофону.', function() {
                                         beforeEach(function() {
                                             tester.allowMediaInput();
@@ -4233,7 +4250,6 @@ return;
                                         });
                                     });
                                 });
-return;
                                 describe('Получен доступ к микрофону.', function() {
                                     beforeEach(function() {
                                         tester.allowMediaInput();
@@ -5304,7 +5320,6 @@ return;
                                     });
                                 });
                             });
-return;
                             describe('Получены данные сотрудника и доступ к микрофону.', function() {
                                 beforeEach(function() {
                                     tester.allowMediaInput();
@@ -5569,7 +5584,6 @@ return;
                                 });
                             });
                         });
-return;
                         it('Не удалось авторизоваться в софтфоне.', function() {
                             authCheckRequest.invalidToken().receiveResponse();
 
@@ -5598,7 +5612,6 @@ return;
                             tester.button('Войти').expectToBeVisible();
                         });
                     });
-return;
                     describe('Раздел контактов недоступен.', function() {
                         beforeEach(function() {
                             accountRequest.
@@ -7262,7 +7275,6 @@ return;
                         tester.interceptButton.expectNotToExist();
                     });
                 });
-return;
                 it('Отмечаю чекбокс "Чужой компьютер". Нажимаю на кнопку входа. Логин не сохраняется.', function() {
                     tester.checkbox.click();
 
@@ -7450,7 +7462,6 @@ return;
                     tester.tooltip.expectToHaveTextContent('Пароль не сохранится в приложении');
                 });
             });
-return;
             describe('Логины и пароли были сохранены. Нажимаю на поле логина. Выбираю логин из списка.', function() {
                 beforeEach(function() {
                     getPackage('electron').ipcRenderer.receiveMessage('credentials', [{
@@ -7571,7 +7582,6 @@ return;
                 });
             });
         });
-return;
         describe(
             'Настройки отображения поверх окон при входящем и скрывания при завершении звонка не сохранены.',
         function() {

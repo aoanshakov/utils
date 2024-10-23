@@ -215,7 +215,7 @@ tests.addTest(options => {
                                                         expectToBeSent();
                                                 });
 
-                                                xdescribe('Открываю историю звонков.', function() {
+                                                describe('Открываю историю звонков.', function() {
                                                     let callsRequest;
                                                     
                                                     beforeEach(function() {
@@ -563,7 +563,7 @@ tests.addTest(options => {
                                                             expectToHaveClass('ui-direction-icon-transfer');
                                                     });
                                                 });
-                                                xdescribe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
+                                                describe('Нажимаю на кнопку "Выход". Вхожу в лк заново.', function() {
                                                     beforeEach(function() {
                                                         tester.header.userName.click();
                                                         tester.logoutButton.click();
@@ -741,7 +741,7 @@ tests.addTest(options => {
                                                         tester.statusesList.expectHeightToBeMoreThan(172);
                                                     });
                                                 });
-                                                xdescribe('Нажимаю на кнопку открытия диалпада.', function() {
+                                                describe('Нажимаю на кнопку открытия диалпада.', function() {
                                                     beforeEach(function() {
                                                         tester.dialpadVisibilityButton.click();
                                                     });
@@ -1034,7 +1034,7 @@ tests.addTest(options => {
                                                         }
                                                     });
                                                 });
-                                                xdescribe('Нажимаю на кнопку аккаунта.', function() {
+                                                describe('Нажимаю на кнопку аккаунта.', function() {
                                                     beforeEach(function() {
                                                         tester.header.userName.click();
                                                     });
@@ -1339,7 +1339,7 @@ tests.addTest(options => {
                                                         );
                                                     });
                                                 });
-                                                xdescribe('Нажимаю на кнопку таблицы сотрудников.', function() {
+                                                describe('Нажимаю на кнопку таблицы сотрудников.', function() {
                                                     beforeEach(function() {
                                                         tester.addressBookButton.click();
 
@@ -1379,7 +1379,7 @@ tests.addTest(options => {
                                                         tester.softphone.expectToBeExpanded();
                                                     });
                                                 });
-                                                xdescribe(
+                                                describe(
                                                     'Прошло некоторое время. Сервер событий не отвечает.',
                                                 function() {
                                                     beforeEach(function() {
@@ -1495,7 +1495,7 @@ tests.addTest(options => {
                                                             expectToBeSent();
                                                     });
 
-                                                    xit(
+                                                    it(
                                                         'Сервер ответил сообщением о внутренней ошибке сервера. ' +
                                                         'Отображён прежний статус.',
                                                     function() {
@@ -1520,7 +1520,6 @@ tests.addTest(options => {
                                                             icon.
                                                             expectAttributeToHaveValue('color', '#cc5d35');
                                                     });
-                                                    return;
                                                     it('Другой статус выбран.', function() {
                                                         employeeUpdatingRequest.receiveResponse();
 
@@ -1536,7 +1535,6 @@ tests.addTest(options => {
                                                             expectAttributeToHaveValue('color', '#ebb03b');
                                                     });
                                                 });
-                                                return;
                                                 it(
                                                     'Софтфон открыт в другом окне. Отображено сообщение о том, что ' +
                                                     'софтфон открыт в другом окне.',
@@ -2002,6 +2000,20 @@ tests.addTest(options => {
                                                             '/sup/auth/check'
                                                         );
                                                 });
+                                                it(
+                                                    'Получен запрос логов с ведомой вкладки. В ведомую вкладку ' +
+                                                    'отправлена пустая строка.',
+                                                function() {
+                                                    tester.logDownloadingRequest().
+                                                        broadcastMessage().
+                                                        forLeader().
+                                                        receive();
+
+                                                    tester.logDownloadingRequest().
+                                                        broadcastMessage().
+                                                        forFollower().
+                                                        expectToBeSent();
+                                                });
                                                 it('Отображен софтфон.', function() {
                                                     if (localStorage.getItem('isExpanded') != 'false') {
                                                         throw new Error(
@@ -2046,7 +2058,6 @@ tests.addTest(options => {
                                                         expectAttributeToHaveValue('color', '#cc5d35');
                                                 });
                                             });
-                                            return;
                                             it('Не удалось зарегистрировать SIP-линию.', function() {
                                                 registrationRequest.receiveForbidden();
 
@@ -2071,7 +2082,6 @@ tests.addTest(options => {
                                                 tester.callStartingButton.expectNotToExist();
                                             });
                                         });
-                                        return;
                                         it(
                                             'Нажимаю на кнопку "Поддержка". Открыто окно формы для ввода сообщения в ' +
                                             'техническую поддержку.',
@@ -2124,7 +2134,6 @@ tests.addTest(options => {
                                             tester.body.expectTextContentToHaveSubstring('Дашборды');
                                         });
                                     });
-                                    return;
                                     describe(
                                         'SIP-регистрация завершена. Срок действия токена авторизации истек.',
                                     function() {
@@ -2159,7 +2168,6 @@ tests.addTest(options => {
                                         });
                                     });
                                 });
-                                return;
                                 describe('SIP-линия не зарегистрирована. Нажимаю на иконку с телефоном.', function() {
                                     beforeEach(function() {
                                         tester.button('Софтфон').click();
@@ -2234,7 +2242,6 @@ tests.addTest(options => {
                                     });
                                 });
                             });
-return;
                             describe('Доступ к микрофону отклонен. Нажимаю на иконку телефона.', function() {
                                 beforeEach(function() {
                                     tester.disallowMediaInput();
@@ -2303,7 +2310,6 @@ return;
                                 });
                             });
                         });
-return;
                         describe('Номера должны быть скрыты.', function() {
                             beforeEach(function() {
                                 reportGroupsRequest.receiveResponse();
@@ -2679,7 +2685,6 @@ return;
                                 expectToBeSent();
                         });
                     });
-return;
                     describe('Нажимаю на иконку с телефоном.', function() {
                         beforeEach(function() {
                             reportGroupsRequest.receiveResponse();
@@ -3774,7 +3779,6 @@ return;
                         });
                     });
                 });
-return;
                 it(
                     'Токен истек. Токен обновлен. Повторный запрос авторизации закончился успешно. Софтфон доступен.',
                 function() {
@@ -3846,7 +3850,6 @@ return;
                         expectToBeSent();
                 });
             });
-return;
             describe('Вкладка является ведомой. Открываю софтфон.', function() {
                 beforeEach(function() {
                     tester.masterInfoMessage().
@@ -4591,7 +4594,6 @@ return;
                 });
             });
         });
-return;
         describe('Пользователь является руководителем.', function() {
             beforeEach(function() {
                 accountRequest = accountRequest.manager();

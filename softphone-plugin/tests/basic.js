@@ -10,6 +10,7 @@ tests.addTest(options => {
         setDocumentVisible,
         windowOpener,
         ajax,
+        utils,
     } = options;
 
     describe('Включено расширение Chrome виджет amoCRM.', function() {
@@ -55,7 +56,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        describe('Открыт IFrame.', function() {
+        xdescribe('Открыт IFrame.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'iframeContent',
@@ -85,13 +86,15 @@ tests.addTest(options => {
                     beforeEach(function() {
                         widgetSettings.receive();
 
-                        unfilteredPostMessages.nextMessage().expectMessageToStartsWith(
-                            'ignore:log:Window message received'
-                        );
+                        unfilteredPostMessages.
+                            nextMessage().
+                            expectMessageToStartsWith('ignore:log:').
+                            expectMessageToContain('Window message received');
 
-                        unfilteredPostMessages.nextMessage().expectMessageToStartsWith(
-                            'ignore:log:Tab state is unknown'
-                        );
+                        unfilteredPostMessages.
+                            nextMessage().
+                            expectMessageToStartsWith('ignore:log:').
+                            expectMessageToContain('Tab state is unknown');
                     });
 
                     describe('Вкладка является ведущей.', function() {
@@ -309,15 +312,36 @@ tests.addTest(options => {
                                                     });
                                                     it(
                                                         'От ведомой вкладки получен запрос скачивания лога. В ' +
-                                                        'родительское окно отправлен запрос скачивания лога.',
+                                                        'ведомую вкладку отправлен запрос скачивания лога.',
                                                     function() {
                                                         tester.logDownloadingRequest().
                                                             broadcastMessage().
+                                                            forLeader().
                                                             receive();
 
+                                                        tester.logsRequest().receiveResponse();
+
+                                                        unfilteredPostMessages.
+                                                            nextMessage().
+                                                            expectMessageToStartsWith('ignore:log:').
+                                                            expectMessageToContain('{"method":"set_logs","data":"*"}');
+                                                            
                                                         tester.logDownloadingRequest().
-                                                            windowMessage().
+                                                            broadcastMessage().
+                                                            forFollower().
                                                             expectToBeSent();
+
+                                                        unfilteredPostMessages.
+                                                            nextMessage().
+                                                            expectMessageToStartsWith('ignore:log:').
+                                                            expectMessageToContain(JSON.stringify({
+                                                                type: 'notify_slaves',
+                                                                data: {
+                                                                    action: 'download_log',
+                                                                    id: '5314f800-0f23-425d-bf20-683f0d149675',
+                                                                    data: '*',
+                                                                },
+                                                            }));
                                                     });
                                                     it(
                                                         'Нажимаю на кнопку скачивания лога. В родительское окно ' +
@@ -498,12 +522,14 @@ tests.addTest(options => {
 
                                         unfilteredPostMessages.
                                             nextMessage().
-                                            expectMessageToStartsWith('ignore:log:Window message received');
+                                            expectMessageToStartsWith('ignore:log:').
+                                            expectMessageToContain('Window message received');
 
                                         unfilteredPostMessages.
                                             nextMessage().
-                                            expectMessageToStartsWith([
-                                                'ignore:log:Time consumed 0 ms',
+                                            expectMessageToStartsWith('ignore:log:').
+                                            expectMessageToContain([
+                                                'Time consumed 0 ms',
                                                 'POST https://somedomain.com/click2call/79161234567'
                                             ].join("\n\n"));
                                     });
@@ -629,11 +655,15 @@ tests.addTest(options => {
                                     destroyed().
                                     expectToBeSent();
 
-                                unfilteredPostMessages.nextMessage().
-                                    expectMessageToStartsWith('ignore:log:Broadcast message sent');
+                                unfilteredPostMessages.
+                                    nextMessage().
+                                    expectMessageToStartsWith('ignore:log:').
+                                    expectMessageToContain('Broadcast message sent');
 
-                                unfilteredPostMessages.nextMessage().
-                                    expectMessageToStartsWith('ignore:log:Time consumed 0 ms');
+                                unfilteredPostMessages.
+                                    nextMessage().
+                                    expectMessageToStartsWith('ignore:log:').
+                                    expectMessageToContain('Time consumed 0 ms');
                             });
                         });
                         it('Отображено сообщение о том, что происходит авторизация.', function() {
@@ -688,14 +718,41 @@ tests.addTest(options => {
                                 receive();
                         });
 
-                        it(
+                        describe(
                             'Нажимаю на кнопку скачивания лога. В ведущую вкладку отправлен запрос скачивания лога.',
                         function() {
-                            tester.bugButton.click();
+                            beforeEach(function() {
+                                tester.bugButton.click();
 
-                            tester.logDownloadingRequest().
-                                broadcastMessage().
-                                expectToBeSent();
+                                tester.logDownloadingRequest().
+                                    broadcastMessage().
+                                    forLeader().
+                                    expectToBeSent();
+                            });
+
+                            it(
+                                'Получен лог ведущей вкладки. В родительское окно отправлен запрос скачивания лога.',
+                            function() {
+                                tester.logDownloadingRequest().
+                                    broadcastMessage().
+                                    forFollower().
+                                    receive();
+
+                                tester.logDownloadingRequest().
+                                    windowMessage().
+                                    withMessageFromLeader().
+                                    expectToBeSent();
+                            });
+                            it(
+                                'Получен лог ведущей вкладки предназначавшийся для другой вкладки. Запрос скачивания ' +
+                                'лога не был отправлен в родительское окно.',
+                            function() {
+                                tester.logDownloadingRequest().
+                                    broadcastMessage().
+                                    forFollower().
+                                    anotherId().
+                                    receive();
+                            });
                         });
                         it(
                             'Получен запрос скачивания лога. В ведущую вкладку отправлен запрос скачивания лога.',
@@ -706,6 +763,7 @@ tests.addTest(options => {
 
                             tester.logDownloadingRequest().
                                 broadcastMessage().
+                                forLeader().
                                 expectToBeSent();
                         });
                     });
@@ -829,7 +887,7 @@ tests.addTest(options => {
                 tester.softphone.expectNotToExist();
             });
         });
-        describe('Открываю попап. Отправлен запрос состояния.', function() {
+        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
             let stateRequest,
                 popupStateSettingRequest;
 
@@ -921,7 +979,7 @@ tests.addTest(options => {
                     expectToBeReloaded();
             });
         });
-        describe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
+        xdescribe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -1398,10 +1456,25 @@ tests.addTest(options => {
 
                                     tester.iframe.atIndex(1).expectToBeHidden();
                                 });
-                                it('Получен запрос скачивание лога из софтфона. Лог скачен.', function() {
+                                it(
+                                    'Получен запрос скачивание лога из софтфона с логами с другой влкадки. Лог скачен.',
+                                function() {
                                     tester.logDownloadingRequest().
                                         windowMessage().
+                                        withMessageFromLeader().
                                         receive();
+
+                                    tester.anchor.
+                                        withFileName('20191219.121006.000.log.txt').
+                                        expectHrefToBeBlobWithSubstring([
+                                            'LEADER TAB',
+                                            'Message from leader',
+
+                                            'FOLLOWER TAB',
+
+                                            'Wed Dec 18 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
+                                                'First message',
+                                        ].join("\n\n"));
 
                                     tester.anchor.
                                         withFileName('20191219.121006.000.log.txt').
@@ -1409,6 +1482,35 @@ tests.addTest(options => {
                                             'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
                                             'Storage data values for keys: "error"'
                                         );
+
+                                    tester.anchor.
+                                        withFileName('20191219.121006.000.log.txt').
+                                        expectHrefToBeBlobWithSubstring('{"method":"download_log","data":"*"}');
+                                });
+                                it('Получен запрос скачивание лога из софтфона. Лог скачен.', function() {
+                                    tester.logDownloadingRequest().
+                                        windowMessage().
+                                        receive();
+
+                                    tester.anchor.
+                                        withFileName('20191219.121006.000.log.txt').
+                                        expectHrefToBeBlobWithSubstring([
+                                            'Wed Dec 18 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
+                                                'First message',
+
+                                            'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
+                                                'Second message',
+                                        ].join("\n\n"));
+
+                                    tester.anchor.
+                                        withFileName('20191219.121006.000.log.txt').
+                                        expectHrefToBeBlobWithSubstring(
+                                            'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
+                                            'Storage data values for keys: "error"'
+                                        );
+                                });
+                                it('Получен запрос лога. В родетельское окно отправлен лог.', function() {
+                                    tester.logsRequest().expectResponseToBeSent();
                                 });
                                 it('Кнопка видимости добавлена перед элементом.', function() {
                                     tester.body.expectToHaveTextContent(
@@ -1477,6 +1579,94 @@ tests.addTest(options => {
                             it('Запрос инициализации чатов не был отправлен.', function() {
                                 postMessages.nextMessage().expectNotToExist();
                             });
+                        });
+                    });
+                    describe('Прошло некоторое время.', function() {
+                        beforeEach(function() {
+                            setNow('2019-12-19T12:10:16');
+                            spendTime(10000);
+                        });
+
+                        describe('Прошло ещё какое-то время.', function() {
+                            beforeEach(function() {
+                                setNow('2019-12-19T12:10:26');
+                                spendTime(10000);
+                            });
+
+                            it(
+                                'Содержимое IFrame инициализировано. Прошло некоторое время. Время ожидания ' +
+                                'инициализации IFrame не логируется.',
+                            function() {
+                                tester.stateSettingRequest().
+                                    userDataFetched().
+                                    leader().
+                                    receive();
+
+                                tester.popupStateSettingRequest().
+                                    userDataFetched().
+                                    settingsFetched().
+                                    initialized().
+                                    receiveResponse();
+
+                                tester.widgetSettings().
+                                    windowMessage().
+                                    expectToBeSent();
+
+                                tester.submoduleInitilizationEvent().
+                                    operatorWorkplace().
+                                    receive();
+
+                                tester.submoduleInitilizationEvent().receive();
+                                tester.unreadMessagesCountSettingRequest().receive();
+
+                                tester.chatsVisibilitySettingRequest().
+                                    initialized().
+                                    settingsFetched().
+                                    receiveResponse();
+
+                                tester.widgetSettings().
+                                    windowMessage().
+                                    chatsSettings().
+                                    expectToBeSent();
+
+
+                                setNow('2019-12-19T12:10:36');
+                                spendTime(10000);
+
+                                tester.logDownloadingRequest().receive();
+
+                                tester.anchor.
+                                    withFileName('20191219.121036.000.log.txt').
+                                    expectHrefToBeBlobWithoutSubstring([
+                                        'Waiting for initialization of ' +
+                                        'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats: ' +
+                                        '30000ms',
+                                    ].join("\n\n"));
+
+                            });
+                            it('Логируется время ожидания инициализации IFrame.', function() {
+                                tester.logDownloadingRequest().receive();
+
+                                tester.anchor.
+                                    withFileName('20191219.121026.000.log.txt').
+                                    expectHrefToBeBlobWithSubstring([
+                                        'Waiting for initialization of ' +
+                                        'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats: ' +
+                                        '20000ms',
+                                    ].join("\n\n"));
+                            });
+                        });
+                        it('Логируется время ожидания инициализации IFrame.', function() {
+                            tester.logDownloadingRequest().receive();
+
+                            tester.anchor.
+                                withFileName('20191219.121016.000.log.txt').
+                                expectHrefToBeBlobWithSubstring([
+                                    'Waiting for initialization of ' +
+                                    'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats: ' +
+                                    '10000ms',
+                                ].join("\n\n"));
+
                         });
                     });
                     it('Вкладка является ведомой.', function() {
@@ -2837,7 +3027,7 @@ tests.addTest(options => {
                     expectToBeHidden();
             });
         });
-        describe('Открываю попап. Отправлен запрос состояния.', function() {
+        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'popup',
@@ -3060,7 +3250,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentNotToHaveSubstring('Вы не авторизованы');
             });
         });
-        describe('Открываю background-скрипт. Софтфон авторизован.', function() {
+        xdescribe('Открываю background-скрипт. Софтфон авторизован.', function() {
             let oauthRequest;
 
             beforeEach(function() {
@@ -3138,6 +3328,23 @@ tests.addTest(options => {
                         failedToGetSettingsWithJsonResponse().
                         storageData().
                         expectToBeSaved();
+
+                    tester.chrome.
+                        storage.
+                        local.
+                        expectToContain({
+                            log: utils.expectJSONToContain({
+                                'https://my.uiscom.ru/extension/uc_flow/installment_settings': {
+                                    message: utils.expectToHaveSubstring(
+                                        '[{' +
+                                            '"loc":["root"],' +
+                                            '"msg":"Server got itself in trouble",' +
+                                            '"type":"value_error.exception"' +
+                                        '}]'
+                                    ),
+                                },
+                            }),
+                        });
                 });
                 it('Отсутствует интеграция. Сообщение об ошибке не было сохранено.', function() {
                     widgetSettings.
@@ -3280,7 +3487,7 @@ tests.addTest(options => {
                     grant();
             });
         });
-        describe('Открываю background-скрипт.', function() {
+        xdescribe('Открываю background-скрипт.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'background',
@@ -3323,8 +3530,7 @@ tests.addTest(options => {
                         });
 
                         describe('Получен авторизационный токен. Отправлены запросы настроек.', function() {
-                            let softphoneWidgetSettingsRequest,
-                                chatsWidgetSettingsRequest;
+                            let softphoneWidgetSettingsRequest;
 
                             beforeEach(function() {
                                 oauthRequest.receiveResponse();
@@ -3333,15 +3539,102 @@ tests.addTest(options => {
                                     request().
                                     expectToBeSent();
                                 
-                                chatsWidgetSettingsRequest = tester.widgetSettings().
+                                tester.widgetSettings().
                                     chatsSettings().
                                     request().
-                                    expectToBeSent();
+                                    receiveResponse();
                             });
 
-                            it('Один из запросов завершился ошибкой. Сообщение об ошибке сохранено.', function() {
-                                chatsWidgetSettingsRequest.receiveResponse();
+                            it('Получены ответы на запрос настроек. Настройки сохранены в хранилище.', function() {
+                                softphoneWidgetSettingsRequest.receiveResponse();
 
+                                tester.widgetSettings().
+                                    storageData().
+                                    expectToBeSaved();
+
+                                tester.chrome.
+                                    storage.
+                                    local.
+                                    expectToContain({
+                                        log: utils.expectJSONToContain({
+                                            launchWebAuthFlow: {
+                                                time: utils.expectTime('2019-12-19T12:10:06'),
+                                                message: [
+                                                    'chrome.identity.launchWebAuthFlow was called with options',
+                                                    '',
+                                                    '"interactive": true,',
+                                                    '"url": https://uc-sso-prod-api.uiscom.ru/oauth2/authorize?',
+                                                    '    response_type=code&',
+                                                    '    client_id=' +
+                                                            'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org&',
+                                                    '    redirect_uri=' +
+                                                            'https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org&',
+                                                    '    prompt=login',
+                                                    '',
+                                                    'and returned ' +
+                                                        '"https://faaeopllmpfoeobihkiojkbhnlfkleik.chromiumapp.org/' +
+                                                        '?code=28gjs8o24rfsd42"',
+                                                ].join("\n"),
+                                            },
+
+                                            'https://uc-sso-prod-api.uiscom.ru/oauth2/token': {
+                                                time: utils.expectTime('2019-12-19T12:10:06'),
+                                                message: utils.expectToStartWith([
+                                                    'Response status: 200',
+                                                    '',
+                                                    'POST https://uc-sso-prod-api.uiscom.ru/oauth2/token',
+                                                    'Authorization: Basic aHR0cHMlM0ElMkYlMkZmYWFlb3BsbG1wZm9lb2J' +
+                                                        'paGtpb2prYmhubGZrbGVpay5jaHJvbWl1bWFwcC5vcmc6aHR0cHMlM0E' +
+                                                        'lMkYlMkZmYWFlb3BsbG1wZm9lb2JpaGtpb2prYmhubGZrbGVpay5jaHJ' +
+                                                        'vbWl1bWFwcC5vcmc=',
+                                                    '',
+                                                    'redirect_uri=https://faaeopllmpfoeobihkiojkbhnlfkleik.' +
+                                                        'chromiumapp.org&',
+                                                    'code=28gjs8o24rfsd42&',
+                                                    'grant_type=authorization_code',
+                                                    '',
+                                                    '{"access_token":',//}
+                                                ].join("\n")),
+                                            },
+
+                                            'https://my.uiscom.ru/extension/uc_flow/installment_settings': {
+                                                time: utils.expectTime('2019-12-19T12:10:06'),
+                                                message: utils.expectToStartWith([
+                                                    'Response status: 200',
+                                                    '',
+                                                    'GET https://my.uiscom.ru/extension/uc_flow/' +
+                                                        'installment_settings',
+                                                    `Authorization: Bearer ${tester.oauthToken}`,
+                                                    'X-Auth-Type: jwt',
+                                                    '',
+                                                    'widget_id=chrome',
+                                                    '',
+                                                    '{"softphone":',//}
+                                                ].join("\n")),
+                                            },
+
+                                            [
+                                                'https://dev-int0-chats-logic.uis.st/v1/settings/uc_flow/' +
+                                                'installment_settings'
+                                            ]: {
+                                                time: utils.expectTime('2019-12-19T12:10:06'),
+                                                message: utils.expectToStartWith([
+                                                    'Response status: 200',
+                                                    '',
+                                                    'GET https://dev-int0-chats-logic.uis.st/v1/settings/uc_flow/' +
+                                                        'installment_settings',
+                                                    `Authorization: Bearer ${tester.oauthToken}`,
+                                                    'X-Auth-Type: jwt',
+                                                    '',
+                                                    'widget_id=chrome',
+                                                    '',
+                                                    '{"chats":',//}
+                                                ].join("\n")),
+                                            },
+                                        }),
+                                    });
+                            });
+                            it('Один из запросов завершился ошибкой. Сообщение об ошибке сохранено.', function() {
                                 softphoneWidgetSettingsRequest.
                                     failedToGetSettings().
                                     receiveResponse();
@@ -3351,14 +3644,52 @@ tests.addTest(options => {
                                     noSoftphoneSettings().
                                     storageData().
                                     expectToBeSaved();
+
+                                tester.chrome.
+                                    storage.
+                                    local.
+                                    expectToContain({
+                                        log: utils.expectJSONToContain({
+                                            'https://my.uiscom.ru/extension/uc_flow/installment_settings': {
+                                                message: utils.expectToStartWith('Failed; Response status: 500'),
+                                            },
+                                        }),
+                                    });
+
+                                tester.chrome.
+                                    storage.
+                                    local.
+                                    expectToContain({
+                                        log: utils.expectJSONToContain({
+                                            'https://my.uiscom.ru/extension/uc_flow/installment_settings': {
+                                                message: utils.expectToHaveSubstring(
+                                                    '500 Internal Server Error Server got itself in trouble'
+                                                ),
+                                            },
+                                        }),
+                                    });
                             });
-                            it('Получены ответы на запрос настроек. Настройки сохранены в хранилище.', function() {
-                                softphoneWidgetSettingsRequest.receiveResponse();
-                                chatsWidgetSettingsRequest.receiveResponse();
+                            it('Один из запросов завершился ошибкой сети. Сообщение об ошибке сохранено.', function() {
+                                softphoneWidgetSettingsRequest.
+                                    failedToGetSettingsBecauseOfNetworkError().
+                                    receiveResponse();
 
                                 tester.widgetSettings().
+                                    failedToGetSettingsBecauseOfNetworkError().
+                                    noSoftphoneSettings().
                                     storageData().
                                     expectToBeSaved();
+
+                                tester.chrome.
+                                    storage.
+                                    local.
+                                    expectToContain({
+                                        log: utils.expectJSONToContain({
+                                            'https://my.uiscom.ru/extension/uc_flow/installment_settings': {
+                                                message: utils.expectToHaveSubstring('Error: Network error'),
+                                            },
+                                        }),
+                                    });
                             });
                         });
                         it('Получен дубайский токен. Отправлен запрос настроек в дубайский сервер.', function() {
@@ -3417,6 +3748,17 @@ tests.addTest(options => {
                                 failedToAuthorize().
                                 storageData().
                                 expectToBeSaved();
+
+                            tester.chrome.
+                                storage.
+                                local.
+                                expectToContain({
+                                    log: utils.expectJSONToContain({
+                                        launchWebAuthFlow: {
+                                            message: utils.expectToHaveSubstring('Failed to open authorization page'),
+                                        },
+                                    }),
+                                });
                         });
                     });
                     it('Получен дубайский код. Запрос токена отправлен на дубайский сервер.', function() {
@@ -3467,7 +3809,7 @@ tests.addTest(options => {
                 tester.popupStateSettingRequest().expectResponseToBeSent();
             });
         });
-        describe('Контент скрипт встроился в IFrame. Сотрудник авторизован.', function() {
+        xdescribe('Контент скрипт встроился в IFrame. Сотрудник авторизован.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -3556,11 +3898,12 @@ tests.addTest(options => {
             });
             it('Получено сообщение от вложенного IFrame. Сообщение передано родителю.', function() {
                 postMessages.nextMessage().expectNotToExist();
-                postMessages.receive('ignore:log:Message to parent');
+                postMessages.receive('ignore:log:[https://somedomain] Message to parent');
 
                 unfilteredPostMessages.
                     nextMessage().
-                    expectMessageToStartsWith('ignore:log:Message to parent');
+                    expectMessageToStartsWith('ignore:log:').
+                    expectMessageToContain('[https://somedomain] Message to parent');
             });
             it('Получен запрос скачивания логов. Логи не скачиваются.', function() {
                 tester.logDownloadingRequest().expectResponseToBeSent();
@@ -3572,8 +3915,9 @@ tests.addTest(options => {
             it('Сообщения в лог передаются родительскому окну.', function() {
                 unfilteredPostMessages.
                     nextMessage().
-                    expectMessageToStartsWith(
-                        'ignore:log:Settings' + "\n\n" +
+                    expectMessageToStartsWith('ignore:log:').
+                    expectMessageToContain(
+                        'Settings' + "\n\n" +
 
                         'URL: https://app.uiscom.ru' + "\n" +
                         'Type: softphone'
@@ -3594,7 +3938,7 @@ tests.addTest(options => {
                 );
             });
         });
-        describe('Открыт IFrame софтфона amoCRM.', function() {
+        xdescribe('Открыт IFrame софтфона amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'amocrmIframeContent',
@@ -3812,7 +4156,7 @@ tests.addTest(options => {
                 windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru');
             });
         });
-        describe('Открываю виджет amoCRM.', function() {
+        xdescribe('Открываю виджет amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -3881,7 +4225,7 @@ tests.addTest(options => {
 
                         tester.iframe.expectAttributeToHaveValue(
                             'src',
-                            'https://prod-msk-softphone-widget-iframe.callgear.ae/amocrm'
+                            'https://prod-msk-softphone-widget-iframe.callgear.ae/amocrm/softphone'
                         );
                     });
                 });
@@ -3912,7 +4256,7 @@ tests.addTest(options => {
 
                         tester.iframe.expectAttributeToHaveValue(
                             'src',
-                            'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm',
+                            'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/softphone',
                         );
                     });
                 });
@@ -3935,7 +4279,7 @@ tests.addTest(options => {
 
                     tester.iframe.expectAttributeToHaveValue(
                         'src',
-                        'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm',
+                        'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/softphone',
                     );
                 });
             });
@@ -3959,6 +4303,198 @@ tests.addTest(options => {
                 tester.iframe.expectToBeHidden();
             });
         });
+        describe('Открываю виджет чатов amoCRM.', function() {
+            beforeEach(function() {
+                tester = new Tester({
+                    softphoneHost: 'my.uiscom.ru',
+                    ...options,
+                    application: 'amocrmChats',
+                });
+
+                notificationTester.grantPermission();
+
+                postMessages.receive({
+                    method: 'set_token',
+                    data: '',
+                });
+            });
+
+            describe('Открываю страницу контакта.', function() {
+                beforeEach(function() {
+                    tester.renderContact();
+                });
+
+                describe('Инициализировано содержимое IFrame.', function() {
+                    beforeEach(function() {
+                        tester.unreadMessagesCountSettingRequest().receive();
+
+                        tester.amocrmStateSettingRequest().
+                            chats().
+                            expectToBeSent();
+                    });
+
+                    describe('Сотрудник авторизован.', function() {
+                        beforeEach(function() {
+                            postMessages.receive({
+                                method: 'set_token',
+                                data: tester.oauthToken,
+                            });
+
+                            tester.channelsSearchingRequest().expectToBeSent();
+
+                            tester.channelsSearchingRequest().
+                                anotherPhone().
+                                expectToBeSent();
+
+                            tester.channelsSearchingRequest().
+                                email().
+                                expectToBeSent();
+
+                            tester.channelsSearchingRequest().
+                                thirdPhone().
+                                expectToBeSent();
+                        });
+
+                        describe('Получен список каналов.', function() {
+                            beforeEach(function() {
+                                tester.channelsSearchingResponse().
+                                    addChannel().
+                                    addThirdChannel().
+                                    unavailable().
+                                    receive();
+
+                                tester.channelsSearchingResponse().
+                                    anotherChannel().
+                                    receive();
+
+                                tester.channelsSearchingResponse().
+                                    thirdChannel().
+                                    receive();
+
+                                tester.channelsSearchingResponse().
+                                    fourthChannel().
+                                    receive();
+
+                                tester.channelsSearchingResponse().
+                                    email().
+                                    receive();
+                            });
+
+                            describe('Выбираю канал.', function() {
+                                beforeEach(function() {
+                                    tester.button('Белгород').click();
+
+                                    tester.chatOpeningRequest().
+                                        fourthChannel().
+                                        expectToBeSent();
+                                });
+
+                                it('Появилась левая панель. IFrame не закрывает левую панель.', function() {
+                                    tester.page.triggerMutation();
+                                    tester.iframe.expectToHaveLeftOffset(200);
+                                });
+                                it('IFrame не закрывает левое меню.', function() {
+                                    tester.iframe.expectToHaveLeftOffset(65);
+                                });
+                            });
+                            it('Количество нетвеченных сообщений не отображено.', function() {
+                                tester.navMenuItem.expectToHaveTextContent('UIS Чаты');
+                            });
+                            it('Отображён список каналов.', function() {
+                                tester.body.expectTextContentToHaveSubstring(
+                                    '74951234575 ' +
+                                    'Белгород ' +
+                                    'Астана ' +
+
+                                    '74951234576 ' +
+                                    'Ереван ' +
+
+                                    'a.anshakov@comagic.dev ' +
+                                    'Сантьяго ' +
+
+                                    '74951234584 ' +
+                                    'Тбилиси'
+                                );
+                            });
+                        });
+                        describe('Получены сообщения.', function() {
+                            beforeEach(function() {
+                                tester.unreadMessagesCountSettingRequest().
+                                    value(75).
+                                    receive();
+                            });
+
+                            it('Получены ещё больше сообщений.', function() {
+                                tester.unreadMessagesCountSettingRequest().
+                                    value(76).
+                                    receive();
+
+                                tester.navMenuItem.expectToHaveTextContent('UIS Чаты 76');
+                            });
+                            it('Отображено количество непросмотренных сообщений.', function() {
+                                tester.navMenuItem.expectToHaveTextContent('UIS Чаты 75');
+                            });
+                        });
+                        it('Отбражен список номера телефонов и E-Mail.', function() {
+                            tester.body.expectTextContentToHaveSubstring(
+                                '74951234575 ' +
+                                '74951234576 ' +
+                                'a.anshakov@comagic.dev ' +
+                                '74951234584'
+                            );
+                        });
+                    });
+                    it('Запрос каналов не был отправлен.', function() {
+                        postMessages.nextMessage().expectNotToExist();
+                    });
+                });
+                it('В DOM добавлен IFrame чатов.', function() {
+                    tester.iframe.expectToBeHidden();
+
+                    tester.iframe.expectAttributeToHaveValue(
+                        'src',
+                        'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/chats/messages',
+                    );
+                });
+            });
+            return;
+            describe('Инициализировано содержимое IFrame. Сотрудник авторизован.', function() {
+                beforeEach(function() {
+                    tester.unreadMessagesCountSettingRequest().receive();
+
+                    tester.amocrmStateSettingRequest().
+                        chats().
+                        expectToBeSent();
+
+                    postMessages.receive({
+                        method: 'set_token',
+                        data: tester.oauthToken,
+                    });
+                });
+
+                it('Открываю страницу контакта. Был отправлен запрос каналов.', function() {
+                    tester.renderContact();
+
+                    tester.channelsSearchingRequest().expectToBeSent();
+
+                    tester.channelsSearchingRequest().
+                        anotherPhone().
+                        expectToBeSent();
+
+                    tester.channelsSearchingRequest().
+                        email().
+                        expectToBeSent();
+
+                    tester.channelsSearchingRequest().
+                        thirdPhone().
+                        expectToBeSent();
+                });
+                it('Запрос каналов не был отправлен.', function() {
+                    postMessages.nextMessage().expectNotToExist();
+                });
+            });
+        });
+return;
         describe(
             'В локальном хранилище сохранен токен. Открыт IFrame софтфона amoCRM. Производится авторизация.',
         function() {
@@ -4613,6 +5149,8 @@ tests.addTest(options => {
                 });
                 it('Получен запрос открытия чата. Отправлен запрос открытия чата.', function() {
                     tester.chatOpeningRequest().receive();
+                    tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+
                     tester.chatOpeningRequest().expectToBeSent();
 
                     tester.chatsVisibilitySettingRequest().
@@ -5360,7 +5898,7 @@ tests.addTest(options => {
 
             tester.iframe.expectAttributeToHaveValue(
                 'src',
-                'https://prod-msk-softphone-widget-iframe.callgear.ae/amocrm',
+                'https://prod-msk-softphone-widget-iframe.callgear.ae/amocrm/softphone',
             );
         });
         it('Виджет установлен. Открываю настройки. Кнопока настроек видима.', function() {

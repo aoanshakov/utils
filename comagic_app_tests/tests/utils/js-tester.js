@@ -4047,6 +4047,10 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
         return new JsTests_PrefixExpectaion(expectedPrefix);
     };
 
+    this.expectToHaveSubstring = function (expectedSubstring) {
+        return new JsTests_SubstringExpectaion(expectedSubstring);
+    };
+
     this.expectToBeString = function () {
         return new JsTests_StringExpectaion();
     };
@@ -4076,7 +4080,7 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
             }
         });
     };
-    
+
     this.createParamExpectation = function (expectation) {
         var Constructor = function () {
             this.maybeThrowError = expectation;
@@ -6600,6 +6604,22 @@ function JsTests_PrefixExpectaion (expectedPrefix) {
     };
 }
 
+function JsTests_SubstringExpectaion (expectedSubstring) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (
+            !actualValue ||
+            typeof actualValue != 'string' ||
+            !actualValue.includes(expectedSubstring)
+        ) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должна быть строка, содержащия подстроку ' +
+                JSON.stringify(expectedSubstring) + ', однако значение параметра таково ' +
+                JSON.stringify(actualValue) + '.'
+            );
+        }
+    };
+}
+
 function JsTests_StringExpectaion () {
     this.maybeThrowError = function (actualValue, keyDescription) {
         if (
@@ -6775,6 +6795,7 @@ JsTests_BlobExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_NonStrictExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_EmptyObjectExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_PrefixExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_SubstringExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_StringExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_SetInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
 JsTests_NotEmptyExpectaion.prototype = JsTests_ParamExpectationPrototype;
@@ -6844,7 +6865,7 @@ function JsTester_ParamsContainingExpectation (actualParams, paramsDescription) 
                 keyDescription + (paramsDescription ? (' ' + paramsDescription) : '') +
                 ' должен иметь значение ' + JSON.stringify(expectedValue) +
                 ', тогда, как он';
-            
+
             if (actualValue === undefined && expectedValue !== undefined) {
                 throw new Error(expectationDescription + ' остутствует.');
             }

@@ -4037,6 +4037,14 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
         return new JsTests_PrefixExpectaion(expectedPrefix);
     };
 
+    this.expectToStartWith = function (expectedPrefix) {
+        return this.expectToHavePrefix(expectedPrefix);
+    };
+
+    this.expectToHaveSubstring = function (expectedSubstring) {
+        return new JsTests_SubstringExpectaion(expectedSubstring);
+    };
+
     this.expectToBeString = function () {
         return new JsTests_StringExpectaion();
     };
@@ -4840,9 +4848,14 @@ function JsTester_Request (request, utils, callStack) {
 
         return this;
     };
+    this.networkError = function() {
+        request.responseError();
+        return this;
+    };
     this.respondSuccessfullyWith = function (responseObject) {
         request.respondWith({
             status: 200,
+            statusText: 'OK',
             responseText: typeof responseObject == 'string' ? responseObject : JSON.stringify(responseObject)
         });
 
@@ -4859,7 +4872,8 @@ function JsTester_Request (request, utils, callStack) {
     this.respondUnsuccessfullyWith = function (responseObject) {
         respond({
             responseObject: responseObject,
-            status: 500
+            status: 500,
+            statusText: 'Internal server error',
         });
 
         return this;
@@ -4867,7 +4881,8 @@ function JsTester_Request (request, utils, callStack) {
     this.respondUnauthorizedWith = function (responseObject) {
         respond({
             responseObject: responseObject,
-            status: 401
+            status: 401,
+            statusText: 'Unauthorized',
         });
 
         return this;
@@ -5232,16 +5247,21 @@ function JsTester_FetchMock (args) {
 
         var method = options.method,
             body = options.body,
-            resolver = new JsTester_FunctionVariable(function () {});
+            resolver = new JsTester_FunctionVariable(function () {}),
+            rejector = new JsTester_FunctionVariable(function () {});
 
         const requestHeaders = options.headers ?
             Array.from(options.headers.entries()).
                 reduce((result, [key, value]) => (result[key] = value, result), {}) :
             null;
 
-        var promise = new Promise(function (resolve) {
+        var promise = new Promise(function (resolve, reject) {
             resolver.setValue(function (response) {
                 resolve(response);
+            });
+
+            rejector.setValue(function (error) {
+                reject(error);
             });
         });
 
@@ -5251,7 +5271,8 @@ function JsTester_FetchMock (args) {
             body: method == 'GET' ? null : body,
             utils: utils,
             requestHeaders,
-            resolve: resolver.createValueCaller()
+            resolve: resolver.createValueCaller(),
+            reject: rejector.createValueCaller(),
         }));
         
         return promise;
@@ -5265,6 +5286,7 @@ function JsTester_FetchRequest (args) {
         body = args.body,
         utils = args.utils,
         resolve = args.resolve,
+        reject = args.reject,
         data;
 
     body = utils.maybeDecodeArrayBuffer(body);
@@ -5311,6 +5333,10 @@ function JsTester_FetchRequest (args) {
 
     this.respondWith = function (args) {
         resolve(new JsTester_FetchResponse(args));
+    };
+
+    this.responseError = function (args) {
+        reject(new Error('Network error'));
     };
 }
 
@@ -6615,8 +6641,25 @@ function JsTests_PrefixExpectaion (expectedPrefix) {
             actualValue.indexOf(expectedPrefix) !== 0
         ) {
             throw new Error(
-                'Значением параметра ' + keyDescription + ' должна быть строка с префиксом "' + expectedPrefix + '", ' +
-                'однако значение параметра таково ' + JSON.stringify(actualValue) + '.'
+                'Значением параметра ' + keyDescription + ' должна быть строка, начинающаяся с подстроки ' +
+                JSON.stringify(expectedPrefix) + ', однако значение параметра таково ' + JSON.stringify(actualValue) +
+                '.'
+            );
+        }
+    };
+}
+
+function JsTests_SubstringExpectaion (expectedSubstring) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        if (
+            !actualValue ||
+            typeof actualValue != 'string' ||
+            !actualValue.includes(expectedSubstring)
+        ) {
+            throw new Error(
+                'Значением параметра ' + keyDescription + ' должна быть строка, содержащия подстроку ' +
+                JSON.stringify(expectedSubstring) + ', однако значение параметра таково ' +
+                JSON.stringify(actualValue) + '.'
             );
         }
     };
@@ -6865,6 +6908,7 @@ JsTests_BlobExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_NonStrictExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_EmptyObjectExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_PrefixExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_SubstringExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_StringExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_SetInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
 JsTests_NotEmptyExpectaion.prototype = JsTests_ParamExpectationPrototype;
@@ -6935,7 +6979,7 @@ function JsTester_ParamsContainingExpectation (actualParams, paramsDescription) 
                 keyDescription + (paramsDescription ? (' ' + paramsDescription) : '') +
                 ' должен иметь значение ' + JSON.stringify(expectedValue) +
                 ', тогда, как он';
-            
+
             if (actualValue === undefined && expectedValue !== undefined) {
                 throw new Error(expectationDescription + ' остутствует.');
             }
@@ -7978,6 +8022,17 @@ function JsTester_WindowMessage (args) {
     };
 
     this.expectMessageToContain = function (expectedContent) {
+        if (typeof expectedContent === 'string' ) {
+            if (!actualMessage.includes(expectedContent)) {
+                throw new Error(
+                    'В окно должно быть отправлено сообщение, содержащее подстроку "' + expectedContent + '", однако ' +
+                    'в окно было отправлено сообщение "' + actualMessage + '".'
+                );
+            }
+
+            return this;
+        }
+
         utils.expectObjectToContain(this.getJSON(), expectedContent);
         return this;
     };
@@ -7996,7 +8051,7 @@ function JsTester_WindowMessage (args) {
     this.expectMessageToEqual = function (expectedMessage) {
         if (actualMessage != expectedMessage) {
             throw new Error(
-                'В родительское окно должно быть отправлено сообщение "' + expectedMessage + '", однако было ' +
+                'В окно должно быть отправлено сообщение "' + expectedMessage + '", однако было ' +
                 'отправлено сообщение "' + actualMessage + '".' + "\n\n" + callStack
             );
         }
@@ -8007,7 +8062,7 @@ function JsTester_WindowMessage (args) {
     this.expectMessageToStartsWith = function (expectedPrefix) {
         if (!this.startsWith(expectedPrefix)) {
             throw new Error(
-                'В родительское окно должно быть отправлено сообщение начинающееся с "' + expectedPrefix + '", ' +
+                'В окно должно быть отправлено сообщение начинающееся с "' + expectedPrefix + '", ' +
                 'однако было отправлено сообщение "' + actualMessage + '".' + "\n\n" + callStack
             );
         }
@@ -8017,7 +8072,7 @@ function JsTester_WindowMessage (args) {
 
     this.expectNotToExist = function (errors) {
         var error = new Error(
-            'Ни одно сообщение не должно быть отправлено в родительское окно, однако было отправлено сообщение "' +
+            'Ни одно сообщение не должно быть отправлено в окно, однако было отправлено сообщение "' +
             actualMessage + '".' + "\n\n" + callStack + "\n\n"
         );
 

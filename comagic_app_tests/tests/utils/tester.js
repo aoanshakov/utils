@@ -1321,6 +1321,121 @@ define(() => function ({
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
     };
 
+    me.logDownloadingRequest = () => {
+        const response = true;
+
+        const message = {
+            method: 'download_log',
+            data: undefined,
+        };
+
+        return {
+            broadcastMessage: () => ({
+                forLeader: () => {
+                    const message = {
+                        type: 'message',
+                        data: {
+                            type: 'notify_master',
+                            data: {
+                                action: 'download_log',
+                                id: '5314f800-0f23-425d-bf20-683f0d149675',
+                            },
+                        },
+
+                    };
+
+                    return {
+                        expectToBeSent: () => me.nextCrosstabMessage().expectToContain(message),
+                        receive: () => (me.receiveCrosstabMessage(message), spendTime(0))
+                    };
+                },
+
+                forFollower: () => {
+                    const message = {
+                        type: 'message',
+                        data: {
+                            type: 'notify_slaves',
+                            data: {
+                                action: 'download_log',
+                                id: '5314f800-0f23-425d-bf20-683f0d149675',
+                                data: utils.expectToHaveSubstring([
+                                    'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
+                                    'Response status: 200 OK; ' +
+                                    'Time consumed 0 ms',
+
+                                    'POST $REACT_APP_AUTH_URL'
+                                ].join("\n\n")),
+                            },
+                        },
+
+                    };
+
+                    return {
+                        anotherId() {
+                            message.data.data.id = '28296h82-28g3-682b-an34-8602838710n0';
+                            return this;
+                        },
+
+                        noData() {
+                            message.data.data.data = '';
+                            return this;
+                        },
+
+                        expectToBeSent: () => me.nextCrosstabMessage().expectToContain(message),
+                        receive: () => (me.receiveCrosstabMessage(message), spendTime(0))
+                    };
+                },
+            }),
+            windowMessage: () => ({
+                withMessageFromLeader() {
+                    message.data = 'Message from leader';
+                    return this;
+                },
+
+                receive: () => postMessages.receive(message),
+                expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
+            }),
+            receive: () => {
+                const request = me.chrome.
+                    runtime.
+                    receiveMessage(message);
+
+                return {
+                    expectNoResponseToBeSent: () => request.expectNoResponseToBeSent(),
+                    expectResponseToBeSent: () => request.expectResponseToContain(response),
+                };
+            },
+            expectResponseToBeSent() {
+                this.receive().expectResponseToBeSent();
+            },
+            expectNoResponseToBeSent() {
+                this.receive().expectNoResponseToBeSent();
+            },
+            expectToBeSent() {
+                const request = me.chrome.
+                    tabs.
+                    current.
+                    nextMessage().
+                    expectToContain(message);
+
+                return {
+                    receiveResponse: () => {
+                        request.receiveResponse(response);
+
+                        spendTime(0);
+                        spendTime(0);
+                    },
+                    fail: () => {
+                        request.fail();
+
+                        spendTime(0);
+                        spendTime(0);
+                    },
+                };
+            },
+        };
+    };
+
     me.ssoCheckRequest = () => {
         let respond = request => request.respondUnauthorizedWith('401 Unauthorized');
 
