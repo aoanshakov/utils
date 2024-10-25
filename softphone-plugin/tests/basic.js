@@ -56,7 +56,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        xdescribe('Открыт IFrame.', function() {
+        describe('Открыт IFrame.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'iframeContent',
@@ -887,7 +887,7 @@ tests.addTest(options => {
                 tester.softphone.expectNotToExist();
             });
         });
-        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
+        describe('Открываю попап. Отправлен запрос состояния.', function() {
             let stateRequest,
                 popupStateSettingRequest;
 
@@ -979,7 +979,7 @@ tests.addTest(options => {
                     expectToBeReloaded();
             });
         });
-        xdescribe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
+        describe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -3027,7 +3027,7 @@ tests.addTest(options => {
                     expectToBeHidden();
             });
         });
-        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
+        describe('Открываю попап. Отправлен запрос состояния.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'popup',
@@ -3250,7 +3250,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentNotToHaveSubstring('Вы не авторизованы');
             });
         });
-        xdescribe('Открываю background-скрипт. Софтфон авторизован.', function() {
+        describe('Открываю background-скрипт. Софтфон авторизован.', function() {
             let oauthRequest;
 
             beforeEach(function() {
@@ -3487,7 +3487,7 @@ tests.addTest(options => {
                     grant();
             });
         });
-        xdescribe('Открываю background-скрипт.', function() {
+        describe('Открываю background-скрипт.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'background',
@@ -3809,7 +3809,7 @@ tests.addTest(options => {
                 tester.popupStateSettingRequest().expectResponseToBeSent();
             });
         });
-        xdescribe('Контент скрипт встроился в IFrame. Сотрудник авторизован.', function() {
+        describe('Контент скрипт встроился в IFrame. Сотрудник авторизован.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -3938,7 +3938,7 @@ tests.addTest(options => {
                 );
             });
         });
-        xdescribe('Открыт IFrame софтфона amoCRM.', function() {
+        describe('Открыт IFrame софтфона amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'amocrmIframeContent',
@@ -3953,210 +3953,229 @@ tests.addTest(options => {
                 });
 
                 tester.stateSettingRequest().expectToBeSent();
-                tester.amocrmStateSettingRequest().receive();
             });
 
-            describe('Из окна авторизации приходит токен. Прозиводится авторизация.', function() {
-                let authCheckRequest;
-
+            describe('Получена русская локаль.', function() {
                 beforeEach(function() {
-                    postMessages.receive({
-                        method: 'set_token',
-                        data: tester.oauthToken,
-                    });
-
-                    postMessages.nextMessage().expectMessageToContain({
-                        method: 'set_token',
-                        data: tester.oauthToken,
-                    });
-
-                    tester.widgetSettings().
-                        amocrm().
-                        request().
-                        receiveResponse();
-
-                    tester.masterInfoMessage().receive();
-
-                    tester.stateSettingRequest().
-                        leader().
-                        expectToBeSent();
-
-                    tester.slavesNotification().
-                        additional().
-                        expectToBeSent();
-
-                    tester.slavesNotification().expectToBeSent();
-                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                        
-                    tester.authTokenRequest().receiveResponse()
-                    authCheckRequest = tester.authCheckRequest().expectToBeSent();
+                    tester.amocrmStateSettingRequest().receive();
                 });
 
-                describe('Удалось авторизоваться. Софтон готов к использованию.', function() {
+                describe('Из окна авторизации приходит токен. Прозиводится авторизация.', function() {
+                    let authCheckRequest;
+
                     beforeEach(function() {
-                        authCheckRequest.receiveResponse();
+                        postMessages.receive({
+                            method: 'set_token',
+                            data: tester.oauthToken,
+                        });
 
-                        tester.talkOptionsRequest().receiveResponse();
-                        tester.statusesRequest().receiveResponse();
-                        tester.permissionsRequest().receiveResponse();
-                        tester.settingsRequest().receiveResponse();
+                        postMessages.nextMessage().expectMessageToContain({
+                            method: 'set_token',
+                            data: tester.oauthToken,
+                        });
 
-                        tester.slavesNotification().
-                            twoChannels().
-                            enabled().
-                            expectToBeSent();
+                        tester.widgetSettings().
+                            amocrm().
+                            request().
+                            receiveResponse();
 
-                        notificationTester.grantPermission();
-                        tester.connectEventsWebSocket();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            enabled().
-                            softphoneServerConnected().
-                            expectToBeSent();
-
-                        tester.connectSIPWebSocket();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            softphoneServerConnected().
-                            webRTCServerConnected().
-                            expectToBeSent();
-
-                        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-                        tester.registrationRequest().receiveResponse();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            softphoneServerConnected().
-                            webRTCServerConnected().
-                            registered().
-                            expectToBeSent();
-
-                        authenticatedUserRequest.receiveResponse();
+                        tester.masterInfoMessage().receive();
 
                         tester.stateSettingRequest().
-                            userDataFetched().
                             leader().
                             expectToBeSent();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            softphoneServerConnected().
-                            webRTCServerConnected().
-                            registered().
-                            userDataFetched().
-                            expectToBeSent();
-                            tester.allowMediaInput();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            available().
-                            expectToBeSent();
-                    });
-
-                    it(
-                        'Софтон открыт в другом окне. Отображено сообщение о том, что софтфон открыт в другом окне.',
-                    function() {
-                        tester.softphoneVisibilityToggleRequest().receive();
 
                         tester.slavesNotification().
                             additional().
-                            visible().
                             expectToBeSent();
 
-                        tester.stateSettingRequest().
-                            userDataFetched().
-                            visible().
-                            leader().
+                        tester.slavesNotification().expectToBeSent();
+                        tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                            
+                        tester.authTokenRequest().receiveResponse()
+                        authCheckRequest = tester.authCheckRequest().expectToBeSent();
+                    });
+
+                    describe('Удалось авторизоваться. Софтон готов к использованию.', function() {
+                        beforeEach(function() {
+                            authCheckRequest.receiveResponse();
+
+                            tester.talkOptionsRequest().receiveResponse();
+                            tester.statusesRequest().receiveResponse();
+                            tester.permissionsRequest().receiveResponse();
+                            tester.settingsRequest().receiveResponse();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                enabled().
+                                expectToBeSent();
+
+                            notificationTester.grantPermission();
+                            tester.connectEventsWebSocket();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                enabled().
+                                softphoneServerConnected().
+                                expectToBeSent();
+
+                            tester.connectSIPWebSocket();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                softphoneServerConnected().
+                                webRTCServerConnected().
+                                expectToBeSent();
+
+                            authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+                            tester.registrationRequest().receiveResponse();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                softphoneServerConnected().
+                                webRTCServerConnected().
+                                registered().
+                                expectToBeSent();
+
+                            authenticatedUserRequest.receiveResponse();
+
+                            tester.stateSettingRequest().
+                                userDataFetched().
+                                leader().
+                                expectToBeSent();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                softphoneServerConnected().
+                                webRTCServerConnected().
+                                registered().
+                                userDataFetched().
+                                expectToBeSent();
+                                tester.allowMediaInput();
+
+                            tester.slavesNotification().
+                                twoChannels().
+                                available().
+                                expectToBeSent();
+                        });
+
+                        it(
+                            'Софтон открыт в другом окне. Отображено сообщение о том, что софтфон открыт в другом ' +
+                            'окне.',
+                        function() {
+                            tester.softphoneVisibilityToggleRequest().receive();
+
+                            tester.slavesNotification().
+                                additional().
+                                visible().
+                                expectToBeSent();
+
+                            tester.stateSettingRequest().
+                                userDataFetched().
+                                visible().
+                                leader().
+                                expectToBeSent();
+
+                            tester.eventsWebSocket.disconnect(4429);
+
+                            tester.stateSettingRequest().
+                                userDataFetched().
+                                visible().
+                                destroyed().
+                                leader().
+                                expectToBeSent();
+
+                            tester.slavesNotification().
+                                userDataFetched().
+                                twoChannels().
+                                appAlreadyOpened().
+                                enabled().
+                                microphoneAccessGranted().
+                                expectToBeSent();
+
+                            tester.authLogoutRequest().receiveResponse();
+                            tester.registrationRequest().expired().receiveResponse();
+                            
+                            spendTime(2000);
+                            tester.webrtcWebsocket.finishDisconnecting();
+
+                            tester.softphone.expectTextContentToHaveSubstring(
+                                'Софтфон открыт в другом окне'
+                            );
+                        });
+                        it('Токен сохранен.', function() {
+                            tester.localStorage.
+                                key('token').
+                                expectToHaveValue(tester.oauthToken);
+                        });
+                    });
+                    it('Ну удалось произвести авторизацию.', function() {
+                        authCheckRequest.
+                            invalidToken().
+                            receiveResponse();
+
+                        tester.masterInfoMessage().leaderDeath().expectToBeSent();
+
+                        tester.slavesNotification().
+                            destroyed().
                             expectToBeSent();
 
-                        tester.eventsWebSocket.disconnect(4429);
+                        tester.authLogoutRequest().receiveResponse();
 
                         tester.stateSettingRequest().
-                            userDataFetched().
-                            visible().
                             destroyed().
                             leader().
                             expectToBeSent();
 
-                        tester.slavesNotification().
-                            userDataFetched().
-                            twoChannels().
-                            appAlreadyOpened().
-                            enabled().
-                            microphoneAccessGranted().
-                            expectToBeSent();
-
-                        tester.authLogoutRequest().receiveResponse();
-                        tester.registrationRequest().expired().receiveResponse();
-                        
-                        spendTime(2000);
-                        tester.webrtcWebsocket.finishDisconnecting();
-
-                        tester.softphone.expectTextContentToHaveSubstring(
-                            'Софтфон открыт в другом окне'
-                        );
-                    });
-                    it('Токен сохранен.', function() {
                         tester.localStorage.
                             key('token').
-                            expectToHaveValue(tester.oauthToken);
+                            expectToBeEmpty();
                     });
                 });
-                it('Ну удалось произвести авторизацию.', function() {
-                    authCheckRequest.
-                        invalidToken().
-                        receiveResponse();
+                it('Из окна авторизации приходит дубайский токен. Авторизация не производится.', function() {
+                    postMessages.receive({
+                        method: 'set_token',
+                        data: tester.anotherOauthToken,
+                    });
 
-                    tester.masterInfoMessage().leaderDeath().expectToBeSent();
-
-                    tester.slavesNotification().
-                        destroyed().
-                        expectToBeSent();
-
-                    tester.authLogoutRequest().receiveResponse();
-
-                    tester.stateSettingRequest().
-                        destroyed().
-                        leader().
-                        expectToBeSent();
+                    postMessages.nextMessage().expectMessageToContain({
+                        method: 'set_token',
+                        data: tester.anotherOauthToken,
+                    });
 
                     tester.localStorage.
                         key('token').
                         expectToBeEmpty();
                 });
-            });
-            it('Из окна авторизации приходит дубайский токен. Авторизация не производится.', function() {
-                postMessages.receive({
-                    method: 'set_token',
-                    data: tester.anotherOauthToken,
-                });
+                it(
+                    'Приходит запрос изменения видимости. Софтфон отображён. Нажимаю на ссылку на страницу ' +
+                    'авторизации. Открыта страница авторизации.',
+                function() {
+                    tester.softphoneVisibilityToggleRequest().receive();
 
-                postMessages.nextMessage().expectMessageToContain({
-                    method: 'set_token',
-                    data: tester.anotherOauthToken,
-                });
+                    tester.stateSettingRequest().
+                        visible().
+                        expectToBeSent();
 
-                tester.localStorage.
-                    key('token').
-                    expectToBeEmpty();
+                    tester.span('Для использования софтфона необходимо авторизоваться').click();
+                    windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru');
+                });
             });
-            it(
-                'Приходит запрос изменения видимости. Софтфон отображён. Нажимаю на ссылку на страницу авторизации. ' +
-                'Открыта страница авторизации.',
-            function() {
+            it('Получена английская локаль. Используется английский язык.', function() {
+                tester.amocrmStateSettingRequest().
+                    en().
+                    receive();
+
                 tester.softphoneVisibilityToggleRequest().receive();
 
                 tester.stateSettingRequest().
                     visible().
                     expectToBeSent();
 
-                tester.span('Для использования софтфона необходимо авторизоваться').click();
-                windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru');
+                tester.body.expectTextContentToHaveSubstring('Please authorize to use softphone');
             });
         });
-        xdescribe('Открываю виджет amoCRM.', function() {
+        describe('Открываю виджет amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -4340,6 +4359,8 @@ tests.addTest(options => {
                                 data: tester.oauthToken,
                             });
 
+                            spendTime(0);
+
                             tester.channelsSearchingRequest().expectToBeSent();
 
                             tester.channelsSearchingRequest().
@@ -4380,28 +4401,58 @@ tests.addTest(options => {
                                     receive();
                             });
 
-                            describe('Выбираю канал.', function() {
+                            describe('Раскрываю группу.', function() {
                                 beforeEach(function() {
-                                    tester.button('Белгород').click();
-
-                                    tester.chatOpeningRequest().
-                                        fourthChannel().
-                                        expectToBeSent();
+                                    tester.rightPanel.
+                                        group('74951234575').
+                                        title.
+                                        click();
                                 });
 
-                                it('Появилась левая панель. IFrame не закрывает левую панель.', function() {
-                                    tester.page.triggerMutation();
-                                    tester.iframe.expectToHaveLeftOffset(200);
+                                describe('Выбираю канал.', function() {
+                                    beforeEach(function() {
+                                        tester.button('Белгород').click();
+
+                                        tester.chatOpeningRequest().
+                                            fourthChannel().
+                                            expectToBeSent();
+                                    });
+
+                                    it('Появилась левая панель. IFrame не закрывает левую панель.', function() {
+                                        tester.page.triggerMutation();
+                                        tester.iframe.expectToHaveLeftOffset(200);
+                                    });
+                                    it('IFrame не закрывает левое меню.', function() {
+                                        tester.iframe.expectToHaveLeftOffset(65);
+
+                                        tester.iframe.expectAttributeToHaveValue(
+                                            'src',
+                                            'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/chats/messages',
+                                        );
+                                    });
                                 });
-                                it('IFrame не закрывает левое меню.', function() {
-                                    tester.iframe.expectToHaveLeftOffset(65);
+                                it('Скрываю группу. Группа скрыта.', function() {
+                                    tester.rightPanel.
+                                        group('74951234575').
+                                        title.
+                                        click();
+
+                                    tester.rightPanel.
+                                        group('74951234575').
+                                        expectToBeCollapsed();
                                 });
-                            });
-                            it('Количество нетвеченных сообщений не отображено.', function() {
-                                tester.navMenuItem.expectToHaveTextContent('UIS Чаты');
+                                it('Группа раскрыта.', function() {
+                                    tester.rightPanel.
+                                        group('74951234575').
+                                        expectToBeExpanded();
+                                });
                             });
                             it('Отображён список каналов.', function() {
-                                tester.body.expectTextContentToHaveSubstring(
+                                tester.rightPanel.
+                                    group('74951234575').
+                                    expectToBeCollapsed();
+
+                                tester.rightPanel.expectToHaveTextContent(
                                     '74951234575 ' +
                                     'Белгород ' +
                                     'Астана ' +
@@ -4417,24 +4468,6 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        describe('Получены сообщения.', function() {
-                            beforeEach(function() {
-                                tester.unreadMessagesCountSettingRequest().
-                                    value(75).
-                                    receive();
-                            });
-
-                            it('Получены ещё больше сообщений.', function() {
-                                tester.unreadMessagesCountSettingRequest().
-                                    value(76).
-                                    receive();
-
-                                tester.navMenuItem.expectToHaveTextContent('UIS Чаты 76');
-                            });
-                            it('Отображено количество непросмотренных сообщений.', function() {
-                                tester.navMenuItem.expectToHaveTextContent('UIS Чаты 75');
-                            });
-                        });
                         it('Отбражен список номера телефонов и E-Mail.', function() {
                             tester.body.expectTextContentToHaveSubstring(
                                 '74951234575 ' +
@@ -4444,20 +4477,69 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    it('Запрос каналов не был отправлен.', function() {
-                        postMessages.nextMessage().expectNotToExist();
+                    describe('Получены сообщения.', function() {
+                        beforeEach(function() {
+                            tester.unreadMessagesCountSettingRequest().
+                                value(75).
+                                receive();
+                        });
+
+                        it('Получены ещё больше сообщений.', function() {
+                            tester.unreadMessagesCountSettingRequest().
+                                value(76).
+                                receive();
+
+                            tester.navMenuItem.expectToHaveTextContent('UIS Чаты 76');
+                        });
+                        it('Отображено количество непросмотренных сообщений.', function() {
+                            tester.navMenuItem.expectToHaveTextContent('UIS Чаты 75');
+                            tester.navMenuItem.counter.expectToBeVisible();
+                        });
                     });
+                    it('Получен запрос скачивания лога. Лог скачан.', function() {
+                        tester.logDownloadingRequest().
+                            windowMessage().
+                            receive();
+
+                        tester.anchor.
+                            withFileName('20191219.121006.000.log.txt').
+                            expectHrefToBeBlobWithSubstring(
+                                'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
+                                'Widget installation is not finished'
+                            );
+                    });
+                    it('Открываю окно настроек. Лог скачан.', function() {
+                        tester.openSettings();
+                        tester.button('Скачать лог').click();
+
+                        tester.anchor.
+                            withFileName('20191219.121006.000.log.txt').
+                            expectHrefToBeBlobWithSubstring(
+                                'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
+                                'Widget installation is not finished'
+                            );
+                    });
+                    it('Нажимаю на пункт меню. Отображён IFrame чатов.', function() {
+                        tester.navMenuItem.click();
+                        tester.page.triggerMutation();
+
+                        tester.chatListOpeningRequest().expectToBeSent();
+                    });
+                    it('Количество нетвеченных сообщений не отображено.', function() {
+                        tester.navMenuItem.expectToHaveTextContent('UIS Чаты 0');
+
+                        tester.navMenuItem.counter.expectToBeHiddenOrNotExist();
+                        tester.navMenuItem.spinner.expectToBeHiddenOrNotExist();
+                    });
+                });
+                it('Нажимаю на пункт меню. IFrame чатов не отображён.', function() {
+                    tester.navMenuItem.click();
                 });
                 it('В DOM добавлен IFrame чатов.', function() {
                     tester.iframe.expectToBeHidden();
-
-                    tester.iframe.expectAttributeToHaveValue(
-                        'src',
-                        'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/chats/messages',
-                    );
+                    tester.navMenuItem.spinner.expectToBeVisible();
                 });
             });
-            return;
             describe('Инициализировано содержимое IFrame. Сотрудник авторизован.', function() {
                 beforeEach(function() {
                     tester.unreadMessagesCountSettingRequest().receive();
@@ -4474,7 +4556,6 @@ tests.addTest(options => {
 
                 it('Открываю страницу контакта. Был отправлен запрос каналов.', function() {
                     tester.renderContact();
-
                     tester.channelsSearchingRequest().expectToBeSent();
 
                     tester.channelsSearchingRequest().
@@ -4494,7 +4575,6 @@ tests.addTest(options => {
                 });
             });
         });
-return;
         describe(
             'В локальном хранилище сохранен токен. Открыт IFrame софтфона amoCRM. Производится авторизация.',
         function() {

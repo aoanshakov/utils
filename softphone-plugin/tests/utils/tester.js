@@ -1885,15 +1885,18 @@ define(() => function ({
         element.id = 'card_fields';
         
         document.body.appendChild(element);
+        spendTime(0);
     };
 
     me.openSettings = () => {
+        removeAmocrmElements();
+
         window.application.openSettings();
         spendTime(0);
     };
 
     if (isAuthorized) {
-        if (application == 'amocrmIframeContent') {
+        if (['amocrmIframeContent', 'amocrmChatsIframeContent'].includes(application)) {
             window.localStorage.setItem('token', me.oauthToken);
         } else {
             const storageData = me.widgetSettings().storageData();
@@ -2929,6 +2932,11 @@ define(() => function ({
         };
 
         return {
+            en() {
+                processors.push(message => (message.data.locale = 'en'));
+                return this;
+            },
+
             chats() {
                 processors.push(message => delete(message.data.url));
                 return this;
@@ -3319,6 +3327,8 @@ define(() => function ({
             me.history.push('/chrome/softphone');
         } else if (application == 'amocrmIframeContent') {
             me.history.push('/amocrm');
+        } else if (application == 'amocrmChatsIframeContent') {
+            me.history.push('/amocrm/chats');
         } else if (application == 'chatsIframe') {
             me.history.push(`/chrome/chats${search ? `/messages?search=${search}` : ''}`);
         } else if (application == 'bitrixChatsIframe') {
@@ -3384,7 +3394,7 @@ define(() => function ({
         );
     };
 
-    Array.prototype.forEach.call(
+    const removeAmocrmElements = () => Array.prototype.forEach.call(
         document.querySelectorAll(
             '.cmg-softphone-chrome-extension-visibility-button, ' +
             '#pages-container, ' +
@@ -3393,6 +3403,8 @@ define(() => function ({
         ),
         element => element.remove(),
     );
+
+    removeAmocrmElements();
 
     switch (application) {
         case 'softphone': {
@@ -3485,7 +3497,61 @@ define(() => function ({
     spendTime(0);
     spendTime(0);
 
-    me.navMenuItem = testersFactory.createDomElementTester('.nav__menu__item');
+    me.rightPanel = (() => {
+        const getRightPanel = () => utils.querySelector('#right-panel'),
+            tester = testersFactory.createDomElementTester(getRightPanel);
+
+        tester.group = expectedTitle => {
+            const getTitle = () => utils.descendantOf(getRightPanel()).
+                matchesSelector('.cmg-amocrm-chats-channels-search-field-value-title-text').
+                textEquals(expectedTitle).
+                find();
+
+            const tester = testersFactory.createDomElementTester(
+                () => getTitle().closest('.cmg-amocrm-chats-channels-search-field-value')
+            );
+
+            tester.title = testersFactory.createDomElementTester(getTitle);
+
+            tester.expectToBeExpanded = () =>
+                tester.expectToHaveClass('cmg-amocrm-chats-channels-search-field-value-expanded');
+
+            tester.expectToBeCollapsed = () =>
+                tester.expectNotToHaveClass('cmg-amocrm-chats-channels-search-field-value-expanded');
+
+            return tester;
+        };
+
+        tester.title = expectedTitle => testersFactory.createDomElementTester(() => {
+
+        });
+
+        return tester;
+    })();
+
+    me.navMenuItem = (() => {
+        const getElement = () => utils.querySelector('.nav__menu__item'),
+            tester = testersFactory.createDomElementTester(getElement);
+
+        tester.counter = testersFactory.createDomElementTester(
+            () => utils.element(getElement()).querySelector('.cmg-amocrm-chats-count')
+        );
+
+        tester.spinner = testersFactory.createDomElementTester(
+            () => utils.element(getElement()).querySelector('.cmg-amocrm-chats-spinner')
+        );
+
+        tester.click = () => {
+            window.application.initMenuPage({
+                location: 'widget_page',
+                item_code: 'uis2_chats_widget',
+            });
+
+            spendTime(0);
+        };
+
+        return tester;
+    })();
 
     me.iframe = (() => {
         const getIframes = () => Array.prototype.slice.call(document.querySelectorAll('iframe') || [], 0) || [];
