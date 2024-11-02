@@ -1889,7 +1889,7 @@ define(() => function ({
     };
 
     me.openSettings = () => {
-        removeAmocrmElements();
+        removeElements();
 
         window.application.openSettings();
         spendTime(0);
@@ -1911,8 +1911,8 @@ define(() => function ({
     }
 
     me.page = {
-        triggerMutation: () => {
-            triggerMutation(document.body, { childList: true });
+        triggerMutation(mutations = []) {
+            triggerMutation(document.body, { childList: true }, mutations);
             spendTime(0);
         },
 
@@ -2506,6 +2506,112 @@ define(() => function ({
     me.channelsSearchingResponse = () => {
         const processors = [];
 
+        const telegramIcon = '<span ' +
+            'class="cmgui-icon" ' +
+            'data-component="SourceTelegram20"' +
+        '>' +
+            '<svg ' +
+                'width="20" ' +
+                'height="20" ' +
+                'viewBox="0 0 20 20" ' +
+                'fill="none" ' +
+                'xmlns="http://www.w3.org/2000/svg"' +
+            '>' +
+                '<path ' +
+                    'd="M10 18a8 8 0 100-16 8 8 0 000 16z" ' +
+                    'fill="#26A5E4"' +
+                '></path>' +
+
+                '<path ' +
+                    'fill-rule="evenodd" ' +
+                    'clip-rule="evenodd" ' +
+                    'd="' +
+                        'M5.619 9.874a362.18 362.18 0 014.833-2.512c2.301-1.155 2.78-1.355 3.091-1.' +
+                        '362a.48.48 0 01.321.116.456.456 0 01.118.271c.011.078.025.255.014.394-.125 ' +
+                        '1.581-.664 5.418-.939 7.19-.116.749-.345 1-.566 1.024-.482.054-.847-.383-1.' +
+                        '313-.752-.73-.577-1.142-.936-1.85-1.499-.818-.65-.287-1.008.179-1.593.122-.' +
+                        '153 2.242-2.48 2.284-2.691.005-.026.01-.125-.04-.177-.048-.052-.12-.034-.' +
+                        '17-.02-.074.02-1.239.95-3.496 2.788-.331.274-.63.408-.899.4-.296-.007-.865-.' +
+                        '201-1.288-.367-.52-.204-.932-.311-.896-.657.019-.18.224-.364.617-.553z' +
+                    '" ' +
+                    'fill="#fff"' +
+                '></path>' +
+            '</svg>' +
+        '</span>';
+
+        const smsIcon = '<span ' +
+            'class="cmgui-icon" ' +
+            'data-component="SourceSmsNewsletter20"' +
+        '>' +
+            '<svg ' +
+                'width="20" ' +
+                'height="20" ' +
+                'viewBox="0 0 20 20" ' +
+                'fill="none" ' +
+                'xmlns="http://www.w3.org/2000/svg"' +
+            '>' +
+                '<circle ' +
+                    'cx="10" ' +
+                    'cy="10" ' +
+                    'r="8" ' +
+                    'fill="#A33477"' +
+                '></circle>' +
+
+                '<path ' +
+                    'd="' +
+                        'M5.933 11.19c0-.088-.008-.169-.024-.242a.46.46 0 00-.103-.201.907.907 0 00-.222-.185 2.584 ' +
+                        '2.584 0 00-.376-.191 8.922 8.922 0 01-.537-.247 2.522 2.522 0 01-.468-.307 1.336 1.336 0 ' +
+                        '01-.331-.41c-.08-.16-.12-.347-.12-.56 0-.21.038-.4.113-.572.077-.17.187-.316.328-.437.141-.' +
+                        '123.306-.218.495-.284.192-.066.405-.099.64-.099.319 0 .594.066.827.198.234.132.416.314.543.' +
+                        '544.13.23.195.494.195.793h-.998c0-.142-.02-.266-.061-.373a.516.516 0 00-.188-.256.565.565 0 ' +
+                        '00-.335-.092.592.592 0 00-.318.078.469.469 0 00-.185.209.712.712 0 00-.058.294c0 .082.02.' +
+                        '156.058.222a.67.67 0 00.168.174c.07.05.153.1.25.147.097.048.204.095.32.14.226.09.425.187.' +
+                        '599.294.173.105.317.223.434.356.116.13.204.277.263.44.059.165.089.351.089.561 0 .207-.037.' +
+                        '397-.11.568-.07.168-.174.314-.31.437-.137.12-.303.214-.496.28a1.96 1.96 0 01-.643.1c-.23 0-.' +
+                        '448-.033-.653-.096a1.595 1.595 0 01-.543-.298 1.398 1.398 0 01-.366-.509 1.856 1.856 0 01-.' +
+                        '133-.735h1.001c0 .15.015.28.045.386.03.105.075.19.136.253a.601.601 0 00.226.14c.091.03.195.' +
+                        '045.311.045a.574.574 0 00.314-.075.42.42 0 00.171-.202.759.759 0 00.052-.287zM8.103 7.523h.' +
+                        '878l1.015 3.405 1.012-3.405h.776L10.369 12.5H9.62L8.103 7.523zm-.356 0h.838l.13 3.282V12.' +
+                        '5h-.968V7.523zm3.654 0h.841V12.5h-.964v-1.695l.123-3.282zM15.304 11.19c0-.088-.008-.169-.' +
+                        '024-.242a.46.46 0 00-.102-.201.906.906 0 00-.222-.185 2.582 2.582 0 00-.376-.191 8.921 8.' +
+                        '921 0 01-.537-.247 2.522 2.522 0 01-.468-.307 1.335 1.335 0 01-.332-.41c-.08-.16-.12-.347-.' +
+                        '12-.56 0-.21.038-.4.114-.572.077-.17.186-.316.328-.437.14-.123.306-.218.495-.284.192-.066.' +
+                        '405-.099.64-.099.318 0 .594.066.827.198.234.132.415.314.543.544.13.23.195.494.195.793h-.' +
+                        '998c0-.142-.02-.266-.062-.373a.516.516 0 00-.188-.256.565.565 0 00-.335-.092.592.592 0 00-.' +
+                        '318.078.469.469 0 00-.184.209.713.713 0 00-.058.294c0 .082.02.156.058.222a.67.67 0 00.167.' +
+                        '174c.071.05.154.1.25.147.098.048.205.095.321.14.226.09.425.187.598.294.174.105.318.223.434.' +
+                        '356.117.13.204.277.264.44.059.165.088.351.088.561 0 .207-.036.397-.109.568-.07.168-.174.' +
+                        '314-.311.437a1.44 1.44 0 01-.496.28 1.96 1.96 0 01-.642.1c-.23 0-.448-.033-.653-.096a1.595 ' +
+                        '1.595 0 01-.543-.298 1.396 1.396 0 01-.366-.509 1.855 1.855 0 01-.133-.735h1.001c0 .15.015.' +
+                        '28.044.386.03.105.076.19.137.253a.6.6 0 00.226.14c.09.03.195.045.31.045a.573.573 0 00.315-.' +
+                        '075.42.42 0 00.171-.202.758.758 0 00.051-.287z' +
+                    '" ' +
+                    'fill="#fff"' +
+                '></path>' +
+            '</svg>' +
+        '</span>';
+
+        const emailIcon = '<span ' +
+            'class="cmgui-icon" ' +
+            'data-component="Mail20"' +
+        '>' +
+            '<svg ' +
+                'width="20" ' +
+                'height="20" ' +
+                'viewBox="0 0 20 20" ' +
+                'fill="none" ' +
+                'xmlns="http://www.w3.org/2000/svg"' +
+            '>' +
+                '<path ' +
+                    'd="' +
+                        'M3 4a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V5a1 1 0 00-1-1H3zm13.35 1l-5 5.43a1.86 ' +
+                        '1.86 0 01-2.63 0L3.65 5h12.7zM3 15V5.77l5 5.33a2.79 2.79 0 004.09 0l5-5.33V15H3z' +
+                    '" ' +
+                    'fill="currentColor"' +
+                '></path>' +
+            '</svg>' +
+        '</span>';
+
         const getMessage = () => {
             const message = {
                 method: 'channels_searching_result',
@@ -2518,6 +2624,7 @@ define(() => function ({
                         type: 'telegram_private',
                         type_name: 'Telegram',
                         icon: 'SourceTelegram20',
+                        iconHtml: telegramIcon,
                         is_unavailable: false,
                     }],
                 },
@@ -2545,6 +2652,7 @@ define(() => function ({
                     type: 'telegram_private',
                     type_name: 'Telegram',
                     icon: 'SourceTelegram20',
+                    iconHtml: telegramIcon,
                     is_unavailable: false,
                 }));
 
@@ -2558,6 +2666,7 @@ define(() => function ({
                     type: 'telegram_private',
                     type_name: 'Telegram',
                     icon: 'SourceTelegram20',
+                    iconHtml: telegramIcon,
                     is_unavailable: false,
                 }));
 
@@ -2571,6 +2680,7 @@ define(() => function ({
                     type: 'sms',
                     type_name: 'SMS',
                     icon: 'SourceSmsNewsletter20',
+                    iconHtml: smsIcon,
                     is_unavailable: false,
                 }));
 
@@ -2617,6 +2727,7 @@ define(() => function ({
                     message.data.channels[0].type = 'email';
                     message.data.channels[0].type_name = 'Email';
                     message.data.channels[0].icon = 'Mail20';
+                    message.data.channels[0].iconHtml = emailIcon;
                 });
                     
                 return this;
@@ -2631,6 +2742,126 @@ define(() => function ({
 
                 message.data.channels.push(undefined);
                 postMessages.nextMessage().expectMessageToContain(message);
+            },
+        };
+    };
+
+    me.iconRequest = () => {
+        let iconId = 'Spinner20';
+
+        let html = '<span ' +
+            'class="cmgui-icon" ' +
+            'data-component="Spinner20"' +
+        '>' +
+            '<svg ' +
+                'width="20" ' +
+                'height="20" ' +
+                'viewBox="0 0 20 20" ' +
+                'fill="none" ' +
+                'xmlns="http://www.w3.org/2000/svg"' +
+            '>' +
+                '<mask ' +
+                    'id="prefix__path-1-inside-1_1345_12003" ' +
+                    'fill="#fff"' +
+                '>' +
+                    '<path ' +
+                        'd="' +
+                            'M17.513 10c.269 0 .488.218.472.487a8.001 8.001 0 11-3.973-7.408.465.465 0 01.144.663.' +
+                            '515.515 0 01-.684.15 7.025 7.025 0 103.536 6.595.515.515 0 01.505-.487z' +
+                        '"' +
+                    '></path>' +
+                '</mask>' +
+
+                '<path ' +
+                    'd="' +
+                        'M17.513 10c.269 0 .488.218.472.487a8.001 8.001 0 11-3.973-7.408.465.465 0 01.144.663.515.' +
+                        '515 0 01-.684.15 7.025 7.025 0 103.536 6.595.515.515 0 01.505-.487z' +
+                    '" ' +
+                    'stroke="currentColor" ' +
+                    'stroke-width="2" ' +
+                    'mask="url(#prefix__path-1-inside-1_1345_12003)"' +
+                '></path>' +
+            '</svg>' +
+        '</span>';
+
+        const getRequestMessage = () => ({
+            method: 'get_icon',
+            data: iconId,
+        });
+
+        const getResponseMessage = () => ({
+            method: 'set_icon',
+            data: {
+                id: iconId,
+                html,
+            },
+        });
+
+        return {
+            arrow() {
+                iconId = 'ArrowListDown20';
+
+                html = '<span ' +
+                    'class="cmgui-icon" ' +
+                    'data-component="ArrowListDown20"' +
+                '>' +
+                    '<svg ' +
+                        'width="20" ' +
+                        'height="20" ' +
+                        'viewBox="0 0 20 20" ' +
+                        'fill="none" ' +
+                        'xmlns="http://www.w3.org/2000/svg"' +
+                    '>' +
+                        '<path ' +
+                            'fill-rule="evenodd" ' +
+                            'clip-rule="evenodd" ' +
+                            'd="' +
+                                'M6.39 8.487A.3.3 0 016.624 8h6.752a.3.3 0 01.234.487l-3.376 4.22a.3.3 0 01-.468 ' +
+                                '0L6.39 8.487z' +
+                            '" ' +
+                            'fill="currentColor"' +
+                        '></path>' +
+                    '</svg>' +
+                '</span>';
+
+                return this;
+            },
+
+            receive: () => {
+                postMessages.receive(getRequestMessage());
+                spendTime(0);
+
+                return {
+                    expectResponseToBeSent: () => postMessages.
+                        nextMessage().
+                        expectMessageToContain(getResponseMessage())
+                };
+            },
+
+            expectToBeSent: () => {
+                postMessages.
+                    nextMessage().
+                    expectMessageToContain(getRequestMessage());
+
+                return {
+                    receiveResponse: () => {
+                        postMessages.receive(getResponseMessage());
+
+                        return {
+                            expectToBeSent: () => postMessages.
+                                nextMessage().
+                                expectMessageToContain(getResponseMessage()),
+                        };
+                    },
+                };
+            },
+
+            expectResponseToBeSent() {
+                this.receive().expectResponseToBeSent();
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
             },
         };
     };
@@ -3394,17 +3625,46 @@ define(() => function ({
         );
     };
 
-    const removeAmocrmElements = () => Array.prototype.forEach.call(
+    const removeElements = () => Array.prototype.forEach.call(
         document.querySelectorAll(
             '.cmg-softphone-chrome-extension-visibility-button, ' +
+            '#page_holder, ' +
             '#pages-container, ' +
             '#card_fields, ' +
-            'div[data-widget-item="uismarketplace.uis2_chats_widget"]'
+            'div[data-widget-item="uismarketplace.uis2_chats_widget"], ' +
+            '.nav__menu__item__icon-integration'
         ),
         element => element.remove(),
     );
 
-    removeAmocrmElements();
+    removeElements();
+
+    const pageHolder = (() => {
+        let pageHolder;
+
+        return {
+            remove() {
+                pageHolder.remove();
+
+                mainTester.page.triggerMutation([{
+                    removedNodes: [pageHolder],
+                }]);
+
+                pageHolder = null;
+            },
+
+            create() {
+                pageHolder = document.createElement('div');
+
+                pageHolder.id = 'page_holder';
+                pageHolder.innerHTML = '<div class="content__top__preset__caption">Some page content</div>';
+
+                document.body.appendChild(pageHolder);
+            },
+        };
+    })();
+
+    me.leavePage = () => pageHolder.remove();
 
     switch (application) {
         case 'softphone': {
@@ -3420,11 +3680,11 @@ define(() => function ({
             break;
         }
         case 'amocrmChats': {
-            const element = document.createElement('div'),
+            const navMenuItem = document.createElement('div'),
                 getUrl = url => `/tests/utils/amocrm/${url}`;
 
-            element.innerHTML = (
-                '<a class="nav__menu__item__link" href="/widget_page/uismarketplace/uis_chats_widget">' +
+            navMenuItem.innerHTML = (
+                '<a class="nav__menu__item__link" href="/widget_page/uismarketplace/uis2_chats_widget">' +
                     '<div class="nav__menu__item__icon ">' +
                         '<svg ' +
                             'width="38" ' +
@@ -3462,15 +3722,17 @@ define(() => function ({
                 `<link rel="stylesheet" type="text/css" href="${getUrl('app.css')}" />`
             );
 
-            element.className = 'nav__menu__item nav__menu__item__icon-integration';
+            navMenuItem.className = 'nav__menu__item nav__menu__item__icon-integration';
 
             Object.entries({
                 'data-widget-code': 'uismarketplace',
                 'data-widget-item': 'uismarketplace.uis2_chats_widget',
                 'data-entity': 'widget-page',
-            }).forEach(([key, value]) => element.setAttribute(key, value));
+            }).forEach(([key, value]) => navMenuItem.setAttribute(key, value));
 
-            document.body.appendChild(element);
+            pageHolder.create();
+            document.body.appendChild(navMenuItem);
+
             break;
         }
     }
@@ -3531,15 +3793,15 @@ define(() => function ({
 
     me.navMenuItem = (() => {
         const getElement = () => utils.querySelector('.nav__menu__item'),
-            tester = testersFactory.createDomElementTester(getElement);
+            tester = testersFactory.createDomElementTester(getElement),
+            disabledClassName = 'cmg-amocrm-chats-menu-item-disabled';
 
         tester.counter = testersFactory.createDomElementTester(
             () => utils.element(getElement()).querySelector('.cmg-amocrm-chats-count')
         );
 
-        tester.spinner = testersFactory.createDomElementTester(
-            () => utils.element(getElement()).querySelector('.cmg-amocrm-chats-spinner')
-        );
+        tester.expectToBeDisabled = () => tester.expectToHaveClass(disabledClassName);
+        tester.expectToBeEnabled = () => tester.expectNotToHaveClass(disabledClassName);
 
         tester.click = () => {
             window.application.initMenuPage({
@@ -3548,6 +3810,7 @@ define(() => function ({
             });
 
             spendTime(0);
+            mainTester.page.triggerMutation();
         };
 
         return tester;
@@ -16974,6 +17237,7 @@ define(() => function ({
                         request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
+                        spendTime(0)
                         spendTime(0)
                         spendTime(0)
                         spendTime(0)

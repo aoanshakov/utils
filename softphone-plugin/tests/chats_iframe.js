@@ -765,6 +765,9 @@ tests.addTest(options => {
 
                             tester.chatListItem('Сообщение #75').expectToBeVisible();
                         });
+                        it('Получен запрос иконки. В родительское окно отправлена разметка иконки.', function() {
+                            tester.iconRequest().expectResponseToBeSent();
+                        });
                         it('Отображен список чатов.', function() {
                             tester.chatList.
                                 first.

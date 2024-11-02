@@ -553,7 +553,8 @@ function JsTester_RTCPeerConnection (options) {
         mediaStreams = options.mediaStreams,
         tracksCreationCallStacks = options.tracksCreationCallStacks,
         debug = options.debug,
-        sdp = options.sdp;
+        sdp = options.sdp,
+        spendTime = options.spendTime;
 
     return function (pcConfig) {
         var iceServers = ((pcConfig || {}).iceServers || []),
@@ -575,7 +576,17 @@ function JsTester_RTCPeerConnection (options) {
                 }
             }),
             ontrack,
-            currentRemoteDescription;
+            currentRemoteDescription,
+            descriptionResolver = (resolve, description) => resolve(description),
+            resolveLastOfferCreating = () => null,
+            finishIceGathering = () => this.iceGatheringState = 'complete';
+
+        const offerCreatingResolver = new JsTester_FunctionVariable((...args) => {
+            finishIceGathering();
+            descriptionResolver(...args);
+        });
+
+        const resolveOfferCreating = offerCreatingResolver.createValueCaller();
 
         Object.defineProperty(this, 'iceConnectionState', {
             get: function () {
@@ -593,11 +604,11 @@ function JsTester_RTCPeerConnection (options) {
         });
 
         this.iceConnectionState = 'new';
-
         var eventHandlers = {};
+
         connections.push([eventHandlers, this, function () {
             return sender.track;
-        }, trackHandler, iceServers, debug.getCallStack()]);
+        }, trackHandler, iceServers, debug.getCallStack(), offerCreatingResolver]);
 
         Object.defineProperty(this, 'ontrack', {
             get: function () {
@@ -644,22 +655,35 @@ function JsTester_RTCPeerConnection (options) {
                 resolve();
             });
         };
-        function createPromise (type) {
+        function createPromise (type, doResolve) {
             return new Promise(function (resolve) {
                 var description = new RTCSessionDescription();
 
                 description.type = type;
                 description.sdp = sdp;
 
-                resolve(description);
+                doResolve(resolve, description)
             });
         }
         this.createAnswer = function () {
-            return createPromise('answer');
+            return createPromise('answer', descriptionResolver);
         };
         this.createOffer = function () {
-            this.iceGatheringState = 'complete';
-            return createPromise('offer');
+            return createPromise('offer', (resolve, description) => {
+                resolveLastOfferCreating = () => {
+                    finishIceGathering();
+                    resolve(description);
+
+                    offerCreatingResolver.setValue(() => null);
+                };
+
+                resolveOfferCreating(description => {
+                    finishIceGathering();
+                    resolve(description);
+                    spendTime(0);
+
+                }, description);
+            });
         };
         this.addTrack = function (track, stream) {
             sender = new JsTester_RTCConnectionSender(track);
@@ -697,7 +721,9 @@ function JsTester_RTCPeerConnection (options) {
                 });
             }
         };
-        this.dispatchEvent = function () {};
+        this.dispatchEvent = function (event) {
+            event.type === 'icecandidate' && event.candidate === null && resolveLastOfferCreating();
+        };
     };
 }
 
@@ -722,7 +748,8 @@ function JsTester_RTCPeerConnectionTester (options) {
         trackHandler = options.trackHandler,
         iceServers = options.iceServers,
         tracksCreationCallStacks = options.tracksCreationCallStacks,
-        mediaStreams = options.mediaStreams;
+        mediaStreams = options.mediaStreams,
+        offerCreatingResolver = options.offerCreatingResolver;
 
     function isMute () {
         return !getLocalAudioTrack().enabled;
@@ -783,6 +810,19 @@ function JsTester_RTCPeerConnectionTester (options) {
 
     this.getRemoteStream = function () {
         return connection.getRemoteStreams()[0];
+    };
+
+    this.delayOfferCreation = function () {
+        let resume;
+        offerCreatingResolver.setValue((resolve, description) => (resume = () => resolve(description)));
+
+        return function () {
+            if (!resume) {
+                throw new Error('Offer creating did not started yet');
+            }
+
+            resume();
+        };
     };
 
     this.callTrackHandler = function () {
@@ -900,6 +940,7 @@ function JsTester_RTCPeerConnections (options) {
             getLocalAudioTrack: options[2],
             trackHandler: options[3],
             iceServers: options[4],
+            offerCreatingResolver: options[6],
             index: index
         });
     };
@@ -916,12 +957,14 @@ function JsTester_RTCPeerConnectionMocker (options) {
         RealRCTPreerConnection = RTCPeerConnection,
         sdp = options.sdp,
         tracksCreationCallStacks = options.tracksCreationCallStacks,
+        spendTime = options.spendTime,
         RTCPeerConnectionMock = new JsTester_RTCPeerConnection({
             connections: connections,
             mediaStreams: mediaStreams,
             debug: debug,
             tracksCreationCallStacks: tracksCreationCallStacks,
-            sdp: sdp
+            sdp: sdp,
+            spendTime,
         }),
         checkConnectionState = new JsTester_RTCConnectionStateChecker(connections);
 
@@ -8411,7 +8454,8 @@ function JsTester_Tests (factory) {
             rtcConnectionStateChecker: rtcConnectionStateChecker,
             mediaStreams: mediaStreams,
             tracksCreationCallStacks: tracksCreationCallStacks,
-            debug: debug
+            debug: debug,
+            spendTime,
         }),
         rtcConnectionsMock = new JsTester_RTCPeerConnections({
             tracksCreationCallStacks: tracksCreationCallStacks,

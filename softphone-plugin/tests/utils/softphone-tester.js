@@ -4711,6 +4711,9 @@ define(function () {
             this.callTrackHandler = function () {
                 getConnection().callTrackHandler();
             };
+            this.delayOfferCreation = function () {
+                return getConnection().delayOfferCreation();
+            };
             this.assumeTrackHandlerMayBeUnexecuted = function () {
                 getConnection().assumeTrackHandlerMayBeUnexecuted();
             };

@@ -11,6 +11,7 @@ tests.addTest(options => {
         windowOpener,
         ajax,
         utils,
+        webSockets,
     } = options;
 
     describe('Включено расширение Chrome виджет amoCRM.', function() {
@@ -58,6 +59,8 @@ tests.addTest(options => {
 
         describe('Открыт IFrame.', function() {
             beforeEach(function() {
+                localStorage.setItem('debugMode', '1');
+
                 tester = new Tester({
                     application: 'iframeContent',
                     isIframe: true,
@@ -221,6 +224,60 @@ tests.addTest(options => {
                                                             expectToBeSent();
                                                     });
 
+                                                    describe('Получен запрос вызова.', function() {
+                                                        let finishOfferCreation;
+
+                                                        beforeEach(function() {
+                                                            postMessages.receive({
+                                                                method: 'start_call',
+                                                                data: '79161234567',
+                                                            });
+
+                                                            tester.numaRequest().receiveResponse();
+                                                            tester.firstConnection.connectWebRTC();
+
+                                                            finishOfferCreation =
+                                                                tester.firstConnection.delayOfferCreation();
+
+                                                            tester.allowMediaInput();
+
+                                                            tester.slavesNotification().
+                                                                twoChannels().
+                                                                available().
+                                                                sending().
+                                                                expectToBeSent();
+
+                                                            spendTime(1999);
+                                                        });
+
+                                                        describe(
+                                                            'Поиск кандидатов завершён. Производится вызов.',
+                                                        function() {
+                                                            beforeEach(function() {
+                                                                finishOfferCreation();
+                                                                tester.outboundCall().start();
+                                                            });
+                                                            
+                                                            it(
+                                                                'Прошло некоторое время. Ни одно сообщение не было ' +
+                                                                'отправлено в WebRTC-сокет.',
+                                                            function() {
+                                                                spendTime(1);
+                                                            });
+                                                            it(
+                                                                'Ни одно сообщение не было отправлено в WebRTC-сокет.',
+                                                            function() {
+                                                                webSockets.expectNoMessageToBeSent();
+                                                            });
+                                                        });
+                                                        it('Прошло некоторое время. Производится вызов.', function() {
+                                                            spendTime(1);
+                                                            tester.outboundCall().start();
+                                                        });
+                                                        it('Вызов не производится.', function() {
+                                                            webSockets.expectNoMessageToBeSent();
+                                                        });
+                                                    });
                                                     it(
                                                         'Поступил входящий звонок. Поступил еще один входящий ' +
                                                         'звонок. В родительское окно отправлено сообщение об ' +
@@ -277,24 +334,6 @@ tests.addTest(options => {
                                                             userDataFetched().
                                                             expanded().
                                                             noIdleChannels().
-                                                            expectToBeSent();
-                                                    });
-                                                    it('Получен запрос вызова. Производится вызов.', function() {
-                                                        postMessages.receive({
-                                                            method: 'start_call',
-                                                            data: '79161234567',
-                                                        });
-
-                                                        tester.numaRequest().receiveResponse();
-
-                                                        tester.firstConnection.connectWebRTC();
-                                                        tester.allowMediaInput();
-                                                        tester.outboundCall().start();
-
-                                                        tester.slavesNotification().
-                                                            twoChannels().
-                                                            available().
-                                                            sending().
                                                             expectToBeSent();
                                                     });
                                                     it(
@@ -2077,37 +2116,53 @@ tests.addTest(options => {
                             expectToBeSent();
                     });
 
-                    it('URL изменился. Кнопка видимости добавлена перед элементом.', function() {
-                        tester.changeCurrentUrl();
+                    describe('URL изменился.', function() {
+                        beforeEach(function() {
+                            tester.changeCurrentUrl();
 
-                        tester.page.triggerMutation();
-                        spendTime(1000);
+                            tester.page.triggerMutation();
+                            spendTime(1000);
 
-                        tester.widgetSettings().
-                            windowMessage().
-                            expectToBeSent();
+                            tester.widgetSettings().
+                                windowMessage().
+                                expectToBeSent();
 
-                        tester.widgetSettings().
-                            windowMessage().
-                            chatsSettings().
-                            noSettings().
-                            expectToBeSent();
+                            tester.chatsVisibilitySettingRequest().receiveResponse();
+                        });
 
-                        tester.chatsVisibilitySettingRequest().receiveResponse();
+                        it('Содержимое IFrame инициализировано.', function() {
+                            tester.submoduleInitilizationEvent().
+                                operatorWorkplace().
+                                receive();
 
-                        tester.body.expectToHaveTextContent(
-                            'Первый элемент #1 ' +
-                            'Трубочка ' +
-                            'Некий элемент #1 ' +
-                            'Последний элемент #1 ' +
+                            tester.submoduleInitilizationEvent().receive();
+                            tester.unreadMessagesCountSettingRequest().receive();
 
-                            'Телефон: 74951234568 ' +
-                            'Телефон: 74951234570 ' +
-                            'Номер телефона: +74951234572 (74951234571) ' +
-                            'Номер телефона: +74951234574 (74951234573) ' +
-                            '[+7 (495) 123-45-64] ' +
-                            '[+7 (495) 123-45-63]'
-                        );
+                            tester.chatsVisibilitySettingRequest().
+                                initialized().
+                                receiveResponse();
+
+                            tester.widgetSettings().
+                                windowMessage().
+                                chatsSettings().
+                                noSettings().
+                                expectToBeSent();
+                        });
+                        it('Кнопка видимости добавлена перед элементом.', function() {
+                            tester.body.expectToHaveTextContent(
+                                'Первый элемент #1 ' +
+                                'Трубочка ' +
+                                'Некий элемент #1 ' +
+                                'Последний элемент #1 ' +
+
+                                'Телефон: 74951234568 ' +
+                                'Телефон: 74951234570 ' +
+                                'Номер телефона: +74951234572 (74951234571) ' +
+                                'Номер телефона: +74951234574 (74951234573) ' +
+                                '[+7 (495) 123-45-64] ' +
+                                '[+7 (495) 123-45-63]'
+                            );
+                        });
                     });
                     it('Кнопка видимости добавлена после элемента.', function() {
                         tester.body.expectToHaveTextContent(
@@ -4350,6 +4405,10 @@ tests.addTest(options => {
                         tester.amocrmStateSettingRequest().
                             chats().
                             expectToBeSent();
+
+                        tester.iconRequest().
+                            arrow().
+                            receiveResponse();
                     });
 
                     describe('Сотрудник авторизован.', function() {
@@ -4362,6 +4421,7 @@ tests.addTest(options => {
                             spendTime(0);
 
                             tester.channelsSearchingRequest().expectToBeSent();
+                            tester.iconRequest().receiveResponse();
 
                             tester.channelsSearchingRequest().
                                 anotherPhone().
@@ -4496,6 +4556,20 @@ tests.addTest(options => {
                             tester.navMenuItem.counter.expectToBeVisible();
                         });
                     });
+                    describe('Нажимаю на пункт меню.', function() {
+                        beforeEach(function() {
+                            tester.navMenuItem.click();
+                            tester.chatListOpeningRequest().expectToBeSent();
+                        });
+
+                        it('Покидаю страницу чатов. IFrame чатов скрыт.', function() {
+                            tester.leavePage();
+                            tester.iframe.expectToBeHidden();
+                        });
+                        it('Отображён IFrame чатов.', function() {
+                            tester.iframe.expectToBeVisible();
+                        });
+                    });
                     it('Получен запрос скачивания лога. Лог скачан.', function() {
                         tester.logDownloadingRequest().
                             windowMessage().
@@ -4519,17 +4593,13 @@ tests.addTest(options => {
                                 'Widget installation is not finished'
                             );
                     });
-                    it('Нажимаю на пункт меню. Отображён IFrame чатов.', function() {
-                        tester.navMenuItem.click();
-                        tester.page.triggerMutation();
-
-                        tester.chatListOpeningRequest().expectToBeSent();
-                    });
                     it('Количество нетвеченных сообщений не отображено.', function() {
                         tester.navMenuItem.expectToHaveTextContent('UIS Чаты 0');
 
                         tester.navMenuItem.counter.expectToBeHiddenOrNotExist();
-                        tester.navMenuItem.spinner.expectToBeHiddenOrNotExist();
+                        tester.navMenuItem.expectToBeEnabled();
+
+                        tester.iframe.expectToBeHidden();
                     });
                 });
                 it('Нажимаю на пункт меню. IFrame чатов не отображён.', function() {
@@ -4537,7 +4607,7 @@ tests.addTest(options => {
                 });
                 it('В DOM добавлен IFrame чатов.', function() {
                     tester.iframe.expectToBeHidden();
-                    tester.navMenuItem.spinner.expectToBeVisible();
+                    tester.navMenuItem.expectToBeDisabled();
                 });
             });
             describe('Инициализировано содержимое IFrame. Сотрудник авторизован.', function() {
@@ -4548,6 +4618,10 @@ tests.addTest(options => {
                         chats().
                         expectToBeSent();
 
+                    tester.iconRequest().
+                        arrow().
+                        receiveResponse();
+
                     postMessages.receive({
                         method: 'set_token',
                         data: tester.oauthToken,
@@ -4556,7 +4630,9 @@ tests.addTest(options => {
 
                 it('Открываю страницу контакта. Был отправлен запрос каналов.', function() {
                     tester.renderContact();
+
                     tester.channelsSearchingRequest().expectToBeSent();
+                    tester.iconRequest().receiveResponse();
 
                     tester.channelsSearchingRequest().
                         anotherPhone().
@@ -4968,6 +5044,7 @@ tests.addTest(options => {
                     receiveResponse();
 
                 tester.channelsSearchingRequest().expectToBeSent();
+                tester.iconRequest().receiveResponse();
 
                 tester.channelsSearchingRequest().
                     anotherPhone().
@@ -5393,6 +5470,8 @@ tests.addTest(options => {
 
                         tester.channelsSearchingRequest().expectToBeSent();
 
+                        const response = tester.iconRequest().receiveResponse();
+
                         tester.channelsSearchingRequest().
                             anotherPhone().
                             expectToBeSent();
@@ -5400,6 +5479,8 @@ tests.addTest(options => {
                         tester.channelsSearchingResponse().
                             addChannel().
                             receive();
+
+                        response.expectToBeSent();
 
                         tester.channelsSearchingResponse().
                             addChannel().
@@ -5436,6 +5517,7 @@ tests.addTest(options => {
                             receive();
 
                         tester.channelsSearchingRequest().expectToBeSent();
+                        tester.iconRequest().receiveResponse();
 
                         tester.channelsSearchingRequest().
                             anotherPhone().
@@ -5525,6 +5607,7 @@ tests.addTest(options => {
                     tester.nestedContentScriptRegistrationRequest().receiveResponse();
 
                     tester.channelsSearchingRequest().expectToBeSent();
+                    tester.iconRequest().receiveResponse();
 
                     tester.channelsSearchingRequest().
                         anotherPhone().
@@ -5814,6 +5897,7 @@ tests.addTest(options => {
                     receiveResponse();
 
                 tester.channelsSearchingRequest().expectToBeSent();
+                tester.iconRequest().receiveResponse();
 
                 tester.channelsSearchingRequest().
                     anotherPhone().
@@ -6122,6 +6206,7 @@ tests.addTest(options => {
                 receiveResponse();
 
             tester.channelsSearchingRequest().expectToBeSent();
+            tester.iconRequest().receiveResponse();
 
             tester.channelsSearchingRequest().
                 anotherPhone().

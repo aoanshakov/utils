@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index c800bacd..37ffee7f 100644
+index a3a2d864..37ffee7f 100644
 --- a/package.json
 +++ b/package.json
 @@ -21,34 +21,22 @@
@@ -14,9 +14,9 @@ index c800bacd..37ffee7f 100644
      "@babel/plugin-proposal-class-properties": "^7.8.3",
      "@babel/plugin-proposal-private-methods": "7.13.0",
      "@babel/preset-env": "^7.1.0",
--    "@comagic/softphone-core": "0.0.0-int0",
+-    "@comagic/softphone-core": "^2.2.7",
 -    "@comagic/ui": "2.25.0",
--    "@comagic/workplace-utils": "0.0.0-int0",
+-    "@comagic/workplace-utils": "^1.6.1",
      "@types/react": "^18.0.28",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
