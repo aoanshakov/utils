@@ -3448,127 +3448,6 @@ define(() => function ({
 
     process.env.REACT_APP_LOCALE = 'ru';
 
-    {
-        let history;
-
-        const setHistory = value => {
-            history = value;
-        };
-
-        const setNotification = value => {
-            notification = value;
-        };
-
-        window.application.run({
-            application,
-            setHistory,
-            setNotification,
-            active,
-            setEventBus: eventBus => {
-                const events = {},
-                    ignoredEvents = {};
-
-                eventBus.subscribe = (eventName, callback) => {
-                    const callbacks = events[eventName] || (events[eventName] = new Set());
-                    callbacks.add(callback);
-
-                    return () => callbacks.delete(callback);
-                };
-
-                const broadcast = (eventName, ...args) =>
-                    (events[eventName] || new Set()).forEach(callback => callback(...args));
-
-                const stack = new JsTester_Stack({
-                    expectNotToExist: () => null,
-                    expectToHaveArguments: (...expectedArguments) => {
-                        throw new Error(
-                            `Событие должно быть вызывано с такими аргументами ${JSON.stringify(expectedArguments)}, ` +
-                            'тогда как никакое событие не было вызвано.'
-                        );
-                    },
-                    expectEventNameToEqual: expectedEventName => {
-                        throw new Error(
-                            `Должно быть вызывано событие "${expectedEventName}", тогда как никакое событие не было ` +
-                            `вызвано.`
-                        );
-                    }
-                });
-
-                eventBus.broadcast = (actualEventName, ...args) => {
-                    const callStack = debug.getCallStack();
-
-                    const event = {
-                        expectToHaveArguments: (...expectedArguments) =>
-                            (utils.expectObjectToContain(args, expectedArguments), event),
-                        expectNotToExist: () => {
-                            throw new Error(
-                                `Никакое событие не должно быть вызвано, тогда как было вызвано событие ` +
-                                `"${actualEventName}" с аргументами ${JSON.stringify(args)}\n\n${callStack}`
-                            );
-                        },
-                        expectEventNameToEqual: expectedEventName => {
-                            if (expectedEventName != actualEventName) {
-                                throw new Error(
-                                    `Должно быть вызывано событие "${expectedEventName}", тогда как было вызвано событие ` +
-                                    `"${actualEventName}".\n\n${callStack}`
-                                );
-                            }
-
-                            return event;
-                        }
-                    };
-
-                    !ignoredEvents[actualEventName] && stack.add(event);
-                    broadcast(actualEventName, ...args);
-                };
-
-                me.eventBus = {
-                    broadcast,
-                    nextEvent: () => stack.pop(),
-                    ignoreEvent: eventName => (ignoredEvents[eventName] = true),
-                    assumeSomeMessageMayBeSent: () => stack.removeAll()
-                };
-
-                me.eventBus.ignoreEvent('log');
-                me.eventBus.ignoreEvent('set_chats_and_offline_messages_count');
-                me.eventBus.ignoreEvent('set_lost_call_count');
-            },
-        });
-
-        me.history = (() => {
-            return {
-                push: path => {
-                    history?.push(path);
-                    spendTime(0);
-                    spendTime(0);
-                },
-                expectToHavePathName(expectedPathName) {
-                    const actualPathName = history.location.pathname;
-
-                    if (expectedPathName != actualPathName) {
-                        throw new Error(
-                            `В адресной строке должен быть путь "${expectedPathName}", а не "${actualPathName}".`
-                        );
-                    }
-                }
-            };
-        })();
-
-        if (application == 'iframeContent') {
-            me.history.push('/chrome/softphone');
-        } else if (application == 'amocrmIframeContent') {
-            me.history.push('/amocrm');
-        } else if (application == 'amocrmChatsIframeContent') {
-            me.history.push('/amocrm/chats');
-        } else if (application == 'chatsIframe') {
-            me.history.push(`/chrome/chats${search ? `/messages?search=${search}` : ''}`);
-        } else if (application == 'bitrixChatsIframe') {
-            me.history.push(`/bitrix/chats${search ? `/messages?search=${search}` : ''}`);
-        } else if (application == 'notificationsIframe') {
-            me.history.push('/chrome/notifications');
-        }
-    }
-
     const addPageContent = number => {
         const pageContainer = document.createElement('div');
         pageContainer.classList.add('page-container');
@@ -3734,6 +3613,127 @@ define(() => function ({
             document.body.appendChild(navMenuItem);
 
             break;
+        }
+    }
+
+    {
+        let history;
+
+        const setHistory = value => {
+            history = value;
+        };
+
+        const setNotification = value => {
+            notification = value;
+        };
+
+        window.application.run({
+            application,
+            setHistory,
+            setNotification,
+            active,
+            setEventBus: eventBus => {
+                const events = {},
+                    ignoredEvents = {};
+
+                eventBus.subscribe = (eventName, callback) => {
+                    const callbacks = events[eventName] || (events[eventName] = new Set());
+                    callbacks.add(callback);
+
+                    return () => callbacks.delete(callback);
+                };
+
+                const broadcast = (eventName, ...args) =>
+                    (events[eventName] || new Set()).forEach(callback => callback(...args));
+
+                const stack = new JsTester_Stack({
+                    expectNotToExist: () => null,
+                    expectToHaveArguments: (...expectedArguments) => {
+                        throw new Error(
+                            `Событие должно быть вызывано с такими аргументами ${JSON.stringify(expectedArguments)}, ` +
+                            'тогда как никакое событие не было вызвано.'
+                        );
+                    },
+                    expectEventNameToEqual: expectedEventName => {
+                        throw new Error(
+                            `Должно быть вызывано событие "${expectedEventName}", тогда как никакое событие не было ` +
+                            `вызвано.`
+                        );
+                    }
+                });
+
+                eventBus.broadcast = (actualEventName, ...args) => {
+                    const callStack = debug.getCallStack();
+
+                    const event = {
+                        expectToHaveArguments: (...expectedArguments) =>
+                            (utils.expectObjectToContain(args, expectedArguments), event),
+                        expectNotToExist: () => {
+                            throw new Error(
+                                `Никакое событие не должно быть вызвано, тогда как было вызвано событие ` +
+                                `"${actualEventName}" с аргументами ${JSON.stringify(args)}\n\n${callStack}`
+                            );
+                        },
+                        expectEventNameToEqual: expectedEventName => {
+                            if (expectedEventName != actualEventName) {
+                                throw new Error(
+                                    `Должно быть вызывано событие "${expectedEventName}", тогда как было вызвано событие ` +
+                                    `"${actualEventName}".\n\n${callStack}`
+                                );
+                            }
+
+                            return event;
+                        }
+                    };
+
+                    !ignoredEvents[actualEventName] && stack.add(event);
+                    broadcast(actualEventName, ...args);
+                };
+
+                me.eventBus = {
+                    broadcast,
+                    nextEvent: () => stack.pop(),
+                    ignoreEvent: eventName => (ignoredEvents[eventName] = true),
+                    assumeSomeMessageMayBeSent: () => stack.removeAll()
+                };
+
+                me.eventBus.ignoreEvent('log');
+                me.eventBus.ignoreEvent('set_chats_and_offline_messages_count');
+                me.eventBus.ignoreEvent('set_lost_call_count');
+            },
+        });
+
+        me.history = (() => {
+            return {
+                push: path => {
+                    history?.push(path);
+                    spendTime(0);
+                    spendTime(0);
+                },
+                expectToHavePathName(expectedPathName) {
+                    const actualPathName = history.location.pathname;
+
+                    if (expectedPathName != actualPathName) {
+                        throw new Error(
+                            `В адресной строке должен быть путь "${expectedPathName}", а не "${actualPathName}".`
+                        );
+                    }
+                }
+            };
+        })();
+
+        if (application == 'iframeContent') {
+            me.history.push('/chrome/softphone');
+        } else if (application == 'amocrmIframeContent') {
+            me.history.push('/amocrm');
+        } else if (application == 'amocrmChatsIframeContent') {
+            me.history.push('/amocrm/chats');
+        } else if (application == 'chatsIframe') {
+            me.history.push(`/chrome/chats${search ? `/messages?search=${search}` : ''}`);
+        } else if (application == 'bitrixChatsIframe') {
+            me.history.push(`/bitrix/chats${search ? `/messages?search=${search}` : ''}`);
+        } else if (application == 'notificationsIframe') {
+            me.history.push('/chrome/notifications');
         }
     }
 
@@ -8391,7 +8391,8 @@ define(() => function ({
 
     me.chatClosedMessage = () => {
         const params = {
-            chat_id: 2718936
+            chat_id: 2718936,
+            reason: 'closed_by_operator',
         };
 
         return {

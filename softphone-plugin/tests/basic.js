@@ -4002,12 +4002,12 @@ tests.addTest(options => {
                     ...options,
                 });
 
+                tester.stateSettingRequest().expectToBeSent();
+
                 postMessages.nextMessage().expectMessageToContain({
                     method: 'set_token',
                     data: '',
                 });
-
-                tester.stateSettingRequest().expectToBeSent();
             });
 
             describe('Получена русская локаль.', function() {
@@ -4671,14 +4671,14 @@ tests.addTest(options => {
                     request().
                     expectToBeSent();
 
+                tester.stateSettingRequest().expectToBeSent();
+
                 postMessages.nextMessage().expectMessageToContain({
                     method: 'set_token',
                     data: tester.oauthToken,
                 });
 
-                tester.stateSettingRequest().expectToBeSent();
                 tester.amocrmStateSettingRequest().receive();
-
                 tester.masterInfoMessage().receive();
 
                 tester.stateSettingRequest().

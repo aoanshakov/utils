@@ -1073,11 +1073,6 @@ tests.addTest(options => {
                     ...options,
                 });
 
-                postMessages.nextMessage().expectMessageToContain({
-                    method: 'set_token',
-                    data: tester.oauthToken,
-                });
-
                 const accountRequest = tester.accountRequest().
                     forIframe().
                     webAccountLoginUnavailable().
@@ -1103,6 +1098,11 @@ tests.addTest(options => {
                 tester.messageTemplatesSettingsRequest().receiveResponse();
 
                 tester.unreadMessagesCountSettingRequest().expectToBeSent();
+
+                postMessages.nextMessage().expectMessageToContain({
+                    method: 'set_token',
+                    data: tester.oauthToken,
+                });
 
                 tester.submoduleInitilizationEvent().
                     operatorWorkplace().
