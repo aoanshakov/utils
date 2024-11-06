@@ -2432,8 +2432,11 @@ define(() => function ({
                 return {
                     click: () => ({
                         expectToBeSent: () => postMessages.nextMessage().expectMessageToContain({
-                            method: 'click_notification',
-                            data: id,
+                            method: 'call_via_event_bus',
+                            data: {
+                                method: 'click_notification',
+                                data: id,
+                            },
                         }),
                     }),
                 };
@@ -2446,8 +2449,11 @@ define(() => function ({
                     click: () => ({
                         receive: () => {
                             postMessages.receive({
-                                method: 'click_notification',
-                                data: actualMessage.getJSON().data.id,
+                                method: 'call_via_event_bus',
+                                data: {
+                                    method: 'click_notification',
+                                    data: actualMessage.getJSON().data.id,
+                                },
                             });
 
                             spendTime(0);
@@ -2614,7 +2620,7 @@ define(() => function ({
 
         const getMessage = () => {
             const message = {
-                method: 'channels_searching_result',
+                method: 'search_channels:response',
                 data: {
                     value: '74951234575',
                     searchField: 'phone',
@@ -2785,12 +2791,15 @@ define(() => function ({
         '</span>';
 
         const getRequestMessage = () => ({
-            method: 'get_icon',
-            data: iconId,
+            method: 'call_via_event_bus',
+            data: {
+                method: 'get_icon',
+                data: iconId,
+            },
         });
 
         const getResponseMessage = () => ({
-            method: 'set_icon',
+            method: 'get_icon:response',
             data: {
                 id: iconId,
                 html,
@@ -2867,7 +2876,10 @@ define(() => function ({
     };
 
     me.chatListOpeningRequest = () => {
-        const message = { method: 'open_chat_list' };
+        const message = {
+            method: 'call_via_event_bus',
+            data: { method: 'open_chat_list' },
+        };
 
         return {
             receive: () => postMessages.receive(message),
@@ -3042,10 +3054,13 @@ define(() => function ({
 
         const getMessage = () => {
             const message = {
-                method: 'search_channels',
+                method: 'call_via_event_bus',
                 data: {
-                    searchField: 'phone',
-                    value: '74951234575'
+                    method: 'search_channels',
+                    data: {
+                        searchField: 'phone',
+                        value: '74951234575'
+                    },
                 },
             };
 
@@ -3092,11 +3107,14 @@ define(() => function ({
 
         const getMessage = () => {
             const message = {
-                method: 'open_chat',
+                method: 'call_via_event_bus',
                 data: {
-                    searchField: 'phone',
-                    value: '74951234575',
-                    channel_id: 216395,
+                    method: 'open_chat',
+                    data: {
+                        searchField: 'phone',
+                        value: '74951234575',
+                        channel_id: 216395,
+                    },
                 },
             };
 
