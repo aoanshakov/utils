@@ -330,46 +330,73 @@ tests.addTest(options => {
                                                 tester.acceptChatRequest().receiveResponse();
                                             });
 
-                                            it(
-                                                'Перевожу чат другому оператору. Чат закрывается, список чатов ' +
-                                                'отображён.',
-                                            function() {
-                                                tester.moreIcon.click();
+                                            describe('Открываю меню действий.', function() {
+                                                beforeEach(function() {
+                                                    tester.moreIcon.click();
+                                                });
 
-                                                tester.select.
-                                                    option('Переадресовать чат').
-                                                    click();
+                                                it(
+                                                    'Перевожу чат другому оператору. Чат закрывается, список чатов ' +
+                                                    'отображён.',
+                                                function() {
+                                                    tester.select.
+                                                        option('Переадресовать чат').
+                                                        click();
 
-                                                tester.select.click();
+                                                    tester.select.click();
 
-                                                tester.chatTransferGroupsRequest().receiveResponse();
+                                                    tester.chatTransferGroupsRequest().receiveResponse();
 
-                                                tester.select.
-                                                    option('Костова Марвуда Любенова').
-                                                    click();
+                                                    tester.select.
+                                                        option('Костова Марвуда Любенова').
+                                                        click();
 
-                                                tester.button('Отправить').click();
-                                                tester.requestTransfer().receiveResponse();
+                                                    tester.button('Отправить').click();
+                                                    tester.requestTransfer().receiveResponse();
 
-                                                tester.countersRequest().
-                                                    noNewChats().
-                                                    noClosedChats().
-                                                    receiveResponse();
+                                                    tester.countersRequest().
+                                                        noNewChats().
+                                                        noClosedChats().
+                                                        receiveResponse();
 
-                                                tester.button('Закрыть').click();
-                                                tester.transferAcceptedMessage().receive();
+                                                    tester.button('Закрыть').click();
+                                                    tester.transferAcceptedMessage().receive();
 
-                                                spendTime(5000);
+                                                    spendTime(5000);
 
-                                                tester.employeesPing().expectToBeSent();
-                                                tester.employeesPing().receive();
+                                                    tester.employeesPing().expectToBeSent();
+                                                    tester.employeesPing().receive();
 
-                                                tester.countersRequest().
-                                                    noNewChats().
-                                                    noClosedChats().
-                                                    receiveResponse();
+                                                    tester.countersRequest().
+                                                        noNewChats().
+                                                        noClosedChats().
+                                                        receiveResponse();
 
-                                                tester.button('В работе 75').expectToBeVisible();
+                                                    tester.button('В работе 75').expectToBeVisible();
+                                                });
+                                                it('Нажимаю на кнопку завершения чата.', function() {
+                                                    tester.select.
+                                                        option('Завершить чат').
+                                                        click();
+
+                                                    tester.chatClosingRequest().receiveResponse();
+
+                                                    tester.chatClosedMessage().
+                                                        anotherChat().
+                                                        receive();
+
+                                                    tester.chatListRequest().
+                                                        thirdChat().
+                                                        receiveResponse();
+
+                                                    tester.countersRequest().
+                                                        noNewChats().
+                                                        noClosedChats().
+                                                        receiveResponse();
+
+                                                    tester.closeButton.click();
+                                                    tester.chatsHidingRequest().expectToBeSent();
+                                                });
                                             });
                                             it('Нажимаю на кнопку шаблонов. Отображён список шаблонов.', function() {
                                                 tester.templateIcon.click();
@@ -719,7 +746,7 @@ tests.addTest(options => {
                                     closeButton.
                                     click();
 
-                                tester.chatsHidingRequest().expectToBeSent();;
+                                tester.chatsHidingRequest().expectToBeSent();
                             });
                             it('Чат открыт.', function() {
                                 tester.contactBar.expectTextContentToHaveSubstring(

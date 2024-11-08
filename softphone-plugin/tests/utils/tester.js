@@ -8406,10 +8406,14 @@ define(() => function ({
                 return this;
             },
 
-            receive: () => me.chatsWebSocket.receive(JSON.stringify({
-                method: 'chat_closed',
-                params 
-            }))
+            receive: () => {
+                me.chatsWebSocket.receive(JSON.stringify({
+                    method: 'chat_closed',
+                    params 
+                }));
+
+                spendTime(0);
+            } 
         };
     };
     
