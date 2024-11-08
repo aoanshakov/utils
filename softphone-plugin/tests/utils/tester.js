@@ -471,9 +471,7 @@ define(() => function ({
             return tester;
         };
 
-        this.reload = () => {
-            reloadingsCount.increase();
-        };
+        this.reload = () => reloadingsCount.increase();
 
         this.sendMessage = (tabId, message) => {
             const item = tabs[tabId];
@@ -898,11 +896,13 @@ define(() => function ({
 
                         '<ul>' +
                             '{% for item in items %} ' +
-                                '<li data-id="{{ item.id }}" class="chat-channel">' +
-                                    '<button style="cursor: pointer;">' +
-                                        '{{ item.icon }} Канал "{{ item.name }}"' +
-                                    '</button>' +
-                                '</li>' +
+                                '{% if not item.is_unavailable %}' +
+                                    '<li data-id="{{ item.id }}" class="chat-channel">' +
+                                        '<button style="cursor: pointer;">' +
+                                            '{{ item.icon }} Канал "{{ item.name }}"' +
+                                        '</button>' +
+                                    '</li>' +
+                                '{% endif %}' +
                             '{% endfor %}' +
                         '</ul>' +
                     '</div>',
@@ -2458,6 +2458,15 @@ define(() => function ({
         };
     };
 
+    me.channelsCacheClearingEvent = () => {
+        const message = { method: 'channels_cache_cleared' };
+
+        return {
+            receive: () => postMessages.receive(message),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
+        };
+    };
+
     me.chatsHidingRequest = () => {
         const message = { method: 'hide_chats' };
 
@@ -2626,6 +2635,7 @@ define(() => function ({
                         icon: 'SourceTelegram20',
                         iconHtml: telegramIcon,
                         is_unavailable: false,
+                        error: '',
                     }],
                 },
             };
@@ -2641,7 +2651,11 @@ define(() => function ({
             },
 
             unavailable() {
-                processors.push(message => message.data.channels[0].is_unavailable = true);
+                processors.push(message => {
+                    message.data.channels[0].is_unavailable = true;
+                    message.data.channels[0].error = 'По этим контактным данным уже был создан чат другим оператором';
+                });
+
                 return this;
             },
 
@@ -2712,6 +2726,14 @@ define(() => function ({
                     message.data.value = '74951234585';
                     message.data.channels[0].id = 216399;
                     message.data.channels[0].name = 'Белград';
+                });
+
+                return this;
+            },
+
+            fifthChannel() {
+                processors.push(message => {
+                    message.data.value = '79283810989';
                 });
 
                 return this;
@@ -3039,52 +3061,123 @@ define(() => function ({
 
     me.channelsSearchingRequest = () => {
         const processors = [];
+        let depricated = false;
 
         const getMessage = () => {
             const message = {
                 method: 'search_channels',
-                data: {
+                data: [{
                     searchField: 'phone',
                     value: '74951234575'
-                },
+                }],
             };
 
             processors.forEach(process => process(message));
+
+            if (depricated) {
+                message.data = message.data[0];
+                return message;
+            }
+
             return message;
         };
 
-        return {
-            fourthPhone() {
-                processors.push(message => (message.data.value = '74951234585'));
-                return this;
-            },
+        const addParamsModifier = ({ index, me }) => {
+            me = me || {};
 
-            thirdPhone() {
-                processors.push(message => (message.data.value = '74951234584'));
-                return this;
-            },
+            me.fifthPhone = () => {
+                processors.push(message => (message.data[index].value = '79283810989'));
+                return me;
+            };
 
-            anotherPhone() {
-                processors.push(message => (message.data.value = '74951234576'));
-                return this;
-            },
+            me.fourthPhone = () => {
+                processors.push(message => (message.data[index].value = '74951234585'));
+                return me;
+            };
 
-            email() {
+            me.thirdPhone = () => {
+                processors.push(message => (message.data[index].value = '74951234584'));
+                return me;
+            };
+
+            me.anotherPhone = () => {
+                processors.push(message => (message.data[index].value = '74951234576'));
+                return me;
+            };
+
+            me.email = () => {
                 processors.push(message => {
-                    message.data.searchField = 'email';
-                    message.data.value = 'a.anshakov@comagic.dev';
+                    message.data[index].searchField = 'email';
+                    message.data[index].value = 'a.anshakov@comagic.dev';
                 });
 
-                return this;
-            },
+                return me;
+            };
 
-            receive: () => {
+            me.depricated = () => (depricated = true, me);
+            return me;
+        };
+
+        const addMessageMethods = me => {
+            me = me || {};
+
+            me.receive = () => {
                 postMessages.receive(getMessage());
                 spendTime(0);
-            },
+            };
 
-            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+            me.expectToBeSent = () => {
+                const message = getMessage();
+                message.data.push(undefined);
+
+                postMessages.nextMessage().expectMessageToContain(message);
+            };
+
+            me.atIndex = index => {
+                processors.push(message => {
+                    for (let i = 0; i <= index; i ++) {
+                        !message.data[i] && (message.data[i] = {
+                            searchField: 'phone',
+                            value: '74951234575'
+                        });
+                    }
+                });
+
+                return addParamsModifier({
+                    index,
+                    me: addMessageMethods(),
+                });
+            };
+
+            me.second = () => me.atIndex(1);
+            return me;
         };
+
+        return addParamsModifier({
+            index: 0,
+
+            me: addMessageMethods({
+                atIndex: index => {
+                    processors.push(message => {
+                        for (let i = 0; i <= index; i ++) {
+                            !message.data[i] && (message.data[i] = {
+                                searchField: 'phone',
+                                value: '74951234575'
+                            });
+                        }
+                    });
+
+                    return addParamsModifier({
+                        index,
+                        me: addMessageMethods(),
+                    });
+                },
+
+                second() {
+                    return this.atIndex(1);
+                },
+            }),
+        });
     };
 
     me.chatOpeningRequest = () => {
@@ -11746,7 +11839,7 @@ define(() => function ({
 
             return {
                 receiveResponse() {
-                    request.respondSuccessfullyWith({});
+                    request.respondSuccessfullyWith([]);
 
                     Promise.runAll(false, true);
                     spendTime(0)

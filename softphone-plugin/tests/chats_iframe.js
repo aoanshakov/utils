@@ -335,6 +335,73 @@ tests.addTest(options => {
                                                     tester.moreIcon.click();
                                                 });
 
+                                                describe(
+                                                    'Получен запрос каналов. Нажимаю на кнопку завершения чата.',
+                                                function() {
+                                                    let visitorExternalSearchingRequest;
+
+                                                    beforeEach(function() {
+                                                        tester.channelsSearchingRequest().
+                                                            fifthPhone().
+                                                            receive();
+
+                                                        visitorExternalSearchingRequest =
+                                                            tester.visitorExternalSearchingRequest().
+                                                                anotherToken().
+                                                                thirdSearchString().
+                                                                telegramPrivate().
+                                                                expectToBeSent();
+
+                                                        tester.select.
+                                                            option('Завершить чат').
+                                                            click();
+
+                                                        tester.chatClosingRequest().receiveResponse();
+
+                                                        tester.chatClosedMessage().
+                                                            anotherChat().
+                                                            receive();
+
+                                                        tester.chatListRequest().
+                                                            thirdChat().
+                                                            receiveResponse();
+
+                                                        tester.countersRequest().
+                                                            noNewChats().
+                                                            noClosedChats().
+                                                            receiveResponse();
+                                                    });
+
+                                                    it(
+                                                        'Получен ответ на отправленных ранее запрос каналов. ' +
+                                                        'Запрос каналов отправлен на сервер.',
+                                                    function() {
+                                                        tester.channelsSearchingRequest().
+                                                            fifthPhone().
+                                                            receive();
+
+                                                        visitorExternalSearchingRequest.receiveResponse();
+
+                                                        tester.chatChannelSearchRequest().
+                                                            anotherSearchString().
+                                                            telegramPrivate().
+                                                            receiveResponse();
+
+                                                        tester.channelsSearchingResponse().
+                                                            fifthChannel().
+                                                            expectToBeSent();
+                                                    });
+                                                    it(
+                                                        'Нажимаю на кнопку закрытия окна чатов. Окно закрыто.',
+                                                    function() {
+                                                        tester.closeButton.click();
+                                                        tester.chatsHidingRequest().expectToBeSent();
+                                                    });
+                                                    it('Ничего не произошло.', function() {
+                                                        postMessages.nextMessage().expectNotToExist();
+                                                        ajax.expectNoRequestsToBeSent();
+                                                    });
+                                                });
                                                 it(
                                                     'Перевожу чат другому оператору. Чат закрывается, список чатов ' +
                                                     'отображён.',
@@ -372,6 +439,12 @@ tests.addTest(options => {
                                                         noClosedChats().
                                                         receiveResponse();
 
+                                                    tester.visitorExternalSearchingRequest().
+                                                        anotherToken().
+                                                        fourthSearchString().
+                                                        telegramPrivate().
+                                                        expectToBeSent();
+
                                                     tester.button('В работе 75').expectToBeVisible();
                                                 });
                                                 it('Нажимаю на кнопку завершения чата.', function() {
@@ -394,8 +467,11 @@ tests.addTest(options => {
                                                         noClosedChats().
                                                         receiveResponse();
 
-                                                    tester.closeButton.click();
-                                                    tester.chatsHidingRequest().expectToBeSent();
+                                                    tester.visitorExternalSearchingRequest().
+                                                        anotherToken().
+                                                        fourthSearchString().
+                                                        telegramPrivate().
+                                                        expectToBeSent();
                                                 });
                                             });
                                             it('Нажимаю на кнопку шаблонов. Отображён список шаблонов.', function() {
@@ -754,6 +830,19 @@ tests.addTest(options => {
                                     'Помакова Бисерка Драгановна'
                                 );
                             });
+                        });
+                        it(
+                            'От родительского окна получен запрос поиска каналов. На сервер отправлен запрос каналов.',
+                        function() {
+                            tester.channelsSearchingRequest().
+                                depricated().
+                                receive();
+
+                            tester.visitorExternalSearchingRequest().
+                                anotherToken().
+                                fourthSearchString().
+                                telegramPrivate().
+                                expectToBeSent();
                         });
                         it(
                             'Приложение открыто в другом браузере. Отображено сообщение о том, что приложение ' +

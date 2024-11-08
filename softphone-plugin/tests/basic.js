@@ -4420,19 +4420,12 @@ tests.addTest(options => {
 
                             spendTime(0);
 
-                            tester.channelsSearchingRequest().expectToBeSent();
                             tester.iconRequest().receiveResponse();
 
                             tester.channelsSearchingRequest().
-                                anotherPhone().
-                                expectToBeSent();
-
-                            tester.channelsSearchingRequest().
-                                email().
-                                expectToBeSent();
-
-                            tester.channelsSearchingRequest().
-                                thirdPhone().
+                                second().anotherPhone().
+                                atIndex(2).email().
+                                atIndex(3).thirdPhone().
                                 expectToBeSent();
                         });
 
@@ -4514,6 +4507,10 @@ tests.addTest(options => {
 
                                 tester.rightPanel.expectToHaveTextContent(
                                     '74951234575 ' +
+
+                                    'Нижний Новгород ' +
+                                    'По этим контактным данным уже был создан чат другим оператором ' +
+
                                     'Белгород ' +
                                     'Астана ' +
 
@@ -4631,19 +4628,12 @@ tests.addTest(options => {
                 it('Открываю страницу контакта. Был отправлен запрос каналов.', function() {
                     tester.renderContact();
 
-                    tester.channelsSearchingRequest().expectToBeSent();
                     tester.iconRequest().receiveResponse();
 
                     tester.channelsSearchingRequest().
-                        anotherPhone().
-                        expectToBeSent();
-
-                    tester.channelsSearchingRequest().
-                        email().
-                        expectToBeSent();
-
-                    tester.channelsSearchingRequest().
-                        thirdPhone().
+                        second().anotherPhone().
+                        atIndex(2).email().
+                        atIndex(3).thirdPhone().
                         expectToBeSent();
                 });
                 it('Запрос каналов не был отправлен.', function() {
@@ -5043,11 +5033,10 @@ tests.addTest(options => {
                     initialized().
                     receiveResponse();
 
-                tester.channelsSearchingRequest().expectToBeSent();
                 tester.iconRequest().receiveResponse();
 
                 tester.channelsSearchingRequest().
-                    anotherPhone().
+                    second().anotherPhone().
                     expectToBeSent();
 
                 tester.widgetSettings().
@@ -5077,12 +5066,20 @@ tests.addTest(options => {
                         spendTime(0);
 
                         tester.channelsSearchingRequest().
-                            thirdPhone().
+                            second().anotherPhone().
+                            atIndex(2).thirdPhone().
+                            atIndex(3).fourthPhone().
                             expectToBeSent();
 
-                        tester.channelsSearchingRequest().
-                            fourthPhone().
-                            expectToBeSent();
+                        tester.channelsSearchingResponse().
+                            addChannel().
+                            addThirdChannel().
+                            unavailable().
+                            receive();
+
+                        tester.channelsSearchingResponse().
+                            anotherChannel().
+                            receive();
                     });
 
                     describe('Получен список каналов.', function() {
@@ -5468,12 +5465,10 @@ tests.addTest(options => {
                             chats().
                             expectToBeSent();
 
-                        tester.channelsSearchingRequest().expectToBeSent();
-
                         const response = tester.iconRequest().receiveResponse();
 
                         tester.channelsSearchingRequest().
-                            anotherPhone().
+                            second().anotherPhone().
                             expectToBeSent();
 
                         tester.channelsSearchingResponse().
@@ -5516,11 +5511,10 @@ tests.addTest(options => {
                             chats().
                             receive();
 
-                        tester.channelsSearchingRequest().expectToBeSent();
                         tester.iconRequest().receiveResponse();
 
                         tester.channelsSearchingRequest().
-                            anotherPhone().
+                            second().anotherPhone().
                             expectToBeSent();
 
                         tester.channelsSearchingResponse().
@@ -5606,11 +5600,10 @@ tests.addTest(options => {
                     widgetSettings.receive();
                     tester.nestedContentScriptRegistrationRequest().receiveResponse();
 
-                    tester.channelsSearchingRequest().expectToBeSent();
                     tester.iconRequest().receiveResponse();
 
                     tester.channelsSearchingRequest().
-                        anotherPhone().
+                        second().anotherPhone().
                         expectToBeSent();
 
                     tester.channelsSearchingResponse().
@@ -5896,15 +5889,11 @@ tests.addTest(options => {
                     initialized().
                     receiveResponse();
 
-                tester.channelsSearchingRequest().expectToBeSent();
                 tester.iconRequest().receiveResponse();
 
                 tester.channelsSearchingRequest().
-                    anotherPhone().
-                    expectToBeSent();
-
-                tester.channelsSearchingRequest().
-                    email().
+                    second().anotherPhone().
+                    atIndex(2).email().
                     expectToBeSent();
 
                 tester.widgetSettings().
@@ -6205,15 +6194,11 @@ tests.addTest(options => {
                 initialized().
                 receiveResponse();
 
-            tester.channelsSearchingRequest().expectToBeSent();
             tester.iconRequest().receiveResponse();
 
             tester.channelsSearchingRequest().
-                anotherPhone().
-                expectToBeSent();
-
-            tester.channelsSearchingRequest().
-                email().
+                second().anotherPhone().
+                atIndex(2).email().
                 expectToBeSent();
 
             tester.widgetSettings().
