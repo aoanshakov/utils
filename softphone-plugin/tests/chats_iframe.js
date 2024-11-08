@@ -212,7 +212,9 @@ tests.addTest(options => {
                                 chatChannelSearchRequest;
 
                             beforeEach(function() {
-                                tester.channelsSearchingRequest().receive();
+                                tester.channelsSearchingRequest().
+                                    fromChromeExtension().
+                                    receive();
 
                                 visitorExternalSearchingRequest = tester.visitorExternalSearchingRequest().
                                     anotherToken().
@@ -342,6 +344,7 @@ tests.addTest(options => {
 
                                                     beforeEach(function() {
                                                         tester.channelsSearchingRequest().
+                                                            fromChromeExtension().
                                                             fifthPhone().
                                                             receive();
 
@@ -373,10 +376,11 @@ tests.addTest(options => {
                                                     });
 
                                                     it(
-                                                        'Получен ответ на отправленных ранее запрос каналов. ' +
-                                                        'Запрос каналов отправлен на сервер.',
+                                                        'Получен ответ на запрос каналов. Ответ отправлен в ' +
+                                                        'родительское окно.',
                                                     function() {
                                                         tester.channelsSearchingRequest().
+                                                            fromChromeExtension().
                                                             fifthPhone().
                                                             receive();
 
@@ -396,6 +400,75 @@ tests.addTest(options => {
                                                     function() {
                                                         tester.closeButton.click();
                                                         tester.chatsHidingRequest().expectToBeSent();
+                                                    });
+                                                    it('Ничего не произошло.', function() {
+                                                        postMessages.nextMessage().expectNotToExist();
+                                                        ajax.expectNoRequestsToBeSent();
+                                                    });
+                                                });
+                                                describe(
+                                                    'Получен запрос каналов с другого окна. Нажимаю на кнопку ' +
+                                                    'завершения чата.',
+                                                function() {
+                                                    beforeEach(function() {
+                                                        tester.channelsSearchingRequest().
+                                                            fromChromeExtension().
+                                                            anotherId().
+                                                            fifthPhone().
+                                                            receive();
+
+                                                        visitorExternalSearchingRequest =
+                                                            tester.visitorExternalSearchingRequest().
+                                                                anotherToken().
+                                                                thirdSearchString().
+                                                                telegramPrivate().
+                                                                expectToBeSent();
+
+                                                        tester.select.
+                                                            option('Завершить чат').
+                                                            click();
+
+                                                        tester.chatClosingRequest().receiveResponse();
+
+                                                        tester.chatClosedMessage().
+                                                            anotherChat().
+                                                            receive();
+
+                                                        tester.chatListRequest().
+                                                            thirdChat().
+                                                            receiveResponse();
+
+                                                        tester.countersRequest().
+                                                            noNewChats().
+                                                            noClosedChats().
+                                                            receiveResponse();
+
+                                                        tester.channelsSearchingRequest().
+                                                            fromChromeExtension().
+                                                            fifthPhone().
+                                                            receive();
+                                                    });
+
+                                                    it(
+                                                        'Получен ответ на запрос каналов. Предыдущий запрос каналов ' +
+                                                        'отправлены заново.',
+                                                    function() {
+                                                        visitorExternalSearchingRequest.receiveResponse();
+
+                                                        tester.chatChannelSearchRequest().
+                                                            anotherSearchString().
+                                                            telegramPrivate().
+                                                            receiveResponse();
+
+                                                        tester.channelsSearchingResponse().
+                                                            fifthChannel().
+                                                            expectToBeSent();
+
+                                                        tester.visitorExternalSearchingRequest().
+                                                            anotherToken().
+                                                            fourthSearchString().
+                                                            telegramPrivate().
+                                                            expectToBeSent();
                                                     });
                                                     it('Ничего не произошло.', function() {
                                                         postMessages.nextMessage().expectNotToExist();
@@ -492,7 +565,9 @@ tests.addTest(options => {
 
                                         'Получен такой же запрос поиска каналов. Ответ отправлен в родительское окно.',
                                     function() {
-                                        tester.channelsSearchingRequest().receive();
+                                        tester.channelsSearchingRequest().
+                                            fromChromeExtension().
+                                            receive();
 
                                         tester.channelsSearchingResponse().
                                             addChannel().

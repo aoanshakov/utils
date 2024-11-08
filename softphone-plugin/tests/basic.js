@@ -5036,6 +5036,7 @@ tests.addTest(options => {
                 tester.iconRequest().receiveResponse();
 
                 tester.channelsSearchingRequest().
+                    fromChromeExtension().
                     second().anotherPhone().
                     expectToBeSent();
 
@@ -5066,6 +5067,7 @@ tests.addTest(options => {
                         spendTime(0);
 
                         tester.channelsSearchingRequest().
+                            fromChromeExtension().
                             second().anotherPhone().
                             atIndex(2).thirdPhone().
                             atIndex(3).fourthPhone().
@@ -5468,6 +5470,7 @@ tests.addTest(options => {
                         const response = tester.iconRequest().receiveResponse();
 
                         tester.channelsSearchingRequest().
+                            fromChromeExtension().
                             second().anotherPhone().
                             expectToBeSent();
 
@@ -5514,6 +5517,7 @@ tests.addTest(options => {
                         tester.iconRequest().receiveResponse();
 
                         tester.channelsSearchingRequest().
+                            fromChromeExtension().
                             second().anotherPhone().
                             expectToBeSent();
 
@@ -5603,6 +5607,7 @@ tests.addTest(options => {
                     tester.iconRequest().receiveResponse();
 
                     tester.channelsSearchingRequest().
+                        fromChromeExtension().
                         second().anotherPhone().
                         expectToBeSent();
 
@@ -5892,6 +5897,7 @@ tests.addTest(options => {
                 tester.iconRequest().receiveResponse();
 
                 tester.channelsSearchingRequest().
+                    fromChromeExtension().
                     second().anotherPhone().
                     atIndex(2).email().
                     expectToBeSent();
@@ -6197,6 +6203,7 @@ tests.addTest(options => {
             tester.iconRequest().receiveResponse();
 
             tester.channelsSearchingRequest().
+                fromChromeExtension().
                 second().anotherPhone().
                 atIndex(2).email().
                 expectToBeSent();

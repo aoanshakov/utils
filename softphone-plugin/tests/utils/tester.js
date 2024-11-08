@@ -3066,16 +3066,19 @@ define(() => function ({
         const getMessage = () => {
             const message = {
                 method: 'search_channels',
-                data: [{
-                    searchField: 'phone',
-                    value: '74951234575'
-                }],
+                data: {
+                    id: undefined,
+                    params: [{
+                        searchField: 'phone',
+                        value: '74951234575'
+                    }],
+                },
             };
 
             processors.forEach(process => process(message));
 
             if (depricated) {
-                message.data = message.data[0];
+                message.data = message.data.params[0];
                 return message;
             }
 
@@ -3086,30 +3089,39 @@ define(() => function ({
             me = me || {};
 
             me.fifthPhone = () => {
-                processors.push(message => (message.data[index].value = '79283810989'));
+                processors.push(message => (message.data.params[index].value = '79283810989'));
                 return me;
             };
 
             me.fourthPhone = () => {
-                processors.push(message => (message.data[index].value = '74951234585'));
+                processors.push(message => (message.data.params[index].value = '74951234585'));
                 return me;
             };
 
             me.thirdPhone = () => {
-                processors.push(message => (message.data[index].value = '74951234584'));
+                processors.push(message => (message.data.params[index].value = '74951234584'));
                 return me;
             };
 
             me.anotherPhone = () => {
-                processors.push(message => (message.data[index].value = '74951234576'));
+                processors.push(message => (message.data.params[index].value = '74951234576'));
                 return me;
             };
 
             me.email = () => {
                 processors.push(message => {
-                    message.data[index].searchField = 'email';
-                    message.data[index].value = 'a.anshakov@comagic.dev';
+                    message.data.params[index].searchField = 'email';
+                    message.data.params[index].value = 'a.anshakov@comagic.dev';
                 });
+
+                return me;
+            };
+
+            me.fromChromeExtension = () => {
+                let id = '5314f800-0f23-425d-bf20-683f0d149675';
+
+                processors.push(message => (message.data.id = id));
+                me.anotherId = () => (id = '2859n288-5l24-175s-an42-273mq83m1820', me);
 
                 return me;
             };
@@ -3128,7 +3140,7 @@ define(() => function ({
 
             me.expectToBeSent = () => {
                 const message = getMessage();
-                message.data.push(undefined);
+                message.data.params.push(undefined);
 
                 postMessages.nextMessage().expectMessageToContain(message);
             };
@@ -3136,7 +3148,7 @@ define(() => function ({
             me.atIndex = index => {
                 processors.push(message => {
                     for (let i = 0; i <= index; i ++) {
-                        !message.data[i] && (message.data[i] = {
+                        !message.data.params[i] && (message.data.params[i] = {
                             searchField: 'phone',
                             value: '74951234575'
                         });
@@ -3155,28 +3167,7 @@ define(() => function ({
 
         return addParamsModifier({
             index: 0,
-
-            me: addMessageMethods({
-                atIndex: index => {
-                    processors.push(message => {
-                        for (let i = 0; i <= index; i ++) {
-                            !message.data[i] && (message.data[i] = {
-                                searchField: 'phone',
-                                value: '74951234575'
-                            });
-                        }
-                    });
-
-                    return addParamsModifier({
-                        index,
-                        me: addMessageMethods(),
-                    });
-                },
-
-                second() {
-                    return this.atIndex(1);
-                },
-            }),
+            me: addMessageMethods(),
         });
     };
 
