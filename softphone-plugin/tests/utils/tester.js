@@ -2102,8 +2102,10 @@ define(() => function ({
                         nextMessage().
                         expectMessageToContain({
                             method: 'set_logs',
+
                             data: utils.expectToStartWith(
-                                'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) Storage data values for keys:'
+                                'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
+                                '[chatsParent] Tab state is unknown'
                             )
                         })
                 };
@@ -3066,19 +3068,16 @@ define(() => function ({
         const getMessage = () => {
             const message = {
                 method: 'search_channels',
-                data: {
-                    id: undefined,
-                    params: [{
-                        searchField: 'phone',
-                        value: '74951234575'
-                    }],
-                },
+                data: [{
+                    searchField: 'phone',
+                    value: '74951234575'
+                }],
             };
 
             processors.forEach(process => process(message));
 
             if (depricated) {
-                message.data = message.data.params[0];
+                message.data = message.data[0];
                 return message;
             }
 
@@ -3089,39 +3088,30 @@ define(() => function ({
             me = me || {};
 
             me.fifthPhone = () => {
-                processors.push(message => (message.data.params[index].value = '79283810989'));
+                processors.push(message => (message.data[index].value = '79283810989'));
                 return me;
             };
 
             me.fourthPhone = () => {
-                processors.push(message => (message.data.params[index].value = '74951234585'));
+                processors.push(message => (message.data[index].value = '74951234585'));
                 return me;
             };
 
             me.thirdPhone = () => {
-                processors.push(message => (message.data.params[index].value = '74951234584'));
+                processors.push(message => (message.data[index].value = '74951234584'));
                 return me;
             };
 
             me.anotherPhone = () => {
-                processors.push(message => (message.data.params[index].value = '74951234576'));
+                processors.push(message => (message.data[index].value = '74951234576'));
                 return me;
             };
 
             me.email = () => {
                 processors.push(message => {
-                    message.data.params[index].searchField = 'email';
-                    message.data.params[index].value = 'a.anshakov@comagic.dev';
+                    message.data[index].searchField = 'email';
+                    message.data[index].value = 'a.anshakov@comagic.dev';
                 });
-
-                return me;
-            };
-
-            me.fromChromeExtension = () => {
-                let id = '5314f800-0f23-425d-bf20-683f0d149675';
-
-                processors.push(message => (message.data.id = id));
-                me.anotherId = () => (id = '2859n288-5l24-175s-an42-273mq83m1820', me);
 
                 return me;
             };
@@ -3140,7 +3130,7 @@ define(() => function ({
 
             me.expectToBeSent = () => {
                 const message = getMessage();
-                message.data.params.push(undefined);
+                message.data.push(undefined);
 
                 postMessages.nextMessage().expectMessageToContain(message);
             };
@@ -3148,7 +3138,7 @@ define(() => function ({
             me.atIndex = index => {
                 processors.push(message => {
                     for (let i = 0; i <= index; i ++) {
-                        !message.data.params[i] && (message.data.params[i] = {
+                        !message.data[i] && (message.data[i] = {
                             searchField: 'phone',
                             value: '74951234575'
                         });
@@ -5882,8 +5872,8 @@ define(() => function ({
         });
     };
 
-    me.employeesBroadcastChannel = () => {
-        const tester = me.createBroadcastChannelTester('employees');
+    me.chatsParentBroadcastChannel = () => {
+        const tester = me.createBroadcastChannelTester('chatsParent');
 
         return {
             applyLeader: () => ({
@@ -5903,6 +5893,41 @@ define(() => function ({
             tellIsLeader: () => ({
                 expectToBeSent: () => {
                     tester.tellIsLeader();
+                    spendTime(0);
+                },
+            }),
+        };
+    };
+
+    me.employeesBroadcastChannel = () => {
+        const tester = me.createBroadcastChannelTester('employees');
+
+        return {
+            nextMessage: tester.nextMessage.bind(tester),
+            receiveMessage: tester.receiveMessage.bind(tester),
+
+            applyLeader: () => ({
+                expectToBeSent: () => {
+                    tester.applyLeader();
+                    spendTime(0);
+
+                    return {
+                        waitForSecond: () => {
+                            spendTime(1000);
+                            spendTime(0);
+                        },
+                    };
+                },
+            }),
+
+            tellIsLeader: () => ({
+                expectToBeSent: () => {
+                    tester.tellIsLeader();
+                    spendTime(0);
+                },
+
+                receive: () => {
+                    tester.receiveMessage(tester.tellIsLeaderMessage());
                     spendTime(0);
                 },
             }),
@@ -7516,17 +7541,28 @@ define(() => function ({
                 finishDisconnecting: () => {
                     getWebSocket().finishDisconnecting();
                 },
+ 
                 disconnect: code => {
                     getWebSocket().disconnect(code);
                 },
+
                 disconnectAbnormally: code => {
                     getWebSocket().disconnectAbnormally(code);
                 },
-                connect: () => {
+
+                expectToBeConnecting() {
                     lastIndex ++;
                     index = lastIndex;
+                    getWebSocket().expectToBeConnecting();
+
+                    this.connect = () => getWebSocket().connect();
+                },
+
+                connect() {
+                    this.expectToBeConnecting();
                     getWebSocket().connect();
                 },
+
                 expectSentMessageToContain: message => getWebSocket().expectSentMessageToContain(message),
                 receive: message => getWebSocket().receiveMessage(message)
             };
@@ -7547,9 +7583,7 @@ define(() => function ({
             tester.disconnect = throwError;
             tester.disconnectAbnormally = throwError;
 
-            tester.connect = () => {
-                const value = createWebSocketTester();
-
+            const connect = value => {
                 tester.disconnect = code => {
                     value.disconnect(code);
                     applyMethods();
@@ -7569,11 +7603,28 @@ define(() => function ({
                 tester.receive = value.receive;
 
                 value.connect();
+                spendTime(0);
 
                 tester.connect = () => {
                     throw new Error('Вебсокет не должен быть подключен.');
                 };
             };
+
+            const expectToBeConnecting = () => {
+                const value = createWebSocketTester();
+                value.expectToBeConnecting();
+
+                return value;
+            };
+
+            tester.expectToBeConnecting = () => {
+                const value = expectToBeConnecting();
+                tester.connect = () => connect(value);
+
+                return tester;
+            };
+
+            tester.connect = () => connect(expectToBeConnecting());
         };
 
         applyMethods();
@@ -7721,6 +7772,11 @@ define(() => function ({
         });
 
         return {
+            nameUnchanged() {
+                ['first_name', 'last_name'].forEach(name => delete(params.data[name]));
+                return this;
+            },
+
             insertStatus() {
                 setStatus();
                 return this;
@@ -7794,6 +7850,16 @@ define(() => function ({
                 return this;
             },
 
+            fourthStatus() {
+                params.data.status_id = 1;
+                return this;
+            },
+
+            fifthStatus() {
+                params.data.status_id = 3;
+                return this;
+            },
+
             anotherStatus() {
                 params.data.status_id = 4;
                 return this;
@@ -7801,11 +7867,14 @@ define(() => function ({
 
             slavesNotification: function () {
                 return {
-                    expectToBeSent: () => {
-                        const notification = createNotification();
-                        me.recentCrosstabMessage().expectToContain(notification);
+                    expectToBeSent: () => me.employeesBroadcastChannel().
+                        nextMessage().
+                        expectToContain(createNotification()),
+                    
+                    receive: () => {
+                        me.employeesBroadcastChannel().receiveMessage(createNotification());
+                        spendTime(0);
                     },
-                    receive: () => (me.receiveCrosstabMessage(createNotification()), spendTime(0)),
                 };
             },
 
@@ -7814,6 +7883,42 @@ define(() => function ({
                 spendTime(0);
                 spendTime(0);
             }
+        }
+    };
+
+    me.employeesWebsocketConnectedMessage = () => {
+        const message = {
+            type: 'message',
+            data: { type: 'employees_websocket_connected' },
+        };
+
+        return {
+            expectToBeSent: () => me.employeesBroadcastChannel().
+                nextMessage().
+                expectToContain(message),
+            
+            receive: () => {
+                me.employeesBroadcastChannel().receiveMessage(message);
+                spendTime(0);
+            },
+        }
+    };
+
+    me.employeesWebsocketConnectedRequest = () => {
+        const message = {
+            type: 'message',
+            data: { type: 'get_employees_websocket_connectedness' },
+        };
+
+        return {
+            expectToBeSent: () => me.employeesBroadcastChannel().
+                nextMessage().
+                expectToContain(message),
+            
+            receive: () => {
+                me.employeesBroadcastChannel().receiveMessage(message);
+                spendTime(0);
+            },
         }
     };
 

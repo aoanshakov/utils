@@ -114,6 +114,7 @@ tests.addTest(options => {
                 expectToBeSent();
 
             tester.employeesWebSocket.connect();
+            tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
             tester.employeesInitMessage().
                 oauthToken().

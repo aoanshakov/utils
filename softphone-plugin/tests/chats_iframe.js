@@ -110,679 +110,71 @@ tests.addTest(options => {
                 });
 
                 describe('Чаты доступны.', function() {
-                    let chatListRequest;
+                    let chatListRequest,
+                        employeesBroadcastChannel;
 
                     beforeEach(function() {
                         accountRequest.
                             operatorWorkplaceAvailable().
                             receiveResponse();
 
-                        tester.employeesBroadcastChannel().
+                        employeesBroadcastChannel = tester.employeesBroadcastChannel().
                             applyLeader().
-                            expectToBeSent().
-                            waitForSecond();
-
-                        tester.employeesBroadcastChannel().
-                            applyLeader().
-                            expectToBeSent().
-                            waitForSecond();
-
-                        tester.employeesBroadcastChannel().
-                            tellIsLeader().
                             expectToBeSent();
-
-                        tester.employeesWebSocket.connect();
-
-                        tester.employeesInitMessage().
-                            oauthToken().
-                            expectToBeSent();
-
-                        secondAccountRequest.
-                            operatorWorkplaceAvailable().
-                            receiveResponse();
-
-                        tester.chatsWebSocket.connect();
-
-                        tester.chatsInitMessage().
-                            oauthToken().
-                            expectToBeSent();
-
-                        tester.employeeSettingsRequest().receiveResponse();
-
-                        tester.employeeRequest().
-                            oauthToken().
-                            receiveResponse();
-
-                        tester.accountRequest().
-                            forIframe().
-                            fromIframe().
-                            webAccountLoginUnavailable().
-                            operatorWorkplaceAvailable().
-                            receiveResponse();
-
-                        tester.chatChannelSearchRequest().
-                            emptySearchString().
-                            receiveResponse();
-
-                        tester.countersRequest().
-                            noNewChats().
-                            noClosedChats().
-                            receiveResponse();
-
-                        tester.unreadMessagesCountSettingRequest().
-                            value(75).
-                            expectToBeSent();
-
-                        tester.offlineMessageCountersRequest().receiveResponse();
-                        tester.chatChannelListRequest().receiveResponse();
-                        tester.siteListRequest().receiveResponse();
-                        tester.markListRequest().receiveResponse();
-
-                        tester.chatListRequest().
-                            forCurrentEmployee().
-                            noData().
-                            receiveResponse();
-
-                        chatListRequest = tester.chatListRequest().
-                            forCurrentEmployee().
-                            active().
-                            expectToBeSent();
-
-                        tester.chatListRequest().forCurrentEmployee().
-                            closed().
-                            noData().
-                            receiveResponse();
-
-                        tester.chatChannelTypeListRequest().receiveResponse();
-
-                        tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                        tester.offlineMessageListRequest().processing().receiveResponse();
-                        tester.offlineMessageListRequest().processed().receiveResponse();
-
-                        tester.button('В работе 75').click();
                     });
 
-                    describe('Контакт не найден.', function() {
+                    describe('Вкладка является ведущей.', function() {
+                        let employeesWebSocket;
+
                         beforeEach(function() {
-                            chatListRequest.receiveResponse();
+                            employeesBroadcastChannel.waitForSecond();
+
+                            tester.employeesBroadcastChannel().
+                                applyLeader().
+                                expectToBeSent().
+                                waitForSecond();
+
+                            tester.employeesBroadcastChannel().
+                                tellIsLeader().
+                                expectToBeSent();
+
+                            employeesWebSocket = tester.employeesWebSocket.expectToBeConnecting();
                         });
 
-                        describe('Получен запрос поиска каналов.', function() {
-                            let visitorExternalSearchingRequest,
-                                chatChannelSearchRequest;
-
+                        describe('Установлено соедниение с вебсокетом.', function() {
                             beforeEach(function() {
-                                tester.channelsSearchingRequest().
-                                    fromChromeExtension().
-                                    receive();
+                                employeesWebSocket.connect();
+                                tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
-                                visitorExternalSearchingRequest = tester.visitorExternalSearchingRequest().
-                                    anotherToken().
-                                    fourthSearchString().
-                                    telegramPrivate().
+                                tester.employeesInitMessage().
+                                    oauthToken().
                                     expectToBeSent();
 
-                                chatChannelSearchRequest = tester.chatChannelSearchRequest().
-                                    thirdSearchString().
-                                    telegramPrivate().
-                                    addTelegramPrivate();
-                            });
-
-                            describe('В канале есть чужие чаты.', function() {
-                                beforeEach(function() {
-                                    chatChannelSearchRequest.anotherEmployee();
-                                });
-
-                                describe('Поиск каналов завершен. Ответ отправлен в родительское окно.', function() {
-                                    beforeEach(function() {
-                                        visitorExternalSearchingRequest.receiveResponse();
-                                        chatChannelSearchRequest.receiveResponse();
-
-                                        tester.channelsSearchingResponse().
-                                            addChannel().
-                                            unavailable().
-                                            expectToBeSent();
-                                    });
-
-                                    describe(
-                                        'Получен запрос открытия чата с номером по которому не производился поиск.', 
-                                    function() {
-                                        beforeEach(function() {
-                                            tester.chatOpeningRequest().
-                                                anotherPhone().
-                                                anotherChannel().
-                                                receive();
-
-                                            tester.visitorExternalSearchingRequest().
-                                                anotherToken().
-                                                fifthSearchString().
-                                                telegramPrivate().
-                                                receiveResponse();
-
-                                            tester.chatChannelSearchRequest().
-                                                fourthSearchString().
-                                                telegramPrivate().
-                                                anotherChannel().
-                                                noChat().
-                                                receiveResponse();
-
-                                            tester.chatListRequest().
-                                                forCurrentEmployee().
-                                                noData().
-                                                receiveResponse();
-
-                                            tester.chatListRequest().
-                                                active().
-                                                secondPage().
-                                                forCurrentEmployee().
-                                                receiveResponse();
-
-                                            tester.chatListRequest().
-                                                closed().
-                                                noData().
-                                                forCurrentEmployee().
-                                                receiveResponse();
-
-                                            tester.chatListRequest().
-                                                active().
-                                                noData().
-                                                forCurrentEmployee().
-                                                isOtherEmployeesAppeals().
-                                                receiveResponse();
-
-                                            tester.chatStartingRequest().
-                                                thirdPhone().
-                                                anotherChannel().
-                                                receiveResponse();
-
-                                            tester.chatListRequest().
-                                                thirdChat().
-                                                receiveResponse();
-
-                                            tester.submoduleInitilizationEvent().
-                                                contacts().
-                                                expectToBeSent();
-
-                                            tester.scheduledMessagesRequest().receiveResponse();
-                                            tester.visitorCardRequest().receiveResponse();
-                                            tester.chatInfoRequest().receiveResponse();
-
-                                            tester.usersRequest().
-                                                forContacts().
-                                                forIframe().
-                                                receiveResponse();
-
-                                            tester.contactGroupsRequest().
-                                                forIframe().
-                                                receiveResponse();
-
-                                            tester.contactGroupsRequest().
-                                                forIframe().
-                                                receiveResponse();
-
-                                            tester.usersRequest().
-                                                forContacts().
-                                                forIframe().
-                                                receiveResponse();
-                                        });
-
-                                        describe('Принимаю чат в работу.', function() {
-                                            beforeEach(function() {
-                                                tester.button('Принять чат в работу').click();
-                                                tester.acceptChatRequest().receiveResponse();
-                                            });
-
-                                            describe('Открываю меню действий.', function() {
-                                                beforeEach(function() {
-                                                    tester.moreIcon.click();
-                                                });
-
-                                                describe(
-                                                    'Получен запрос каналов. Нажимаю на кнопку завершения чата.',
-                                                function() {
-                                                    let visitorExternalSearchingRequest;
-
-                                                    beforeEach(function() {
-                                                        tester.channelsSearchingRequest().
-                                                            fromChromeExtension().
-                                                            fifthPhone().
-                                                            receive();
-
-                                                        visitorExternalSearchingRequest =
-                                                            tester.visitorExternalSearchingRequest().
-                                                                anotherToken().
-                                                                thirdSearchString().
-                                                                telegramPrivate().
-                                                                expectToBeSent();
-
-                                                        tester.select.
-                                                            option('Завершить чат').
-                                                            click();
-
-                                                        tester.chatClosingRequest().receiveResponse();
-
-                                                        tester.chatClosedMessage().
-                                                            anotherChat().
-                                                            receive();
-
-                                                        tester.chatListRequest().
-                                                            thirdChat().
-                                                            receiveResponse();
-
-                                                        tester.countersRequest().
-                                                            noNewChats().
-                                                            noClosedChats().
-                                                            receiveResponse();
-                                                    });
-
-                                                    it(
-                                                        'Получен ответ на запрос каналов. Ответ отправлен в ' +
-                                                        'родительское окно.',
-                                                    function() {
-                                                        tester.channelsSearchingRequest().
-                                                            fromChromeExtension().
-                                                            fifthPhone().
-                                                            receive();
-
-                                                        visitorExternalSearchingRequest.receiveResponse();
-
-                                                        tester.chatChannelSearchRequest().
-                                                            anotherSearchString().
-                                                            telegramPrivate().
-                                                            receiveResponse();
-
-                                                        tester.channelsSearchingResponse().
-                                                            fifthChannel().
-                                                            expectToBeSent();
-                                                    });
-                                                    it(
-                                                        'Нажимаю на кнопку закрытия окна чатов. Окно закрыто.',
-                                                    function() {
-                                                        tester.closeButton.click();
-                                                        tester.chatsHidingRequest().expectToBeSent();
-                                                    });
-                                                    it('Ничего не произошло.', function() {
-                                                        postMessages.nextMessage().expectNotToExist();
-                                                        ajax.expectNoRequestsToBeSent();
-                                                    });
-                                                });
-                                                describe(
-                                                    'Получен запрос каналов с другого окна. Нажимаю на кнопку ' +
-                                                    'завершения чата.',
-                                                function() {
-                                                    beforeEach(function() {
-                                                        tester.channelsSearchingRequest().
-                                                            fromChromeExtension().
-                                                            anotherId().
-                                                            fifthPhone().
-                                                            receive();
-
-                                                        visitorExternalSearchingRequest =
-                                                            tester.visitorExternalSearchingRequest().
-                                                                anotherToken().
-                                                                thirdSearchString().
-                                                                telegramPrivate().
-                                                                expectToBeSent();
-
-                                                        tester.select.
-                                                            option('Завершить чат').
-                                                            click();
-
-                                                        tester.chatClosingRequest().receiveResponse();
-
-                                                        tester.chatClosedMessage().
-                                                            anotherChat().
-                                                            receive();
-
-                                                        tester.chatListRequest().
-                                                            thirdChat().
-                                                            receiveResponse();
-
-                                                        tester.countersRequest().
-                                                            noNewChats().
-                                                            noClosedChats().
-                                                            receiveResponse();
-
-                                                        tester.channelsSearchingRequest().
-                                                            fromChromeExtension().
-                                                            fifthPhone().
-                                                            receive();
-                                                    });
-
-                                                    it(
-                                                        'Получен ответ на запрос каналов. Предыдущий запрос каналов ' +
-                                                        'отправлены заново.',
-                                                    function() {
-                                                        visitorExternalSearchingRequest.receiveResponse();
-
-                                                        tester.chatChannelSearchRequest().
-                                                            anotherSearchString().
-                                                            telegramPrivate().
-                                                            receiveResponse();
-
-                                                        tester.channelsSearchingResponse().
-                                                            fifthChannel().
-                                                            expectToBeSent();
-
-                                                        tester.visitorExternalSearchingRequest().
-                                                            anotherToken().
-                                                            fourthSearchString().
-                                                            telegramPrivate().
-                                                            expectToBeSent();
-                                                    });
-                                                    it('Ничего не произошло.', function() {
-                                                        postMessages.nextMessage().expectNotToExist();
-                                                        ajax.expectNoRequestsToBeSent();
-                                                    });
-                                                });
-                                                it(
-                                                    'Перевожу чат другому оператору. Чат закрывается, список чатов ' +
-                                                    'отображён.',
-                                                function() {
-                                                    tester.select.
-                                                        option('Переадресовать чат').
-                                                        click();
-
-                                                    tester.select.click();
-
-                                                    tester.chatTransferGroupsRequest().receiveResponse();
-
-                                                    tester.select.
-                                                        option('Костова Марвуда Любенова').
-                                                        click();
-
-                                                    tester.button('Отправить').click();
-                                                    tester.requestTransfer().receiveResponse();
-
-                                                    tester.countersRequest().
-                                                        noNewChats().
-                                                        noClosedChats().
-                                                        receiveResponse();
-
-                                                    tester.button('Закрыть').click();
-                                                    tester.transferAcceptedMessage().receive();
-
-                                                    spendTime(5000);
-
-                                                    tester.employeesPing().expectToBeSent();
-                                                    tester.employeesPing().receive();
-
-                                                    tester.countersRequest().
-                                                        noNewChats().
-                                                        noClosedChats().
-                                                        receiveResponse();
-
-                                                    tester.visitorExternalSearchingRequest().
-                                                        anotherToken().
-                                                        fourthSearchString().
-                                                        telegramPrivate().
-                                                        expectToBeSent();
-
-                                                    tester.button('В работе 75').expectToBeVisible();
-                                                });
-                                                it('Нажимаю на кнопку завершения чата.', function() {
-                                                    tester.select.
-                                                        option('Завершить чат').
-                                                        click();
-
-                                                    tester.chatClosingRequest().receiveResponse();
-
-                                                    tester.chatClosedMessage().
-                                                        anotherChat().
-                                                        receive();
-
-                                                    tester.chatListRequest().
-                                                        thirdChat().
-                                                        receiveResponse();
-
-                                                    tester.countersRequest().
-                                                        noNewChats().
-                                                        noClosedChats().
-                                                        receiveResponse();
-
-                                                    tester.visitorExternalSearchingRequest().
-                                                        anotherToken().
-                                                        fourthSearchString().
-                                                        telegramPrivate().
-                                                        expectToBeSent();
-                                                });
-                                            });
-                                            it('Нажимаю на кнопку шаблонов. Отображён список шаблонов.', function() {
-                                                tester.templateIcon.click();
-                                                tester.chatTemplateMenu.expectToBeVisible();
-                                            });
-                                        });
-                                        it('Чат открыт.', function() {
-                                            tester.button('В работе 75').expectNotToExist();
-
-                                            tester.contactBar.expectTextContentToHaveSubstring(
-                                                'ФИО ' +
-                                                'Помакова Бисерка Драгановна'
-                                            );
-                                        });
-                                    });
-                                    it(
-
-                                        'Получен такой же запрос поиска каналов. Ответ отправлен в родительское окно.',
-                                    function() {
-                                        tester.channelsSearchingRequest().
-                                            fromChromeExtension().
-                                            receive();
-
-                                        tester.channelsSearchingResponse().
-                                            addChannel().
-                                            unavailable().
-                                            expectToBeSent();
-                                    });
-                                    it('Ничего не произошло.', function() {
-                                        postMessages.nextMessage().expectNotToExist();
-                                        ajax.expectNoRequestsToBeSent();
-                                    });
-                                });
-                                describe('Получен другой запрос поиска каналов.', function() {
-                                    beforeEach(function() {
-                                        tester.channelsSearchingRequest().
-                                            anotherPhone().
-                                            receive();
-                                    });
-
-                                    it(
-                                        'Поиск каналов завершен. Отправлен запрос в сервер. Ответы отправлены в ' +
-                                        'родительское окно.',
-                                    function() {
-                                        visitorExternalSearchingRequest.receiveResponse();
-                                        chatChannelSearchRequest.receiveResponse();
-                                       
-                                        tester.visitorExternalSearchingRequest().
-                                            anotherToken().
-                                            fifthSearchString().
-                                            telegramPrivate().
-                                            receiveResponse();
-
-                                        tester.chatChannelSearchRequest().
-                                            fourthSearchString().
-                                            telegramPrivate().
-                                            anotherChannel().
-                                            noChat().
-                                            receiveResponse();
-
-                                        tester.channelsSearchingResponse().
-                                            addChannel().
-                                            unavailable().
-                                            expectToBeSent();
-
-                                        tester.channelsSearchingResponse().
-                                            anotherChannel().
-                                            expectToBeSent();
-                                    });
-                                    it(
-                                        'Поиск каналов завершен. Один из запросов завершился неудачей. Отправлен ' +
-                                        'запрос в сервер. Ответы отправлены в родительское окно.',
-                                    function() {
-                                        visitorExternalSearchingRequest.receiveResponse();
-
-                                        chatChannelSearchRequest.
-                                            invalidFormat().
-                                            receiveResponse();
-                                       
-                                        tester.visitorExternalSearchingRequest().
-                                            anotherToken().
-                                            fifthSearchString().
-                                            telegramPrivate().
-                                            receiveResponse();
-
-                                        tester.chatChannelSearchRequest().
-                                            fourthSearchString().
-                                            telegramPrivate().
-                                            anotherChannel().
-                                            noChat().
-                                            receiveResponse();
-
-                                        tester.channelsSearchingResponse().
-                                            nothingFound().
-                                            expectToBeSent();
-
-                                        tester.channelsSearchingResponse().
-                                            anotherChannel().
-                                            expectToBeSent();
-                                    });
-                                    it('Запрос в сервер не был отправлен.', function() {
-                                        ajax.expectNoRequestsToBeSent();
-                                    });
-                                });
-                                it(
-                                    'Получен такой же запрос поиска каналов. Ответ отправелен в родительское окно ' +
-                                    'только один раз.',
-                                function() {
-                                    tester.channelsSearchingRequest().receive();
-
-                                    visitorExternalSearchingRequest.receiveResponse();
-                                    chatChannelSearchRequest.receiveResponse();
-
-                                    tester.channelsSearchingResponse().
-                                        addChannel().
-                                        unavailable().
-                                        expectToBeSent();
-                                });
-                            });
-                            describe(
-                                'В канале нет чатов. Получен запрос открытия чата с номером по которому производился ' +
-                                'поиск.',
-                            function() {
-                                let newChatListRequest,
-                                    activeChatListRequest,
-                                    closedChatListRequest,
-                                    otherChatListRequest;
-
-                                beforeEach(function() {
-                                    visitorExternalSearchingRequest.receiveResponse();
-                                    chatChannelSearchRequest.noChat().receiveResponse();
-
-                                    tester.channelsSearchingResponse().
-                                        addChannel().
-                                        expectToBeSent();
-
-                                    tester.chatOpeningRequest().receive();
-
-                                    newChatListRequest = tester.chatListRequest().
-                                        forCurrentEmployee().
-                                        noData().
-                                        expectToBeSent();
-
-                                    activeChatListRequest = tester.chatListRequest().
-                                        active().
-                                        forCurrentEmployee().
-                                        secondPage().
-                                        expectToBeSent();
-
-                                    closedChatListRequest = tester.chatListRequest().
-                                        closed().
-                                        noData().
-                                        forCurrentEmployee().
-                                        expectToBeSent();
-
-                                    otherChatListRequest = tester.chatListRequest().
-                                        active().
-                                        noData().
-                                        forCurrentEmployee().
-                                        isOtherEmployeesAppeals().
-                                        expectToBeSent();
-                                });
-
-                                describe('Получен список чатов.', function() {
-                                    beforeEach(function() {
-                                        newChatListRequest.receiveResponse();
-                                        activeChatListRequest.receiveResponse();
-                                        closedChatListRequest.receiveResponse();
-                                        otherChatListRequest.receiveResponse();
-
-                                        tester.chatStartingRequest().
-                                            anotherPhone().
-                                            receiveResponse();
-
-                                        tester.chatListRequest().
-                                            thirdChat().
-                                            receiveResponse();
-            
-                                        tester.submoduleInitilizationEvent().
-                                            contacts().
-                                            expectToBeSent();
-
-                                        tester.scheduledMessagesRequest().receiveResponse();
-                                        tester.visitorCardRequest().receiveResponse();
-                                        tester.chatInfoRequest().receiveResponse();
-
-                                        tester.usersRequest().
-                                            forContacts().
-                                            forIframe().
-                                            receiveResponse();
-
-                                        tester.contactGroupsRequest().
-                                            forIframe().
-                                            receiveResponse();
-
-                                        tester.contactGroupsRequest().
-                                            forIframe().
-                                            receiveResponse();
-
-                                        tester.usersRequest().
-                                            forContacts().
-                                            forIframe().
-                                            receiveResponse();
-                                    });
-
-                                    it('Получен запрос отображения списка чатов. Список чатов отображён.', function() {
-                                        tester.chatListOpeningRequest().receive();
-
-                                        tester.chatList.
-                                            first.
-                                            item('Помакова Бисерка').
-                                            expectToBeVisible();
-                                    });
-                                    it('Чат начат.', function() {
-                                        tester.chatList.first.expectNotToExist();
-                                        tester.spin.expectNotToExist();
-
-                                        tester.contactBar.expectTextContentToHaveSubstring(
-                                            'ФИО ' +
-                                            'Помакова Бисерка Драгановна'
-                                        );
-                                    });
-                                });
-                                it('Плейсхолдер не отображается.', function() {
-                                    tester.spin.expectToBeVisible();
-                                    tester.body.expectToHaveTextContent('');
-                                });
-                            });
-                        });
-                        describe('Приходит новое сообщение.', function() {
-                            let notificationShowingRequest;
-
-                            beforeEach(function() {
-                                tester.newMessage().receive();
-
-                                tester.chatListRequest().
-                                    chat().
+                                secondAccountRequest.
+                                    operatorWorkplaceAvailable().
+                                    receiveResponse();
+
+                                tester.chatsWebSocket.connect();
+
+                                tester.chatsInitMessage().
+                                    oauthToken().
+                                    expectToBeSent();
+
+                                tester.employeeSettingsRequest().receiveResponse();
+
+                                tester.employeeRequest().
+                                    oauthToken().
+                                    receiveResponse();
+
+                                tester.accountRequest().
+                                    forIframe().
+                                    fromIframe().
+                                    webAccountLoginUnavailable().
+                                    operatorWorkplaceAvailable().
+                                    receiveResponse();
+
+                                tester.chatChannelSearchRequest().
+                                    emptySearchString().
                                     receiveResponse();
 
                                 tester.countersRequest().
@@ -790,58 +182,749 @@ tests.addTest(options => {
                                     noClosedChats().
                                     receiveResponse();
 
-                                notificationShowingRequest = tester.notificationShowingRequest().expectToBeSent();
-                            });
-
-                            it('Нажимаю на уведомление. Открыт чат.', function() {
-                                notificationShowingRequest.
-                                    click().
-                                    receive();
-
-                                tester.scheduledMessagesRequest().
-                                    anotherChat().
-                                    receiveResponse();
-
-                                tester.visitorCardRequest().receiveResponse();
-                                tester.messageListRequest().receiveResponse();
-
-                                tester.chatInfoRequest().
-                                    anotherChat().
-                                    receiveResponse();
-
-                                tester.usersRequest().
-                                    forContacts().
-                                    forIframe().
-                                    receiveResponse();
-
-                                tester.contactGroupsRequest().
-                                    forIframe().
-                                    receiveResponse();
-
-                                tester.contactGroupsRequest().
-                                    forIframe().
-                                    receiveResponse();
-
-                                tester.usersRequest().
-                                    forContacts().
-                                    forIframe().
-                                    receiveResponse();
-
-                                tester.submoduleInitilizationEvent().
-                                    contacts().
+                                tester.unreadMessagesCountSettingRequest().
+                                    value(75).
                                     expectToBeSent();
 
-                                tester.contactBar.expectTextContentToHaveSubstring(
-                                    'ФИО ' +
-                                    'Помакова Бисерка Драгановна'
-                                );
+                                tester.offlineMessageCountersRequest().receiveResponse();
+                                tester.chatChannelListRequest().receiveResponse();
+                                tester.siteListRequest().receiveResponse();
+                                tester.markListRequest().receiveResponse();
+
+                                tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    noData().
+                                    receiveResponse();
+
+                                chatListRequest = tester.chatListRequest().
+                                    forCurrentEmployee().
+                                    active().
+                                    expectToBeSent();
+
+                                tester.chatListRequest().forCurrentEmployee().
+                                    closed().
+                                    noData().
+                                    receiveResponse();
+
+                                tester.chatChannelTypeListRequest().receiveResponse();
+
+                                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                                tester.offlineMessageListRequest().processing().receiveResponse();
+                                tester.offlineMessageListRequest().processed().receiveResponse();
+
+                                tester.button('В работе 75').click();
                             });
-                            it('Ничего не происходит.', function() {
-                                postMessages.nextMessage().expectNotToExist();
+
+                            describe('Контакт не найден.', function() {
+                                beforeEach(function() {
+                                    chatListRequest.receiveResponse();
+                                });
+
+                                describe('Получен запрос поиска каналов.', function() {
+                                    let visitorExternalSearchingRequest,
+                                        chatChannelSearchRequest;
+
+                                    beforeEach(function() {
+                                        tester.channelsSearchingRequest().receive();
+
+                                        visitorExternalSearchingRequest = tester.visitorExternalSearchingRequest().
+                                            anotherToken().
+                                            fourthSearchString().
+                                            telegramPrivate().
+                                            expectToBeSent();
+
+                                        chatChannelSearchRequest = tester.chatChannelSearchRequest().
+                                            thirdSearchString().
+                                            telegramPrivate().
+                                            addTelegramPrivate();
+                                    });
+
+                                    describe('В канале есть чужие чаты.', function() {
+                                        beforeEach(function() {
+                                            chatChannelSearchRequest.anotherEmployee();
+                                        });
+
+                                        describe('Поиск каналов завершен. Ответ отправлен в родительское окно.', function() {
+                                            beforeEach(function() {
+                                                visitorExternalSearchingRequest.receiveResponse();
+                                                chatChannelSearchRequest.receiveResponse();
+
+                                                tester.channelsSearchingResponse().
+                                                    addChannel().
+                                                    unavailable().
+                                                    expectToBeSent();
+                                            });
+
+                                            describe(
+                                                'Получен запрос открытия чата с номером по которому не производился поиск.', 
+                                            function() {
+                                                beforeEach(function() {
+                                                    tester.chatOpeningRequest().
+                                                        anotherPhone().
+                                                        anotherChannel().
+                                                        receive();
+
+                                                    tester.visitorExternalSearchingRequest().
+                                                        anotherToken().
+                                                        fifthSearchString().
+                                                        telegramPrivate().
+                                                        receiveResponse();
+
+                                                    tester.chatChannelSearchRequest().
+                                                        fourthSearchString().
+                                                        telegramPrivate().
+                                                        anotherChannel().
+                                                        noChat().
+                                                        receiveResponse();
+
+                                                    tester.chatListRequest().
+                                                        forCurrentEmployee().
+                                                        noData().
+                                                        receiveResponse();
+
+                                                    tester.chatListRequest().
+                                                        active().
+                                                        secondPage().
+                                                        forCurrentEmployee().
+                                                        receiveResponse();
+
+                                                    tester.chatListRequest().
+                                                        closed().
+                                                        noData().
+                                                        forCurrentEmployee().
+                                                        receiveResponse();
+
+                                                    tester.chatListRequest().
+                                                        active().
+                                                        noData().
+                                                        forCurrentEmployee().
+                                                        isOtherEmployeesAppeals().
+                                                        receiveResponse();
+
+                                                    tester.chatStartingRequest().
+                                                        thirdPhone().
+                                                        anotherChannel().
+                                                        receiveResponse();
+
+                                                    tester.chatListRequest().
+                                                        thirdChat().
+                                                        receiveResponse();
+
+                                                    tester.submoduleInitilizationEvent().
+                                                        contacts().
+                                                        expectToBeSent();
+
+                                                    tester.scheduledMessagesRequest().receiveResponse();
+                                                    tester.visitorCardRequest().receiveResponse();
+                                                    tester.chatInfoRequest().receiveResponse();
+
+                                                    tester.usersRequest().
+                                                        forContacts().
+                                                        forIframe().
+                                                        receiveResponse();
+
+                                                    tester.contactGroupsRequest().
+                                                        forIframe().
+                                                        receiveResponse();
+
+                                                    tester.contactGroupsRequest().
+                                                        forIframe().
+                                                        receiveResponse();
+
+                                                    tester.usersRequest().
+                                                        forContacts().
+                                                        forIframe().
+                                                        receiveResponse();
+                                                });
+
+                                                describe('Принимаю чат в работу.', function() {
+                                                    beforeEach(function() {
+                                                        tester.button('Принять чат в работу').click();
+                                                        tester.acceptChatRequest().receiveResponse();
+                                                    });
+
+                                                    describe('Открываю меню действий.', function() {
+                                                        beforeEach(function() {
+                                                            tester.moreIcon.click();
+                                                        });
+
+                                                        describe(
+                                                            'Из родительского окна получен запрос каналов. Нажимаю на кнопку ' +
+                                                            'завершения чата. Из родительского окна получен повторный запрос ' +
+                                                            'каналов.',
+                                                        function() {
+                                                            let visitorExternalSearchingRequest;
+
+                                                            beforeEach(function() {
+                                                                tester.channelsSearchingRequest().
+                                                                    fifthPhone().
+                                                                    receive();
+
+                                                                visitorExternalSearchingRequest =
+                                                                    tester.visitorExternalSearchingRequest().
+                                                                        anotherToken().
+                                                                        thirdSearchString().
+                                                                        telegramPrivate().
+                                                                        expectToBeSent();
+
+                                                                tester.select.
+                                                                    option('Завершить чат').
+                                                                    click();
+
+                                                                tester.chatClosingRequest().receiveResponse();
+
+                                                                tester.chatClosedMessage().
+                                                                    anotherChat().
+                                                                    receive();
+
+                                                                tester.channelsCacheClearingEvent().expectToBeSent();
+
+                                                                tester.channelsSearchingRequest().
+                                                                    second().fifthPhone().
+                                                                    receive();
+
+                                                                tester.chatListRequest().
+                                                                    thirdChat().
+                                                                    receiveResponse();
+
+                                                                tester.countersRequest().
+                                                                    noNewChats().
+                                                                    noClosedChats().
+                                                                    receiveResponse();
+                                                            });
+
+                                                            it(
+                                                                'Получен ответ на запрос каналов. На сервер отправлен ' +
+                                                                'повторный запрос каналов.',
+                                                            function() {
+                                                                visitorExternalSearchingRequest.receiveResponse();
+
+                                                                tester.chatChannelSearchRequest().
+                                                                    anotherSearchString().
+                                                                    telegramPrivate().
+                                                                    receiveResponse();
+
+                                                                tester.channelsSearchingResponse().
+                                                                    fifthChannel().
+                                                                    expectToBeSent();
+
+                                                                tester.visitorExternalSearchingRequest().
+                                                                    anotherToken().
+                                                                    fourthSearchString().
+                                                                    telegramPrivate().
+                                                                    expectToBeSent();
+                                                            });
+                                                            it(
+                                                                'Нажимаю на кнопку закрытия окна чатов. Окно закрыто.',
+                                                            function() {
+                                                                tester.closeButton.click();
+                                                                tester.chatsHidingRequest().expectToBeSent();
+                                                            });
+                                                            it('Ничего не произошло.', function() {
+                                                                postMessages.nextMessage().expectNotToExist();
+                                                                ajax.expectNoRequestsToBeSent();
+                                                            });
+                                                        });
+                                                        it(
+                                                            'Перевожу чат другому оператору. Чат закрывается, список чатов ' +
+                                                            'отображён.',
+                                                        function() {
+                                                            tester.select.
+                                                                option('Переадресовать чат').
+                                                                click();
+
+                                                            tester.select.click();
+
+                                                            tester.chatTransferGroupsRequest().receiveResponse();
+
+                                                            tester.select.
+                                                                option('Костова Марвуда Любенова').
+                                                                click();
+
+                                                            tester.button('Отправить').click();
+                                                            tester.requestTransfer().receiveResponse();
+
+                                                            tester.countersRequest().
+                                                                noNewChats().
+                                                                noClosedChats().
+                                                                receiveResponse();
+
+                                                            tester.button('Закрыть').click();
+
+                                                            tester.transferAcceptedMessage().receive();
+                                                            tester.channelsCacheClearingEvent().expectToBeSent();
+
+                                                            spendTime(5000);
+
+                                                            tester.employeesPing().expectToBeSent();
+                                                            tester.employeesPing().receive();
+
+                                                            tester.countersRequest().
+                                                                noNewChats().
+                                                                noClosedChats().
+                                                                receiveResponse();
+
+                                                            tester.button('В работе 75').expectToBeVisible();
+                                                        });
+                                                    });
+                                                    it('Нажимаю на кнопку шаблонов. Отображён список шаблонов.', function() {
+                                                        tester.templateIcon.click();
+                                                        tester.chatTemplateMenu.expectToBeVisible();
+                                                    });
+                                                });
+                                                it('Чат открыт.', function() {
+                                                    tester.button('В работе 75').expectNotToExist();
+
+                                                    tester.contactBar.expectTextContentToHaveSubstring(
+                                                        'ФИО ' +
+                                                        'Помакова Бисерка Драгановна'
+                                                    );
+                                                });
+                                            });
+                                            it(
+
+                                                'Получен такой же запрос поиска каналов. Ответ отправлен в родительское окно.',
+                                            function() {
+                                                tester.channelsSearchingRequest().receive();
+
+                                                tester.channelsSearchingResponse().
+                                                    addChannel().
+                                                    unavailable().
+                                                    expectToBeSent();
+                                            });
+                                            it('Ничего не произошло.', function() {
+                                                postMessages.nextMessage().expectNotToExist();
+                                                ajax.expectNoRequestsToBeSent();
+                                            });
+                                        });
+                                        describe('Получен другой запрос поиска каналов.', function() {
+                                            beforeEach(function() {
+                                                tester.channelsSearchingRequest().
+                                                    anotherPhone().
+                                                    receive();
+                                            });
+
+                                            it(
+                                                'Поиск каналов завершен. Отправлен запрос в сервер. Ответы отправлены в ' +
+                                                'родительское окно.',
+                                            function() {
+                                                visitorExternalSearchingRequest.receiveResponse();
+                                                chatChannelSearchRequest.receiveResponse();
+                                               
+                                                tester.visitorExternalSearchingRequest().
+                                                    anotherToken().
+                                                    fifthSearchString().
+                                                    telegramPrivate().
+                                                    receiveResponse();
+
+                                                tester.chatChannelSearchRequest().
+                                                    fourthSearchString().
+                                                    telegramPrivate().
+                                                    anotherChannel().
+                                                    noChat().
+                                                    receiveResponse();
+
+                                                tester.channelsSearchingResponse().
+                                                    addChannel().
+                                                    unavailable().
+                                                    expectToBeSent();
+
+                                                tester.channelsSearchingResponse().
+                                                    anotherChannel().
+                                                    expectToBeSent();
+                                            });
+                                            it(
+                                                'Поиск каналов завершен. Один из запросов завершился неудачей. Отправлен ' +
+                                                'запрос в сервер. Ответы отправлены в родительское окно.',
+                                            function() {
+                                                visitorExternalSearchingRequest.receiveResponse();
+
+                                                chatChannelSearchRequest.
+                                                    invalidFormat().
+                                                    receiveResponse();
+                                               
+                                                tester.visitorExternalSearchingRequest().
+                                                    anotherToken().
+                                                    fifthSearchString().
+                                                    telegramPrivate().
+                                                    receiveResponse();
+
+                                                tester.chatChannelSearchRequest().
+                                                    fourthSearchString().
+                                                    telegramPrivate().
+                                                    anotherChannel().
+                                                    noChat().
+                                                    receiveResponse();
+
+                                                tester.channelsSearchingResponse().
+                                                    nothingFound().
+                                                    expectToBeSent();
+
+                                                tester.channelsSearchingResponse().
+                                                    anotherChannel().
+                                                    expectToBeSent();
+                                            });
+                                            it('Запрос в сервер не был отправлен.', function() {
+                                                ajax.expectNoRequestsToBeSent();
+                                            });
+                                        });
+                                        it(
+                                            'Получен такой же запрос поиска каналов. Ответ отправелен в родительское окно ' +
+                                            'только один раз.',
+                                        function() {
+                                            tester.channelsSearchingRequest().receive();
+
+                                            visitorExternalSearchingRequest.receiveResponse();
+                                            chatChannelSearchRequest.receiveResponse();
+
+                                            tester.channelsSearchingResponse().
+                                                addChannel().
+                                                unavailable().
+                                                expectToBeSent();
+                                        });
+                                    });
+                                    describe(
+                                        'В канале нет чатов. Получен запрос открытия чата с номером по которому производился ' +
+                                        'поиск.',
+                                    function() {
+                                        let newChatListRequest,
+                                            activeChatListRequest,
+                                            closedChatListRequest,
+                                            otherChatListRequest;
+
+                                        beforeEach(function() {
+                                            visitorExternalSearchingRequest.receiveResponse();
+                                            chatChannelSearchRequest.noChat().receiveResponse();
+
+                                            tester.channelsSearchingResponse().
+                                                addChannel().
+                                                expectToBeSent();
+
+                                            tester.chatOpeningRequest().receive();
+
+                                            newChatListRequest = tester.chatListRequest().
+                                                forCurrentEmployee().
+                                                noData().
+                                                expectToBeSent();
+
+                                            activeChatListRequest = tester.chatListRequest().
+                                                active().
+                                                forCurrentEmployee().
+                                                secondPage().
+                                                expectToBeSent();
+
+                                            closedChatListRequest = tester.chatListRequest().
+                                                closed().
+                                                noData().
+                                                forCurrentEmployee().
+                                                expectToBeSent();
+
+                                            otherChatListRequest = tester.chatListRequest().
+                                                active().
+                                                noData().
+                                                forCurrentEmployee().
+                                                isOtherEmployeesAppeals().
+                                                expectToBeSent();
+                                        });
+
+                                        describe('Получен список чатов.', function() {
+                                            beforeEach(function() {
+                                                newChatListRequest.receiveResponse();
+                                                activeChatListRequest.receiveResponse();
+                                                closedChatListRequest.receiveResponse();
+                                                otherChatListRequest.receiveResponse();
+
+                                                tester.chatStartingRequest().
+                                                    anotherPhone().
+                                                    receiveResponse();
+
+                                                tester.chatListRequest().
+                                                    thirdChat().
+                                                    receiveResponse();
+                    
+                                                tester.submoduleInitilizationEvent().
+                                                    contacts().
+                                                    expectToBeSent();
+
+                                                tester.scheduledMessagesRequest().receiveResponse();
+                                                tester.visitorCardRequest().receiveResponse();
+                                                tester.chatInfoRequest().receiveResponse();
+
+                                                tester.usersRequest().
+                                                    forContacts().
+                                                    forIframe().
+                                                    receiveResponse();
+
+                                                tester.contactGroupsRequest().
+                                                    forIframe().
+                                                    receiveResponse();
+
+                                                tester.contactGroupsRequest().
+                                                    forIframe().
+                                                    receiveResponse();
+
+                                                tester.usersRequest().
+                                                    forContacts().
+                                                    forIframe().
+                                                    receiveResponse();
+                                            });
+
+                                            it('Получен запрос отображения списка чатов. Список чатов отображён.', function() {
+                                                tester.chatListOpeningRequest().receive();
+
+                                                tester.chatList.
+                                                    first.
+                                                    item('Помакова Бисерка').
+                                                    expectToBeVisible();
+                                            });
+                                            it('Чат начат.', function() {
+                                                tester.chatList.first.expectNotToExist();
+                                                tester.spin.expectNotToExist();
+
+                                                tester.contactBar.expectTextContentToHaveSubstring(
+                                                    'ФИО ' +
+                                                    'Помакова Бисерка Драгановна'
+                                                );
+                                            });
+                                        });
+                                        it('Плейсхолдер не отображается.', function() {
+                                            tester.spin.expectToBeVisible();
+                                            tester.body.expectToHaveTextContent('');
+                                        });
+                                    });
+                                });
+                                describe('Приходит новое сообщение.', function() {
+                                    let notificationShowingRequest;
+
+                                    beforeEach(function() {
+                                        tester.newMessage().receive();
+
+                                        tester.chatListRequest().
+                                            chat().
+                                            receiveResponse();
+
+                                        tester.countersRequest().
+                                            noNewChats().
+                                            noClosedChats().
+                                            receiveResponse();
+
+                                        notificationShowingRequest = tester.notificationShowingRequest().expectToBeSent();
+                                    });
+
+                                    it('Нажимаю на уведомление. Открыт чат.', function() {
+                                        notificationShowingRequest.
+                                            click().
+                                            receive();
+
+                                        tester.scheduledMessagesRequest().
+                                            anotherChat().
+                                            receiveResponse();
+
+                                        tester.visitorCardRequest().receiveResponse();
+                                        tester.messageListRequest().receiveResponse();
+
+                                        tester.chatInfoRequest().
+                                            anotherChat().
+                                            receiveResponse();
+
+                                        tester.usersRequest().
+                                            forContacts().
+                                            forIframe().
+                                            receiveResponse();
+
+                                        tester.contactGroupsRequest().
+                                            forIframe().
+                                            receiveResponse();
+
+                                        tester.contactGroupsRequest().
+                                            forIframe().
+                                            receiveResponse();
+
+                                        tester.usersRequest().
+                                            forContacts().
+                                            forIframe().
+                                            receiveResponse();
+
+                                        tester.submoduleInitilizationEvent().
+                                            contacts().
+                                            expectToBeSent();
+
+                                        tester.contactBar.expectTextContentToHaveSubstring(
+                                            'ФИО ' +
+                                            'Помакова Бисерка Драгановна'
+                                        );
+                                    });
+                                    it('Ничего не происходит.', function() {
+                                        postMessages.nextMessage().expectNotToExist();
+                                    });
+                                });
+                                describe('Выбираю чат.', function() {
+                                    beforeEach(function() {
+                                        tester.chatList.
+                                            first.
+                                            item('Привет').
+                                            click();
+
+                                        tester.submoduleInitilizationEvent().
+                                            contacts().
+                                            expectToBeSent();
+
+                                        tester.scheduledMessagesRequest().
+                                            anotherChat().
+                                            receiveResponse();
+
+                                        tester.visitorCardRequest().receiveResponse();
+                                        tester.messageListRequest().receiveResponse();
+
+                                        tester.chatInfoRequest().
+                                            anotherChat().
+                                            receiveResponse();
+
+                                        tester.usersRequest().
+                                            forContacts().
+                                            forIframe().
+                                            receiveResponse();
+
+                                        tester.contactGroupsRequest().
+                                            forIframe().
+                                            receiveResponse();
+
+                                        tester.contactGroupsRequest().
+                                            forIframe().
+                                            receiveResponse();
+
+                                        tester.usersRequest().
+                                            forContacts().
+                                            forIframe().
+                                            receiveResponse();
+
+                                        tester.changeMessageStatusRequest().
+                                            read().
+                                            anotherMessage().
+                                            receiveResponse();
+
+                                        tester.countersRequest().
+                                            noNewChats().
+                                            noClosedChats().
+                                            receiveResponse();
+                                    });
+
+                                    it('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
+                                        tester.chatHistory.
+                                            header.
+                                            closeButton.
+                                            click();
+
+                                        tester.chatsHidingRequest().expectToBeSent();
+                                    });
+                                    it('Чат открыт.', function() {
+                                        tester.contactBar.expectTextContentToHaveSubstring(
+                                            'ФИО ' +
+                                            'Помакова Бисерка Драгановна'
+                                        );
+                                    });
+                                });
+                                it(
+                                    'От родительского окна получен запрос поиска каналов. На сервер отправлен запрос каналов.',
+                                function() {
+                                    tester.channelsSearchingRequest().
+                                        depricated().
+                                        receive();
+
+                                    tester.visitorExternalSearchingRequest().
+                                        anotherToken().
+                                        fourthSearchString().
+                                        telegramPrivate().
+                                        expectToBeSent();
+                                });
+                                it(
+                                    'Приложение открыто в другом браузере. Отображено сообщение о том, что приложение ' +
+                                    'открыто в другом браузере.',
+                                function() {
+                                    tester.chatsWebSocket.disconnect(4429);
+
+                                    tester.body.expectToHaveTextContent('Приложение открыто в другом браузере');
+                                    tester.closeButton.expectToBeVisible();
+                                });
+                                it('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
+                                    tester.closeButton.click();
+                                    tester.chatsHidingRequest().expectToBeSent();
+                                });
+                                it('Ввожу значение в поле поиска. Произведён поиск.', function() {
+                                    tester.searchIcon.click();
+
+                                    tester.input.
+                                        fill('79283810988').
+                                        pressEnter();
+
+                                    tester.searchResultsRequest().
+                                        anotherToken().
+                                        anotherSearchString().
+                                        receiveResponse();
+
+                                    tester.chatListItem('Сообщение #75').expectToBeVisible();
+                                });
+                                it('Ввожу номер для поиска в адресную строку. Произведён поиск.', function() {
+                                    tester.history.push('/chrome/chats/messages?search=79283810988');
+
+                                    tester.searchResultsRequest().
+                                        anotherToken().
+                                        anotherSearchString().
+                                        receiveResponse();
+
+                                    tester.chatListItem('Сообщение #75').expectToBeVisible();
+                                });
+                                it('Получен запрос иконки. В родительское окно отправлена разметка иконки.', function() {
+                                    tester.iconRequest().expectResponseToBeSent();
+                                });
+                                it('Отображен список чатов.', function() {
+                                    tester.chatList.
+                                        first.
+                                        item('Привет').
+                                        expectToBeVisible();
+
+                                    tester.spin.expectNotToExist();
+                                    tester.body.expectTextContentNotToHaveSubstring('Недостаточно прав на раздел чатов');
+
+                                    tester.body.expectTextContentToHaveSubstring(
+                                        'Выберите чат слева для отображения переписки'
+                                    );
+
+                                    unfilteredPostMessages.
+                                        nextMessage().
+                                        expectMessageToStartsWith('ignore:log:').
+                                        expectMessageToContain('Time consumed');
+                                });
                             });
-                        });
-                        describe('Выбираю чат.', function() {
-                            beforeEach(function() {
+                            it(
+                                'Соединение с вебсокетом сотрудников потеряно. Соединение с вебсокетом сотрудников ' +
+                                'восстановлено. Данные сотрудника перезапрошены.',
+                            function() {
+                                tester.employeesWebSocket.disconnect();
+                                spendTime(1000);
+
+                                tester.employeesWebSocket.connect();
+                                tester.employeesWebsocketConnectedMessage().expectToBeSent();
+
+                                tester.employeesInitMessage().
+                                    oauthToken().
+                                    expectToBeSent();
+
+                                tester.employeeRequest().
+                                    oauthToken().
+                                    receiveResponse();
+                            });
+                            it(
+                                'Получен запрос открытости вебсокета. Отправлено состояние открытости вебсокета.',
+                            function() {
+                                tester.employeesWebsocketConnectedRequest().receive();
+                                tester.employeesWebsocketConnectedMessage().expectToBeSent();
+                            });
+                            it('Найден контакт.', function() {
+                                chatListRequest.
+                                    contactExists().
+                                    receiveResponse();
+
                                 tester.chatList.
                                     first.
                                     item('Привет').
@@ -867,18 +950,7 @@ tests.addTest(options => {
                                     forIframe().
                                     receiveResponse();
 
-                                tester.contactGroupsRequest().
-                                    forIframe().
-                                    receiveResponse();
-
-                                tester.contactGroupsRequest().
-                                    forIframe().
-                                    receiveResponse();
-
-                                tester.usersRequest().
-                                    forContacts().
-                                    forIframe().
-                                    receiveResponse();
+                                tester.contactRequest().receiveResponse();
 
                                 tester.changeMessageStatusRequest().
                                     read().
@@ -889,147 +961,63 @@ tests.addTest(options => {
                                     noNewChats().
                                     noClosedChats().
                                     receiveResponse();
-                            });
 
-                            it('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
-                                tester.chatHistory.
-                                    header.
-                                    closeButton.
-                                    click();
+                                tester.groupsContainingContactRequest().
+                                    forIframe().
+                                    receiveResponse();
 
-                                tester.chatsHidingRequest().expectToBeSent();
-                            });
-                            it('Чат открыт.', function() {
-                                tester.contactBar.expectTextContentToHaveSubstring(
-                                    'ФИО ' +
-                                    'Помакова Бисерка Драгановна'
-                                );
+                                tester.contactGroupsRequest().
+                                    forIframe().
+                                    receiveResponse();
+
+                                tester.anchor('Бележкова Грета Ервиновна').expectNotToExist();
+                                tester.anchor('79162729533').expectNotToExist();
                             });
                         });
-                        it(
-                            'От родительского окна получен запрос поиска каналов. На сервер отправлен запрос каналов.',
-                        function() {
-                            tester.channelsSearchingRequest().
-                                depricated().
-                                receive();
-
-                            tester.visitorExternalSearchingRequest().
-                                anotherToken().
-                                fourthSearchString().
-                                telegramPrivate().
-                                expectToBeSent();
-                        });
-                        it(
-                            'Приложение открыто в другом браузере. Отображено сообщение о том, что приложение ' +
-                            'открыто в другом браузере.',
-                        function() {
-                            tester.chatsWebSocket.disconnect(4429);
-
-                            tester.body.expectToHaveTextContent('Приложение открыто в другом браузере');
-                            tester.closeButton.expectToBeVisible();
-                        });
-                        it('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
-                            tester.closeButton.click();
-                            tester.chatsHidingRequest().expectToBeSent();
-                        });
-                        it('Ввожу значение в поле поиска. Произведён поиск.', function() {
-                            tester.searchIcon.click();
-
-                            tester.input.
-                                fill('79283810988').
-                                pressEnter();
-
-                            tester.searchResultsRequest().
-                                anotherToken().
-                                anotherSearchString().
-                                receiveResponse();
-
-                            tester.chatListItem('Сообщение #75').expectToBeVisible();
-                        });
-                        it('Ввожу номер для поиска в адресную строку. Произведён поиск.', function() {
-                            tester.history.push('/chrome/chats/messages?search=79283810988');
-
-                            tester.searchResultsRequest().
-                                anotherToken().
-                                anotherSearchString().
-                                receiveResponse();
-
-                            tester.chatListItem('Сообщение #75').expectToBeVisible();
-                        });
-                        it('Получен запрос иконки. В родительское окно отправлена разметка иконки.', function() {
-                            tester.iconRequest().expectResponseToBeSent();
-                        });
-                        it('Отображен список чатов.', function() {
-                            tester.chatList.
-                                first.
-                                item('Привет').
-                                expectToBeVisible();
-
-                            tester.spin.expectNotToExist();
-                            tester.body.expectTextContentNotToHaveSubstring('Недостаточно прав на раздел чатов');
-
-                            tester.body.expectTextContentToHaveSubstring(
-                                'Выберите чат слева для отображения переписки'
-                            );
-
-                            unfilteredPostMessages.
-                                nextMessage().
-                                expectMessageToStartsWith('ignore:log:').
-                                expectMessageToContain('Time consumed');
+                        it('Получен запрос открытости вебсокета.', function() {
+                            tester.employeesWebsocketConnectedRequest().receive();
                         });
                     });
-                    it('Найден контакт.', function() {
-                        chatListRequest.
-                            contactExists().
-                            receiveResponse();
+                    describe('Вкладка является ведомой.', function() {
+                        beforeEach(function() {
+                            tester.employeesBroadcastChannel().
+                                tellIsLeader().
+                                receive();
 
-                        tester.chatList.
-                            first.
-                            item('Привет').
-                            click();
+                            tester.employeesWebsocketConnectedRequest().expectToBeSent();
+                        });
 
-                        tester.submoduleInitilizationEvent().
-                            contacts().
-                            expectToBeSent();
+                        describe(
+                            'Получено сообщение об открытии вебсокета сотрудников. Отправлен запрос данных сотрудника.',
+                        function() {
+                            beforeEach(function() {
+                                tester.employeesWebsocketConnectedMessage().receive();
+                                tester.employeeSettingsRequest().receiveResponse();
 
-                        tester.scheduledMessagesRequest().
-                            anotherChat().
-                            receiveResponse();
+                                tester.employeeRequest().
+                                    oauthToken().
+                                    receiveResponse();
+                            });
 
-                        tester.visitorCardRequest().receiveResponse();
-                        tester.messageListRequest().receiveResponse();
+                            it(
+                                'Соединение с вебсокетом сотрудников потеряно. Соединение с вебсокетом сотрудников ' +
+                                'восстановлено. Данные сотрудника перезапрошены.',
+                            function() {
+                                tester.employeesWebsocketConnectedMessage().receive();
 
-                        tester.chatInfoRequest().
-                            anotherChat().
-                            receiveResponse();
-
-                        tester.usersRequest().
-                            forContacts().
-                            forIframe().
-                            receiveResponse();
-
-                        tester.contactRequest().receiveResponse();
-
-                        tester.changeMessageStatusRequest().
-                            read().
-                            anotherMessage().
-                            receiveResponse();
-
-                        tester.countersRequest().
-                            noNewChats().
-                            noClosedChats().
-                            receiveResponse();
-
-                        tester.groupsContainingContactRequest().
-                            forIframe().
-                            receiveResponse();
-
-                        tester.contactGroupsRequest().
-                            forIframe().
-                            receiveResponse();
-
-                        tester.anchor('Бележкова Грета Ервиновна').expectNotToExist();
-                        tester.anchor('79162729533').expectNotToExist();
+                                tester.employeeRequest().
+                                    oauthToken().
+                                    receiveResponse();
+                            });
+                            it('Ничего не происходит.', function() {
+                                postMessages.nextMessage().expectNotToExist();
+                                ajax.expectNoRequestsToBeSent();
+                            });
+                        });
+                        it('Ничего не происходит.', function() {
+                            postMessages.nextMessage().expectNotToExist();
+                            ajax.expectNoRequestsToBeSent();
+                        });
                     });
                 });
                 it('Не удалось получить данные аккаунта. Чаты скрыты.', function() {
@@ -1050,6 +1038,8 @@ tests.addTest(options => {
                         softphoneFeatureFlagDisabled().
                         receiveResponse();
 
+                    postMessages.nextMessage().expectNotToExist();
+
                     secondAccountRequest.
                         softphoneFeatureFlagDisabled().
                         receiveResponse();
@@ -1060,17 +1050,11 @@ tests.addTest(options => {
                         oauthToken().
                         expectToBeSent();
 
-                    tester.employeeSettingsRequest().receiveResponse();
-                    postMessages.nextMessage().expectNotToExist();
-
-                    tester.employeeRequest().
-                        oauthToken().
-                        receiveResponse();
-
                     unfilteredPostMessages.
                         nextMessage().
                         expectMessageToStartsWith('ignore:log:').
-                        expectMessageToContain('GET $REACT_APP_BASE_URL/api/v1/employees/20816');
+                        expectMessageToContain('POST $REACT_APP_BASE_URL/operator?method=get_account').
+                        expectMessageToContain('{"jsonrpc":"2.0","id":"number","method":"get_account","params":{}}');
 
                     tester.body.expectToHaveTextContent('Недостаточно прав на раздел чатов');
                 });
@@ -1128,6 +1112,7 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.employeesWebSocket.connect();
+                    tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
                     tester.employeesInitMessage().
                         oauthToken().
@@ -1320,6 +1305,7 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.employeesWebSocket.connect();
+                tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
                 tester.employeesInitMessage().
                     oauthToken().
@@ -1500,6 +1486,7 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     tester.employeesWebSocket.connect();
+                    tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
                     tester.employeesInitMessage().
                         oauthToken().

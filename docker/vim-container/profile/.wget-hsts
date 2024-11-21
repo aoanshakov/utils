@@ -2,7 +2,7 @@
 # Edit at your own risk.
 # <hostname>	<port>	<incl. subdomains>	<created>	<max-age>
 cg-lat-softphone-server-widget-iframe.callgear.com	0	1	1716468782	15724800
-dev-int0-softphone-server-widget-iframe.uis.st	0	1	1730541080	15724800
+dev-int0-softphone-server-widget-iframe.uis.st	0	1	1731584641	15724800
 prod-msk-softphone-server-widget-iframe.uiscom.ru	0	1	1730813856	15724800
 cg-dub-softphone-server-widget-iframe.callgear.ae	0	1	1730314461	15724800
 dev-mfpp-softphone-widget-iframe.uis.st	0	1	1727691369	15724800

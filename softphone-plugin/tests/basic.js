@@ -1025,6 +1025,20 @@ tests.addTest(options => {
                     ...options,
                 });
 
+                tester.chatsParentBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.chatsParentBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.chatsParentBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
                 notificationTester.
                     grantPermission().
                     recentNotification();
@@ -4385,6 +4399,20 @@ tests.addTest(options => {
                     application: 'amocrmChats',
                 });
 
+                tester.chatsParentBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.chatsParentBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.chatsParentBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
                 notificationTester.grantPermission();
 
                 postMessages.receive({
@@ -4499,6 +4527,18 @@ tests.addTest(options => {
                                         group('74951234575').
                                         expectToBeExpanded();
                                 });
+                            });
+                            it(
+                                'Получено сообщение об очистке кэша поиска каналов. Запрос поиска каналов отправлен ' +
+                                'повторно.',
+                            function() {
+                                tester.channelsCacheClearingEvent().receive();
+
+                                tester.channelsSearchingRequest().
+                                    second().anotherPhone().
+                                    atIndex(2).email().
+                                    atIndex(3).thirdPhone().
+                                    expectToBeSent();
                             });
                             it('Отображён список каналов.', function() {
                                 tester.rightPanel.
@@ -4977,6 +5017,20 @@ tests.addTest(options => {
                     ...options,
                 });
 
+                tester.chatsParentBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.chatsParentBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.chatsParentBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
                 notificationTester.
                     grantPermission().
                     recentNotification();
@@ -5036,7 +5090,6 @@ tests.addTest(options => {
                 tester.iconRequest().receiveResponse();
 
                 tester.channelsSearchingRequest().
-                    fromChromeExtension().
                     second().anotherPhone().
                     expectToBeSent();
 
@@ -5067,7 +5120,6 @@ tests.addTest(options => {
                         spendTime(0);
 
                         tester.channelsSearchingRequest().
-                            fromChromeExtension().
                             second().anotherPhone().
                             atIndex(2).thirdPhone().
                             atIndex(3).fourthPhone().
@@ -5470,7 +5522,6 @@ tests.addTest(options => {
                         const response = tester.iconRequest().receiveResponse();
 
                         tester.channelsSearchingRequest().
-                            fromChromeExtension().
                             second().anotherPhone().
                             expectToBeSent();
 
@@ -5517,7 +5568,6 @@ tests.addTest(options => {
                         tester.iconRequest().receiveResponse();
 
                         tester.channelsSearchingRequest().
-                            fromChromeExtension().
                             second().anotherPhone().
                             expectToBeSent();
 
@@ -5607,7 +5657,6 @@ tests.addTest(options => {
                     tester.iconRequest().receiveResponse();
 
                     tester.channelsSearchingRequest().
-                        fromChromeExtension().
                         second().anotherPhone().
                         expectToBeSent();
 
@@ -5723,6 +5772,20 @@ tests.addTest(options => {
                     isAuthorized: true,
                     ...options,
                 });
+
+                tester.chatsParentBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.chatsParentBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.chatsParentBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
 
                 notificationTester.
                     grantPermission().
@@ -5850,6 +5913,20 @@ tests.addTest(options => {
                     ...options,
                 });
 
+                tester.chatsParentBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.chatsParentBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.chatsParentBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
                 notificationTester.
                     grantPermission().
                     recentNotification();
@@ -5897,7 +5974,6 @@ tests.addTest(options => {
                 tester.iconRequest().receiveResponse();
 
                 tester.channelsSearchingRequest().
-                    fromChromeExtension().
                     second().anotherPhone().
                     atIndex(2).email().
                     expectToBeSent();
@@ -6092,6 +6168,20 @@ tests.addTest(options => {
                 ...options,
             });
 
+            tester.chatsParentBroadcastChannel().
+                applyLeader().
+                expectToBeSent().
+                waitForSecond();
+
+            tester.chatsParentBroadcastChannel().
+                applyLeader().
+                expectToBeSent().
+                waitForSecond();
+
+            tester.chatsParentBroadcastChannel().
+                tellIsLeader().
+                expectToBeSent();
+
             notificationTester.
                 grantPermission().
                 recentNotification();
@@ -6156,6 +6246,20 @@ tests.addTest(options => {
                 ...options,
             });
 
+            tester.chatsParentBroadcastChannel().
+                applyLeader().
+                expectToBeSent().
+                waitForSecond();
+
+            tester.chatsParentBroadcastChannel().
+                applyLeader().
+                expectToBeSent().
+                waitForSecond();
+
+            tester.chatsParentBroadcastChannel().
+                tellIsLeader().
+                expectToBeSent();
+
             notificationTester.
                 grantPermission().
                 recentNotification();
@@ -6203,7 +6307,6 @@ tests.addTest(options => {
             tester.iconRequest().receiveResponse();
 
             tester.channelsSearchingRequest().
-                fromChromeExtension().
                 second().anotherPhone().
                 atIndex(2).email().
                 expectToBeSent();

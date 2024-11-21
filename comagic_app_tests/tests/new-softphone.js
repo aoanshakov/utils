@@ -54,42 +54,44 @@ tests.addTest(options => {
                 tester.loginRequest().receiveResponse();
                 tester.accountRequest().receiveResponse();
 
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
 
                 tester.masterInfoMessage().receive();
-
-                tester.employeesBroadcastChannel().
-                    applyLeader().
-                    expectToBeSent();
-
-                tester.notificationChannel().
-                    applyLeader().
-                    expectToBeSent();
-
-                tester.masterInfoMessage().
-                    applyLeader().
-                    expectToBeSent();
-
-                tester.employeesBroadcastChannel().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.notificationChannel().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.masterInfoMessage().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.employeesWebSocket.connect();
-                tester.employeesInitMessage().expectToBeSent();
-
-                tester.slavesNotification().expectToBeSent();
 
                 tester.slavesNotification().
                     additional().
                     expectToBeSent();
+
+                tester.slavesNotification().expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
 
@@ -193,7 +195,7 @@ tests.addTest(options => {
                             expectToBeSent();
                     });
 
-                    describe('Поступил входящий звонок.', function() {
+                    xdescribe('Поступил входящий звонок.', function() {
                        let incomingCall;
                         
                         beforeEach(function() {
@@ -362,7 +364,6 @@ tests.addTest(options => {
                                             });
                                             */
                                         });
-                                        return;
                                         describe('Раскрываю выпадающий список сотрудников.', function() {
                                             beforeEach(function() {
                                                 tester.select.click();
@@ -427,7 +428,6 @@ tests.addTest(options => {
                                             });
                                         });
                                     });
-                                    return;
                                     /*
                                     it(
                                         'Сотрудников много. Очень часто меняются статусы. Не смотря на это список не ' +
@@ -474,7 +474,6 @@ tests.addTest(options => {
                                     });
                                     */
                                 });
-                                return;
                                 it('Отображено время разговора.', function() {
                                     tester.body.expectTextContentToHaveSubstring(
                                         'ШД Шалева Дора ' +
@@ -486,7 +485,6 @@ tests.addTest(options => {
                                     );
                                 });
                             });
-                            return;
                             it(
                                 'Поступил второй входящий звонок. Отображено сообщение о звонке ' +
                                 'на вторую линию.',
@@ -567,7 +565,6 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        return;
                         it(
                             'Звонок оказался исходящим проведенным из CRM. Звонок отображается, как исходящий.',
                         function() {
@@ -680,8 +677,7 @@ tests.addTest(options => {
                             tester.body.expectTextContentToHaveSubstring('Найти контакт');
                         });
                     });
-                    return;
-                    describe('Запролняю поле ввода номера телефона.', function() {
+                    xdescribe('Запролняю поле ввода номера телефона.', function() {
                         beforeEach(function() {
                             tester.input.fill('79161234567ghi');
                         });

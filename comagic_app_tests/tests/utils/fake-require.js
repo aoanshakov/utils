@@ -200,7 +200,12 @@ define(function () {
                             },
                             ipcRenderer: {
                                 on: function (eventName, handler) {
-                                    (messageHandlers[eventName] || (messageHandlers[eventName] = [])).push(handler)
+                                    (
+                                        messageHandlers[eventName] || (messageHandlers[eventName] = new Set())
+                                    ).add(handler)
+                                },
+                                off: function (eventName, handler) {
+                                    messageHandlers[eventName]?.delete(handler);
                                 },
                                 send: function (channel, message) {
                                     if (channel == 'log') {

@@ -3510,7 +3510,7 @@ function JsTester_BroadcastChannelsTester (args) {
         broadcastChannelMessageEventFirers = args.broadcastChannelMessageEventFirers,
         broadcastChannelsToIgnore = args.broadcastChannelsToIgnore;
 
-    this.recentMessage = function () {
+    this.nextMessage = function () {
         return broadcastChannelMessages.pop();
     };
 
@@ -8268,7 +8268,7 @@ function JsTester_Tests (factory) {
             spendTime,
             args,
         }),
-        broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage(), true),
+        broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage()),
         broadcastChannelHandlers = {},
         broadcastChannelShortcutHandlers = {},
         broadcastChannelMessageEventFirers = {},
@@ -8802,7 +8802,7 @@ function JsTester_Tests (factory) {
 
         this.restoreRealDelayedTasks();
         downloadPreventer.resume();
-        broadcastChannelTester.recentMessage().expectNotToExist(exceptions);
+        broadcastChannelTester.nextMessage().expectNotToExist(exceptions);
         windowSize.reset();
         broadcastChannelMocker.restoreReal();
         postMessagesTester.nextMessage().expectNotToExist(exceptions);

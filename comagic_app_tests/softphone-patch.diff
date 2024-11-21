@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 0909a99..2a4d62d 100644
+index 302a123..2a4d62d 100644
 --- a/package.json
 +++ b/package.json
 @@ -60,13 +60,7 @@
@@ -7,10 +7,10 @@ index 0909a99..2a4d62d 100644
    "dependencies": {
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "^0.7.0",
--    "@comagic/softphone-core": "0.0.0-int0",
+-    "@comagic/softphone-core": "2.2.7",
 -    "@comagic/softphone-widget": "0.0.0-int0",
 -    "@comagic/ui": "2.12.3",
--    "@comagic/workplace-utils": "0.0.0-int0",
+-    "@comagic/workplace-utils": "^1.7.0",
      "async-mutex": "^0.3.2",
 -    "axios": "^0.24.0",
      "classnames": "^2.2.6",

@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 6e40ec8..74c1bb9 100644
+index 0946801..9b91fdc 100644
 --- a/package.json
 +++ b/package.json
 @@ -23,8 +23,7 @@
@@ -11,4 +11,4 @@ index 6e40ec8..74c1bb9 100644
 +  "peerDependencies": {
      "broadcast-channel": "4.20.2",
      "file-saver": "^2.0.5",
-     "moment": "^2.29.4"
+     "moment": "2.29.1"

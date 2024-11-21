@@ -6288,8 +6288,8 @@ define(function () {
         const createBroadcastChannelTester = channelName => {
             let time = 0;
 
-            const recentMessage = () => {
-                const message = broadcastChannels.recentMessage();
+            const nextMessage = () => {
+                const message = broadcastChannels.nextMessage();
                 time = message.time;
                 return message;
             };
@@ -6302,10 +6302,19 @@ define(function () {
                 }
             });
 
+            const tellIsLeaderMessage = () => ({
+                type: 'internal',
+                data: {
+                    context: 'leader',
+                    action: 'tell'
+                }
+            });
+
             return {
+                tellIsLeaderMessage,
                 applyMessage,
-                recentMessage,
-                applyLeader: () => recentMessage().expectToContain(applyMessage()),
+                nextMessage,
+                applyLeader: () => nextMessage().expectToContain(applyMessage()),
 
                 receiveMessage: message => {
                     message.time = new Date().getTime() * 1000;
@@ -6318,13 +6327,9 @@ define(function () {
                     broadcastChannels.channel(channelName).receiveMessage(message);
                 },
 
-                tellIsLeader: () => recentMessage().expectToBeSentToChannel(channelName).expectToContain({
-                    type: 'internal',
-                    data: {
-                        context: 'leader',
-                        action: 'tell'
-                    }
-                })
+                tellIsLeader: () => nextMessage().
+                    expectToBeSentToChannel(channelName).
+                    expectToContain(tellIsLeaderMessage()),
             };
         };
 
@@ -6357,14 +6362,14 @@ define(function () {
             let wasMaster;
 
             const {
-                recentMessage,
+                nextMessage,
                 receiveMessage,
                 tellIsLeader,
                 applyMessage,
                 applyLeader
             } = createBroadcastChannelTester('crosstab');
 
-            this.recentCrosstabMessage = recentMessage;
+            this.recentCrosstabMessage = nextMessage;
             this.receiveCrosstabMessage = receiveMessage;
 
             const createCustomMessage = data => ({
@@ -6553,7 +6558,7 @@ define(function () {
                         return this;
                     },
                     expectToBeSent: function () {
-                        recentMessage().expectToContain(createNotification());
+                        nextMessage().expectToContain(createNotification());
                     },
                     receive: function () {
                         receiveMessage(createNotification());
@@ -6709,7 +6714,7 @@ define(function () {
 
                         return {
                             expectToBeSent: function () {
-                                recentMessage().expectToContain(data);
+                                nextMessage().expectToContain(data);
                             },
                             receive: function () {
                                 receiveMessage(data);
@@ -6845,7 +6850,7 @@ define(function () {
                                         (notification.data.data.state[name] = utils.expectEmptyObject())
                                 );
 
-                                recentMessage().expectToContain(notification);
+                                nextMessage().expectToContain(notification);
                             },
                             receive: function () {
                                 receiveMessage(getNotification());
@@ -7151,7 +7156,7 @@ define(function () {
                         return this;
                     },
                     expectToBeSent: function () {
-                        recentMessage().expectToContain(createNotification(function () {}));
+                        nextMessage().expectToContain(createNotification(function () {}));
                     },
                     receive: function () {
                         receiveMessage(createNotification(function () {
@@ -7216,7 +7221,7 @@ define(function () {
                         expectToBeSent: () => {
                             wasMaster = false;
 
-                            recentMessage().expectToBeSentToChannel('crosstab').expectToContain({
+                            nextMessage().expectToBeSentToChannel('crosstab').expectToContain({
                                 type: 'internal',
                                 data: {
                                     context: 'leader',
@@ -7278,7 +7283,7 @@ define(function () {
                         Object.entries(notification).forEach(([key, value]) =>
                             !Object.keys(value).length && (notification[key] = utils.expectEmptyObject()));
 
-                        recentMessage().expectToContain(createCustomMessage(notification));
+                        nextMessage().expectToContain(createCustomMessage(notification));
                     };
 
                     me.receive = function () {
