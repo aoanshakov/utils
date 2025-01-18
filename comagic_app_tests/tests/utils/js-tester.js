@@ -3164,6 +3164,10 @@ function JsTester_IntersectionObserver ({
     const domElements = new Set();
 
     this.observe = function (domElement) {
+        if (!domElement.add) {
+            return;
+        }
+
         !intersectionObservations.has(domElement) && intersectionObservations.set(domElement, new Set());
         intersectionObservations.get(domElement).add(callback);
 

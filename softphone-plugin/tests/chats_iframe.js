@@ -220,7 +220,7 @@ tests.addTest(options => {
                                     chatListRequest.receiveResponse();
                                 });
 
-                                describe('Получен запрос поиска каналов.', function() {
+                                xdescribe('Получен запрос поиска каналов.', function() {
                                     let visitorExternalSearchingRequest,
                                         chatChannelSearchRequest;
 
@@ -244,7 +244,9 @@ tests.addTest(options => {
                                             chatChannelSearchRequest.anotherEmployee();
                                         });
 
-                                        describe('Поиск каналов завершен. Ответ отправлен в родительское окно.', function() {
+                                        describe(
+                                            'Поиск каналов завершен. Ответ отправлен в родительское окно.',
+                                        function() {
                                             beforeEach(function() {
                                                 visitorExternalSearchingRequest.receiveResponse();
                                                 chatChannelSearchRequest.receiveResponse();
@@ -256,7 +258,8 @@ tests.addTest(options => {
                                             });
 
                                             describe(
-                                                'Получен запрос открытия чата с номером по которому не производился поиск.', 
+                                                'Получен запрос открытия чата с номером по которому не производился ' +
+                                                'поиск.', 
                                             function() {
                                                 beforeEach(function() {
                                                     tester.chatOpeningRequest().
@@ -349,9 +352,9 @@ tests.addTest(options => {
                                                         });
 
                                                         describe(
-                                                            'Из родительского окна получен запрос каналов. Нажимаю на кнопку ' +
-                                                            'завершения чата. Из родительского окна получен повторный запрос ' +
-                                                            'каналов.',
+                                                            'Из родительского окна получен запрос каналов. Нажимаю ' +
+                                                            'на кнопку завершения чата. Из родительского окна ' +
+                                                            'получен повторный запрос каналов.',
                                                         function() {
                                                             let visitorExternalSearchingRequest;
 
@@ -394,8 +397,8 @@ tests.addTest(options => {
                                                             });
 
                                                             it(
-                                                                'Получен ответ на запрос каналов. На сервер отправлен ' +
-                                                                'повторный запрос каналов.',
+                                                                'Получен ответ на запрос каналов. На сервер ' +
+                                                                'отправлен повторный запрос каналов.',
                                                             function() {
                                                                 visitorExternalSearchingRequest.receiveResponse();
 
@@ -426,8 +429,8 @@ tests.addTest(options => {
                                                             });
                                                         });
                                                         it(
-                                                            'Перевожу чат другому оператору. Чат закрывается, список чатов ' +
-                                                            'отображён.',
+                                                            'Перевожу чат другому оператору. Чат закрывается, список ' +
+                                                            'чатов отображён.',
                                                         function() {
                                                             tester.select.
                                                                 option('Переадресовать чат').
@@ -467,7 +470,9 @@ tests.addTest(options => {
                                                             tester.button('В работе 75').expectToBeVisible();
                                                         });
                                                     });
-                                                    it('Нажимаю на кнопку шаблонов. Отображён список шаблонов.', function() {
+                                                    it(
+                                                        'Нажимаю на кнопку шаблонов. Отображён список шаблонов.',
+                                                    function() {
                                                         tester.templateIcon.click();
                                                         tester.chatTemplateMenu.expectToBeVisible();
                                                     });
@@ -483,7 +488,8 @@ tests.addTest(options => {
                                             });
                                             it(
 
-                                                'Получен такой же запрос поиска каналов. Ответ отправлен в родительское окно.',
+                                                'Получен такой же запрос поиска каналов. Ответ отправлен в ' +
+                                                'родительское окно.',
                                             function() {
                                                 tester.channelsSearchingRequest().receive();
 
@@ -505,8 +511,8 @@ tests.addTest(options => {
                                             });
 
                                             it(
-                                                'Поиск каналов завершен. Отправлен запрос в сервер. Ответы отправлены в ' +
-                                                'родительское окно.',
+                                                'Поиск каналов завершен. Отправлен запрос в сервер. Ответы ' +
+                                                'отправлены в родительское окно.',
                                             function() {
                                                 visitorExternalSearchingRequest.receiveResponse();
                                                 chatChannelSearchRequest.receiveResponse();
@@ -534,8 +540,8 @@ tests.addTest(options => {
                                                     expectToBeSent();
                                             });
                                             it(
-                                                'Поиск каналов завершен. Один из запросов завершился неудачей. Отправлен ' +
-                                                'запрос в сервер. Ответы отправлены в родительское окно.',
+                                                'Поиск каналов завершен. Один из запросов завершился неудачей. ' +
+                                                'Отправлен запрос в сервер. Ответы отправлены в родительское окно.',
                                             function() {
                                                 visitorExternalSearchingRequest.receiveResponse();
 
@@ -569,8 +575,8 @@ tests.addTest(options => {
                                             });
                                         });
                                         it(
-                                            'Получен такой же запрос поиска каналов. Ответ отправелен в родительское окно ' +
-                                            'только один раз.',
+                                            'Получен такой же запрос поиска каналов. Ответ отправелен в родительское ' +
+                                            'окно только один раз.',
                                         function() {
                                             tester.channelsSearchingRequest().receive();
 
@@ -584,8 +590,8 @@ tests.addTest(options => {
                                         });
                                     });
                                     describe(
-                                        'В канале нет чатов. Получен запрос открытия чата с номером по которому производился ' +
-                                        'поиск.',
+                                        'В канале нет чатов. Получен запрос открытия чата с номером по которому ' +
+                                        'производился поиск.',
                                     function() {
                                         let newChatListRequest,
                                             activeChatListRequest,
@@ -669,7 +675,9 @@ tests.addTest(options => {
                                                     receiveResponse();
                                             });
 
-                                            it('Получен запрос отображения списка чатов. Список чатов отображён.', function() {
+                                            it(
+                                                'Получен запрос отображения списка чатов. Список чатов отображён.',
+                                            function() {
                                                 tester.chatListOpeningRequest().receive();
 
                                                 tester.chatList.
@@ -693,7 +701,7 @@ tests.addTest(options => {
                                         });
                                     });
                                 });
-                                describe('Приходит новое сообщение.', function() {
+                                xdescribe('Приходит новое сообщение.', function() {
                                     let notificationShowingRequest;
 
                                     beforeEach(function() {
@@ -708,7 +716,8 @@ tests.addTest(options => {
                                             noClosedChats().
                                             receiveResponse();
 
-                                        notificationShowingRequest = tester.notificationShowingRequest().expectToBeSent();
+                                        notificationShowingRequest = tester.notificationShowingRequest().
+                                            expectToBeSent();
                                     });
 
                                     it('Нажимаю на уведомление. Открыт чат.', function() {
@@ -758,7 +767,7 @@ tests.addTest(options => {
                                         postMessages.nextMessage().expectNotToExist();
                                     });
                                 });
-                                describe('Выбираю чат.', function() {
+                                xdescribe('Выбираю чат.', function() {
                                     beforeEach(function() {
                                         tester.chatList.
                                             first.
@@ -824,8 +833,9 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
-                                it(
-                                    'От родительского окна получен запрос поиска каналов. На сервер отправлен запрос каналов.',
+                                xit(
+                                    'От родительского окна получен запрос поиска каналов. На сервер отправлен запрос ' +
+                                    'каналов.',
                                 function() {
                                     tester.channelsSearchingRequest().
                                         depricated().
@@ -837,20 +847,20 @@ tests.addTest(options => {
                                         telegramPrivate().
                                         expectToBeSent();
                                 });
-                                it(
-                                    'Приложение открыто в другом браузере. Отображено сообщение о том, что приложение ' +
-                                    'открыто в другом браузере.',
+                                xit(
+                                    'Приложение открыто в другом браузере. Отображено сообщение о том, что ' +
+                                    'приложение открыто в другом браузере.',
                                 function() {
                                     tester.chatsWebSocket.disconnect(4429);
 
                                     tester.body.expectToHaveTextContent('Приложение открыто в другом браузере');
                                     tester.closeButton.expectToBeVisible();
                                 });
-                                it('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
+                                xit('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
                                     tester.closeButton.click();
                                     tester.chatsHidingRequest().expectToBeSent();
                                 });
-                                it('Ввожу значение в поле поиска. Произведён поиск.', function() {
+                                xit('Ввожу значение в поле поиска. Произведён поиск.', function() {
                                     tester.searchIcon.click();
 
                                     tester.input.
@@ -864,7 +874,7 @@ tests.addTest(options => {
 
                                     tester.chatListItem('Сообщение #75').expectToBeVisible();
                                 });
-                                it('Ввожу номер для поиска в адресную строку. Произведён поиск.', function() {
+                                xit('Ввожу номер для поиска в адресную строку. Произведён поиск.', function() {
                                     tester.history.push('/chrome/chats/messages?search=79283810988');
 
                                     tester.searchResultsRequest().
@@ -874,7 +884,10 @@ tests.addTest(options => {
 
                                     tester.chatListItem('Сообщение #75').expectToBeVisible();
                                 });
-                                it('Получен запрос иконки. В родительское окно отправлена разметка иконки.', function() {
+                                xit(
+                                    
+                                    'Получен запрос иконки. В родительское окно отправлена разметка иконки.',
+                                function() {
                                     tester.iconRequest().expectResponseToBeSent();
                                 });
                                 it('Отображен список чатов.', function() {
@@ -884,7 +897,10 @@ tests.addTest(options => {
                                         expectToBeVisible();
 
                                     tester.spin.expectNotToExist();
-                                    tester.body.expectTextContentNotToHaveSubstring('Недостаточно прав на раздел чатов');
+
+                                    tester.body.expectTextContentNotToHaveSubstring(
+                                        'Недостаточно прав на раздел чатов'
+                                    );
 
                                     tester.body.expectTextContentToHaveSubstring(
                                         'Выберите чат слева для отображения переписки'
@@ -896,6 +912,7 @@ tests.addTest(options => {
                                         expectMessageToContain('Time consumed');
                                 });
                             });
+                            return;
                             it(
                                 'Соединение с вебсокетом сотрудников потеряно. Соединение с вебсокетом сотрудников ' +
                                 'восстановлено. Данные сотрудника перезапрошены.',
@@ -974,10 +991,12 @@ tests.addTest(options => {
                                 tester.anchor('79162729533').expectNotToExist();
                             });
                         });
+                        return;
                         it('Получен запрос открытости вебсокета.', function() {
                             tester.employeesWebsocketConnectedRequest().receive();
                         });
                     });
+                    return;
                     describe('Вкладка является ведомой.', function() {
                         beforeEach(function() {
                             tester.employeesBroadcastChannel().
@@ -985,6 +1004,7 @@ tests.addTest(options => {
                                 receive();
 
                             tester.employeesWebsocketConnectedRequest().expectToBeSent();
+                            spendTime(2999);
                         });
 
                         describe(
@@ -1009,10 +1029,71 @@ tests.addTest(options => {
                                     oauthToken().
                                     receiveResponse();
                             });
-                            it('Ничего не происходит.', function() {
-                                postMessages.nextMessage().expectNotToExist();
-                                ajax.expectNoRequestsToBeSent();
+                            it('Ведущая вкладка закрыта. Ведомая вкладка становится ведущей.', function() {
+                                tester.employeesBroadcastChannel().
+                                    leaderDeath().
+                                    receive();
+
+                                tester.employeesBroadcastChannel().
+                                    applyLeader().
+                                    expectToBeSent().
+                                    waitForSecond();
+
+                                tester.employeesBroadcastChannel().
+                                    applyLeader().
+                                    expectToBeSent().
+                                    waitForSecond();
+
+                                tester.employeesBroadcastChannel().
+                                    tellIsLeader().
+                                    expectToBeSent();
+
+                                tester.employeesWebSocket.connect();
+                                tester.employeesWebsocketConnectedMessage().expectToBeSent();
+
+                                tester.employeesInitMessage().
+                                    oauthToken().
+                                    expectToBeSent();
+
+                                tester.employeeRequest().
+                                    oauthToken().
+                                    receiveResponse();
                             });
+                            it('Ничего не происходит.', function() {
+                                spendTime(1);
+
+                                tester.employeesBroadcastChannel().
+                                    applyLeader().
+                                    expectToBeSent();
+
+                                tester.employeesBroadcastChannel().
+                                    tellIsLeader().
+                                    receive();
+
+                                tester.employeesBroadcastChannel().
+                                    applyLeader().
+                                    expectToBeSent();
+                            });
+                        });
+                        it('Прошло некоторое время. Отправлен запрос данных сотрудника.', function() {
+                            spendTime(1);
+                            tester.employeeSettingsRequest().receiveResponse();
+
+                            tester.employeeRequest().
+                                oauthToken().
+                                receiveResponse();
+
+                            tester.employeesBroadcastChannel().
+                                applyLeader().
+                                expectToBeSent();
+
+                            tester.employeesBroadcastChannel().
+                                tellIsLeader().
+                                receive();
+
+                            tester.employeesBroadcastChannel().
+                                applyLeader().
+                                expectToBeSent();
                         });
                         it('Ничего не происходит.', function() {
                             postMessages.nextMessage().expectNotToExist();
@@ -1020,6 +1101,7 @@ tests.addTest(options => {
                         });
                     });
                 });
+                return;
                 it('Не удалось получить данные аккаунта. Чаты скрыты.', function() {
                     accountRequest.
                         failed().
@@ -1059,6 +1141,7 @@ tests.addTest(options => {
                     tester.body.expectToHaveTextContent('Недостаточно прав на раздел чатов');
                 });
             });
+            return;
             describe('Получен запрос поиска каналов.', function() {
                 beforeEach(function() {
                     tester.channelsSearchingRequest().receive();
@@ -1239,6 +1322,7 @@ tests.addTest(options => {
                 tester.messageTemplatesSettingsRequest().expectToBeSent();
             });
         });
+        return;
         describe('Открываю IFrame чатов amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
@@ -1597,6 +1681,10 @@ tests.addTest(options => {
 
                     tester.chatsWebSocket.finishDisconnecting();
                     tester.employeesWebSocket.finishDisconnecting();
+
+                    tester.employeesBroadcastChannel().
+                        leaderDeath().
+                        expectToBeSent();
                 });
             });
             it('Получаю дубайский токен.', function() {

@@ -1,0 +1,9 @@
+Fri Dec 13 2024 15:32:08 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-comagic-employee-realtime.uis.st/websocket message received:
+
+{
+    "id": "55be6ffd-e2fe-43bc-ae06-98a1cb365e81",
+    "error": {
+        "message": "Token has been expired",
+        "code": 4401
+    }
+}

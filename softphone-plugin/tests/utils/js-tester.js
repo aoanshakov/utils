@@ -577,16 +577,14 @@ function JsTester_RTCPeerConnection (options) {
             }),
             ontrack,
             currentRemoteDescription,
-            descriptionResolver = (resolve, description) => resolve(description),
-            resolveLastOfferCreating = () => null,
-            finishIceGathering = () => this.iceGatheringState = 'complete';
+            finishLastIceGathering = () => null,
+            finishIceGathering = () => (this.iceGatheringState = 'complete');
 
-        const offerCreatingResolver = new JsTester_FunctionVariable((...args) => {
-            finishIceGathering();
-            descriptionResolver(...args);
-        });
+        const iceGatheringFinishing = new JsTester_FunctionVariable(
+            finishIceGathering => finishIceGathering()
+        );
 
-        const resolveOfferCreating = offerCreatingResolver.createValueCaller();
+        const doFinishIceGathering = iceGatheringFinishing.createValueCaller();
 
         Object.defineProperty(this, 'iceConnectionState', {
             get: function () {
@@ -608,7 +606,7 @@ function JsTester_RTCPeerConnection (options) {
 
         connections.push([eventHandlers, this, function () {
             return sender.track;
-        }, trackHandler, iceServers, debug.getCallStack(), offerCreatingResolver]);
+        }, trackHandler, iceServers, debug.getCallStack(), iceGatheringFinishing]);
 
         Object.defineProperty(this, 'ontrack', {
             get: function () {
@@ -621,19 +619,10 @@ function JsTester_RTCPeerConnection (options) {
         });
 
         this.addEventListener = function (eventName, handler) {
-            if (!eventHandlers[eventName]) {
-                eventHandlers[eventName] = [];
-            }
-
-            handler.handlerFunctionId = eventHandlers[eventName].length;
-            eventHandlers[eventName].push(handler);
+            (eventHandlers[eventName] || (eventHandlers[eventName] = new Set())).add(handler);
         };
         this.removeEventListener = function (eventName, handler) {
-            if (!handler.handlerFunctionId || !eventHandlers[eventName]) {
-                return;
-            }
-
-            eventHandlers[eventName][handler.handlerFunctionId] = function () {};
+            eventHandlers[eventName]?.delete(handler);
         };
         Object.defineProperty(this, 'currentRemoteDescription', {
             get: function () {
@@ -648,10 +637,34 @@ function JsTester_RTCPeerConnection (options) {
                 resolve();
             });
         };
-        this.setLocalDescription = function (sessionDescription) {
+        this.setLocalDescription = function (description) {
             var me = this;
+
             return new Promise(function (resolve) {
-                me.localDescription = sessionDescription;
+                me.localDescription = description;
+
+                finishLastIceGathering = () => {
+                    finishIceGathering();
+                    iceGatheringFinishing.setValue(() => null);
+                };
+
+                let doAfterIceGatheringFinishing = () => null;
+
+                doFinishIceGathering(() => {
+                    finishIceGathering();
+                    doAfterIceGatheringFinishing();
+                });
+
+                doAfterIceGatheringFinishing = () => {
+                    me.dispatchEvent(
+                        new RTCPeerConnectionIceEvent('icecandidate', {
+                            candidate: null 
+                        })
+                    );
+
+                    spendTime(0);
+                };
+
                 resolve();
             });
         };
@@ -662,28 +675,14 @@ function JsTester_RTCPeerConnection (options) {
                 description.type = type;
                 description.sdp = sdp;
 
-                doResolve(resolve, description)
+                resolve(description);
             });
         }
         this.createAnswer = function () {
-            return createPromise('answer', descriptionResolver);
+            return createPromise('answer');
         };
         this.createOffer = function () {
-            return createPromise('offer', (resolve, description) => {
-                resolveLastOfferCreating = () => {
-                    finishIceGathering();
-                    resolve(description);
-
-                    offerCreatingResolver.setValue(() => null);
-                };
-
-                resolveOfferCreating(description => {
-                    finishIceGathering();
-                    resolve(description);
-                    spendTime(0);
-
-                }, description);
-            });
+            return createPromise('offer');
         };
         this.addTrack = function (track, stream) {
             sender = new JsTester_RTCConnectionSender(track);
@@ -722,7 +721,8 @@ function JsTester_RTCPeerConnection (options) {
             }
         };
         this.dispatchEvent = function (event) {
-            event.type === 'icecandidate' && event.candidate === null && resolveLastOfferCreating();
+            event.type === 'icecandidate' && event.candidate === null && finishLastIceGathering();
+            eventHandlers[event.type].forEach(handle => handle(event));
         };
     };
 }
@@ -749,7 +749,7 @@ function JsTester_RTCPeerConnectionTester (options) {
         iceServers = options.iceServers,
         tracksCreationCallStacks = options.tracksCreationCallStacks,
         mediaStreams = options.mediaStreams,
-        offerCreatingResolver = options.offerCreatingResolver;
+        iceGatheringFinishing = options.iceGatheringFinishing;
 
     function isMute () {
         return !getLocalAudioTrack().enabled;
@@ -761,7 +761,7 @@ function JsTester_RTCPeerConnectionTester (options) {
 
     function handleEvent (eventName, args) {
         var handlers = eventHandlers[eventName];
-        
+
         if (handlers) {
             handlers.forEach(function (handler) {
                 handler.apply(null, args);
@@ -812,9 +812,9 @@ function JsTester_RTCPeerConnectionTester (options) {
         return connection.getRemoteStreams()[0];
     };
 
-    this.delayOfferCreation = function () {
+    this.delayIceGatheringFinishing  = function () {
         let resume;
-        offerCreatingResolver.setValue((resolve, description) => (resume = () => resolve(description)));
+        iceGatheringFinishing.setValue(finishIceGathering => (resume = finishIceGathering));
 
         return function () {
             if (!resume) {
@@ -940,7 +940,7 @@ function JsTester_RTCPeerConnections (options) {
             getLocalAudioTrack: options[2],
             trackHandler: options[3],
             iceServers: options[4],
-            offerCreatingResolver: options[6],
+            iceGatheringFinishing: options[6],
             index: index
         });
     };

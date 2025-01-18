@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index a570de27..a363c9f8 100644
+index 4ee22e8c..a363c9f8 100644
 --- a/package.json
 +++ b/package.json
 @@ -26,9 +26,7 @@
@@ -18,9 +18,10 @@ index a570de27..a363c9f8 100644
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "^1.17.0",
      "@comagic/crud": "2.42.1",
-     "@comagic/reports": "4.0.4",
--    "@comagic/ui": "2.31.6",
--    "@comagic/workplace-utils": "^1.1.0",
+-    "@comagic/reports": "0.0.0-int0",
+-    "@comagic/ui": "2.43.5",
+-    "@comagic/workplace-utils": "0.0.0-int0",
++    "@comagic/reports": "4.0.4",
      "@sentry/react": "^7.73.0",
      "async-mutex": "^0.3.2",
      "axios": "0.27.2",

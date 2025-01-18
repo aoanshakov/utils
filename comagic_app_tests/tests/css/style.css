@@ -3,3 +3,12 @@
     top: 32px;
     left: 704px;
 }
+
+.misc-softphone-src-styles-module__softphone-content {
+    height: 100% !important;
+}
+
+.misc-softphone-src-styles-module__softphone-container {
+    height: 100%;
+    overflow-y: hidden;
+}

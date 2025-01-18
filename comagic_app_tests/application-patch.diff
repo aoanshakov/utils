@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0579dd31..965ee3bc 100644
+index 0579dd31..19347095 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -126,7 +126,7 @@ index 0579dd31..965ee3bc 100644
      devtool: 'inline-source-map',
 +    snapshot: {
 +        managedPaths: [
-+            new RegExp('^(.*/node_modules/(?!react-draggable)/.*)$'),
++            new RegExp('^(.*/node_modules/(?!@comagic)/.*)$'),
 +        ],
 +    }, 
      optimization: isProductionMode
@@ -208,7 +208,7 @@ index 0579dd31..965ee3bc 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -352,17 +425,172 @@ module.exports = {
+@@ -352,17 +425,173 @@ module.exports = {
                      },
                  ],
              },
@@ -264,6 +264,7 @@ index 0579dd31..965ee3bc 100644
 +            'contacts/ContactListNew': 'contacts/src/components/contact-list',
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'leadgen/TemplatesSettings': `${miscDirectory}/Stub.js`,
++            'softphone/ContextProvider': 'softphone/src/ContextProvider.tsx',
 +            'softphone/NewSoftphone': 'softphone/src/NewSoftphone.tsx',
 +            'softphone/Root': 'softphone/src/Root.tsx',
 +            'softphone/Account': 'softphone/src/Account.tsx',
@@ -547,23 +548,26 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 32137f8d..fa5d0791 100644
+index 32137f8d..2a2a5a4e 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,13 +1,18 @@
+@@ -1,13 +1,20 @@
 -import { CoreProvider } from '@comagic/core';
 +import { CoreProvider, eventBus } from '@comagic/core';
  import * as Sentry from '@sentry/react';
  import { Integrations } from '@sentry/tracing';
  import { observer } from 'mobx-react-lite';
- import React, { useEffect } from 'react';
+-import React, { useEffect } from 'react';
++import React, { useEffect, useMemo } from 'react';
 +import ReactDOM from 'react-dom';
  import { createRoot } from 'react-dom/client';
  import { IntlProvider } from 'react-intl';
  import { unstable_HistoryRouter as HistoryRouter } from 'react-router-dom';
 +import { notification, Modal } from 'magic-ui';
 +import { notification as newNotification } from '@comagic/ui';
++import { respond } from '@comagic/workplace-utils/src/requester';
 +import createIconFactory from '@/utils/createIcon';
++import { getCurrentWindowId } from '@/utils';
 +import { Provider as SoftphoneModeProvider } from '@/components/main/menu/softphone/index';
  
 -import { Provider, rootStore } from '@models/RootStore';
@@ -571,16 +575,18 @@ index 32137f8d..fa5d0791 100644
  
  import history from '@/history';
  
-@@ -15,7 +20,7 @@ import App, { Props } from './App';
+@@ -15,7 +22,9 @@ import App, { Props } from './App';
  import './global';
  import { getIntlLocale, getIntlMessages, getProject } from './i18n';
  
 -const sentryDSN = process.env.SENTRY_DSN;
-+const sentryDSN = process.env.REACT_APP_TEST_MODE == 'true' ? '' :  process.env.SENTRY_DSN;
++const ContextProvider = React.lazy(() => import('softphone/ContextProvider')),
++    Counter = React.lazy(() => import('chats/Counter')),
++    sentryDSN = process.env.REACT_APP_TEST_MODE == 'true' ? '' :  process.env.SENTRY_DSN;
  
  if (sentryDSN) {
      Sentry.init({
-@@ -47,8 +52,8 @@ if (sentryDSN) {
+@@ -47,8 +56,8 @@ if (sentryDSN) {
      });
  }
  
@@ -591,13 +597,21 @@ index 32137f8d..fa5d0791 100644
      const {
          projectData: { locale },
      } = accountStore;
-@@ -59,27 +64,130 @@ const Root: React.FC<Props> = observer(props => {
+@@ -59,27 +68,143 @@ const Root: React.FC<Props> = observer(props => {
          }
      }, [accountStore.account.project]);
  
 +    useEffect(() => {
 +        rootStore.setShouldShowNewSoftphone(shouldShowNewSoftphone);
 +    }, [shouldShowNewSoftphone]);
++
++    const context = useMemo(() => ({
++        rootStore,
++        isSingleApp: props.appName === 'softphone',
++        softphoneSettingsPath: '/softphone/settings',
++        callStatsPath: '/call-stats',
++        Counter,
++    }), []);
 +
      return (
          <HistoryRouter history={history}>
@@ -618,7 +632,9 @@ index 32137f8d..fa5d0791 100644
 +                <SoftphoneModeProvider value={shouldShowNewSoftphone}>
 +                    <Provider value={rootStore}>
 +                        <IntlProvider locale={getIntlLocale(locale)} messages={getIntlMessages(locale)}>
-+                            <App {...(props || {})} />
++                            <ContextProvider value={context}>
++                                <App {...(props || {})} />
++                            </ContextProvider>
 +                        </IntlProvider>
 +                    </Provider>
 +                </SoftphoneModeProvider>
@@ -706,7 +722,10 @@ index 32137f8d..fa5d0791 100644
 +            });
 +            setModal(Modal);
 +        }
-+         
++
++        respond('get_window_role', () => getCurrentWindowId() === 'softphone' ? 'follower' : 'unknown');
++        respond('get_authorization_type', () => window.hasSSOAuth ? 'sso-cookie' : 'e2e');
++
 +        this.exit();
 +
 +        const container = document.createElement('div');
@@ -1228,11 +1247,13 @@ index 8ae6e87b..00000000
 -    faviconLinkElement.setAttribute('href', faviconUrl);
 -};
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index fa214b30..5086b250 100644
+index fa214b30..5c65cf0c 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
-@@ -1,19 +1,51 @@
+@@ -1,19 +1,53 @@
  import { eventBus } from '@comagic/core';
++import BasicAuthStore from '@comagic/workplace-utils/src/host/AuthStore';
++import { BroadcastChannel } from 'broadcast-channel';
  import axios from 'axios';
 -import { flow, getEnv, getParent, getRoot, types } from 'mobx-state-tree';
 +import { flow, getEnv, getRoot, types } from 'mobx-state-tree';
@@ -1287,7 +1308,7 @@ index fa214b30..5086b250 100644
  };
  
  type Auth = {
-@@ -21,7 +53,30 @@ type Auth = {
+@@ -21,7 +55,30 @@ type Auth = {
      refresh: string;
  };
  
@@ -1319,12 +1340,12 @@ index fa214b30..5086b250 100644
  
  const getCookieDomain = () => {
      return window.location.hostname.split('.').slice(-2).join('.');
-@@ -35,17 +90,17 @@ export const getToken = (): Auth => {
+@@ -35,17 +92,17 @@ export const getToken = (): Auth => {
      return JSON.parse(token);
  };
  
 -const setToken = (auth: Auth, dontKeepMeSignedIn = false) => {
-+const setToken = (auth: Auth | string, remember_me = false) => {
++export const setToken = (auth: Auth | string, remember_me = false) => {
      const options = {
          secure: true,
          domain: getCookieDomain(),
@@ -1342,7 +1363,7 @@ index fa214b30..5086b250 100644
      window.dispatchEvent(new Event('tokenChange'));
  };
  
-@@ -80,6 +135,7 @@ const getJwtPayload = (): JwtPayload => {
+@@ -80,6 +137,7 @@ const getJwtPayload = (): JwtPayload => {
  const removeToken = (skipLocalStorage = false) => {
      if (!skipLocalStorage) {
          deleteCookie(AUTH_KEY, { secure: true, domain: getCookieDomain() });
@@ -1350,14 +1371,18 @@ index fa214b30..5086b250 100644
          sessionStorage.removeItem(AUTH_KEY);
          sessionStorage.removeItem('access_token');
      }
-@@ -92,10 +148,14 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -90,12 +148,16 @@ const removeToken = (skipLocalStorage = false) => {
+     window.dispatchEvent(new Event('tokenRemove'));
+ };
  
- export const AuthStore = Loader.named('AuthStore')
+-export const AuthStore = Loader.named('AuthStore')
++export const AuthStore = types.compose(BasicAuthStore, Loader)
++    .named('AuthStore')
      .props({
 -        dontKeepMeSignedIn: types.optional(types.boolean, false),
 -        isAuthorized: types.optional(types.boolean, Boolean(getToken())),
+-        isTokenRefreshing: types.optional(types.boolean, false),
 +        isAuthorized: types.optional(types.maybeNull(types.boolean), null),
-         isTokenRefreshing: types.optional(types.boolean, false),
          windowId: types.optional(types.string, generateTraceId('local')),
 +        isConfirmLoginRequired: types.optional(types.maybeNull(types.boolean), false),
 +        login: types.optional(types.string, ''),
@@ -1367,14 +1392,12 @@ index fa214b30..5086b250 100644
      })
      .views(self => ({
          get token(): Auth {
-@@ -105,15 +165,29 @@ export const AuthStore = Loader.named('AuthStore')
-     .actions(self => {
+@@ -106,12 +168,21 @@ export const AuthStore = Loader.named('AuthStore')
          const { httpRpcAuth } = getEnv(self);
          const { authStore, accountStore, notificationStore, resetStore } = getRoot<typeof RootStore>(self);
-+        let refreshingCall: Promise<void>;
-+
-+        const broadcastAuthorizedness = () => eventBus.broadcast('set_authorized', self.isAuthorized);
  
++        const broadcastAuthorizedness = () => eventBus.broadcast('set_authorized', self.isAuthorized);
++
          const setAuthorized = (isAuthorized: boolean) => {
              self.isAuthorized = isAuthorized;
 +            broadcastAuthorizedness();
@@ -1384,20 +1407,16 @@ index fa214b30..5086b250 100644
 +            self.isConfirmLoginRequired = isConfirmLoginRequired;
          };
  
-         const setIsTokenRefreshing = (value: boolean) => {
-             self.isTokenRefreshing = value;
-         };
- 
+-        const setIsTokenRefreshing = (value: boolean) => {
+-            self.isTokenRefreshing = value;
 +        const setLoginFormValues = (login: string, password: string, isChecked: boolean) => {
 +            self.login = login;
 +            self.password = password;
 +            self.isChecked = isChecked;
-+        };
-+
+         };
+ 
          const cancelNotifications = () => {
-             notificationStore.stackingNotificationInstance?.destroyAll();
-             notificationStore.cancelNotifications();
-@@ -125,19 +199,41 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -125,19 +196,41 @@ export const AuthStore = Loader.named('AuthStore')
              setAuthorized(false);
              cancelPendingRequests('canceled by logout');
              eventBus.broadcast('logout');
@@ -1416,7 +1435,8 @@ index fa214b30..5086b250 100644
 +        const loginSSO = flow(function* (username: string, password: string, is_checked: boolean) {
 +            try {
 +                const project = getProject();
-+
+ 
+-            getParent<RootInstance>(self).setAuthError('');
 +                yield httpSSOClient('api-login', {
 +                    username,
 +                    password,
@@ -1440,14 +1460,13 @@ index fa214b30..5086b250 100644
 +                self.setLoading(false);
 +            }
 +        });
- 
--            getParent<RootInstance>(self).setAuthError('');
++
 +        const loginJWT = flow(function* (login: string, password: string, is_checked: boolean, confirmCode?: string) {
 +            self.setLoading(true);
  
              try {
                  const token = getToken();
-@@ -148,10 +244,18 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -148,10 +241,18 @@ export const AuthStore = Loader.named('AuthStore')
                      password,
                      project: getProject(),
                      old_jwt,
@@ -1468,10 +1487,13 @@ index fa214b30..5086b250 100644
              } catch (e) {
                  removeToken();
  
-@@ -161,7 +265,34 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -161,45 +262,131 @@ export const AuthStore = Loader.named('AuthStore')
              }
          });
  
+-        const fetchRefresh = flow(function* () {
+-            try {
+-                setIsTokenRefreshing(true);
 +        const hasSSOAuth = () => process.env.REACT_APP_TEST_MODE == 'true'
 +            ? window.hasSSOAuth
 +            : !ssoAuthUrl.endsWith('REACT_APP_SSO_AUTH_URL') && Boolean(ssoAuthUrl);
@@ -1479,66 +1501,29 @@ index fa214b30..5086b250 100644
 +        const fetchLoginUser = flow(function* ({ login, password, is_checked, dont_keep_me_signed_in }: LoginUser) {
 +            self.dontKeepMeSignedIn = dont_keep_me_signed_in;
 +            hasSSOAuth() ? yield loginSSO(login, password, is_checked) : yield loginJWT(login, password, is_checked);
-+
+ 
+-                const auth = getToken();
 +            getRoot(self).setAuthError('');
 +        });
-+
-         const fetchRefresh = flow(function* () {
-+            if (hasSSOAuth()) {
-+                return;
-+            }
-+
-+            let resolve = (): void => null,
-+                reject = (e: any): void => null;
-+
-+            if (self.isTokenRefreshing) {
-+                return refreshingCall;
-+            }
-+
-+            refreshingCall = new Promise((value1, value2) => {
-+                resolve = value1;
-+                reject = value2;
-+            });
-+
-             try {
-                 setIsTokenRefreshing(true);
  
-@@ -170,24 +301,42 @@ export const AuthStore = Loader.named('AuthStore')
-                 const nextAuth = yield httpRpcAuth('refresh', auth);
- 
-                 setToken(nextAuth);
-+                window.dispatchEvent(new Event('tokenRefreshed'));
-+
-+                resolve();
-             } catch (e) {
--                void fetchLogoutUser();
-+                reject(e);
-+                e?.message !== 'canceled by logout' && void fetchLogoutUser();
-                 return Promise.reject(e);
-             } finally {
-                 setIsTokenRefreshing(false);
-             }
-+
-+        });
-+
+-                const nextAuth = yield httpRpcAuth('refresh', auth);
 +        const fetchResendConfirmationCode = flow(function* () {
 +            yield loginJWT(self.login, self.password, self.isChecked);
 +        });
-+
+ 
+-                setToken(nextAuth);
 +        const fetchConfirmLogin = flow(function* (code: string) {
 +            yield loginJWT(self.login, self.password, self.isChecked, code);
-         });
- 
-         const fetchLogoutUser = flow(function* () {
-             self.setLoading(true);
- 
-             try {
--                const token = getToken();
--                const jwt = token?.jwt;
--
--                yield httpRpcAuth('logout', {
--                    jwt,
--                });
++        });
++
++        const fetchLogoutUser = flow(function* () {
++            if (!self.isAuthorized) {
++                return;
++            }
++
++            self.setLoading(true);
++
++            try {
 +                if (hasSSOAuth()) {
 +                    yield httpSSOClient('api-logout');
 +                    window.dispatchEvent(new Event('logoutSSO'));
@@ -1551,19 +1536,25 @@ index fa214b30..5086b250 100644
 +                    });
 +                }
              } catch (e) {
+-                void fetchLogoutUser();
                  return Promise.reject(e);
              } finally {
-@@ -195,11 +344,86 @@ export const AuthStore = Loader.named('AuthStore')
+-                setIsTokenRefreshing(false);
++                logout();
              }
          });
  
+-        const fetchLogoutUser = flow(function* () {
+-            self.setLoading(true);
 +        const checkAuth = flow(function* () {
 +            if (!hasSSOAuth()) {
 +                setAuthorized(Boolean(getToken()));
 +                return;
 +            }
-+
-+            try {
+ 
+             try {
+-                const token = getToken();
+-                const jwt = token?.jwt;
 +                yield axios.get('sso/check', {
 +                    baseURL: ssoAuthUrl,
 +                    withCredentials: true,
@@ -1576,7 +1567,9 @@ index fa214b30..5086b250 100644
 +                return Promise.reject(e);
 +            }
 +        });
-+
+ 
+-                yield httpRpcAuth('logout', {
+-                    jwt,
 +        const getRecoveryPasswordInfo = flow(function* ({ login }: RecoverParams) {
 +            try {
 +                const response: { data: RecoveryPasswordResponse } = yield httpSSOClient(
@@ -1624,12 +1617,14 @@ index fa214b30..5086b250 100644
 +                yield httpSSOClient('api-recovery-password/comagic_db/sid/password', {
 +                    new_password1: password,
 +                    new_password2: password,
-+                });
-+            } catch (e) {
-+                return Promise.reject(e);
-+            }
-+        });
-+
+                 });
+             } catch (e) {
+                 return Promise.reject(e);
+-            } finally {
+-                logout();
+             }
+         });
+ 
          const afterCreate = () => {
 +            eventBus.subscribe('get_authorized', broadcastAuthorizedness);
 +
@@ -1641,7 +1636,7 @@ index fa214b30..5086b250 100644
                  }
              });
              window.addEventListener('doRefreshToken', (event: CustomEvent) => {
-@@ -207,10 +431,6 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -207,10 +394,6 @@ export const AuthStore = Loader.named('AuthStore')
                  if (eventWindowId !== authStore.windowId) {
                      authStore
                          .fetchRefresh()
@@ -1652,7 +1647,7 @@ index fa214b30..5086b250 100644
                          .catch(e => console.error(e));
                  }
              });
-@@ -226,6 +446,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -226,6 +409,8 @@ export const AuthStore = Loader.named('AuthStore')
                          if (accountStoreUserId !== null && jwtUserId !== accountStoreUserId) {
                              window.location.href = '/';
                          }
@@ -1661,16 +1656,16 @@ index fa214b30..5086b250 100644
                      }
                  }
              }, 1000);
-@@ -233,10 +455,20 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -233,10 +418,18 @@ export const AuthStore = Loader.named('AuthStore')
  
          return {
              fetchLoginUser,
 +            fetchResendConfirmationCode,
 +            fetchConfirmLogin,
              fetchLogoutUser,
-             fetchRefresh,
+-            fetchRefresh,
              logout,
-             setIsTokenRefreshing,
+-            setIsTokenRefreshing,
              afterCreate,
 +            setIsConfirmLoginRequired,
 +            setLoginFormValues,

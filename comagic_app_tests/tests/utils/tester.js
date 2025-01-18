@@ -17,12 +17,19 @@ define(() => function ({
     softphoneHost,
     hasSSOAuth,
     shouldShowNewSoftphone,
+    windowId = '',
 }) {
     let history,
         eventBus,
         chatsRootStore,
         notification,
         Modal;
+
+    window.getUUID = () => uuid;
+    me.setUuid = value => (uuid = value);
+
+    me.setAnotherUuid = () => me.setUuid('8s824gl2-82nb-xo3x-28bx-8h2jkxacx8e5');
+    me.setUuid('5314f800-0f23-425d-bf20-683f0d149675');
 
     const mainTester = me;
     me.oauthToken = 'eyJhbGciOiJSUzI1NiIsImtpZCI6InBqeWNOMndxTkotbU1mcVpRSllIdHAtMGw0Uk1XNVNkUUF3N2JITmhjc00iLCJ0eXAiOiJKV1QifQ.eyJqdGkiOiI4NjZhZTFkZC02M2E2LTRhMTItOGVkZC1hODcyMmUwNjhlODAiLCJzaWQiOiJmYjZhYWJkMC05YjIzLTQzNDAtYjFkNC1hYTk4ZTIxYjAxYzciLCJpc3MiOiJodHRwczovL3Byb2QtbXNrLXVjLXNzby1hcGkubm92b2Zvbi5ydSIsImF1ZCI6WyJodHRwczovL3Byb2QtbXNrLWRhdGFhcGktanNvbnJwYy5ub3ZvZm9uLnJ1IiwiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJodHRwczovL3Byb2QtbXNrLXNvZnRwaG9uZS1yZXN0LWFwaS5ub3ZvZm9uLnJ1Il0sInN1YiI6IkNvbWFnaWNEQnxub3ZvZm9ufDEwNnw0NTEiLCJzdWJkIjp7ImFwcF9pZCI6MTA2LCJjdXN0b21lcl9pZCI6Mjg5MTU2NCwidXNlcl9pZCI6NDUxLCJsb2dpbiI6ImJpdHJpeHRlc3QiLCJpc19zeXN0ZW0iOmZhbHNlfSwiY2xpZW50X2lkIjoiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJpYXQiOjE3MDk2Mzg2MzR9.G3Irx8UHLLv1mGSnx_fpE-wZoaQud1Jh7hJQrg_17v1eKFQrrzBYD4s_PMUe_bso90c9ooWLudXMHuRrAfQzrJasaEFIkEtalKbnNAxwRac_sWdAUfr5-sxiUcJPPEkUWWxqD3fAAvuo-8lANps89W0f3DN_8WJ7lXUqEwZT8bftOOGcAthbkXKnVyzRUNJfkFnK3jV7qa6uwIbYOd0sJAXpc-rDyG_kWfnwZv-NYZinIHgk92kRT-tOiSnX6HAOKDQ3QbtKOCT-uJqAd78RKMjFcMAbbFRrQBr1q3s9OUJCArYi6wQcHkhiMuT0mXAPK-eAnaiKFfuuT9r1S0tPCKnnnyK6mUQo_K11Ne3kW1xShVYEhK7wtTn-BnJORF-Y0KHLI3Ndp6Jjs7Ak7nbQRztJ64buBpksI0PAKRc9euWdc04HmHxftCCgZ9uc2YjL77sqr_ExzJsMNJDNwEDrFsmMIHhpNvA19P1zuDaiCr2zja1HQEE3vyLr-JAjlYdCTOZkJ5dqRFAmCWBQ-12JJbRihB1kPyhrpbKcWg7Ry1RV47ghbgQ6igv-1BCelu9LT5IvSXLnhNxPLTdi17ukKFdS5V5XugryqFgDujSJiBCWLGAZ1mzT08BVK4yIeSo5GQhs8oNReNDmnDo33tfTzzpFDbQxHwHQAUG1oXYvuEI';
@@ -37,9 +44,15 @@ define(() => function ({
         refresh: '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48'
     };
 
+    const thirdJwtToken = {
+        jwt: '2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29',
+        refresh: '29onc84u2n9u2nlt39g823hglohglhg2o4l8gh2lf2hoj48'
+    };
+
     !window.process && (window.process = {});
     !window.process.versions && (window.process.versions = {});
     !window.process.versions.electron && (window.process.versions.electron = appName ? '1.0.0' : null);
+    window.process.argv = windowId ? [`--window-id=${windowId}`] : [];
 
     isAlreadyAuthenticated && (appName ? localStorage.setItem('electronCookies', JSON.stringify({
         '$REACT_APP_AUTH_COOKIE': JSON.stringify(jwtToken)
@@ -50,6 +63,22 @@ define(() => function ({
         'refresh%22%3A%222982h24972hls8872t2hr7w8h24lg72ihs7385sdihg2%22%7D; ' +
         'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
     ));
+
+    me.changeAuthTokenCookie = () => (
+        document.cookie =
+        '%5C%24REACT_APP_AUTH_COOKIE=%7B%22' +
+        `jwt%22%3A%22${thirdJwtToken.jwt}%22%2C%22` +
+        `refresh%22%3A%22${thirdJwtToken.refresh}%22%7D; ` +
+        'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
+    );
+
+    me.setAnotherAuthTokenCookie = () => (
+        document.cookie =
+        '%5C%24REACT_APP_AUTH_COOKIE=%7B%22' +
+        `jwt%22%3A%22${anotherJwtToken.jwt}%22%2C%22` +
+        `refresh%22%3A%22${anotherJwtToken.refresh}%22%7D; ` +
+        'path=/; secure; domain=0.1; expires=Sat, 20 Nov 2021 12:15:07 GMT'
+    );
 
     window.resetElectronCookiesManager?.();
 
@@ -1321,6 +1350,42 @@ define(() => function ({
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
     };
 
+    me.employeesWebsocketConnectedMessage = () => {
+        const message = {
+            type: 'message',
+            data: { type: 'employees_websocket_connected' },
+        };
+
+        return {
+            expectToBeSent: () => me.employeesBroadcastChannel().
+                nextMessage().
+                expectToContain(message),
+            
+            receive: () => {
+                me.employeesBroadcastChannel().receiveMessage(message);
+                spendTime(0);
+            },
+        }
+    };
+
+    me.employeesWebsocketConnectedRequest = () => {
+        const message = {
+            type: 'message',
+            data: { type: 'get_employees_websocket_connectedness' },
+        };
+
+        return {
+            expectToBeSent: () => me.employeesBroadcastChannel().
+                nextMessage().
+                expectToContain(message),
+            
+            receive: () => {
+                me.employeesBroadcastChannel().receiveMessage(message);
+                spendTime(0);
+            },
+        }
+    };
+
     me.logDownloadingRequest = () => {
         const response = true;
 
@@ -1551,6 +1616,16 @@ define(() => function ({
                 return me;
             };
 
+            me.accessTokenInvalid = () => {
+                respond = request => request.respond({
+                    status: 401,
+                    statusText: 'access_token_invalid',
+                    responseText: ''
+                });
+
+                return me;
+            };
+
             return me;
         };
 
@@ -1558,7 +1633,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectToHavePath('$REACT_APP_INFOPIN_BACKEND_HOST/tickets/contacts');
+                    expectToHavePath('https://$REACT_APP_INFOPIN_BACKEND_HOST/tickets/contacts');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -1610,7 +1685,7 @@ define(() => function ({
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('POST').
                     expectBodyToContain(bodyParams).
-                    expectToHavePath('$REACT_APP_INFOPIN_BACKEND_HOST/tickets');
+                    expectToHavePath('https://$REACT_APP_INFOPIN_BACKEND_HOST/tickets');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -1729,7 +1804,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectToHavePath('$REACT_APP_BASE_URL/operator/chat/phone').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/operator/chat/phone').
                     expectBodyToContain({
                         phone: '79162729534',
                         chat_id: 7189362
@@ -1752,6 +1827,30 @@ define(() => function ({
         });
     };
 
+    me.channelsRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHaveMethod('GET').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/operator\/channels');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith([]);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.offlineMessageMarkRequest = () => {
         const addResponseModifiers = me => me;
 
@@ -1759,7 +1858,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectToHavePath('$REACT_APP_BASE_URL/operator/offline_message/mark').
+                    expectToHavePath('$https://REACT_APP_BASE_URL/operator/offline_message/mark').
                     expectBodyToContain({
                         id: 18222538,
                         mark_ids: [587, undefined]
@@ -1791,7 +1890,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectToHavePath('$REACT_APP_BASE_URL/operator/chat/mark').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/operator/chat/mark').
                     expectBodyToContain({
                         id: 7189362,
                         mark_ids: [587, undefined]
@@ -1823,7 +1922,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectPathToContain('$REACT_APP_BASE_URL/operator/resource').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/operator/resource').
                     expectBodyToContain({
                         file: {
                             name: 'some-file.zip',
@@ -1873,7 +1972,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('GET').
-                    expectPathToContain('$REACT_APP_BASE_URL/operator/resource/payload').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/operator/resource/payload').
                     expectQueryToContain({ id });
 
                 return addResponseModifiers({
@@ -2339,12 +2438,35 @@ define(() => function ({
         });
     };
 
-    me.employeesBroadcastChannel = () => {
-        const tester = me.createBroadcastChannelTester('employees');
+    const createBroadcastChannelTester = name => {
+        const tester = me.createBroadcastChannelTester(name);
 
-        return {
+        const channel = {
             nextMessage: tester.nextMessage.bind(tester),
             receiveMessage: tester.receiveMessage.bind(tester),
+
+            leaderDeath: () => ({
+                receive: () => {
+                    tester.receiveMessage({
+                        type: 'internal',
+                        data: {
+                            context: 'leader',
+                            action: 'death',
+                            token: 'g28g2hor28',
+                        },
+                    });
+
+                    spendTime(0);
+                },
+
+                expectToBeSent: () => tester.nextMessage().expectToContain({
+                    type: 'internal',
+                    data: {
+                        context: 'leader',
+                        action: 'death',
+                    },
+                }),
+            }),
 
             applyLeader: () => ({
                 expectToBeSent: () => {
@@ -2352,9 +2474,12 @@ define(() => function ({
                     spendTime(0);
 
                     return {
+                        ...channel,
                         waitForSecond: () => {
                             spendTime(1000);
                             spendTime(0);
+
+                            return channel;
                         },
                     };
                 },
@@ -2365,7 +2490,93 @@ define(() => function ({
                     tester.tellIsLeader();
                     spendTime(0);
                 },
+
+                receive: () => {
+                    tester.receiveMessage(tester.tellIsLeaderMessage());
+                    spendTime(0);
+                },
             }),
+        };
+
+        return channel;
+    };
+
+    me.employeesBroadcastChannel = () => createBroadcastChannelTester('employees');
+    me.hostBroadcastChannel = () => createBroadcastChannelTester('host');
+
+    me.leaderTokenRefreshingRequest = () => {
+        const request = {
+            type: 'message',
+            data: {
+                method: 'request',
+                id: '5314f800-0f23-425d-bf20-683f0d149675',
+                data: {
+                    method: 'refresh_token',
+                    data: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                },
+            },
+        };
+
+        const response = {
+            type: 'message',
+            data: {
+                method: 'response',
+                id: '5314f800-0f23-425d-bf20-683f0d149675',
+                data: {
+                    success: true,
+                    data: null,
+                },
+            },
+        };
+
+        return {
+            anotherId() {
+                request.data.id = '8s824gl2-82nb-xo3x-28bx-8h2jkxacx8e5';
+                response.data.id = '8s824gl2-82nb-xo3x-28bx-8h2jkxacx8e5';
+
+                return this;
+            },
+
+            anotherAuthorizationToken() {
+                request.data.data.data = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
+
+            expectToBeSent() {
+                me.hostBroadcastChannel().
+                    nextMessage().
+                    expectToContain(request);
+
+                return {
+                    receiveResponse() {
+                        me.hostBroadcastChannel().receiveMessage(response);
+                        spendTime(0);
+                        spendTime(0);
+                    },
+                };
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
+            },
+            
+            receive() {
+                me.hostBroadcastChannel().receiveMessage(request);
+                spendTime(0);
+                spendTime(0);
+
+                return {
+                    expectResponseToBeSent() {
+                        me.hostBroadcastChannel().
+                            nextMessage().
+                            expectToContain(response);
+                    },
+                };
+            },
+
+            expectResponseToBeSent() {
+                return this.receive().expectResponseToBeSent();
+            },
         };
     };
 
@@ -2376,7 +2587,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectToHavePath('$REACT_APP_BASE_URL/api/v1/employees/20816/settings');
+                    expectToHavePath('https://$REACT_APP_BASE_URL/api/v1/employees/20816/settings');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -2418,10 +2629,15 @@ define(() => function ({
                 return this;
             },
 
+            thirdAuthorizationToken() {
+                headers.Authorization = 'Bearer 2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29';
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectToHavePath('$REACT_APP_BASE_URL/api/v1/employees/20816').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/api/v1/employees/20816').
                     expectToHaveHeaders(headers);
 
                 return addResponseModifiers({
@@ -2437,6 +2653,7 @@ define(() => function ({
                         Promise.runAll(false, true);
                         spendTime(0)
                         spendTime(0)
+                        spendTime(0)
                     }
                 });
             },
@@ -2450,7 +2667,7 @@ define(() => function ({
     me.employeeUpdatingRequest = () => {
         let response = { data: true },
             respond = request => request.respondSuccessfullyWith(response),
-            checkComplience = request => request,
+            checkRequest = request => request,
             status_id = 4;
 
         const headers = {
@@ -2510,13 +2727,13 @@ define(() => function ({
             },
 
             checkAuthorizationHeader() {
-                checkComplience = request => request.expectToHaveHeaders(headers);
+                checkRequest = request => request.expectToHaveHeaders(headers);
                 return this;
             },
 
-            expectToBeSent() {
-                const request = checkComplience(
-                    ajax.recentRequest().
+            expectToBeSent(requests) {
+                const request = checkRequest(
+                    (requests ? requests.someRequest() : ajax.recentRequest()).
                         expectToHaveMethod('PATCH').
                         expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816').
                         expectBodyToContain({ status_id })
@@ -3464,6 +3681,11 @@ define(() => function ({
                 return this;
             },
 
+            thirdAuthorizationToken() {
+                headers.Authorization = 'Bearer 2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29';
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL/api/v1/statuses').
@@ -3849,7 +4071,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/settings/offline_message/display_types');
+                    expectToHavePath('https://$REACT_APP_BASE_URL/settings/offline_message/display_types');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -3995,7 +4217,7 @@ define(() => function ({
                 processors.forEach(process => process());
 
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/settings/offline_message/display_types').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/settings/offline_message/display_types').
                     expectBodyToContain(data);
 
                 return addResponseModifiers({
@@ -4147,12 +4369,17 @@ define(() => function ({
 
         return {
             ssoAuth() {
-                jwt = undefined;
+                jwt = '';
                 return this;
             },
 
             anotherAuthorizationToken() {
                 jwt = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
+
+            thirdAuthorizationToken() {
+                jwt = '2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29';
                 return this;
             },
 
@@ -4979,7 +5206,7 @@ define(() => function ({
             },
         });
 
-        const params = {
+        let params = {
             jwt: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
         };
 
@@ -5000,6 +5227,14 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            anotherAuthorizationToken() {
+                params = {
+                    jwt: '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf',
+                };
+
+                return this;
+            },
+
             badRequest() {
                 params.jwt = undefined;
 
@@ -5233,6 +5468,19 @@ define(() => function ({
             }
         };
     };
+
+    me.marksRequest = () => ({
+        receiveResponse: () => {
+            ajax.recentRequest().
+                expectToHaveMethod('GET').
+                expectPathToContain('\/api\/v1\/marks').
+                respondSuccessfullyWith(true);
+
+            spendTime(0);
+            spendTime(0);
+            spendTime(0);
+        }
+    });
 
     me.markAddingRequest = () => ({
         receiveResponse: () => {
@@ -6170,6 +6418,16 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            dontCheckAuthorizationHeader() {
+                delete(headers.Authorization);
+                return this;
+            },
+
+            anotherAuthorizationToken() {
+                headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
+
             ssoAuth() {
                 headers['X-Auth-Type'] = undefined;
                 return this;
@@ -6177,7 +6435,7 @@ define(() => function ({
             
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('/sup/auth/logout').
+                    expectPathToContain('\/sup\/auth\/logout').
                     expectToHaveHeaders(headers);
 
                 return addResponseModifiers({
@@ -6249,6 +6507,11 @@ define(() => function ({
             
             anotherAuthorizationToken() {
                 token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                return this;
+            },
+            
+            thirdAuthorizationToken() {
+                token = '2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29';
                 return this;
             },
 
@@ -7094,6 +7357,37 @@ define(() => function ({
         });
     };
 
+    me.groupChatsRequest = () => {
+        let chat_id = '7189362';
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            anotherChat() {
+                chat_id = '2718935';
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/group-chats').
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith([]);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatPinningRequest = () => {
         const headers = {
             Authorization: undefined,
@@ -7148,7 +7442,7 @@ define(() => function ({
             
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/operator/chat/pin').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/operator/chat/pin').
                     expectToHaveHeaders(headers).
                     expectBodyToContain(params);
 
@@ -7187,7 +7481,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/operator/chat/unpin').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/operator/chat/unpin').
                     expectBodyToContain(params);
 
                 return addResponseModifiers({
@@ -12864,7 +13158,8 @@ define(() => function ({
                         });
 
                         Promise.runAll(false, true);
-                        spendTime(0)
+                        spendTime(0);
+                        spendTime(0);
                     }
                 });
             }
@@ -12949,7 +13244,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/${id}`).
                     expectToHaveMethod('DELETE');
 
                 utils.isVisible(utils.querySelector('.clct-modal, .ui-modal, .cmgui-modal')) &&
@@ -13271,7 +13566,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/${id}`).
                     expectToHaveMethod('GET');
 
                 return addResponseModifiers({
@@ -13679,7 +13974,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/1689283/chat/20816`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/1689283/chat/20816`).
                     expectToHaveMethod('GET').
                     expectQueryToContain(params);
 
@@ -14010,7 +14305,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}/communications`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/${id}/communications`).
                     expectQueryToContain(queryParams).
                     expectToHaveMethod('GET');
 
@@ -14076,7 +14371,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}/contact-groups`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/${id}/contact-groups`).
                     expectToHaveHeaders(headers).
                     expectToHaveMethod('GET');
 
@@ -14116,7 +14411,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/contact-groups').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/contact-groups').
                     expectToHaveHeaders(headers).
                     expectQueryToContain(queryParams).
                     expectToHaveMethod('GET');
@@ -14261,7 +14556,7 @@ define(() => function ({
                     bodyParams.form_data[name].push(undefined));
 
                 const request = ajax.recentRequest().
-                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/merge`).
+                    expectToHavePath('https://$REACT_APP_BASE_URL/contacts/merge').
                     expectToHaveMethod('PATCH').
                     expectBodyToContain(bodyParams);
 
@@ -14543,7 +14838,7 @@ define(() => function ({
                 bodyParams.chat_channel_list?.push(undefined);
 
                 const request = ajax.recentRequest().
-                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/${id}`).
                     expectToHaveMethod('PUT').
                     expectBodyToContain(bodyParams);
 
@@ -14665,7 +14960,7 @@ define(() => function ({
                 secondProcessors.forEach(process => process());
 
                 const request = ajax.recentRequest().
-                    expectToHavePath(`$REACT_APP_BASE_URL/contacts`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts`).
                     expectToHaveMethod('POST').
                     expectBodyToContain(bodyParams);
 
@@ -14752,6 +15047,8 @@ define(() => function ({
             total_count
         });
 
+        let processAccessTokenExpiredMessage = response => response;
+
         const addResponseModifiers = me => {
             me.oneItem = () => {
                 total_count = 1;
@@ -14813,13 +15110,24 @@ define(() => function ({
 
                 return me;
             };
+
+            me.noStatusTest = () => {
+                processAccessTokenExpiredMessage = response => {
+                    response.statusText = '';
+                    response.responseText = '401: access_token_expired';
+
+                    return response;
+                };
+
+                return me;
+            };
             
             me.accessTokenExpired = () => {
-                respond = request => request.respond({
+                respond = request => request.respond(processAccessTokenExpiredMessage({
                     status: 401,
                     statusText: 'access_token_expired',
                     responseText: ''
-                });
+                }));
 
                 return me;
             };
@@ -15533,7 +15841,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/contacts').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/contacts').
                     expectToHaveMethod('GET').
                     expectToHaveHeaders({
                         'X-Auth-Token': token,
@@ -15564,7 +15872,8 @@ define(() => function ({
 
     me.accountRequest = () => {
         let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-            method = 'getobj.account';
+            method = 'getobj.account',
+            respond = request => request.respondSuccessfullyWith(response);
 
         const response = {
             result: {
@@ -15744,7 +16053,17 @@ define(() => function ({
             }
         };
 
-        const addResponseModifiers = me => {
+        addResponseModifiers = me => {
+            me.accessTokenExpired = () => {
+                respond = request => request.respondSuccessfullyWith({
+                    error: {
+                        data: { mnemonic: 'access_token_expired' },
+                    },
+                });
+
+                return me;
+            };
+
             me.callGear = () => {
                 response.result.data.project = 'usa';
                 return me;
@@ -15964,6 +16283,11 @@ define(() => function ({
                 return this;
             },
 
+            thirdAuthorizationToken() {
+                token = '2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29';
+                return this;
+            },
+
             expectToBeSent(requests) {
                 let request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_BASE_URL').
@@ -15978,7 +16302,7 @@ define(() => function ({
 
                 const me = addResponseModifiers({
                     receiveResponse: () => {
-                        request.respondSuccessfullyWith(response);
+                        respond(request);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -16048,8 +16372,8 @@ define(() => function ({
                 token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
                 refresh = '4g8lg282lr8jl2f2l3wwhlqg34oghgh2lo8gl48al4goj48';
 
-                response.result.jwt = '2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29';
-                response.result.refresh = '29onc84u2n9u2nlt39g823hglohglhg2o4l8gh2lf2hoj48';
+                response.result.jwt = thirdJwtToken.jwt;
+                response.result.refresh = thirdJwtToken.refresh;
 
                 return me;
             };
@@ -16110,6 +16434,7 @@ define(() => function ({
 
                         Promise.runAll(false, true);
                         spendTime(0)
+                        spendTime(0);
                     }
                 });
             },

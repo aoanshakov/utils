@@ -195,7 +195,7 @@ tests.addTest(options => {
                             expectToBeSent();
                     });
 
-                    xdescribe('Поступил входящий звонок.', function() {
+                    describe('Поступил входящий звонок.', function() {
                        let incomingCall;
                         
                         beforeEach(function() {
@@ -677,7 +677,7 @@ tests.addTest(options => {
                             tester.body.expectTextContentToHaveSubstring('Найти контакт');
                         });
                     });
-                    xdescribe('Запролняю поле ввода номера телефона.', function() {
+                    describe('Запролняю поле ввода номера телефона.', function() {
                         beforeEach(function() {
                             tester.input.fill('79161234567ghi');
                         });
@@ -717,7 +717,6 @@ tests.addTest(options => {
                         );
                     });
                 });
-                return;
                 it('Нужно скрывать номера. Поступил входящий звонок. Кнопка копирования скрыта.', function() {
                     settingsRequest.
                         shouldHideNumbers().
@@ -809,7 +808,6 @@ tests.addTest(options => {
                     clipboard.expectToHaveValue(null);
                 });
             });
-            return;
             it('Пользователь имеет права на список номеров.', function() {
                  permissionsRequest.
                     allowNumberCapacitySelect().
@@ -879,7 +877,6 @@ tests.addTest(options => {
                     expectToBeSent();
             });
         });
-        return;
         it(
             'Открываю новый личный кабинет. Использую SSO. Запрос истории звонков не отправляется раньше логина.',
         function() {

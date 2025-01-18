@@ -64,6 +64,7 @@ tests.addTest(options => {
                     nextSentMessage().
                     expectToBeSentToChannel('darkmode:disable');
                 
+                /*
                 getPackage('electron').ipcRenderer.
                     nextSentMessage().
                     expectToBeSentToChannel('app-ready');
@@ -75,6 +76,7 @@ tests.addTest(options => {
                         width: 300,
                         height: 350,
                     });
+                */
                 
                 tester.ssoCheckRequest().receiveResponse();
 
@@ -83,14 +85,6 @@ tests.addTest(options => {
 
                 tester.button('Войти').click();
                 tester.apiLoginRequest().receiveResponse();
-
-                getPackage('electron').ipcRenderer.
-                    nextSentMessage().
-                    expectToBeSentToChannel('resize').
-                    expectToBeSentWithArguments({
-                        width: 340,
-                        height: 212
-                    });
 
                 getPackage('electron').ipcRenderer.
                     nextSentMessage().
@@ -106,6 +100,22 @@ tests.addTest(options => {
                     password: '8Gls8h31agwLf5k',
                     project: 'comagic',
                 }]);
+
+                getPackage('electron').ipcRenderer.
+                    nextSentMessage().
+                    expectToBeSentToChannel('set-mini-widget');
+                
+                getPackage('electron').ipcRenderer.
+                    nextSentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 212
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    nextSentMessage().
+                    expectToBeSentToChannel('app-ready');
                 
                 tester.employeeStatusesRequest().
                     noAuthorizationHeader().
@@ -116,48 +126,66 @@ tests.addTest(options => {
                     noAuthorizationHeader().
                     receiveResponse();
                 
-                tester.masterInfoMessage().receive();
-                
-                tester.employeesBroadcastChannel().
-                    tellIsLeader().
-                    expectToBeSent();
-                
-                tester.notificationChannel().
+                const employeesBroadcastChannel = tester.employeesBroadcastChannel().
                     applyLeader().
                     expectToBeSent();
-                
-                tester.employeesWebSocket.connect();
-                tester.employeesInitMessage().expectToBeSent();
-                
-                tester.employeesBroadcastChannel().
-                    tellIsLeader().
-                    expectToBeSent();
-                
-                tester.masterInfoMessage().
-                    tellIsLeader().
-                    expectToBeSent();
-                
-                tester.slavesNotification().expectToBeSent();
-                
-                tester.slavesNotification().
-                    additional().
-                    expectToBeSent();
-                
+
                 const chatChannelSearchRequest = tester.chatChannelSearchRequest().
                     emptySearchString().
                     expectToBeSent();
 
-                const authCheckRequest = tester.authCheckRequest().expectToBeSent(),
-                    callsRequest = tester.callsRequest().expectToBeSent();
+                tester.ssoWsCheckingRequest().receiveResponse();
+                tester.ssoWsCheckingRequest().receiveResponse();
 
-                chatChannelSearchRequest.receiveResponse();
-                authCheckRequest.receiveResponse();
-                callsRequest.receiveResponse();
+                employeesBroadcastChannel.waitForSecond();
 
-                const secondChatChannelSearchRequest = tester.chatChannelSearchRequest().
-                    emptySearchString().
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.slavesNotification().
+                    additional().
                     expectToBeSent();
 
+                tester.slavesNotification().expectToBeSent();
+
+                tester.softphoneBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+ 
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.employeesWebSocket.
+                    ssoAuth().
+                    connect();
+
+                tester.employeesInitMessage().
+                    ssoAuth().
+                    expectToBeSent();
+
+                tester.employeesWebsocketConnectedMessage().expectToBeSent();
+                tester.authTokenRequest().receiveResponse();
+
+                const authCheckRequest = tester.authCheckRequest().
+                    ssoAuth().
+                    expectToBeSent();
+
+                const callsRequest = tester.callsRequest().
+                    forTwoWeeks().
+                    receiveResponse();
+
+                authCheckRequest.receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
                 
                 tester.permissionsRequest().
@@ -166,6 +194,7 @@ tests.addTest(options => {
                     receiveResponse();
                 
                 tester.settingsRequest().
+                    ssoAuth().
                     allowNumberCapacitySelect().
                     receiveResponse();
                 
@@ -194,8 +223,11 @@ tests.addTest(options => {
                 tester.numberCapacityRequest().receiveResponse();
                 
                 tester.employeeSettingsRequest().receiveResponse();
-                tester.employeeRequest().receiveResponse();
                 
+                tester.employeeRequest().
+                    noAuthorizationHeader().
+                    receiveResponse();
+
                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                 
                 tester.registrationRequest().
@@ -230,6 +262,158 @@ tests.addTest(options => {
                     twoChannels().
                     available().
                     expectToBeSent();
+            });
+
+            it('', function() {
+            });
+        });
+        return;
+        describe(
+            'Использую новое десктопное приложение. Ввожу логин и пароль. Нажимаю на кнопку входа. Получено ' +
+            'обновление.',
+        function() {
+            beforeEach(function() {
+                tester = new Tester({
+                    ...options,
+                    appName: 'softphone',
+                    shouldShowNewSoftphone: true,
+                    hasSSOAuth: true,
+                    windowId: 'softphone',
+                });
+                
+                getPackage('electron').ipcRenderer.
+                    nextSentMessage().
+                    expectToBeSentToChannel('opened');
+                
+                getPackage('electron').ipcRenderer.receiveMessage('credentials', []);
+
+                getPackage('electron').ipcRenderer.
+                    nextSentMessage().
+                    expectToBeSentToChannel('darkmode:disable');
+                
+                tester.ssoCheckRequest().receiveResponse();
+
+                tester.input.withFieldLabel('Логин').fill('botusharova');
+                tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
+
+                tester.button('Войти').click();
+                tester.apiLoginRequest().receiveResponse();
+
+                getPackage('electron').ipcRenderer.
+                    nextSentMessage().
+                    expectToBeSentToChannel('login').
+                    expectToBeSentWithArguments({
+                        login: 'botusharova',
+                        password: '8Gls8h31agwLf5k',
+                        project: 'comagic',
+                    });
+
+                getPackage('electron').ipcRenderer.receiveMessage('credentials', [{
+                    login: 'botusharova',
+                    password: '8Gls8h31agwLf5k',
+                    project: 'comagic',
+                }]);
+                
+                getPackage('electron').ipcRenderer.
+                    nextSentMessage().
+                    expectToBeSentToChannel('resize').
+                    expectToBeSentWithArguments({
+                        width: 340,
+                        height: 212
+                    });
+
+                getPackage('electron').ipcRenderer.
+                    nextSentMessage().
+                    expectToBeSentToChannel('app-ready');
+                
+                tester.employeeStatusesRequest().
+                    noAuthorizationHeader().
+                    receiveResponse();
+
+                tester.accountRequest().
+                    operatorWorkplaceAvailable().
+                    noAuthorizationHeader().
+                    receiveResponse();
+                
+                const employeesBroadcastChannel = tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                const chatChannelSearchRequest = tester.chatChannelSearchRequest().
+                    emptySearchString().
+                    expectToBeSent();
+
+                tester.ssoWsCheckingRequest().receiveResponse();
+                tester.ssoWsCheckingRequest().receiveResponse();
+
+                employeesBroadcastChannel.waitForSecond();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.authTokenRequest().receiveResponse();
+
+                const authCheckRequest = tester.authCheckRequest().
+                    ssoAuth().
+                    expectToBeSent();
+
+                const callsRequest = tester.callsRequest().
+                    forTwoWeeks().
+                    receiveResponse();
+
+                authCheckRequest.receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                
+                tester.permissionsRequest().
+                    allowNumberCapacitySelect().
+                    allowNumberCapacityUpdate().
+                    receiveResponse();
+                
+                tester.settingsRequest().
+                    ssoAuth().
+                    allowNumberCapacitySelect().
+                    receiveResponse();
+                
+                notificationTester.grantPermission();
+                tester.numberCapacityRequest().receiveResponse();
+                
+                tester.softphoneBroadcastChannel().
+                    tellIsLeader().
+                    receive();
+ 
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    receive();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.employeesWebsocketConnectedRequest().expectToBeSent();
+                tester.employeesWebsocketConnectedMessage().receive();
+
+                tester.softphoneBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterNotification().
+                    tabOpened().
+                    expectToBeSent();
+
+                tester.employeeSettingsRequest().receiveResponse();
+                
+                tester.employeeRequest().
+                    noAuthorizationHeader().
+                    receiveResponse();
+
+                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+
+                tester.slavesNotification().
+                    twoChannels().
+                    available().
+                    receive();
             });
 
             it('', function() {

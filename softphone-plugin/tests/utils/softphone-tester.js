@@ -1739,7 +1739,7 @@ define(function () {
                     processors.forEach(process => process());
 
                     const request = ajax.recentRequest().
-                        expectPathToContain(`/sup/api/v1/numa/${numa}`).
+                        expectPathToContain(`/sup/api/v1/caller-info/${numa}`).
                         expectToHaveMethod('GET');
 
                     return addResponseModifiers({
@@ -4711,8 +4711,8 @@ define(function () {
             this.callTrackHandler = function () {
                 getConnection().callTrackHandler();
             };
-            this.delayOfferCreation = function () {
-                return getConnection().delayOfferCreation();
+            this.delayIceGatheringFinishing = function () {
+                return getConnection().delayIceGatheringFinishing();
             };
             this.assumeTrackHandlerMayBeUnexecuted = function () {
                 getConnection().assumeTrackHandlerMayBeUnexecuted();

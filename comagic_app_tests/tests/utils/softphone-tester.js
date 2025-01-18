@@ -1568,6 +1568,9 @@ define(function () {
                 spendTime(0);
             };
 
+            let checkRequest = request => request,
+                token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+
             return addResponseModifiers({
                 fromHalfOfTheYearAgo() {
                     params.from = '2019-06-19T00:00:00.000+03:00';
@@ -1576,6 +1579,11 @@ define(function () {
 
                 fromFirstWeekDay() {
                     params.from = '2019-12-16T00:00:00.000+03:00';
+                    return this;
+                },
+
+                forTwoWeeks() {
+                    params.from = '2019-12-05T00:00:00.000+03:00';
                     return this;
                 },
 
@@ -1636,10 +1644,30 @@ define(function () {
                     return this;
                 },
 
+                anotherAuthorizationToken() {
+                    token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                    return this;
+                },
+
+                thirdAuthorizationToken() {
+                    token = '2924lg8hg95gl8h3g2lg8o2hgg8shg8olg8qg48ogih7h29';
+                    return this;
+                },
+
+                checkAuthorizationHeader() {
+                    checkRequest = request => request.expectToHaveHeaders({
+                        Authorization: `Bearer ${token}`,
+                    });
+
+                    return this;
+                },
+
                 expectToBeSent() {
-                    const request = ajax.recentRequest().
-                        expectPathToContain('/sup/api/v1/users/me/calls').
-                        expectQueryToContain(params);
+                    const request = checkRequest(
+                        ajax.recentRequest().
+                            expectPathToContain('/sup/api/v1/users/me/calls').
+                            expectQueryToContain(params)
+                    );
 
                     return addResponseModifiers({
                         receiveResponse: () => (receiveResponse(request), spendTime(0), spendTime(0), spendTime(0))
@@ -1686,7 +1714,10 @@ define(function () {
 
                 me.employeeNameIsFound = () => {
                     respond = request => request.respondSuccessfullyWith({
-                        data: 'Шалева Дора'
+                        data: {
+                            employee_id: 82756,
+                            employee_name: 'Шалева Дора',
+                        },
                     });
 
                     return me;
@@ -1763,7 +1794,7 @@ define(function () {
                     processors.forEach(process => process());
 
                     const request = ajax.recentRequest().
-                        expectPathToContain(`/sup/api/v1/numa/${numa}`).
+                        expectPathToContain(`/sup/api/v1/caller-info/${numa}`).
                         expectToHaveMethod('GET');
 
                     return addResponseModifiers({
@@ -2200,8 +2231,16 @@ define(function () {
                     params.with_active_phones = '1';
                     return this;
                 },
+                anotherAuthorizationToken() {
+                    headers = {
+                        Authorization: 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf',
+                    };
+
+                    return this;
+                },
                 expectToBeSent: function (requests) {
                     var request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                        expectToHaveHeaders(headers).
                         expectPathToContain(path).
                         expectQueryToContain(params);
 
@@ -2234,7 +2273,8 @@ define(function () {
         this.usersRequest = this.requestUsers;
 
         this.requestUsersInGroups = function () {
-            var additionalUsersInGroups = [];
+            let headers = {},
+                additionalUsersInGroups = [];
 
             var respond = request => request.respondSuccessfullyWith({
                 data: [{
@@ -2292,8 +2332,17 @@ define(function () {
             }
 
             return addResponseModifiers({
+                anotherAuthorizationToken() {
+                    headers = {
+                        Authorization: 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf',
+                    };
+
+                    return this;
+                },
                 expectToBeSent: function () {
-                    const request = ajax.recentRequest().expectPathToContain('/sup/api/v1/users_in_groups');
+                    const request = ajax.recentRequest().
+                        expectToHaveHeaders(headers).
+                        expectPathToContain('/sup/api/v1/users_in_groups');
 
                     return addResponseModifiers({
                         receiveResponse: function () {
@@ -2315,7 +2364,8 @@ define(function () {
         this.usersInGroupsRequest = this.requestUsersInGroups;
 
         this.requestGroups = function () {
-            var additionalGroups = [];
+            let headers = {},
+                additionalGroups = [];
 
             var respond = request => request.respondSuccessfullyWith({
                 data: [{
@@ -2365,11 +2415,20 @@ define(function () {
             }
 
             return addResponseModifiers({
+                anotherAuthorizationToken() {
+                    headers = {
+                        Authorization: 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf',
+                    };
+
+                    return this;
+                },
                 receiveResponse: function () {
                     this.send();
                 },
                 expectToBeSent: function () {
-                    var request = ajax.recentRequest().expectPathToContain('/sup/api/v1/groups');
+                    var request = ajax.recentRequest().
+                        expectToHaveHeaders(headers).
+                        expectPathToContain('/sup/api/v1/groups');
 
                     return addResponseModifiers({
                         receiveResponse: function () {
@@ -2389,6 +2448,10 @@ define(function () {
             var request = this.requestGroups();
 
             return {
+                anotherAuthorizationToken() {
+                    request.anotherAuthorizationToken();
+                    return this;
+                },
                 accessTokenExpired: function () {
                     request.accessTokenExpired();
                     return this;
@@ -4005,7 +4068,7 @@ define(function () {
                     checkRegistration = function (request) {
                         return request.expectHeaderToContain(
                             'Contact',
-                            '<sip:076909%24ROOT@pp-rtu.uis.st:443;transport=ws>;'
+                            '<sip:076909%24ROOT@pp-rtu.uis.st:443;transport=ws'
                         );
                     };
 
@@ -6301,9 +6364,12 @@ define(function () {
             let time = 0;
 
             const nextMessage = () => {
-                const message = broadcastChannels.nextMessage();
+                const message = broadcastChannels.
+                    nextMessage();
+
                 time = message.time;
-                return message;
+
+                return message.expectToBeSentToChannel(channelName);
             };
 
             const applyMessage = () => ({
@@ -6314,7 +6380,16 @@ define(function () {
                 }
             });
 
+            const tellIsLeaderMessage = () => ({
+                type: 'internal',
+                data: {
+                    context: 'leader',
+                    action: 'tell'
+                }
+            });
+
             return {
+                tellIsLeaderMessage,
                 applyMessage,
                 nextMessage,
                 applyLeader: () => nextMessage().expectToContain(applyMessage()),
@@ -6330,13 +6405,7 @@ define(function () {
                     broadcastChannels.channel(channelName).receiveMessage(message);
                 },
 
-                tellIsLeader: () => nextMessage().expectToBeSentToChannel(channelName).expectToContain({
-                    type: 'internal',
-                    data: {
-                        context: 'leader',
-                        action: 'tell'
-                    }
-                })
+                tellIsLeader: () => nextMessage().expectToContain(tellIsLeaderMessage())
             };
         };
 
@@ -6344,8 +6413,10 @@ define(function () {
 
         {
             const {
+                tellIsLeaderMessage,
                 tellIsLeader,
-                applyLeader
+                applyLeader,
+                receiveMessage,
             } = createBroadcastChannelTester('notificationChannel');
 
             this.notificationChannel = () => ({
@@ -6367,7 +6438,12 @@ define(function () {
                     expectToBeSent: () => {
                         tellIsLeader();
                         Promise.runAll(false, true);
-                    }
+                    },
+
+                    receive: () => {
+                        receiveMessage(tellIsLeaderMessage());
+                        spendTime(0);
+                    },
                 })
             });
         }
@@ -7284,6 +7360,8 @@ define(function () {
                     receive: () => receive()
                 };
             };
+
+            this.softphoneBroadcastChannel = this.masterInfoMessage;
 
             this.othersNotification = function () {
                 var data = {},

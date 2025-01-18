@@ -1,16 +1,16 @@
 diff --git a/package.json b/package.json
-index fb4b68a..05effe2 100644
+index cd07097..2e653ca 100644
 --- a/package.json
 +++ b/package.json
-@@ -50,20 +50,21 @@
+@@ -50,20 +50,22 @@
      "webpack": "^5.74.0"
    },
    "dependencies": {
 -    "@comagic/core": "^1.17.0",
 -    "@comagic/softphone-core": "^2.2.11",
--    "@comagic/softphone-widget": "0.0.0-int0",
+-    "@comagic/softphone-widget": "^2.0.57",
 -    "@comagic/ui": "2.25.0",
--    "@comagic/workplace-utils": "^1.7.3",
+-    "@comagic/workplace-utils": "^1.8.0",
 +    "@comagic/core": "./misc/core",
 +    "@comagic/softphone-core": "./misc/sip_lib/uis_webrtc",
 +    "@comagic/softphone-widget": "./misc/sip_lib",
@@ -27,11 +27,12 @@ index fb4b68a..05effe2 100644
      "json3": "3.3.3",
      "jwt-decode": "^4.0.0",
 -    "magic-ui": "0.0.0-int1",
++    "twig-loader": "^0.5.5",
 +    "magic-ui": "./misc/magic_ui",
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -74,6 +75,10 @@
+@@ -74,6 +76,10 @@
      "react-router-dom": "6.9.0",
      "string-hash": "^1.1.3",
      "twig": "^1.15.1",

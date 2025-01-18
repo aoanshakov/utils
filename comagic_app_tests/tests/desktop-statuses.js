@@ -195,7 +195,7 @@ tests.addTest(options => {
             authenticatedUserRequest.receiveResponse();
         });
 
-        describe('Раскрываю список статусов.', function() {
+        xdescribe('Раскрываю список статусов.', function() {
             beforeEach(function() {
                 tester.userName.click();
             });

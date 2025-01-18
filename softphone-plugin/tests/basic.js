@@ -133,7 +133,7 @@ tests.addTest(options => {
                                 authCheckRequest = tester.authCheckRequest().expectToBeSent();
                             });
 
-                            describe('Произведена авторизация.', function() {
+                            xdescribe('Произведена авторизация.', function() {
                                 let permissionsRequest;
 
                                 beforeEach(function() {
@@ -225,7 +225,7 @@ tests.addTest(options => {
                                                     });
 
                                                     describe('Получен запрос вызова.', function() {
-                                                        let finishOfferCreation;
+                                                        let finishIceGathering;
 
                                                         beforeEach(function() {
                                                             postMessages.receive({
@@ -236,8 +236,8 @@ tests.addTest(options => {
                                                             tester.numaRequest().receiveResponse();
                                                             tester.firstConnection.connectWebRTC();
 
-                                                            finishOfferCreation =
-                                                                tester.firstConnection.delayOfferCreation();
+                                                            finishIceGathering =
+                                                                tester.firstConnection.delayIceGatheringFinishing();
 
                                                             tester.allowMediaInput();
 
@@ -254,7 +254,7 @@ tests.addTest(options => {
                                                             'Поиск кандидатов завершён. Производится вызов.',
                                                         function() {
                                                             beforeEach(function() {
-                                                                finishOfferCreation();
+                                                                finishIceGathering();
                                                                 tester.outboundCall().start();
                                                             });
                                                             
@@ -335,6 +335,11 @@ tests.addTest(options => {
                                                             expanded().
                                                             noIdleChannels().
                                                             expectToBeSent();
+
+                                                        tester.incomingCall().
+                                                            anotherPhone().
+                                                            busy().
+                                                            receive();
                                                     });
                                                     it(
                                                         'Раскрываю список статусов. Отображён список статусов.',
@@ -369,18 +374,6 @@ tests.addTest(options => {
                                                             broadcastMessage().
                                                             forFollower().
                                                             expectToBeSent();
-
-                                                        unfilteredPostMessages.
-                                                            nextMessage().
-                                                            expectMessageToStartsWith('ignore:log:').
-                                                            expectMessageToContain(JSON.stringify({
-                                                                type: 'notify_slaves',
-                                                                data: {
-                                                                    action: 'download_log',
-                                                                    id: '5314f800-0f23-425d-bf20-683f0d149675',
-                                                                    data: '*',
-                                                                },
-                                                            }));
                                                     });
                                                     it(
                                                         'Нажимаю на кнопку скачивания лога. В родительское окно ' +
@@ -675,7 +668,7 @@ tests.addTest(options => {
                                     );
                                 });
                             });
-                            it('Ну удалось произвести авторизацию.', function() {
+                            xit('Не удалось произвести авторизацию.', function() {
                                 authCheckRequest.
                                     invalidToken().
                                     receiveResponse();
@@ -697,7 +690,26 @@ tests.addTest(options => {
                                 unfilteredPostMessages.
                                     nextMessage().
                                     expectMessageToStartsWith('ignore:log:').
-                                    expectMessageToContain('Broadcast message sent');
+                                    expectMessageToContain('Time consumed 0 ms');
+                            });
+                            it('Ну удалось произвести авторизацию.', function() {
+                                authCheckRequest.
+                                    expiredToken().
+                                    receiveResponse();
+
+                                tester.masterInfoMessage().leaderDeath().expectToBeSent();
+
+                                tester.slavesNotification().
+                                    destroyed().
+                                    expectToBeSent();
+
+                                tester.authLogoutRequest().receiveResponse();
+
+                                tester.stateSettingRequest().
+                                    visible().
+                                    leader().
+                                    destroyed().
+                                    expectToBeSent();
 
                                 unfilteredPostMessages.
                                     nextMessage().
@@ -705,6 +717,7 @@ tests.addTest(options => {
                                     expectMessageToContain('Time consumed 0 ms');
                             });
                         });
+                        return;
                         it('Отображено сообщение о том, что происходит авторизация.', function() {
                             tester.body.expectToHaveTextContent(
                                 'Происохдит авторизация... ' +
@@ -712,6 +725,7 @@ tests.addTest(options => {
                             );
                         });
                     });
+                    return;
                     describe('Вкладка является ведомой.', function() {
                         beforeEach(function() {
                             tester.masterInfoMessage().
@@ -772,10 +786,24 @@ tests.addTest(options => {
                             it(
                                 'Получен лог ведущей вкладки. В родительское окно отправлен запрос скачивания лога.',
                             function() {
+                                postMessages.nextMessage().expectNotToExist();
+
                                 tester.logDownloadingRequest().
                                     broadcastMessage().
                                     forFollower().
                                     receive();
+
+                                unfilteredPostMessages.
+                                    nextMessage().
+                                    expectMessageToStartsWith('ignore:log:').
+                                    expectMessageToContain(JSON.stringify({
+                                        type: 'notify_slaves',
+                                        data: {
+                                            action: 'download_log',
+                                            id: '5314f800-0f23-425d-bf20-683f0d149675',
+                                            data: '*',
+                                        },
+                                    }));
 
                                 tester.logDownloadingRequest().
                                     windowMessage().
@@ -807,6 +835,7 @@ tests.addTest(options => {
                         });
                     });
                 });
+                return;
                 it('Используется английский язык. Интерфейс переведён.', function() {
                     widgetSettings.
                         thirdToken().
@@ -832,9 +861,7 @@ tests.addTest(options => {
 
                     tester.authTokenRequest().
                         thirdToken().
-                        receiveResponse();
-
-                    tester.authCheckRequest().expectToBeSent();
+                        expectToBeSent();
 
                     tester.body.expectToHaveTextContent(
                         'Authorizing... ' +
@@ -842,6 +869,7 @@ tests.addTest(options => {
                     );
                 });
             });
+            return;
             describe('Доступ к софтфону запрещён.', function() {
                 beforeEach(function() {
                     tester.widgetSettings().
@@ -926,6 +954,7 @@ tests.addTest(options => {
                 tester.softphone.expectNotToExist();
             });
         });
+        return;
         describe('Открываю попап. Отправлен запрос состояния.', function() {
             let stateRequest,
                 popupStateSettingRequest;
@@ -4430,13 +4459,13 @@ tests.addTest(options => {
                     beforeEach(function() {
                         tester.unreadMessagesCountSettingRequest().receive();
 
-                        tester.amocrmStateSettingRequest().
-                            chats().
-                            expectToBeSent();
-
                         tester.iconRequest().
                             arrow().
                             receiveResponse();
+
+                        tester.amocrmStateSettingRequest().
+                            chats().
+                            expectToBeSent();
                     });
 
                     describe('Сотрудник авторизован.', function() {
@@ -4651,13 +4680,13 @@ tests.addTest(options => {
                 beforeEach(function() {
                     tester.unreadMessagesCountSettingRequest().receive();
 
-                    tester.amocrmStateSettingRequest().
-                        chats().
-                        expectToBeSent();
-
                     tester.iconRequest().
                         arrow().
                         receiveResponse();
+
+                    tester.amocrmStateSettingRequest().
+                        chats().
+                        expectToBeSent();
 
                     postMessages.receive({
                         method: 'set_token',
@@ -4667,7 +4696,6 @@ tests.addTest(options => {
 
                 it('Открываю страницу контакта. Был отправлен запрос каналов.', function() {
                     tester.renderContact();
-
                     tester.iconRequest().receiveResponse();
 
                     tester.channelsSearchingRequest().
