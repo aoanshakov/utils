@@ -2512,7 +2512,7 @@ define(() => function ({
                 id: '5314f800-0f23-425d-bf20-683f0d149675',
                 data: {
                     method: 'refresh_token',
-                    data: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                    data: jwtToken,
                 },
             },
         };
@@ -2538,7 +2538,7 @@ define(() => function ({
             },
 
             anotherAuthorizationToken() {
-                request.data.data.data = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
+                request.data.data.data = anotherJwtToken;
                 return this;
             },
 
@@ -2581,7 +2581,22 @@ define(() => function ({
     };
 
     me.employeeSettingsRequest = () => {
-        const addResponseModifiers = me => me;
+        let respond = request => request.respondSuccessfullyWith({
+            is_chat_acceptance_confirmation: true,
+            is_need_hide_numbers: false,
+        });
+
+        const addResponseModifiers = me => {
+            me.accessTokenExpired = () => {
+                respond = request => request.respondUnauthorizedWith({
+                    error: 'The token is expired',
+                });
+
+                return me;
+            };
+
+            return me;
+        };
 
         return addResponseModifiers({
             expectToBeSent(requests) {
@@ -2591,10 +2606,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith({
-                            is_chat_acceptance_confirmation: true,
-                            is_need_hide_numbers: false,
-                        });
+                        respond(request);
 
                         Promise.runAll(false, true);
                         spendTime(0)

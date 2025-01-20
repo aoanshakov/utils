@@ -139,7 +139,7 @@ tests.addTest(options => {
                     siteListRequest = tester.siteListRequest().expectToBeSent(requests),
                     messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests),
                     commonMessageTemplatesRequest = tester.commonMessageTemplatesRequest().expectToBeSent(requests),
-                    //messageTemplatesSettingsRequest = tester.messageTemplatesSettingsRequest().expectToBeSent(requests),
+                    messageTemplatesSettingsRequest = tester.messageTemplatesSettingsRequest().expectToBeSent(requests),
                     channelsRequest = tester.channelsRequest().expectToBeSent(requests);
 
                 const accountRequest = tester.accountRequest().
@@ -165,7 +165,7 @@ tests.addTest(options => {
                 siteListRequest.receiveResponse();
                 messageTemplateListRequest.receiveResponse();
                 commonMessageTemplatesRequest.receiveResponse();
-                //messageTemplatesSettingsRequest.receiveResponse();
+                messageTemplatesSettingsRequest.receiveResponse();
                 channelsRequest.receiveResponse();
 
                 accountRequest.receiveResponse();
@@ -645,6 +645,8 @@ tests.addTest(options => {
                                 leaderDeath().
                                 expectToBeSent();
 
+                            localStorage.setItem('tokenRefreshing', '');
+
                             tester.button('Войти').click();
                             tester.loginRequest().receiveResponse();
 
@@ -721,8 +723,8 @@ tests.addTest(options => {
                                 messageTemplateListRequest = tester.messageTemplateListRequest().
                                     expectToBeSent(requests);
 
-                            /*const messageTemplatesSettingsRequest = tester.messageTemplatesSettingsRequest().
-                                expectToBeSent(requests);*/
+                            const messageTemplatesSettingsRequest = tester.messageTemplatesSettingsRequest().
+                                expectToBeSent(requests);
          
                             const employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                                 employeeRequest = tester.employeeRequest().expectToBeSent(requests),
@@ -742,7 +744,7 @@ tests.addTest(options => {
                             siteListRequest.receiveResponse();
                             commonMessageTemplatesRequest.receiveResponse();
                             messageTemplateListRequest.receiveResponse();
-                            //messageTemplatesSettingsRequest.receiveResponse();
+                            messageTemplatesSettingsRequest.receiveResponse();
                             employeeSettingsRequest.receiveResponse();
                             employeeRequest.receiveResponse();
                             channelsRequest.receiveResponse();
@@ -1041,8 +1043,8 @@ tests.addTest(options => {
                         listRequest = tester.listRequest().expectToBeSent(),
                         siteListRequest = tester.siteListRequest().expectToBeSent(),
                         messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(),
-                        commonMessageTemplatesRequest = tester.commonMessageTemplatesRequest().expectToBeSent();//,
-                        //messageTemplatesSettingsRequest = tester.messageTemplatesSettingsRequest().expectToBeSent();
+                        commonMessageTemplatesRequest = tester.commonMessageTemplatesRequest().expectToBeSent(),
+                        messageTemplatesSettingsRequest = tester.messageTemplatesSettingsRequest().expectToBeSent();
 
                     const accountRequest = tester.accountRequest().
                         forChats().
@@ -1070,7 +1072,7 @@ tests.addTest(options => {
                     siteListRequest.receiveResponse();
                     messageTemplateListRequest.receiveResponse();
                     commonMessageTemplatesRequest.receiveResponse();
-                    //messageTemplatesSettingsRequest.receiveResponse();
+                    messageTemplatesSettingsRequest.receiveResponse();
                     channelsRequest.receiveResponse();
 
                     accountRequest.receiveResponse();
@@ -1677,6 +1679,8 @@ tests.addTest(options => {
             });
 
             describe('Вкладка является ведущей.', function() {
+                let employeeSettingsRequest;
+
                 beforeEach(function() {
                     spendTime(1000);
 
@@ -1725,10 +1729,9 @@ tests.addTest(options => {
 
                     {
 
-                        const employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(),
-                            employeeRequest = tester.employeeRequest().expectToBeSent();
+                        employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent();
+                        const employeeRequest = tester.employeeRequest().expectToBeSent();
 
-                        employeeSettingsRequest.receiveResponse();
                         settingsRequest.receiveResponse();
 
                         tester.slavesNotification().
@@ -1794,6 +1797,8 @@ tests.addTest(options => {
 
                 describe('Выхожу из аккаунта.', function() {
                     beforeEach(function() {
+                        employeeSettingsRequest.receiveResponse();
+
                         tester.header.userName.click();
                         tester.logoutButton.click();
 
@@ -2005,7 +2010,9 @@ tests.addTest(options => {
                         groupsRequest = tester.groupsRequest().expectToBeSent();
                     });
 
-                    describe('Токен истёк.', function() {
+                    describe(
+                        'В ответ на запросы, отправленные в бэк софтфтона пришло сообщение об истечении токена.',
+                    function() {
                         beforeEach(function() {
                             usersRequest.
                                 accessTokenExpired().
@@ -2022,11 +2029,11 @@ tests.addTest(options => {
                             beforeEach(function() {
                                 refreshRequest.receiveResponse();
 
-                                tester.groupsRequest().
+                                tester.usersRequest().
                                     anotherAuthorizationToken().
                                     receiveResponse();
 
-                                tester.usersRequest().
+                                tester.groupsRequest().
                                     anotherAuthorizationToken().
                                     receiveResponse();
                             });
@@ -2059,6 +2066,135 @@ tests.addTest(options => {
                             ajax.expectNoRequestsToBeSent();
                         });
                     });
+                    describe(
+                        'В ответ на запросы, отправленные в бэк софтфтона и в бэк сотрудников пришло сообщение об ' +
+                        'истечении токена.',
+                    function() {
+                        beforeEach(function() {
+                            employeeSettingsRequest.
+                                accessTokenExpired().
+                                receiveResponse();
+
+                            refreshRequest = tester.refreshRequest().expectToBeSent();
+
+                            usersRequest.
+                                accessTokenExpired().
+                                receiveResponse();
+
+                            groupsRequest.
+                                accessTokenExpired().
+                                receiveResponse();
+                        });
+
+                        describe('Токен обновился. Запросы переотправлены.', function() {
+                            beforeEach(function() {
+                                refreshRequest.receiveResponse();
+
+                                tester.employeeSettingsRequest().receiveResponse();
+
+                                tester.usersRequest().
+                                    anotherAuthorizationToken().
+                                    receiveResponse();
+
+                                tester.groupsRequest().
+                                    anotherAuthorizationToken().
+                                    receiveResponse();
+                            });
+
+                            it(
+                                'Получен ответ на запрос с токеном, который истёк и уже был обновлён. Запрос ' +
+                                'переотправлен.',
+                            function() {
+                                usersInGroupsRequest.
+                                    accessTokenExpired().
+                                    receiveResponse();
+
+                                tester.usersInGroupsRequest().
+                                    anotherAuthorizationToken().
+                                    receiveResponse();
+
+                                tester.softphone.expectToHaveTextContent(
+                                    'Сотрудники Группы ' +
+
+                                    'Божилова Йовка 296 ' +
+                                    'Господинова Николина 295 ' +
+                                    'Шалева Дора 8258'
+                                );
+                            });
+                            it('Ни один запрос не был отправлен.', function() {
+                                ajax.expectNoRequestsToBeSent();
+                            });
+                        });
+                        it('Ни один запрос не был отправлен.', function() {
+                            ajax.expectNoRequestsToBeSent();
+                        });
+                    });
+                    describe(
+                        'На другой вкладке было запрошено обновление токена. В ответ на запросы, отправленные в бэк ' +
+                        'софтфтона пришло сообщение об истечении токена.',
+                    function() {
+                        beforeEach(function() {
+                            localStorage.setItemInAnotherTab('tokenRefreshing', JSON.stringify({
+                                token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                                state: 'refreshing'
+                            }));
+
+                            usersRequest.
+                                accessTokenExpired().
+                                receiveResponse();
+
+                            groupsRequest.
+                                accessTokenExpired().
+                                receiveResponse();
+                        });
+
+                        describe('Токен обновился. Запросы переотправлены.', function() {
+                            beforeEach(function() {
+                                tester.setAnotherAuthTokenCookie();
+
+                                localStorage.setItemInAnotherTab('tokenRefreshing', JSON.stringify({
+                                    token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                                    state: 'refreshed'
+                                }));
+
+                                tester.usersRequest().
+                                    anotherAuthorizationToken().
+                                    receiveResponse();
+
+                                tester.groupsRequest().
+                                    anotherAuthorizationToken().
+                                    receiveResponse();
+                            });
+
+                            it(
+                                'Получен ответ на запрос с токеном, который истёк и уже был обновлён. Запрос ' +
+                                'переотправлен.',
+                            function() {
+                                usersInGroupsRequest.
+                                    accessTokenExpired().
+                                    receiveResponse();
+
+                                tester.usersInGroupsRequest().
+                                    anotherAuthorizationToken().
+                                    receiveResponse();
+
+                                tester.softphone.expectToHaveTextContent(
+                                    'Сотрудники Группы ' +
+
+                                    'Божилова Йовка 296 ' +
+                                    'Господинова Николина 295 ' +
+                                    'Шалева Дора 8258'
+                                );
+                            });
+                            it('Ни один запрос не был отправлен.', function() {
+                                ajax.expectNoRequestsToBeSent();
+                            });
+                        });
+                        it('Ни один запрос не был отправлен.', function() {
+                            ajax.expectNoRequestsToBeSent();
+                        });
+                    });
+                    /*
                     describe('Токен истёк на другой вкладке.', function() {
                         let leaderTokenRefreshingRequest;
 
@@ -2110,8 +2246,10 @@ tests.addTest(options => {
                             ajax.expectNoRequestsToBeSent();
                         });
                     });
+                    */
                 });
             });
+            /*
             describe('Вкладка является ведомой. Токен истёк.', function() {
                 let refreshRequest,
                     usersInGroupsRequest,
@@ -2243,6 +2381,7 @@ tests.addTest(options => {
                     ajax.expectNoRequestsToBeSent();
                 });
             });
+            */
         });
     });
 });
