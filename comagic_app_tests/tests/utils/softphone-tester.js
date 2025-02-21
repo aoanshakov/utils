@@ -1050,8 +1050,12 @@ define(function () {
         })();
 
         this.dialpadVisibilityButton = (() => {
-            const tester = testersFactory.createDomElementTester('#cmg-dialpad-visibility-toggler'),
-                click = tester.click.bind(tester),
+            const tester = testersFactory.createDomElementTester(
+                '#cmg-dialpad-visibility-toggler, ' +
+                '.cmgui-icon[data-component=Dialpad20]'
+            );
+
+            const click = tester.click.bind(tester),
                 moveMouseOut = tester.click.bind(tester);
 
             tester.click = () => (click(), spendTime(0), spendTime(0));
@@ -1061,16 +1065,45 @@ define(function () {
         })();
 
         function getDialpad () {
-            return document.querySelector('.clct-adress-book__dialpad-buttons');
+            return document.querySelector(
+                '.clct-adress-book__dialpad-buttons, ' +
+                '.misc-softphone-misc-sip_lib-src-new-softphone-keyboard-styles-module__dialpad-container'
+            );
         }
 
         this.dialpadButton = function (text) {
             const tester = testersFactory.createDomElementTester(function () {
-                return utils.descendantOf(getDialpad()).matchesSelector('.clct-adress-book__dialpad-button-digit').
-                    textEquals(text).find().closest('.clct-adress-book__dialpad-button');
+                const newButton = utils
+                    .descendantOf(getDialpad())
+                    .matchesSelector(
+                        '.misc-softphone-' +
+                        'misc-sip_lib-' +
+                        'src-new-softphone-' +
+                        'keyboard-' +
+                        'styles-module__' +
+                        'dialpad-number-button'
+                    )
+                    .textEquals(text)
+                    .find();
+
+                if (!utils.isNonExisting(newButton)) {
+                    return newButton;
+                }
+
+                return utils
+                    .descendantOf(getDialpad())
+                    .matchesSelector('.clct-adress-book__dialpad-button-digit')
+                    .textEquals(text)
+                    .find()
+                    .closest('.clct-adress-book__dialpad-button');
             });
 
-            const click = tester.click.bind(tester);
+            const click = tester.click.bind(tester),
+                mousedown = tester.mousedown.bind(tester),
+                mouseup = tester.mouseup.bind(tester);
+
+            tester.mousedown = () => (mousedown(), spendTime(0));
+            tester.mouseup = () => (mouseup(), spendTime(0));
             tester.click = () => (click(), spendTime(0));
 
             return tester;
@@ -1587,6 +1620,11 @@ define(function () {
                     return this;
                 },
 
+                forWeek() {
+                    params.from = '2019-12-12T00:00:00.000+03:00';
+                    return this;
+                },
+
                 search(value) {
                     params.search = value;
                     return this;
@@ -1996,7 +2034,9 @@ define(function () {
                     return this;
                 },
                 expectToBeSent: function () {
-                    var request = testRequest(ajax.recentRequest().expectPathToContain('/sup/api/v1/users/me'));
+                    var request = testRequest(ajax.recentRequest().expectToHavePath(
+                        'https://$REACT_APP_SOFTPHONE_BACKEND_HOST/sup/api/v1/users/me'
+                    ));
 
                     return addMethods({
                         receiveResponse: function () {
@@ -2792,7 +2832,7 @@ define(function () {
                                 data: data 
                             });
 
-                            Promise.runAll();
+                            spendTime(0);
                             spendTime(0);
                         }
                     };
@@ -6469,14 +6509,18 @@ define(function () {
 
             const receiveCustomMessage = data => receiveMessage(createCustomMessage(data));
 
-            const receiveLeaderDeath = () => receiveMessage({
-                type: 'internal',
-                data: {
-                    context: 'leader',
-                    action: 'death',
-                    token: 'g28g2hor28'
-                }
-            });
+            const receiveLeaderDeath = () => {
+                receiveMessage({
+                    type: 'internal',
+                    data: {
+                        context: 'leader',
+                        action: 'death',
+                        token: 'g28g2hor28'
+                    }
+                });
+
+                spendTime(0);
+            };
                 
             this.masterNotification = function () {
                 var data = {},

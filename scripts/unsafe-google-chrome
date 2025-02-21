@@ -4,7 +4,7 @@ arguments=" --enable-logging=stderr --v=1 --log-level=0 --disable-web-security -
 
 if [ $(uname | grep Darwin | wc -l) -eq 0 ]
 then
-    google-chrome $arguments
+    google-chrome-stable $arguments > ~/misc/logs/chrome.log 2>&1
 else
     /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome $arguments
 fi

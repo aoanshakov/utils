@@ -208,6 +208,7 @@ function! SetUpEslint()
         let isReactApp = isReactApp || stridx(path, '/admin_frontend/')  != -1
         let isReactApp = isReactApp || stridx(path, '/desktop/')  != -1
         let isReactApp = isReactApp || stridx(path, '/omni-tests/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/comagic-tests/')  != -1
         let isReactApp = isReactApp || stridx(path, '/consultant/')  != -1
         let isReactApp = isReactApp || stridx(path, '/sip_lib/')  != -1
         let isReactApp = isReactApp || stridx(path, '/bitrix_widget/')  != -1

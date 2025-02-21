@@ -167,6 +167,9 @@ Ext.application({
                 isRolands: function () {
                     return false;
                 },
+                isNovofon: function () {
+                    return false;
+                },
                 useSiteCategory: function () {
                     return true;
                 },

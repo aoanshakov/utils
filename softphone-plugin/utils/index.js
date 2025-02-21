@@ -98,7 +98,12 @@ const overriding = [{
     applicationPatch: corePatch,
 }, {
     application: ui,
-    overridenFiles: packageJson,
+
+    overridenFiles:
+        'package.json ' +
+        'src/components/icon/icon.tsx ' +
+        'src/components/number-field/number-field.tsx',
+
     applicationPatch: uiPatch,
 }];
 

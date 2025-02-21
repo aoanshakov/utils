@@ -176,6 +176,32 @@ function ServicesAtsStaff({ requestsManager, testersFactory, utils, wait }) {
         return form;
     })();
 
+    this.softphoneLoginValidationRequest = function () {
+        return  {
+            expectToBeSent: function () {
+                const request = requestsManager.recentRequest().
+                    expectToHavePath('/services/ats__staff/validate_softphone_login/').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({
+                        login: 'chenkova',
+                        user_id: 540,
+                    });
+
+                return {
+                    receiveResponse: function () {
+                        request.respondSuccessfullyWith({
+                            success: true,
+                            data: true,
+                        });
+                    }
+                };
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        };
+    };
+
     this.statusCreatingRequest = function () {
         return  {
             expectToBeSent: function () {

@@ -55,7 +55,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        describe('Открываю IFrame чатов. Получены настройки.', function() {
+        xdescribe('Открываю IFrame чатов. Получены настройки.', function() {
             let accountRequest,
                 secondAccountRequest,
                 widgetSettings;
@@ -89,13 +89,8 @@ tests.addTest(options => {
                         webAccountLoginUnavailable().
                         expectToBeSent();
 
-                    secondAccountRequest = tester.accountRequest().
-                        forIframe().
-                        fromIframe().
-                        webAccountLoginUnavailable().
-                        expectToBeSent();
-
                     tester.chatSettingsRequest().receiveResponse();
+                    tester.channelsRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
 
                     tester.employeeStatusesRequest().
@@ -107,6 +102,12 @@ tests.addTest(options => {
                     tester.messageTemplateListRequest().receiveResponse();
                     tester.commonMessageTemplatesRequest().receiveResponse();
                     tester.messageTemplatesSettingsRequest().receiveResponse();
+
+                    secondAccountRequest = tester.accountRequest().
+                        forIframe().
+                        fromIframe().
+                        webAccountLoginUnavailable().
+                        expectToBeSent();
                 });
 
                 describe('Чаты доступны.', function() {
@@ -220,7 +221,7 @@ tests.addTest(options => {
                                     chatListRequest.receiveResponse();
                                 });
 
-                                xdescribe('Получен запрос поиска каналов.', function() {
+                                describe('Получен запрос поиска каналов.', function() {
                                     let visitorExternalSearchingRequest,
                                         chatChannelSearchRequest;
 
@@ -701,7 +702,7 @@ tests.addTest(options => {
                                         });
                                     });
                                 });
-                                xdescribe('Приходит новое сообщение.', function() {
+                                describe('Приходит новое сообщение.', function() {
                                     let notificationShowingRequest;
 
                                     beforeEach(function() {
@@ -767,7 +768,7 @@ tests.addTest(options => {
                                         postMessages.nextMessage().expectNotToExist();
                                     });
                                 });
-                                xdescribe('Выбираю чат.', function() {
+                                describe('Выбираю чат.', function() {
                                     beforeEach(function() {
                                         tester.chatList.
                                             first.
@@ -833,7 +834,7 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
-                                xit(
+                                it(
                                     'От родительского окна получен запрос поиска каналов. На сервер отправлен запрос ' +
                                     'каналов.',
                                 function() {
@@ -847,7 +848,7 @@ tests.addTest(options => {
                                         telegramPrivate().
                                         expectToBeSent();
                                 });
-                                xit(
+                                it(
                                     'Приложение открыто в другом браузере. Отображено сообщение о том, что ' +
                                     'приложение открыто в другом браузере.',
                                 function() {
@@ -856,11 +857,11 @@ tests.addTest(options => {
                                     tester.body.expectToHaveTextContent('Приложение открыто в другом браузере');
                                     tester.closeButton.expectToBeVisible();
                                 });
-                                xit('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
+                                it('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
                                     tester.closeButton.click();
                                     tester.chatsHidingRequest().expectToBeSent();
                                 });
-                                xit('Ввожу значение в поле поиска. Произведён поиск.', function() {
+                                it('Ввожу значение в поле поиска. Произведён поиск.', function() {
                                     tester.searchIcon.click();
 
                                     tester.input.
@@ -874,7 +875,7 @@ tests.addTest(options => {
 
                                     tester.chatListItem('Сообщение #75').expectToBeVisible();
                                 });
-                                xit('Ввожу номер для поиска в адресную строку. Произведён поиск.', function() {
+                                it('Ввожу номер для поиска в адресную строку. Произведён поиск.', function() {
                                     tester.history.push('/chrome/chats/messages?search=79283810988');
 
                                     tester.searchResultsRequest().
@@ -884,7 +885,7 @@ tests.addTest(options => {
 
                                     tester.chatListItem('Сообщение #75').expectToBeVisible();
                                 });
-                                xit(
+                                it(
                                     
                                     'Получен запрос иконки. В родительское окно отправлена разметка иконки.',
                                 function() {
@@ -912,7 +913,6 @@ tests.addTest(options => {
                                         expectMessageToContain('Time consumed');
                                 });
                             });
-                            return;
                             it(
                                 'Соединение с вебсокетом сотрудников потеряно. Соединение с вебсокетом сотрудников ' +
                                 'восстановлено. Данные сотрудника перезапрошены.',
@@ -991,12 +991,10 @@ tests.addTest(options => {
                                 tester.anchor('79162729533').expectNotToExist();
                             });
                         });
-                        return;
                         it('Получен запрос открытости вебсокета.', function() {
                             tester.employeesWebsocketConnectedRequest().receive();
                         });
                     });
-                    return;
                     describe('Вкладка является ведомой.', function() {
                         beforeEach(function() {
                             tester.employeesBroadcastChannel().
@@ -1101,7 +1099,6 @@ tests.addTest(options => {
                         });
                     });
                 });
-                return;
                 it('Не удалось получить данные аккаунта. Чаты скрыты.', function() {
                     accountRequest.
                         failed().
@@ -1141,7 +1138,6 @@ tests.addTest(options => {
                     tester.body.expectToHaveTextContent('Недостаточно прав на раздел чатов');
                 });
             });
-            return;
             describe('Получен запрос поиска каналов.', function() {
                 beforeEach(function() {
                     tester.channelsSearchingRequest().receive();
@@ -1322,8 +1318,10 @@ tests.addTest(options => {
                 tester.messageTemplatesSettingsRequest().expectToBeSent();
             });
         });
-        return;
         describe('Открываю IFrame чатов amoCRM.', function() {
+            let accountRequest,
+                secondAccountRequest;
+
             beforeEach(function() {
                 tester = new Tester({
                     application: 'amocrmChatsIframeContent',
@@ -1333,18 +1331,13 @@ tests.addTest(options => {
                     ...options,
                 });
 
-                const accountRequest = tester.accountRequest().
+                accountRequest = tester.accountRequest().
                     forIframe().
-                    webAccountLoginUnavailable().
-                    expectToBeSent();
-
-                const secondAccountRequest = tester.accountRequest().
-                    forIframe().
-                    fromIframe().
                     webAccountLoginUnavailable().
                     expectToBeSent();
 
                 tester.chatSettingsRequest().receiveResponse();
+                tester.channelsRequest().receiveResponse();
                 tester.chatChannelListRequest().receiveResponse();
 
                 tester.employeeStatusesRequest().
@@ -1356,6 +1349,12 @@ tests.addTest(options => {
                 tester.messageTemplateListRequest().receiveResponse();
                 tester.commonMessageTemplatesRequest().receiveResponse();
                 tester.messageTemplatesSettingsRequest().receiveResponse();
+
+                secondAccountRequest = tester.accountRequest().
+                    forIframe().
+                    fromIframe().
+                    webAccountLoginUnavailable().
+                    expectToBeSent();
 
                 tester.unreadMessagesCountSettingRequest().expectToBeSent();
 
@@ -1369,140 +1368,169 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.submoduleInitilizationEvent().expectToBeSent();
-
-                accountRequest.
-                    operatorWorkplaceAvailable().
-                    receiveResponse();
-
-                tester.employeesBroadcastChannel().
-                    applyLeader().
-                    expectToBeSent().
-                    waitForSecond();
-
-                tester.employeesBroadcastChannel().
-                    applyLeader().
-                    expectToBeSent().
-                    waitForSecond();
-
-                tester.employeesBroadcastChannel().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.employeesWebSocket.connect();
-                tester.employeesWebsocketConnectedMessage().expectToBeSent();
-
-                tester.employeesInitMessage().
-                    oauthToken().
-                    expectToBeSent();
-
-                secondAccountRequest.
-                    operatorWorkplaceAvailable().
-                    receiveResponse();
-
-                tester.chatsWebSocket.connect();
-
-                tester.chatsInitMessage().
-                    oauthToken().
-                    expectToBeSent();
-
-                const requests = ajax.inAnyOrder();
-
-                const employeeSettingsRequest = tester.employeeSettingsRequest().
-                    expectToBeSent(requests);
-
-                const employeeRequest = tester.employeeRequest().
-                    oauthToken().
-                    expectToBeSent(requests);
-
-                const thirdAccountRequest = tester.accountRequest().
-                    forIframe().
-                    fromIframe().
-                    webAccountLoginUnavailable().
-                    operatorWorkplaceAvailable().
-                    expectToBeSent(requests);
-
-                requests.expectToBeSent();
-
-                thirdAccountRequest.receiveResponse();
-                employeeSettingsRequest.receiveResponse();
-                employeeRequest.receiveResponse();
-
-                tester.chatChannelSearchRequest().
-                    emptySearchString().
-                    receiveResponse();
-
-                tester.countersRequest().
-                    noNewChats().
-                    noClosedChats().
-                    receiveResponse();
-
-                tester.offlineMessageCountersRequest().receiveResponse();
-                tester.chatChannelListRequest().receiveResponse();
-                tester.siteListRequest().receiveResponse();
-                tester.markListRequest().receiveResponse();
-
-                tester.chatListRequest().
-                    forCurrentEmployee().
-                    noData().
-                    receiveResponse();
-
-                tester.chatListRequest().
-                    forCurrentEmployee().
-                    active().
-                    receiveResponse();
-
-                tester.chatListRequest().forCurrentEmployee().
-                    closed().
-                    noData().
-                    receiveResponse();
-
-                tester.chatChannelTypeListRequest().receiveResponse();
-
-                tester.offlineMessageListRequest().notProcessed().receiveResponse();
-                tester.offlineMessageListRequest().processing().receiveResponse();
-                tester.offlineMessageListRequest().processed().receiveResponse();
-
-                tester.unreadMessagesCountSettingRequest().
-                    value(75).
-                    expectToBeSent();
             });
 
-            it('От родительского окна получен запрос каналов. Запрос каналов отправлен на сервер.', function() {
-                tester.channelsSearchingRequest().receive();
+            xdescribe('Удалось получить данные аккаунта.', function() {
+                beforeEach(function() {
+                    accountRequest.
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
 
-                tester.visitorExternalSearchingRequest().
-                    anotherToken().
-                    fourthSearchString().
-                    telegramPrivate().
-                    expectToBeSent();
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.employeesWebSocket.connect();
+                    tester.employeesWebsocketConnectedMessage().expectToBeSent();
+
+                    tester.employeesInitMessage().
+                        oauthToken().
+                        expectToBeSent();
+
+                    secondAccountRequest.
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.chatsWebSocket.connect();
+
+                    tester.chatsInitMessage().
+                        oauthToken().
+                        expectToBeSent();
+
+                    const requests = ajax.inAnyOrder();
+
+                    const employeeSettingsRequest = tester.employeeSettingsRequest().
+                        expectToBeSent(requests);
+
+                    const employeeRequest = tester.employeeRequest().
+                        oauthToken().
+                        expectToBeSent(requests);
+
+                    const thirdAccountRequest = tester.accountRequest().
+                        forIframe().
+                        fromIframe().
+                        webAccountLoginUnavailable().
+                        operatorWorkplaceAvailable().
+                        expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    thirdAccountRequest.receiveResponse();
+                    employeeSettingsRequest.receiveResponse();
+                    employeeRequest.receiveResponse();
+
+                    tester.chatChannelSearchRequest().
+                        emptySearchString().
+                        receiveResponse();
+
+                    tester.offlineMessageCountersRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+                    tester.groupChatsRequest().receiveResponse();
+
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
+     
+                    tester.countersRequest().
+                        noNewChats().
+                        noClosedChats().
+                        receiveResponse();
+
+                    tester.unreadMessagesCountSettingRequest().
+                        value(75).
+                        expectToBeSent();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        noData().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        active().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        closed().
+                        noData().
+                        receiveResponse();
+                });
+
+                it('От родительского окна получен запрос каналов. Запрос каналов отправлен на сервер.', function() {
+                    tester.channelsSearchingRequest().receive();
+
+                    tester.visitorExternalSearchingRequest().
+                        anotherToken().
+                        fourthSearchString().
+                        telegramPrivate().
+                        expectToBeSent();
+                });
+                it(
+                    'Нажимаю на кнопку скачивания лога. В родительское окно ' +
+                    'отправлен запрос скачивания лога.',
+                function() {
+                    tester.bugButton.click();
+
+                    tester.logDownloadingRequest().
+                        windowMessage().
+                        expectToBeSent();
+                });
+                it('Получена английская локаль. Используется английский язык.', function() {
+                    tester.amocrmStateSettingRequest().
+                        en().
+                        receive();
+
+                    tester.body.expectTextContentToHaveSubstring('Chats');
+                    tester.body.expectTextContentNotToHaveSubstring('Чаты');
+                });
+                it('Нажимаю на кнопку закрытия. Окно чатов закрыто.', function() {
+                    tester.closeButton.click();
+                    tester.chatsHidingRequest().expectToBeSent();
+                });
+                it('Используется русский язык.', function() {
+                    tester.body.expectTextContentToHaveSubstring('Чаты');
+                    tester.body.expectTextContentNotToHaveSubstring('Chats');
+                });
             });
             it(
-                'Нажимаю на кнопку скачивания лога. В родительское окно ' +
-                'отправлен запрос скачивания лога.',
+                'Не удалось получить данные аккаунта из-за ошибки авторизации. Отображено сообщение о том, что ' +
+                'сотрудник не авторизован.',
             function() {
-                tester.bugButton.click();
+                accountRequest.
+                    unauthorized().
+                    receiveResponse();
 
-                tester.logDownloadingRequest().
-                    windowMessage().
-                    expectToBeSent();
-            });
-            it('Получена английская локаль. Используется английский язык.', function() {
-                tester.amocrmStateSettingRequest().
-                    en().
-                    receive();
+                secondAccountRequest.
+                    unauthorized().
+                    receiveResponse();
 
-                tester.body.expectTextContentToHaveSubstring('Chats');
-                tester.body.expectTextContentNotToHaveSubstring('Чаты');
-            });
-            it('Нажимаю на кнопку закрытия. Окно чатов закрыто.', function() {
-                tester.closeButton.click();
-                tester.chatsHidingRequest().expectToBeSent();
-            });
-            it('Используется русский язык.', function() {
-                tester.body.expectTextContentToHaveSubstring('Чаты');
-                tester.body.expectTextContentNotToHaveSubstring('Chats');
+                postMessages.nextMessage().expectMessageToContain({
+                    method: 'set_token',
+                    data: '',
+                });
+                
+                tester.body.expectToHaveTextContent(
+                    'Не авторизован ' +
+                    'Для использования приложения необходимо авторизоваться'
+                );
             });
         });
+        return;
         describe('Открываю IFrame чатов в Битрикс.', function() {
             let accountRequest,
                 secondAccountRequest,

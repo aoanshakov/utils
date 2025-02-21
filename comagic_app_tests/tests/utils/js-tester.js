@@ -102,7 +102,7 @@ function JsTester_UserMediaEventHandlersItem (options) {
     };
 }
 
-function JsTester_QueueItemAppender () {
+function JsTester_StackItemAppender () {
     return function (args) {
         var currentItem = args.currentItem,
             newItem = args.newItem;
@@ -112,7 +112,7 @@ function JsTester_QueueItemAppender () {
     };
 }
 
-function JsTester_StackItemAppender () {
+function JsTester_QueueItemAppender () {
     return function (args) {
         var currentItem = args.currentItem,
             lastItem = args.lastItem,
@@ -195,9 +195,8 @@ function JsTester_ContainerItem (value) {
     };
 }
 
-function JsTester_Queue (emptyValue, logEnabled) {
+function JsTester_Queue (emptyValue) {
     return new JsTester_Container({
-        logEnabled,
         emptyValue,
         appender: new JsTester_QueueItemAppender()
     });
@@ -3396,6 +3395,8 @@ function JsTester_BroadcastChannelMessage (args) {
         return this;
     };
 
+    this.getName = () => actualChannelName;
+
     this.getContent = function () {
         return actualMessage;
     };
@@ -3425,6 +3426,8 @@ function JsTester_BroadcastChannelFactory (args) {
         debug = args.debug;
 
     return function (channelName) {
+        this.name = channelName;
+
         handlers[channelName] = {};
         shortcutHandlers[channelName] = {};
         channelHandlers = handlers[channelName];
@@ -3943,13 +3946,20 @@ function JsTester_Element ({
     var getElement = utils.makeFunction(getElement);
 
     function querySelectorAll (selector, logEnabled) {
-        const element = getElement(),
-            result = (getElement() || new JsTester_NoElement()).querySelectorAll(selector);
+        const element = getElement();
+
+        const result = Array.prototype.slice.call(
+            (getElement() || new JsTester_NoElement()).querySelectorAll(selector),
+            0,
+        );
 
         logEnabled && console.log({
             selector,
             element,
-            result
+            result: result.map(element => ({
+                element,
+                isVisible: utils.isVisible(element),
+            })),
         });
 
         return result;
@@ -3992,6 +4002,15 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
 
             return args[0];
         };
+    };
+
+    this.paste = function (text) {
+        const event = new JsTester_PasteEvent(this);
+
+        event.dispatch({
+            target: window,
+            text,
+        });
     };
 
     this.receiveWindowMessage = function (args) {
@@ -4138,13 +4157,12 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
 
         return keyboardEvent;
     };
-    this.pressKey = function (key, target, callback) {
+    this.keydown = function (key, target, callback) {
         target = target || document;
         callback = callback || function () {};
 
-        var keyCode = key.charCodeAt(0);
-
-        var eventNames = ['keydown', 'keypress'],
+        var keyCode = key.charCodeAt(0),
+            eventNames = ['keydown', 'keypress'],
             i = 0;
 
         var dispatchNext = function () {
@@ -4167,9 +4185,14 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
 
         dispatchNext();
         callback();
-
-        target.dispatchEvent(createKeyboardEvent(
-            'keyup', key, keyCode, function () {}));
+    };
+    this.keyup = function (key, target) {
+        (target || document).dispatchEvent(createKeyboardEvent(
+            'keyup', key, key.charCodeAt(0), function () {}));
+    };
+    this.pressKey = function (key, target, callback) {
+        this.keydown(key, target, callback);
+        this.keyup(key, target);
     };
     this.pressSpecialKey = function (target, keyCode, handleKeyDown, handleKeyUp, code) {
         target = target || document;
@@ -5218,9 +5241,8 @@ function JsTester_FetchMock (args) {
         utils = args.utils;
 
     return function (url, options) {
-        options = options || {
-            method: 'GET'
-        };
+        options = options || {};
+        !options.method && (options.method = 'GET');
 
         var method = options.method,
             body = options.body,
@@ -5685,6 +5707,21 @@ function JsTester_Anchor (
     };
 }
 
+function JsTester_PasteEvent(utils) {
+    const event = new ClipboardEvent('paste', {
+        clipboardData: new DataTransfer()
+    });
+
+    this.addPreventDefaultHandler = function (callback) {
+        utils.addPreventDefaultHandler(event, callback);
+    };
+
+    this.dispatch = function({ target, text }) {
+        event.clipboardData.setData('text', text);
+        target.dispatchEvent(event);
+    };
+}
+
 function JsTester_InputElement (
     getDomElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
     genetiveDescription, factory, spendTime
@@ -5713,34 +5750,37 @@ function JsTester_InputElement (
         }));
     }
 
-    function input (value) {
-        runAsText(domElement => {
-            var length = value.length,
-                i = 0,
-                oldValue = domElement.value,
-                beforeCursor = oldValue.substr(0, domElement.selectionStart),
-                afterCursor = oldValue.substr(domElement.selectionEnd),
-                cursorPosition = beforeCursor.length,
-                inputedValue = '';
+    function createCharacterAppenderFactory () {
+        var domElement = getDomElement(),
+            oldValue = domElement.value,
+            beforeCursor = oldValue.substr(0, domElement.selectionStart),
+            afterCursor = oldValue.substr(domElement.selectionEnd),
+            cursorPosition = beforeCursor.length,
+            inputedValue = '';
 
-            var update = function () {
+        var CharacterAppender = function (character) {
+            return function () {
+                inputedValue += character;
+                cursorPosition ++;
                 nativeSetValue(beforeCursor + inputedValue + afterCursor);
                 setSelectionRange(cursorPosition, cursorPosition);
             };
+        };
+        
+        if (domElement.readOnly || domElement.disabled) {
+            throw new Error('Невозможно ввести значение, так как ' + nominativeDescription + ' ' + gender.readonly +
+                ' для редактирования.');
+        }
 
-            var CharacterAppender = function (character) {
-                return function () {
-                    inputedValue += character;
-                    cursorPosition ++;
-                    nativeSetValue(beforeCursor + inputedValue + afterCursor);
-                    setSelectionRange(cursorPosition, cursorPosition);
-                };
-            };
-            
-            if (domElement.readOnly || domElement.disabled) {
-                throw new Error('Невозможно ввести значение, так как ' + nominativeDescription + ' ' + gender.readonly +
-                    ' для редактирования.');
-            }
+        return CharacterAppender;
+    }
+
+    function input (value) {
+        runAsText(domElement => {
+            const CharacterAppender = createCharacterAppenderFactory();
+
+            var length = value.length,
+                i = 0;
 
             for (i = 0; i < length; i ++) {
                 utils.pressKey(value[i], domElement, new CharacterAppender(value[i]));
@@ -5906,18 +5946,32 @@ function JsTester_InputElement (
 
         this.click();
 
-        var event = new ClipboardEvent('paste', {
-            clipboardData: new DataTransfer()
-        });
+        const event = new JsTester_PasteEvent(utils);
 
-        utils.addPreventDefaultHandler(event, function () {
+        event.addPreventDefaultHandler(function () {
             setValue = function () {};
         });
 
-        event.clipboardData.setData('text', value);
+        event.dispatch({
+            target: inputElement,
+            text: value,
+        });
 
-        inputElement.dispatchEvent(event);
         setValue();
+    };
+    this.keydown = function(value) {
+        this.click();
+
+        runAsText(domElement => {
+            const CharacterAppender = createCharacterAppenderFactory();
+            utils.keydown(value, domElement, new CharacterAppender(value));
+        });
+    };
+    this.keyup = function(value) {
+        runAsText(domElement => {
+            utils.keyup(value, domElement);
+            fireChange();
+        });
     };
     this.input = function (value) {
         this.click();
@@ -6094,6 +6148,14 @@ function JsTester_DomElement (
     this.pressRight = function (repetitions) {
         this.expectToBeVisible();
         utils.pressRight(getDomElement(), repetitions);
+    };
+    this.keydown = function (key) {
+        this.expectToBeVisible();
+        utils.keydown(key, getDomElement());
+    };
+    this.keyup = function (key) {
+        this.expectToBeVisible();
+        utils.keyup(key, getDomElement());
     };
     this.pressKey = function (key) {
         this.expectToBeVisible();

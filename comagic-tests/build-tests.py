@@ -15,6 +15,7 @@ test_name = sys.argv[3] if len(sys.argv) > 3 else None
 
 comagic_directory = os.path.join(comagic_web_directory, 'comagic')
 
+sys.argv = [sys.argv[0], '--config', os.path.join(comagic_directory, 'local_config.py')];
 sys.path.append(comagic_web_directory)
 
 tests_directory = os.path.abspath(os.path.dirname(__file__))

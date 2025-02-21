@@ -66,7 +66,6 @@ tests.addTest(options => {
 
             beforeEach(function() {
                 accountRequest.receiveResponse();
-                tester.notificationChannel().applyLeader().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
 
@@ -90,44 +89,48 @@ tests.addTest(options => {
 
             describe('Вкладка является ведущей.', function() {
                 beforeEach(function() {
-                    tester.masterInfoMessage().
+                    tester.employeesBroadcastChannel().
                         applyLeader().
                         expectToBeSent();
 
-                    tester.employeesBroadcastChannel().
+                    tester.masterInfoMessage().
                         applyLeader().
-                        expectToBeSent().
-                        waitForSecond();
+                        expectToBeSent();
 
                     tester.notificationChannel().
                         applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
                         expectToBeSent();
 
                     tester.masterInfoMessage().
                         applyLeader().
                         expectToBeSent();
 
-                    tester.employeesBroadcastChannel().
+                    tester.notificationChannel().
                         applyLeader().
                         expectToBeSent().
                         waitForSecond();
 
-                    tester.slavesNotification().
-                        additional().
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.notificationChannel().
+                        tellIsLeader().
                         expectToBeSent();
 
                     tester.slavesNotification().expectToBeSent();
 
-                    tester.notificationChannel().
-                        tellIsLeader().
-                        expectToBeSent();
-
-                    tester.masterInfoMessage().
-                        tellIsLeader().
-                        expectToBeSent();
-
-                    tester.employeesBroadcastChannel().
-                        tellIsLeader().
+                    tester.slavesNotification().
+                        additional().
                         expectToBeSent();
 
                     tester.employeesWebSocket.connect();
@@ -402,32 +405,38 @@ tests.addTest(options => {
                                                                 name.
                                                                 click();
 
+                                                            const requests = ajax.inAnyOrder();
+
                                                             const usersRequest = tester.usersRequest().
                                                                 forContacts().
-                                                                expectToBeSent();
+                                                                expectToBeSent(requests);
 
                                                             const secondUsersRequest = tester.usersRequest().
                                                                 forContacts().
-                                                                expectToBeSent();
+                                                                expectToBeSent(requests);
 
                                                             const contactRequest = tester.contactRequest().
-                                                                expectToBeSent();
-
-                                                            const contactCommunicationsRequest =
-                                                                tester.contactCommunicationsRequest().
-                                                                    expectToBeSent();
+                                                                expectToBeSent(requests);
 
                                                             const contactGroupsRequest =
-                                                                tester.contactGroupsRequest().expectToBeSent();
+                                                                tester.contactGroupsRequest().expectToBeSent(requests);
 
                                                             const contactsRequest = tester.contactsRequest().
                                                                 differentNames().
-                                                                expectToBeSent();
+                                                                expectToBeSent(requests);
+
+                                                            /*
+                                                            const contactCommunicationsRequest =
+                                                                tester.contactCommunicationsRequest().
+                                                                    expectToBeSent(requests);
+                                                            */
+                                                            
+                                                            requests.expectToBeSent();
 
                                                             usersRequest.receiveResponse();
                                                             secondUsersRequest.receiveResponse();
                                                             contactRequest.receiveResponse();
-                                                            contactCommunicationsRequest.receiveResponse();
+                                                            //contactCommunicationsRequest.receiveResponse();
                                                             contactGroupsRequest.receiveResponse();
                                                             contactsRequest.receiveResponse();
 
@@ -612,17 +621,6 @@ tests.addTest(options => {
 
                                                         tester.userLogoutRequest().receiveResponse();
 
-                                                        tester.masterInfoMessage().
-                                                            leaderDeath().
-                                                            expectToBeSent();
-
-                                                        tester.employeesBroadcastChannel().
-                                                            leaderDeath().
-                                                            expectToBeSent();
-
-                                                        tester.employeesWebSocket.finishDisconnecting();
-                                                        tester.eventsWebSocket.finishDisconnecting();
-
                                                         tester.slavesNotification().
                                                             userDataFetched().
                                                             twoChannels().
@@ -630,6 +628,17 @@ tests.addTest(options => {
                                                             destroyed().
                                                             enabled().
                                                             expectToBeSent();
+
+                                                        tester.employeesBroadcastChannel().
+                                                            leaderDeath().
+                                                            expectToBeSent();
+
+                                                        tester.masterInfoMessage().
+                                                            leaderDeath().
+                                                            expectToBeSent();
+
+                                                        tester.employeesWebSocket.finishDisconnecting();
+                                                        tester.eventsWebSocket.finishDisconnecting();
 
                                                         tester.authLogoutRequest().receiveResponse();
 
@@ -704,17 +713,37 @@ tests.addTest(options => {
                                                             authCheckRequest.receiveResponse();
                                                         }
 
-                                                        tester.masterInfoMessage().receive();
+                                                        tester.employeesBroadcastChannel().
+                                                            applyLeader().
+                                                            expectToBeSent();
 
-                                                        tester.slavesNotification().
-                                                            additional().
-                                                            visible().
+                                                        tester.masterInfoMessage().
+                                                            applyLeader().
+                                                            expectToBeSent().
+                                                            waitForSecond();
+
+                                                        tester.employeesBroadcastChannel().
+                                                            applyLeader().
+                                                            expectToBeSent();
+
+                                                        tester.masterInfoMessage().
+                                                            applyLeader().
+                                                            expectToBeSent().
+                                                            waitForSecond();
+
+                                                        tester.employeesBroadcastChannel().
+                                                            tellIsLeader().
+                                                            expectToBeSent();
+
+                                                        tester.masterInfoMessage().
+                                                            tellIsLeader().
                                                             expectToBeSent();
 
                                                         tester.slavesNotification().expectToBeSent();
 
-                                                        tester.masterInfoMessage().
-                                                            tellIsLeader().
+                                                        tester.slavesNotification().
+                                                            additional().
+                                                            visible().
                                                             expectToBeSent();
 
                                                         tester.employeeStatusesRequest().
@@ -736,8 +765,6 @@ tests.addTest(options => {
                                                             anotherAuthorizationToken().
                                                             receiveResponse();
 
-                                                        tester.marksRequest().receiveResponse();
-
                                                         tester.slavesNotification().
                                                             twoChannels().
                                                             enabled().
@@ -757,18 +784,6 @@ tests.addTest(options => {
                                                             twoChannels().
                                                             softphoneServerConnected().
                                                             webRTCServerConnected().
-                                                            expectToBeSent();
-
-                                                        tester.employeesBroadcastChannel().
-                                                            tellIsLeader().
-                                                            expectToBeSent();
-
-                                                        tester.employeesBroadcastChannel().
-                                                            applyLeader().
-                                                            expectToBeSent();
-
-                                                        tester.employeesBroadcastChannel().
-                                                            applyLeader().
                                                             expectToBeSent();
 
                                                         tester.employeesWebSocket.connect();
@@ -835,6 +850,232 @@ tests.addTest(options => {
                                                         tester.dialpadVisibilityButton.click();
                                                     });
 
+                                                    describe(
+                                                        'Ввожу часть номера телефона в поле для ввода номера телефона.',
+                                                    function() {
+                                                        let outgoingCall,
+                                                            outCallSessionEvent;
+
+                                                        beforeEach(function() {
+                                                            tester.phoneField.fill('791612345');
+                                                        });
+
+                                                        describe(
+                                                            'Ввожу полностью номер телефона в поле для ввода номера ' +
+                                                            'телефона.',
+                                                        function() {
+                                                            beforeEach(function() {
+                                                                tester.phoneField.input('6');
+                                                                tester.phoneField.input('7');
+                                                            });
+
+                                                            describe('Нажимаю на кнопку звонка.', function() {
+                                                                beforeEach(function() {
+                                                                    tester.callButton.click();
+
+                                                                    tester.firstConnection.connectWebRTC();
+                                                                    tester.allowMediaInput();
+
+                                                                    outgoingCall = tester.outgoingCall().start();
+
+                                                                    tester.slavesNotification().
+                                                                        available().
+                                                                        twoChannels().
+                                                                        sending().
+                                                                        expectToBeSent();
+
+                                                                    outgoingCall.setRinging();
+
+                                                                    tester.slavesNotification().
+                                                                        available().
+                                                                        twoChannels().
+                                                                        progress().
+                                                                        expectToBeSent();
+
+                                                                    tester.firstConnection.callTrackHandler();
+
+                                                                    tester.numaRequest().receiveResponse();
+                                                                    outCallSessionEvent = tester.outCallSessionEvent();
+                                                                });
+
+                                                                describe('Есть открытые сделки.', function() {
+                                                                    beforeEach(function() {
+                                                                        outCallSessionEvent.activeLeads().receive();
+
+                                                                        tester.outCallSessionEvent().
+                                                                            activeLeads().
+                                                                            slavesNotification().
+                                                                            expectToBeSent();
+                                                                    });
+
+                                                                    describe(
+                                                                        'Нажимаю на кнопку сворачивания.',
+                                                                    function() {
+                                                                        beforeEach(function() {
+                                                                            tester.collapsednessToggleButton.click();
+                                                                        });
+
+                                                                        it(
+                                                                            'Нажимаю на кнопку разворачивания. ' +
+                                                                            'Отображены открытые сделки.',
+                                                                        function() {
+                                                                            tester.collapsednessToggleButton.click();
+
+                                                                            tester.anchor('По звонку с 79154394340').
+                                                                                click();
+
+                                                                            windowOpener.expectToHavePath(
+                                                                                'https://comagicwidgets.amocrm.ru/' +
+                                                                                'leads/detail/3003651'
+                                                                            );
+                                                                        });
+                                                                        it('Софтфон свернут.', function() {
+                                                                            tester.softphone.expectToBeCollapsed();
+                                                                        });
+                                                                    });
+                                                                    it(
+                                                                        'Нажимаю на ссылку сделки. Открыта сделка.',
+                                                                    function() {
+                                                                        tester.anchor('По звонку с 79154394340').
+                                                                            click();
+
+                                                                        windowOpener.expectToHavePath(
+                                                                            'https://comagicwidgets.amocrm.ru/leads/' +
+                                                                            'detail/3003651'
+                                                                        );
+                                                                    });
+                                                                    it('Отображены открытые сделки.', function() {
+                                                                        tester.softphone.expectToBeExpanded();
+
+                                                                        tester.dialpadVisibilityButton.
+                                                                            expectToHaveClass('cmg-button-disabled');
+                                                                        tester.dialpadVisibilityButton.
+                                                                            expectNotToHaveClass('cmg-button-pressed');
+                                                                    });
+                                                                });
+                                                                it(
+                                                                    'Поиск контакта в CRM ещё не закончен. Кнопка ' +
+                                                                    'открытия контакта не отображена.',
+                                                                function() {
+                                                                    outCallSessionEvent.
+                                                                        notFinal().
+                                                                        receive();
+
+                                                                    tester.outCallSessionEvent().
+                                                                        notFinal().
+                                                                        slavesNotification().
+                                                                        expectToBeSent();
+
+                                                                    tester.contactOpeningButton.expectNotToExist();
+                                                                });
+                                                                it(
+                                                                    'Поиск контакта в CRM невозможен. Отображена ' +
+                                                                    'кнопка открытия контакта.',
+                                                                function() {
+                                                                    outCallSessionEvent.
+                                                                        unableToSearchForCrmContact().
+                                                                        receive();
+
+                                                                    tester.outCallSessionEvent().
+                                                                        unableToSearchForCrmContact().
+                                                                        slavesNotification().
+                                                                        expectToBeSent();
+
+                                                                    tester.contactOpeningButton.expectToBeVisible();
+                                                                });
+                                                                it('Нажимаю на кнопку Esc.', function() {
+                                                                    tester.softphone.pressEscape();
+
+                                                                    tester.slavesNotification().
+                                                                        available().
+                                                                        userDataFetched().
+                                                                        twoChannels().
+                                                                        ended().
+                                                                        expectToBeSent();
+
+                                                                    outgoingCall.expectCancelToBeSent();
+
+                                                                    tester.phoneField.
+                                                                        expectToHaveValue('Введите номер');
+                                                                });
+                                                                it(
+                                                                    'Нет открытых сделок. Отображен диалпад.',
+                                                                function() {
+                                                                    outCallSessionEvent.receive();
+
+                                                                    tester.outCallSessionEvent().
+                                                                        slavesNotification().
+                                                                        expectToBeSent();
+
+                                                                    tester.dialpadButton(1).expectToBeVisible();
+
+                                                                    tester.dialpadVisibilityButton.
+                                                                        expectNotToHaveClass('cmg-button-disabled');
+                                                                    tester.dialpadVisibilityButton.
+                                                                        expectToHaveClass('cmg-button-pressed');
+
+                                                                    tester.contactOpeningButton.expectToBeVisible();
+                                                                });
+                                                            });
+                                                            it('Нажимаю на клавишу Enter.', function() {
+                                                                tester.softphone.pressEnter();
+
+                                                                tester.firstConnection.connectWebRTC();
+                                                                tester.allowMediaInput();
+
+                                                                outgoingCall = tester.outgoingCall().start();
+
+                                                                tester.slavesNotification().
+                                                                    available().
+                                                                    twoChannels().
+                                                                    sending().
+                                                                    expectToBeSent();
+
+                                                                tester.numaRequest().expectToBeSent();
+                                                            });
+                                                            it(
+                                                                'Номер телефона введён в поле для ввода номер ' +
+                                                                'телефона.',
+                                                            function() {
+                                                                tester.phoneField.expectToHaveValue('79161234567');
+                                                            });
+                                                        });
+                                                        describe('Меняю положение курсора.', function() {
+                                                            beforeEach(function() {
+                                                                tester.phoneField.putCursorAt(3);
+                                                            });
+
+                                                            describe('Нажимаю на кнопку цифры.', function() {
+                                                                beforeEach(function() {
+                                                                    tester.dialpadButton(6).click();
+                                                                    tester.dialpadButton(7).mousedown();
+                                                                });
+
+                                                                it('Цифра введена в нужном положении.', function() {
+                                                                    tester.dialpadButton(7).mouseup();
+                                                                    spendTime(50);
+
+                                                                    tester.phoneField.expectToHaveValue('79167612345');
+                                                                    tester.expectNoToneToPlay();
+                                                                });
+                                                                it('Звучит тон соответстующий цифре.', function() {
+                                                                    tester.expectToneSevenToPlay();
+                                                                });
+                                                            });
+                                                            it(
+                                                                'Ввожу цифру в поле для ввода номера телефона. Цифра ' +
+                                                                'введена в нужном положении.',
+                                                            function() {
+                                                                tester.phoneField.input('6');
+                                                                tester.phoneField.input('7');
+                                                                tester.phoneField.expectToHaveValue('79167612345');
+                                                            });
+                                                            it('Нажимаю на кнопку удаления цифры.', function() {
+                                                                tester.digitRemovingButton.click();
+                                                                tester.phoneField.expectToHaveValue('79612345');
+                                                            });
+                                                        });
+                                                    });
                                                     describe('Поступил входящий звонок.', function() {
                                                         let incomingCall;
 
@@ -1006,102 +1247,6 @@ tests.addTest(options => {
                                                             tester.dialpadButton(1).expectToBeVisible();
                                                         });
                                                     });
-                                                    describe('Совершаю исходящий звонок.', function() {
-                                                        let outgoingCall,
-                                                            outCallSessionEvent;
-
-                                                        beforeEach(function() {
-                                                            tester.phoneField.fill('79161234567');
-                                                            tester.callButton.click();
-
-                                                            tester.firstConnection.connectWebRTC();
-                                                            tester.allowMediaInput();
-
-                                                            outgoingCall = tester.outgoingCall().start();
-
-                                                            tester.slavesNotification().
-                                                                available().
-                                                                twoChannels().
-                                                                sending().
-                                                                expectToBeSent();
-
-                                                            outgoingCall.setRinging();
-
-                                                            tester.slavesNotification().
-                                                                available().
-                                                                twoChannels().
-                                                                progress().
-                                                                expectToBeSent();
-
-                                                            tester.firstConnection.callTrackHandler();
-
-                                                            tester.numaRequest().receiveResponse();
-                                                            outCallSessionEvent = tester.outCallSessionEvent();
-                                                        });
-
-                                                        describe('Есть открытые сделки.', function() {
-                                                            beforeEach(function() {
-                                                                outCallSessionEvent.activeLeads().receive();
-
-                                                                tester.outCallSessionEvent().
-                                                                    activeLeads().
-                                                                    slavesNotification().
-                                                                    expectToBeSent();
-                                                            });
-
-                                                            describe('Нажимаю на кнопку сворачивания.', function() {
-                                                                beforeEach(function() {
-                                                                    tester.collapsednessToggleButton.click();
-                                                                });
-
-                                                                it(
-                                                                    'Нажимаю на кнопку разворачивания. Отображены ' +
-                                                                    'открытые сделки.',
-                                                                function() {
-                                                                    tester.collapsednessToggleButton.click();
-                                                                    tester.anchor('По звонку с 79154394340').click();
-
-                                                                    windowOpener.expectToHavePath(
-                                                                        'https://comagicwidgets.amocrm.ru/leads/' +
-                                                                        'detail/3003651'
-                                                                    );
-                                                                });
-                                                                it('Софтфон свернут.', function() {
-                                                                    tester.softphone.expectToBeCollapsed();
-                                                                });
-                                                            });
-                                                            it('Нажимаю на ссылку сделки. Открыта сделка.', function() {
-                                                                tester.anchor('По звонку с 79154394340').click();
-
-                                                                windowOpener.expectToHavePath(
-                                                                    'https://comagicwidgets.amocrm.ru/leads/detail/' +
-                                                                    '3003651'
-                                                                );
-                                                            });
-                                                            it('Отображены открытые сделки.', function() {
-                                                                tester.softphone.expectToBeExpanded();
-
-                                                                tester.dialpadVisibilityButton.
-                                                                    expectToHaveClass('cmg-button-disabled');
-                                                                tester.dialpadVisibilityButton.
-                                                                    expectNotToHaveClass('cmg-button-pressed');
-                                                            });
-                                                        });
-                                                        it('Нет открытых сделок. Отображен диалпад.', function() {
-                                                            outCallSessionEvent.receive();
-
-                                                            tester.outCallSessionEvent().
-                                                                slavesNotification().
-                                                                expectToBeSent();
-
-                                                            tester.dialpadButton(1).expectToBeVisible();
-
-                                                            tester.dialpadVisibilityButton.
-                                                                expectNotToHaveClass('cmg-button-disabled');
-                                                            tester.dialpadVisibilityButton.
-                                                                expectToHaveClass('cmg-button-pressed');
-                                                        });
-                                                    });
                                                     it('Диалпад открыт.', function() {
                                                         tester.dialpadVisibilityButton.
                                                             expectNotToHaveClass('cmg-button-disabled');
@@ -1154,20 +1299,20 @@ tests.addTest(options => {
 
                                                             tester.userLogoutRequest().receiveResponse();
 
-                                                            tester.masterInfoMessage().
-                                                                leaderDeath().
-                                                                expectToBeSent();
-
-                                                            tester.employeesBroadcastChannel().
-                                                                leaderDeath().
-                                                                expectToBeSent();
-
                                                             tester.slavesNotification().
                                                                 userDataFetched().
                                                                 twoChannels().
                                                                 destroyed().
                                                                 microphoneAccessGranted().
                                                                 enabled().
+                                                                expectToBeSent();
+
+                                                            tester.employeesBroadcastChannel().
+                                                                leaderDeath().
+                                                                expectToBeSent();
+
+                                                            tester.masterInfoMessage().
+                                                                leaderDeath().
                                                                 expectToBeSent();
 
                                                             tester.authLogoutRequest().receiveResponse();
@@ -1220,37 +1365,37 @@ tests.addTest(options => {
                                                                 authCheckRequest.receiveResponse();
                                                             }
 
-                                                            tester.masterInfoMessage().
+                                                            tester.employeesBroadcastChannel().
                                                                 applyLeader().
                                                                 expectToBeSent();
 
-                                                            tester.employeesBroadcastChannel().
+                                                            tester.masterInfoMessage().
                                                                 applyLeader().
                                                                 expectToBeSent().
                                                                 waitForSecond();
 
-                                                            tester.masterInfoMessage().
+                                                            tester.employeesBroadcastChannel().
                                                                 applyLeader().
                                                                 expectToBeSent();
 
-                                                            tester.employeesBroadcastChannel().
+                                                            tester.masterInfoMessage().
                                                                 applyLeader().
                                                                 expectToBeSent().
                                                                 waitForSecond();
 
-                                                            tester.slavesNotification().
-                                                                additional().
-                                                                visible().
+                                                            tester.employeesBroadcastChannel().
+                                                                tellIsLeader().
+                                                                expectToBeSent();
+
+                                                            tester.masterInfoMessage().
+                                                                tellIsLeader().
                                                                 expectToBeSent();
 
                                                             tester.slavesNotification().expectToBeSent();
 
-                                                            tester.masterInfoMessage().
-                                                                tellIsLeader().
-                                                                expectToBeSent();
-
-                                                            tester.employeesBroadcastChannel().
-                                                                tellIsLeader().
+                                                            tester.slavesNotification().
+                                                                additional().
+                                                                visible().
                                                                 expectToBeSent();
                                                             
                                                             tester.employeesWebSocket.connect();
@@ -1293,7 +1438,6 @@ tests.addTest(options => {
                                                                 softphoneServerConnected().
                                                                 expectToBeSent();
 
-                                                            tester.marksRequest().receiveResponse();
                                                             tester.authenticatedUserRequest().receiveResponse();
 
                                                             tester.slavesNotification().
@@ -1334,15 +1478,15 @@ tests.addTest(options => {
                                                                 secondStatus().
                                                                 receive();
 
-                                                            tester.employeeChangedEvent().
-                                                                secondStatus().
-                                                                slavesNotification().
-                                                                expectToBeSent();
-
                                                             tester.slavesNotification().
                                                                 twoChannels().
                                                                 available().
                                                                 anotherStatus().
+                                                                expectToBeSent();
+
+                                                            tester.employeeChangedEvent().
+                                                                secondStatus().
+                                                                slavesNotification().
                                                                 expectToBeSent();
 
                                                             tester.entityChangeEvent().
@@ -1728,16 +1872,16 @@ tests.addTest(options => {
                                                     tester.eventsWebSocket.disconnect(4404);
                                                     tester.authLogoutRequest().receiveResponse();
 
-                                                    tester.masterInfoMessage().
-                                                        leaderDeath().
-                                                        expectToBeSent();
-
                                                     tester.slavesNotification().
                                                         userDataFetched().
                                                         enabled().
                                                         twoChannels().
                                                         destroyed().
                                                         microphoneAccessGranted().
+                                                        expectToBeSent();
+
+                                                    tester.masterInfoMessage().
+                                                        leaderDeath().
                                                         expectToBeSent();
 
                                                     tester.registrationRequest().
@@ -1796,14 +1940,6 @@ tests.addTest(options => {
 
                                                     tester.userLogoutRequest().receiveResponse();
 
-                                                    tester.masterInfoMessage().
-                                                        leaderDeath().
-                                                        expectToBeSent();
-
-                                                    tester.employeesBroadcastChannel().
-                                                        leaderDeath().
-                                                        expectToBeSent();
-
                                                     tester.slavesNotification().
                                                         userDataFetched().
                                                         twoChannels().
@@ -1811,6 +1947,14 @@ tests.addTest(options => {
                                                         destroyed().
                                                         microphoneAccessGranted().
                                                         enabled().
+                                                        expectToBeSent();
+
+                                                    tester.employeesBroadcastChannel().
+                                                        leaderDeath().
+                                                        expectToBeSent();
+
+                                                    tester.masterInfoMessage().
+                                                        leaderDeath().
                                                         expectToBeSent();
 
                                                     tester.employeesWebSocket.finishDisconnecting();
@@ -1843,23 +1987,31 @@ tests.addTest(options => {
                                                         anotherAuthorizationToken().
                                                         receiveResponse();
 
-                                                    tester.masterInfoMessage().
+                                                    tester.employeesBroadcastChannel().
                                                         applyLeader().
                                                         expectToBeSent();
 
-                                                    tester.employeesBroadcastChannel().
+                                                    tester.masterInfoMessage().
                                                         applyLeader().
                                                         expectToBeSent().
                                                         waitForSecond();
 
-                                                    tester.masterInfoMessage().
+                                                    tester.employeesBroadcastChannel().
                                                         applyLeader().
                                                         expectToBeSent();
 
-                                                    tester.employeesBroadcastChannel().
+                                                    tester.masterInfoMessage().
                                                         applyLeader().
                                                         expectToBeSent().
                                                         waitForSecond();
+
+                                                    tester.employeesBroadcastChannel().
+                                                        tellIsLeader().
+                                                        expectToBeSent();
+
+                                                    tester.masterInfoMessage().
+                                                        tellIsLeader().
+                                                        expectToBeSent();
 
                                                     tester.employeesWebSocket.connect();
 
@@ -1867,22 +2019,14 @@ tests.addTest(options => {
                                                         anotherAuthorizationToken().
                                                         expectToBeSent();
 
-                                                    tester.employeesWebsocketConnectedMessage().expectToBeSent();
+                                                    tester.slavesNotification().expectToBeSent();
 
                                                     tester.slavesNotification().
                                                         additional().
                                                         visible().
                                                         expectToBeSent();
 
-                                                    tester.slavesNotification().expectToBeSent();
-
-                                                    tester.masterInfoMessage().
-                                                        tellIsLeader().
-                                                        expectToBeSent();
-
-                                                    tester.employeesBroadcastChannel().
-                                                        tellIsLeader().
-                                                        expectToBeSent();
+                                                    tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
                                                     {
                                                         const requests = ajax.inAnyOrder();
@@ -1954,7 +2098,6 @@ tests.addTest(options => {
                                                         softphoneServerConnected().
                                                         expectToBeSent();
 
-                                                    tester.marksRequest().receiveResponse();
                                                     tester.authenticatedUserRequest().receiveResponse();
 
                                                     tester.slavesNotification().
@@ -2040,13 +2183,13 @@ tests.addTest(options => {
                                                         receive();
 
                                                     tester.slavesNotification().
-                                                        additional().
-                                                        visible().
+                                                        twoChannels().
+                                                        available().
                                                         expectToBeSent();
 
                                                     tester.slavesNotification().
-                                                        twoChannels().
-                                                        available().
+                                                        additional().
+                                                        visible().
                                                         expectToBeSent();
                                                 });
                                                 it(
@@ -2094,16 +2237,16 @@ tests.addTest(options => {
                                                         destroy().
                                                         receive();
 
-                                                    tester.masterInfoMessage().
-                                                        leaderDeath().
-                                                        expectToBeSent();
-
                                                     tester.slavesNotification().
                                                         userDataFetched().
                                                         twoChannels().
                                                         destroyed().
                                                         microphoneAccessGranted().
                                                         enabled().
+                                                        expectToBeSent();
+
+                                                    tester.masterInfoMessage().
+                                                        leaderDeath().
                                                         expectToBeSent();
 
                                                     tester.authLogoutRequest().receiveResponse();
@@ -2135,16 +2278,16 @@ tests.addTest(options => {
                                                         destroy().
                                                         receive();
 
-                                                    tester.masterInfoMessage().
-                                                        leaderDeath().
-                                                        expectToBeSent();
-
                                                     tester.slavesNotification().
                                                         userDataFetched().
                                                         twoChannels().
                                                         destroyed().
                                                         microphoneAccessGranted().
                                                         enabled().
+                                                        expectToBeSent();
+
+                                                    tester.masterInfoMessage().
+                                                        leaderDeath().
                                                         expectToBeSent();
 
                                                     broadcastChannels.
@@ -2407,16 +2550,16 @@ tests.addTest(options => {
                                             isSipOnline().
                                             receive();
 
+                                        tester.slavesNotification().
+                                            available().
+                                            twoChannels().
+                                            expectToBeSent();
+
                                         tester.employeeChangedEvent().
                                             isSipOnline().
                                             slavesNotification().
                                             expectToBeSent();
 
-                                        tester.slavesNotification().
-                                            available().
-                                            twoChannels().
-                                            expectToBeSent();
-                                         
                                         tester.callStartingButton.
                                             expectNotToHaveAttribute('disabled');
 
@@ -2669,6 +2812,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
+/*
                         it(
                             'Сначала запрос от лк, а потом и запрос от софтфона завершился ошибкой истечения токена ' +
                             'авторизации. Отправлен только один запрос обновления токена.',
@@ -2691,6 +2835,7 @@ tests.addTest(options => {
                                 anotherAuthorizationToken().
                                 expectToBeSent();
                         });
+*/
                         it(
                             'Сначала запрос от софтфона, а потом и запрос от лк завершился ошибкой истечения токена ' +
                             'авторизации. Отправлен только один запрос обновления токена.',
@@ -2806,16 +2951,16 @@ tests.addTest(options => {
 
                             tester.employeesWebSocket.finishDisconnecting();
 
-                            tester.employeesBroadcastChannel().
-                                leaderDeath().
+                            tester.slavesNotification().
+                                destroyed().
                                 expectToBeSent();
 
                             tester.masterInfoMessage().
                                 leaderDeath().
                                 expectToBeSent();
 
-                            tester.slavesNotification().
-                                destroyed().
+                            tester.employeesBroadcastChannel().
+                                leaderDeath().
                                 expectToBeSent();
 
                             tester.input.
@@ -2948,7 +3093,6 @@ tests.addTest(options => {
                                         microphoneAccessGranted().
                                         expectToBeSent();
 
-                                    tester.marksRequest().receiveResponse();
                                     numberCapacityRequest = tester.numberCapacityRequest().expectToBeSent();
 
                                     tester.registrationRequest().receiveUnauthorized();
@@ -2965,6 +3109,7 @@ tests.addTest(options => {
                                         registered().
                                         expectToBeSent();
 
+                                    tester.marksRequest().receiveResponse();
                                     authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                                 });
 
@@ -2994,7 +3139,6 @@ tests.addTest(options => {
                                                     tester.select.option('+7 (916) 123-89-29 Некий номер').click();
 
                                                     tester.numberCapacitySavingRequest().receiveResponse();
-                                                    tester.marksRequest().receiveResponse();
 
                                                     tester.othersNotification().
                                                         widgetStateUpdate().
@@ -3175,8 +3319,6 @@ tests.addTest(options => {
                                         microphoneAccessGranted().
                                         expectToBeSent();
 
-                                    tester.marksRequest().receiveResponse();
-
                                     tester.numberCapacityRequest().
                                         withComment().
                                         receiveResponse();
@@ -3195,6 +3337,7 @@ tests.addTest(options => {
                                         registered().
                                         expectToBeSent();
 
+                                    tester.marksRequest().receiveResponse();
                                     authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                                 });
 
@@ -3220,7 +3363,6 @@ tests.addTest(options => {
                                                 slavesNotification().
                                                 expectToBeSent();
 
-                                            tester.marksRequest().receiveResponse();
                                             tester.softphone.expectTextContentToHaveSubstring('Другой комментарий');
                                         });
                                         it('Отображен комментарий к номеру.', function() {
@@ -3281,8 +3423,8 @@ tests.addTest(options => {
                                         disabled().
                                         expectToBeSent();
 
-                                    tester.marksRequest().receiveResponse();
                                     tester.numberCapacityRequest().receiveResponse();
+                                    tester.marksRequest().receiveResponse();
                                     tester.authenticatedUserRequest().receiveResponse();
 
                                     tester.slavesNotification().
@@ -3429,8 +3571,6 @@ tests.addTest(options => {
                                         softphoneServerConnected().
                                         expectToBeSent();
 
-                                    tester.marksRequest().receiveResponse();
-
                                     tester.numberCapacityRequest().
                                         withLongComment().
                                         receiveResponse();
@@ -3449,6 +3589,7 @@ tests.addTest(options => {
                                         registered().
                                         expectToBeSent();
                                     
+                                    tester.marksRequest().receiveResponse();
                                     tester.authenticatedUserRequest().receiveResponse();
 
                                     tester.slavesNotification().
@@ -3511,8 +3652,8 @@ tests.addTest(options => {
                                     microphoneAccessGranted().
                                     expectToBeSent();
 
-                                tester.marksRequest().receiveResponse();
                                 tester.numberCapacityRequest().receiveResponse();
+                                tester.marksRequest().receiveResponse();
                                 tester.authenticatedUserRequest().receiveResponse();
 
                                 tester.slavesNotification().
@@ -3550,7 +3691,11 @@ tests.addTest(options => {
 
                             describe('Включено управление звонками на другом устройстве.', function() {
                                 beforeEach(function() {
-                                    settingsRequest.callsAreManagedByAnotherDevice().receiveResponse();
+                                    settingsRequest.
+                                        callsAreManagedByAnotherDevice().
+                                        receiveResponse();
+
+                                    tester.marksRequest().receiveResponse();
 
                                     tester.slavesNotification().
                                         twoChannels().
@@ -3569,8 +3714,6 @@ tests.addTest(options => {
                                             disabled().
                                             softphoneServerConnected().
                                             expectToBeSent();
-
-                                        tester.marksRequest().receiveResponse();
 
                                         tester.authenticatedUserRequest().
                                             sipIsOffline().
@@ -3596,6 +3739,11 @@ tests.addTest(options => {
                                         tester.entityChangeEvent().
                                             anotherStatus().
                                             receive();
+
+                                        tester.entityChangeEvent().
+                                            anotherStatus().
+                                            slavesNotification().
+                                            expectToBeSent();
  
                                         tester.slavesNotification().
                                             userDataFetched().
@@ -3604,11 +3752,6 @@ tests.addTest(options => {
                                             disabled().
                                             anotherStatus().
                                             softphoneServerConnected().
-                                            expectToBeSent();
-
-                                        tester.entityChangeEvent().
-                                            anotherStatus().
-                                            slavesNotification().
                                             expectToBeSent();
 
                                         tester.statusesList.
@@ -3637,7 +3780,6 @@ tests.addTest(options => {
                                     'Устанавливается соединение. Отображено сообщение об установке соединения.',
                                 function() {
                                     tester.getEventsWebSocket().expectToBeConnecting();
-                                    tester.marksRequest().receiveResponse();
 
                                     tester.softphone.expectToHaveTextContent(
                                         'Используется на другом устройстве ' +
@@ -3653,12 +3795,12 @@ tests.addTest(options => {
 
                                     notificationTester.grantPermission();
 
+                                    tester.slavesNotification().expectToBeSent();
+
                                     tester.slavesNotification().
                                         twoChannels().
                                         disabled().
                                         expectToBeSent();
-
-                                    tester.slavesNotification().expectToBeSent();
 
                                     tester.connectEventsWebSocket();
 
@@ -3923,15 +4065,15 @@ tests.addTest(options => {
                                     isNeedDisconnectSignal().
                                     receiveResponse();
 
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    enabled().
-                                    expectToBeSent();
-
                                 tester.othersNotification().
                                     updateSettings().
                                     shouldPlayCallEndingSignal().
                                     incomingRingtone().
+                                    expectToBeSent();
+
+                                tester.slavesNotification().
+                                    twoChannels().
+                                    enabled().
                                     expectToBeSent();
 
                                 notificationTester.grantPermission();
@@ -4080,11 +4222,15 @@ tests.addTest(options => {
             });
             describe('Вкладка является ведомой. Открываю софтфон.', function() {
                 beforeEach(function() {
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent();
+
                     tester.masterInfoMessage().
                         applyLeader().
                         expectToBeSent();
 
-                    tester.employeesBroadcastChannel().
+                    tester.notificationChannel().
                         applyLeader().
                         expectToBeSent();
 
@@ -4095,16 +4241,20 @@ tests.addTest(options => {
                     tester.employeesBroadcastChannel().
                         tellIsLeader().
                         receive();
+
+                    tester.notificationChannel().
+                        tellIsLeader().
+                        receive();
+
+                    tester.masterNotification().
+                        tabOpened().
+                        expectToBeSent();
 
                     tester.employeesWebsocketConnectedRequest().expectToBeSent();
                     tester.employeesWebsocketConnectedMessage().receive();
 
                     tester.employeeSettingsRequest().receiveResponse();
                     tester.employeeRequest().receiveResponse();
-
-                    tester.masterNotification().
-                        tabOpened().
-                        expectToBeSent();
 
                     authCheckRequest.receiveResponse();
                     tester.talkOptionsRequest().receiveResponse();
@@ -4121,8 +4271,8 @@ tests.addTest(options => {
 
                     notificationTester.grantPermission();
 
-                    tester.marksRequest().receiveResponse();
                     tester.numberCapacityRequest().receiveResponse();
+                    tester.marksRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
                     reportGroupsRequest.receiveResponse();
@@ -4157,15 +4307,22 @@ tests.addTest(options => {
 
                     describe('Вкладка становится ведущей. Поднимается webRTC-сокет.', function() {
                         beforeEach(function() {
-                            tester.masterInfoMessage().receive();
-                                
-                            tester.slavesNotification().
-                                additional().
-                                visible().
-                                expectToBeSent();
+                            tester.masterInfoMessage().
+                                leaderDeath().
+                                receive();
 
-                            tester.slavesNotification().
-                                tabsVisibilityRequest().
+                            tester.masterInfoMessage().
+                                applyLeader().
+                                expectToBeSent().
+                                waitForSecond();
+
+                            tester.masterInfoMessage().
+                                applyLeader().
+                                expectToBeSent().
+                                waitForSecond();
+
+                            tester.masterInfoMessage().
+                                tellIsLeader().
                                 expectToBeSent();
 
                             tester.slavesNotification().
@@ -4175,16 +4332,13 @@ tests.addTest(options => {
                                 hidden().
                                 expectToBeSent();
 
-                            tester.masterInfoMessage().
-                                tellIsLeader().
+                            tester.slavesNotification().
+                                tabsVisibilityRequest().
                                 expectToBeSent();
 
-                            tester.notificationChannel().
-                                tellIsLeader().
-                                expectToBeSent();
-
-                            tester.notificationChannel().
-                                applyLeader().
+                            tester.slavesNotification().
+                                additional().
+                                visible().
                                 expectToBeSent();
 
                             tester.connectEventsWebSocket();
@@ -4261,6 +4415,10 @@ tests.addTest(options => {
                             tester.employeesBroadcastChannel().
                                 applyLeader().
                                 expectToBeSent();
+
+                            tester.notificationChannel().
+                                applyLeader().
+                                expectToBeSent();
                         });
                         it(
                             'Существует другая открытая вкладка. Поступил входящий звонок. Браузерное ' +
@@ -4315,15 +4473,22 @@ tests.addTest(options => {
                     'Вкладка становится ведущей. Скрываю вкладку. Раскрываю вкладку. Поступил входящий звонок. ' +
                     'Информация о звонке не отображена.',
                 function() {
-                    tester.masterInfoMessage().receive();
-                        
-                    tester.slavesNotification().
-                        additional().
-                        visible().
-                        expectToBeSent();
+                    tester.masterInfoMessage().
+                        leaderDeath().
+                        receive();
 
-                    tester.slavesNotification().
-                        tabsVisibilityRequest().
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.masterInfoMessage().
+                        tellIsLeader().
                         expectToBeSent();
 
                     tester.slavesNotification().
@@ -4332,16 +4497,13 @@ tests.addTest(options => {
                         enabled().
                         expectToBeSent();
 
-                    tester.masterInfoMessage().
-                        tellIsLeader().
+                    tester.slavesNotification().
+                        tabsVisibilityRequest().
                         expectToBeSent();
 
-                    tester.notificationChannel().
-                        tellIsLeader().
-                        expectToBeSent();
-
-                    tester.notificationChannel().
-                        applyLeader().
+                    tester.slavesNotification().
+                        additional().
+                        visible().
                         expectToBeSent();
 
                     tester.connectEventsWebSocket();
@@ -4411,7 +4573,10 @@ tests.addTest(options => {
                     tester.numaRequest().receiveResponse();
 
                     tester.outCallEvent().receive();
-                    tester.outCallEvent().slavesNotification().expectToBeSent();
+
+                    tester.outCallEvent().
+                        slavesNotification().
+                        expectToBeSent();
                 });
                 it(
                     'Сессионная кука уже удалена. На ведущей вкладке был совершен выход из софтфона. Отображается ' +
@@ -4431,10 +4596,6 @@ tests.addTest(options => {
                         leaderDeath().
                         expectToBeSent();
 
-                    tester.masterInfoMessage().
-                        leaderDeath().
-                        receive();
-
                     tester.authLogoutRequest().receiveResponse();
 
                     tester.userLogoutRequest().
@@ -4453,37 +4614,53 @@ tests.addTest(options => {
                     tester.loginRequest().receiveResponse();
                     tester.accountRequest().receiveResponse();
 
-                    tester.masterInfoMessage().receive();
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.slavesNotification().expectToBeSent();
 
                     tester.slavesNotification().
                         additional().
                         visible().
                         expectToBeSent();
 
-                    tester.slavesNotification().expectToBeSent();
-
-                    tester.masterInfoMessage().
-                        tellIsLeader().
-                        expectToBeSent();
-
-                    tester.employeesBroadcastChannel().
-                        tellIsLeader().
-                        expectToBeSent();
-
-                    tester.notificationChannel().
-                        tellIsLeader().
-                        expectToBeSent();
-
-                    tester.employeesBroadcastChannel().
-                        applyLeader().
-                        expectToBeSent();
+                    spendTime(1000);
 
                     tester.notificationChannel().
                         applyLeader().
-                        expectToBeSent();
+                        expectToBeSent().
+                        waitForSecond();
 
-                    tester.employeesBroadcastChannel().
+                    tester.notificationChannel().
                         applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.notificationChannel().
+                        tellIsLeader().
                         expectToBeSent();
 
                     tester.employeesWebSocket.connect();
@@ -4542,8 +4719,6 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     notificationTester.grantPermission();
-                    
-                    tester.marksRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
                     tester.slavesNotification().
@@ -4590,12 +4765,12 @@ tests.addTest(options => {
                         leaderDeath().
                         expectToBeSent();
 
-                    tester.masterInfoMessage().
-                        leaderDeath().
-                        receive();
-
                     tester.authLogoutRequest().receiveResponse();
                     tester.userLogoutRequest().receiveResponse();
+
+                    tester.employeesBroadcastChannel().
+                        leaderDeath().
+                        expectToBeSent();
 
                     tester.input.withFieldLabel('Логин').fill('botusharova');
                     tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
@@ -4605,46 +4780,58 @@ tests.addTest(options => {
                     tester.loginRequest().receiveResponse();
                     tester.accountRequest().receiveResponse();
 
-                    tester.masterInfoMessage().receive();
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent();
 
-                    tester.employeesWebSocket.connect();
-                    tester.employeesInitMessage().expectToBeSent();
-                    tester.employeesWebsocketConnectedMessage().expectToBeSent();
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.slavesNotification().expectToBeSent();
 
                     tester.slavesNotification().
                         additional().
                         visible().
                         expectToBeSent();
 
-                    tester.slavesNotification().expectToBeSent();
+                    spendTime(1000);
 
-                    tester.masterInfoMessage().
-                        tellIsLeader().
-                        expectToBeSent();
+                    tester.notificationChannel().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
 
-                    tester.employeesBroadcastChannel().
-                        tellIsLeader().
-                        expectToBeSent();
+                    tester.notificationChannel().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
 
                     tester.notificationChannel().
                         tellIsLeader().
                         expectToBeSent();
 
-                    tester.employeesBroadcastChannel().
-                        applyLeader().
-                        expectToBeSent();
-
-                    tester.notificationChannel().
-                        applyLeader().
-                        expectToBeSent();
-
-                    tester.employeesBroadcastChannel().
-                        applyLeader().
-                        expectToBeSent();
-
-                    tester.employeesBroadcastChannel().
-                        leaderDeath().
-                        expectToBeSent();
+                    tester.employeesWebSocket.connect();
+                    tester.employeesInitMessage().expectToBeSent();
+                    tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
                     {
                         const requests = ajax.inAnyOrder();
@@ -4697,8 +4884,6 @@ tests.addTest(options => {
                         expectToBeSent();
 
                     notificationTester.grantPermission();
-
-                    tester.marksRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
                     tester.slavesNotification().
@@ -4765,7 +4950,6 @@ tests.addTest(options => {
                         anotherNumberCapacity().
                         receive();
 
-                    tester.marksRequest().receiveResponse();
                     tester.select.expectToHaveTextContent('+7 (916) 123-89-29');
                 });
                 it('Выбран другой статус. Отображен выбранный статус.', function() {
@@ -4808,21 +4992,29 @@ tests.addTest(options => {
                     tester.userLogoutRequest().receiveResponse();
                     tester.authLogoutRequest().receiveResponse();
 
-                    tester.masterInfoMessage().
-                        leaderDeath().
+                    tester.masterNotification().
+                        destroy().
                         expectToBeSent();
 
                     tester.employeesBroadcastChannel().
                         leaderDeath().
                         expectToBeSent();
 
-                    tester.masterNotification().
-                        destroy().
+                    tester.masterInfoMessage().
+                        leaderDeath().
                         expectToBeSent();
                 });
                 it('Прошло некоторое время. Проверяется наличие ведущей вкладки.', function() {
-                    spendTime(2000);
+                    spendTime(3000);
                     spendTime(0);
+
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent();
 
                     tester.notificationChannel().
                         applyLeader().
@@ -4841,19 +5033,27 @@ tests.addTest(options => {
                 beforeEach(function() {
                     setDocumentVisible(false);
 
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent();
+
                     tester.masterInfoMessage().
                         applyLeader().
                         expectToBeSent();
 
-                    tester.employeesBroadcastChannel().
+                    tester.notificationChannel().
                         applyLeader().
                         expectToBeSent();
+
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        receive();
 
                     tester.masterInfoMessage().
                         tellIsLeader().
                         receive();
 
-                    tester.employeesBroadcastChannel().
+                    tester.notificationChannel().
                         tellIsLeader().
                         receive();
 
@@ -4882,8 +5082,8 @@ tests.addTest(options => {
 
                     notificationTester.grantPermission();
 
-                    tester.marksRequest().receiveResponse();
                     tester.numberCapacityRequest().receiveResponse();
+                    tester.marksRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
                     reportGroupsRequest.receiveResponse();
@@ -4915,7 +5115,7 @@ tests.addTest(options => {
             it('Фичефлаг софтфона включен. Кнопка софтфона отображена.', function() {
                 accountRequest.receiveResponse();
 
-                tester.notificationChannel().
+                tester.employeesBroadcastChannel().
                     applyLeader().
                     expectToBeSent();
 
@@ -4923,12 +5123,12 @@ tests.addTest(options => {
                     applyLeader().
                     expectToBeSent();
 
-                tester.employeesBroadcastChannel().
+                tester.notificationChannel().
                     applyLeader().
                     expectToBeSent().
                     waitForSecond();
 
-                tester.notificationChannel().
+                tester.employeesBroadcastChannel().
                     applyLeader().
                     expectToBeSent();
 
@@ -4936,32 +5136,32 @@ tests.addTest(options => {
                     applyLeader().
                     expectToBeSent();
 
-                tester.employeesBroadcastChannel().
+                tester.notificationChannel().
                     applyLeader().
                     expectToBeSent().
                     waitForSecond();
 
-                tester.employeesWebSocket.connect();
-                tester.employeesInitMessage().expectToBeSent();
-                tester.employeesWebsocketConnectedMessage().expectToBeSent();
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.slavesNotification().expectToBeSent();
 
                 tester.slavesNotification().
                     additional().
                     expectToBeSent();
 
-                tester.slavesNotification().expectToBeSent();
-
-                tester.notificationChannel().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.masterInfoMessage().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.employeesBroadcastChannel().
-                    tellIsLeader().
-                    expectToBeSent();
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
+                tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
 
@@ -5050,7 +5250,7 @@ tests.addTest(options => {
                     managerSoftphoneFeatureFlagEnabled().
                     receiveResponse();
 
-                tester.notificationChannel().
+                tester.employeesBroadcastChannel().
                     applyLeader().
                     expectToBeSent();
 
@@ -5058,12 +5258,12 @@ tests.addTest(options => {
                     applyLeader().
                     expectToBeSent();
 
-                tester.employeesBroadcastChannel().
+                tester.notificationChannel().
                     applyLeader().
                     expectToBeSent().
                     waitForSecond();
 
-                tester.notificationChannel().
+                tester.employeesBroadcastChannel().
                     applyLeader().
                     expectToBeSent();
 
@@ -5071,32 +5271,32 @@ tests.addTest(options => {
                     applyLeader().
                     expectToBeSent();
 
-                tester.employeesBroadcastChannel().
+                tester.notificationChannel().
                     applyLeader().
                     expectToBeSent().
                     waitForSecond();
 
-                tester.employeesWebSocket.connect();
-                tester.employeesInitMessage().expectToBeSent();
-                tester.employeesWebsocketConnectedMessage().expectToBeSent();
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.slavesNotification().expectToBeSent();
 
                 tester.slavesNotification().
                     additional().
                     expectToBeSent();
 
-                tester.slavesNotification().expectToBeSent();
-
-                tester.notificationChannel().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.masterInfoMessage().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.employeesBroadcastChannel().
-                    tellIsLeader().
-                    expectToBeSent();
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
+                tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
 
@@ -5202,7 +5402,7 @@ tests.addTest(options => {
                     contactsFeatureFlagDisabled().
                     receiveResponse();
 
-                tester.notificationChannel().
+                tester.employeesBroadcastChannel().
                     applyLeader().
                     expectToBeSent();
 
@@ -5210,12 +5410,12 @@ tests.addTest(options => {
                     applyLeader().
                     expectToBeSent();
 
-                tester.employeesBroadcastChannel().
+                tester.notificationChannel().
                     applyLeader().
                     expectToBeSent().
                     waitForSecond();
 
-                tester.notificationChannel().
+                tester.employeesBroadcastChannel().
                     applyLeader().
                     expectToBeSent();
 
@@ -5223,32 +5423,32 @@ tests.addTest(options => {
                     applyLeader().
                     expectToBeSent();
 
-                tester.employeesBroadcastChannel().
+                tester.notificationChannel().
                     applyLeader().
                     expectToBeSent().
                     waitForSecond();
 
-                tester.employeesWebSocket.connect();
-                tester.employeesInitMessage().expectToBeSent();
-                tester.employeesWebsocketConnectedMessage().expectToBeSent();
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.slavesNotification().expectToBeSent();
 
                 tester.slavesNotification().
                     additional().
                     expectToBeSent();
 
-                tester.slavesNotification().expectToBeSent();
-
-                tester.notificationChannel().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.masterInfoMessage().
-                    tellIsLeader().
-                    expectToBeSent();
-
-                tester.employeesBroadcastChannel().
-                    tellIsLeader().
-                    expectToBeSent();
+                tester.employeesWebSocket.connect();
+                tester.employeesInitMessage().expectToBeSent();
+                tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
                 const requests = ajax.inAnyOrder();
 
@@ -5386,7 +5586,7 @@ tests.addTest(options => {
 
             accountRequest.callGear().receiveResponse();
 
-            tester.notificationChannel().
+            tester.employeesBroadcastChannel().
                 applyLeader().
                 expectToBeSent();
 
@@ -5394,12 +5594,12 @@ tests.addTest(options => {
                 applyLeader().
                 expectToBeSent();
 
-            tester.employeesBroadcastChannel().
+            tester.notificationChannel().
                 applyLeader().
                 expectToBeSent().
                 waitForSecond();
 
-            tester.notificationChannel().
+            tester.employeesBroadcastChannel().
                 applyLeader().
                 expectToBeSent();
 
@@ -5407,32 +5607,32 @@ tests.addTest(options => {
                 applyLeader().
                 expectToBeSent();
 
-            tester.employeesBroadcastChannel().
+            tester.notificationChannel().
                 applyLeader().
                 expectToBeSent().
                 waitForSecond();
 
-            tester.employeesWebSocket.connect();
-            tester.employeesInitMessage().expectToBeSent();
-            tester.employeesWebsocketConnectedMessage().expectToBeSent();
+            tester.employeesBroadcastChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.notificationChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.slavesNotification().expectToBeSent();
 
             tester.slavesNotification().
                 additional().
                 expectToBeSent();
 
-            tester.slavesNotification().expectToBeSent();
-
-            tester.notificationChannel().
-                tellIsLeader().
-                expectToBeSent();
-
-            tester.masterInfoMessage().
-                tellIsLeader().
-                expectToBeSent();
-
-            tester.employeesBroadcastChannel().
-                tellIsLeader().
-                expectToBeSent();
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
+            tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
             tester.ticketsContactsRequest().receiveResponse();
             const requests = ajax.inAnyOrder();

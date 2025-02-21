@@ -12,7 +12,7 @@ index e331fde..989140c 100644
      if (multiple) {
          inputElement.multiple = multiple;
 diff --git a/src/components/file-drop/file-drop.tsx b/src/components/file-drop/file-drop.tsx
-index 786af31..c99a10f 100644
+index 786af31..60f14a3 100644
 --- a/src/components/file-drop/file-drop.tsx
 +++ b/src/components/file-drop/file-drop.tsx
 @@ -46,6 +46,7 @@ const FileDrop: React.ForwardRefRenderFunction<unknown, FileDropProps> = (props,
@@ -23,7 +23,7 @@ index 786af31..c99a10f 100644
      const [isDrag, setDrag] = useState(false);
      const [isErrorFileType, setErrorFileType] = useState(false);
  
-@@ -231,7 +232,14 @@ const FileDrop: React.ForwardRefRenderFunction<unknown, FileDropProps> = (props,
+@@ -231,7 +232,13 @@ const FileDrop: React.ForwardRefRenderFunction<unknown, FileDropProps> = (props,
      const handleClick = () => {
          if (isLoadDefault) {
              const element = initInput(accept.join(','), multiple);
@@ -31,7 +31,6 @@ index 786af31..c99a10f 100644
 +
 +            if (process.env.REACT_APP_TEST_MODE === 'true') {
 +                document.body.appendChild(element);
-+                console.log('FILEI NPUT', element);
 +            } else {
 +                element.click();
 +            }

@@ -1,12 +1,12 @@
 diff --git a/package.json b/package.json
-index 0909a99..da7dcca 100644
+index b19b750..9eb820a 100644
 --- a/package.json
 +++ b/package.json
-@@ -60,13 +60,7 @@
+@@ -61,13 +61,7 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
--    "@comagic/core": "^0.7.0",
+-    "@comagic/core": "^1.17.0",
 -    "@comagic/softphone-core": "0.0.0-int0",
 -    "@comagic/softphone-widget": "0.0.0-int0",
 -    "@comagic/ui": "2.12.3",
@@ -16,7 +16,7 @@ index 0909a99..da7dcca 100644
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-@@ -76,18 +70,9 @@
+@@ -77,18 +71,9 @@
      "filesize": "^8.0.3",
      "formik": "^2.2.9",
      "janus-gateway": "1.1.4",
@@ -35,9 +35,3 @@ index 0909a99..da7dcca 100644
      "redux": "^4.0.0",
      "redux-thunk": "^2.3.0",
      "short-uuid": "^4.2.0",
-@@ -95,4 +80,5 @@
-     "uuid": "^8.3.2",
-     "yup": "^0.32.9"
-   }
-+
- }

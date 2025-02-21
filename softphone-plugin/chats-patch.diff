@@ -1,33 +1,33 @@
 diff --git a/package.json b/package.json
-index bcbdbeba..79dd7fd0 100644
+index f50985ee..4404bf13 100644
 --- a/package.json
 +++ b/package.json
 @@ -26,9 +26,7 @@
      "@types/dompurify": "^2.3.3",
      "@types/htmlparser2": "^3.10.3",
      "@types/node": "^14.14.37",
--    "@types/react": "^18.0.21",
+-    "@types/react": "18.3.16",
      "@types/react-beautiful-dnd": "13.1.8",
--    "@types/react-dom": "^18.0.6",
+-    "@types/react-dom": "18.3.5",
      "@types/react-window": "^1.8.5",
+     "@types/sanitize-html": "2.13.0",
      "@types/uuid": "^8.3.1",
-     "@types/yup": "^0.29.11",
-@@ -63,14 +61,9 @@
+@@ -64,14 +62,9 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "^1.17.0",
 -    "@comagic/crud": "2.42.1",
-     "@comagic/reports": "4.0.4",
--    "@comagic/ui": "2.31.6",
--    "@comagic/workplace-utils": "^1.6.1",
+     "@comagic/reports": "4.7.3",
+-    "@comagic/ui": "2.49.3",
+-    "@comagic/workplace-utils": "0.0.0-int0",
      "@sentry/react": "^7.73.0",
      "async-mutex": "^0.3.2",
 -    "axios": "0.27.2",
      "classnames": "^2.2.6",
      "dayjs": "1.11.11",
      "dompurify": "^2.3.10",
-@@ -82,18 +75,9 @@
+@@ -83,18 +76,9 @@
      "history": "^5.3.0",
      "html-react-parser": "^3.0.1",
      "madge": "^5.0.1",
@@ -37,12 +37,12 @@ index bcbdbeba..79dd7fd0 100644
 -    "mobx-state-tree": "^5.1.6",
 -    "moment": "2.29.4",
      "opus-recorder": "^8.0.5",
--    "react": "^18.2.0",
+-    "react": "18.3.1",
      "react-beautiful-dnd": "^13.1.1",
--    "react-dom": "^18.2.0",
+-    "react-dom": "18.3.1",
      "react-hook-form": "7.46.1",
 -    "react-intl": "^6.5.5",
 -    "react-router-dom": "6.9.0",
+     "sanitize-html": "2.14.0",
      "short-uuid": "^4.2.0",
      "uuid": "^8.3.2",
-     "yup": "^0.32.9"

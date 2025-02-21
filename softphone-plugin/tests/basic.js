@@ -133,7 +133,7 @@ tests.addTest(options => {
                                 authCheckRequest = tester.authCheckRequest().expectToBeSent();
                             });
 
-                            xdescribe('Произведена авторизация.', function() {
+                            describe('Произведена авторизация.', function() {
                                 let permissionsRequest;
 
                                 beforeEach(function() {
@@ -668,7 +668,7 @@ tests.addTest(options => {
                                     );
                                 });
                             });
-                            xit('Не удалось произвести авторизацию.', function() {
+                            it('Не удалось произвести авторизацию.', function() {
                                 authCheckRequest.
                                     invalidToken().
                                     receiveResponse();
@@ -717,7 +717,6 @@ tests.addTest(options => {
                                     expectMessageToContain('Time consumed 0 ms');
                             });
                         });
-                        return;
                         it('Отображено сообщение о том, что происходит авторизация.', function() {
                             tester.body.expectToHaveTextContent(
                                 'Происохдит авторизация... ' +
@@ -725,7 +724,6 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    return;
                     describe('Вкладка является ведомой.', function() {
                         beforeEach(function() {
                             tester.masterInfoMessage().
@@ -835,7 +833,6 @@ tests.addTest(options => {
                         });
                     });
                 });
-                return;
                 it('Используется английский язык. Интерфейс переведён.', function() {
                     widgetSettings.
                         thirdToken().
@@ -869,7 +866,6 @@ tests.addTest(options => {
                     );
                 });
             });
-            return;
             describe('Доступ к софтфону запрещён.', function() {
                 beforeEach(function() {
                     tester.widgetSettings().
@@ -954,7 +950,6 @@ tests.addTest(options => {
                 tester.softphone.expectNotToExist();
             });
         });
-        return;
         describe('Открываю попап. Отправлен запрос состояния.', function() {
             let stateRequest,
                 popupStateSettingRequest;
@@ -4555,6 +4550,9 @@ tests.addTest(options => {
                                     tester.rightPanel.
                                         group('74951234575').
                                         expectToBeExpanded();
+                                });
+                                it('Выбираю канал.', function() {
+                                    tester.button('Нижний Новгород').click();
                                 });
                             });
                             it(

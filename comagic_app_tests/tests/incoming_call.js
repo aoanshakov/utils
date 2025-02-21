@@ -43,10 +43,23 @@ tests.addTest(options => {
             tester.input.withFieldLabel('Пароль').fill('8Gls8h31agwLf5k');
 
             tester.button('Войти').click();
-
             tester.loginRequest().receiveResponse();
-            tester.accountRequest().receiveResponse();
 
+            tester.hostBroadcastChannel().
+                applyLeader().
+                expectToBeSent().
+                waitForSecond();
+
+            tester.hostBroadcastChannel().
+                applyLeader().
+                expectToBeSent().
+                waitForSecond();
+
+            tester.hostBroadcastChannel().
+                tellIsLeader().
+                expectToBeSent();
+
+            tester.accountRequest().receiveResponse();
             const requests = ajax.inAnyOrder();
 
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
@@ -54,50 +67,51 @@ tests.addTest(options => {
                 ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                 reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
                 authCheckRequest = tester.authCheckRequest().expectToBeSent(requests),
-                employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
-                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
-                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             ticketsContactsRequest.receiveResponse();
             reportsListRequest.noData().receiveResponse();
             reportTypesRequest.receiveResponse();
-            employeeStatusesRequest.receiveResponse();
-            employeeSettingsRequest.receiveResponse();
-            employeeRequest.receiveResponse();
             reportGroupsRequest.receiveResponse();
-
-            tester.masterInfoMessage().receive();
+            employeeStatusesRequest.receiveResponse();
 
             tester.employeesBroadcastChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
                 applyLeader().
                 expectToBeSent();
 
             tester.notificationChannel().
                 applyLeader().
-                expectToBeSent();
+                expectToBeSent().
+                waitForSecond();
 
-            tester.masterInfoMessage().
+            tester.employeesBroadcastChannel().
                 applyLeader().
                 expectToBeSent();
 
             tester.masterInfoMessage().
                 applyLeader().
                 expectToBeSent();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent().
+                waitForSecond();
 
             tester.employeesBroadcastChannel().
                 tellIsLeader().
                 expectToBeSent();
 
-            tester.employeesWebSocket.connect();
-            tester.employeesInitMessage().expectToBeSent();
-
-            tester.notificationChannel().
+            tester.masterInfoMessage().
                 tellIsLeader().
                 expectToBeSent();
 
-            tester.masterInfoMessage().
+            tester.notificationChannel().
                 tellIsLeader().
                 expectToBeSent();
 
@@ -106,6 +120,13 @@ tests.addTest(options => {
             tester.slavesNotification().
                 additional().
                 expectToBeSent();
+
+            tester.employeesWebSocket.connect();
+            tester.employeesInitMessage().expectToBeSent();
+            tester.employeesWebsocketConnectedMessage().expectToBeSent();
+
+            tester.employeeSettingsRequest().receiveResponse();
+            tester.employeeRequest().receiveResponse();
 
             authCheckRequest.receiveResponse();
             tester.talkOptionsRequest().receiveResponse();
@@ -139,6 +160,8 @@ tests.addTest(options => {
                     webRTCServerConnected().
                     softphoneServerConnected().
                     expectToBeSent();
+
+                tester.marksRequest().receiveResponse();
 
                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                 registrationRequest = tester.registrationRequest().expectToBeSent();
@@ -318,6 +341,9 @@ tests.addTest(options => {
                                                         notTransfered().
                                                         dtmf('#295#').
                                                         expectToBeSent();
+                                                });
+                                                it('Кнопка трансфера нажата.', function() {
+                                                    tester.transferButton.expectToHaveClass('cmg-button-pressed');
                                                 });
                                             });
                                             describe('Открываю вкладку групп.', function() {
@@ -1096,6 +1122,8 @@ tests.addTest(options => {
                                     tester.firstConnection.expectSinkIdToEqual('default');
                                     tester.firstConnection.expectInputDeviceIdToEqual('default');
                                     tester.firstConnection.expectNotToBeMute();
+
+                                    tester.transferButton.expectNotToHaveClass('cmg-button-pressed');
 
                                     tester.incomingIcon.expectToBeVisible();
                                     tester.softphone.expectTextContentToHaveSubstring(
@@ -1903,6 +1931,8 @@ tests.addTest(options => {
                         softphoneServerConnected().
                         expectToBeSent();
 
+                    tester.marksRequest().receiveResponse();
+
                     authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                     registrationRequest = tester.registrationRequest().expectToBeSent();
 
@@ -2046,6 +2076,8 @@ tests.addTest(options => {
                         disabled().
                         softphoneServerConnected().
                         expectToBeSent();
+
+                    tester.marksRequest().receiveResponse();
 
                     tester.authenticatedUserRequest().
                         sipIsOffline().

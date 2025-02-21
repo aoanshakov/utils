@@ -69,9 +69,20 @@ define(() => function ({
     window.chatsStore = null;
     window.employeesStore = null;
     window.softphoneBroadcastChannelCache = {};
+    window.chatsIconElement = new Set();
 
     window.getOrigin = () => url;
     me.changeCurrentUrl = () => (url = 'https://amo2comagicdev.amocrm.ru/leads/list/pipeline/6168778');
+
+    me.triggerChatsIconMutation = () => {
+        window.chatsIconElement.forEach(icon => icon && triggerMutation(
+            icon,
+            { childList: true },
+            []
+        ));
+
+        spendTime(0);
+    };
 
     me.localStorage = {
         key: key => ({
@@ -2761,6 +2772,7 @@ define(() => function ({
                 spendTime(0);
             },
             expectToBeSent: () => {
+                mainTester.triggerChatsIconMutation();
                 const message = getMessage();
 
                 message.data.channels.push(undefined);
@@ -5261,7 +5273,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectToHavePath('$REACT_APP_BASE_URL/operator/chat/phone').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/operator/chat/phone').
                     expectBodyToContain({
                         phone: '79162729534',
                         chat_id: 7189362
@@ -5291,7 +5303,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectToHavePath('$REACT_APP_BASE_URL/operator/offline_message/mark').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/operator/offline_message/mark').
                     expectBodyToContain({
                         id: 18222538,
                         mark_ids: [587, undefined]
@@ -5323,7 +5335,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectToHavePath('$REACT_APP_BASE_URL/operator/chat/mark').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/operator/chat/mark').
                     expectBodyToContain({
                         id: 7189362,
                         mark_ids: [587, undefined]
@@ -5355,7 +5367,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
-                    expectPathToContain('$REACT_APP_BASE_URL/operator/resource').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/operator/resource').
                     expectBodyToContain({
                         file: {
                             name: 'some-file.zip',
@@ -5405,12 +5417,36 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('GET').
-                    expectPathToContain('$REACT_APP_BASE_URL/resource/payload').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/resource/payload').
                     expectQueryToContain({ id });
 
                 return addResponseModifiers({
                     receiveResponse() {
                         request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.channelsRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHaveMethod('GET').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/operator/channels');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith([]);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -5963,7 +5999,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectToHavePath('$REACT_APP_BASE_URL/api/v1/employees/20816/settings');
+                    expectToHavePath('https://$REACT_APP_BASE_URL/api/v1/employees/20816/settings');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -6006,7 +6042,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectToHavePath('$REACT_APP_BASE_URL/api/v1/employees/20816').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/api/v1/employees/20816').
                     expectToHaveHeaders(headers);
 
                 return addResponseModifiers({
@@ -6054,7 +6090,7 @@ define(() => function ({
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('PATCH').
-                    expectPathToContain('$REACT_APP_BASE_URL/api/v1/employees/20816').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/api/v1/employees/20816').
                     expectBodyToContain({
                         status_id: 4,
                     });
@@ -7006,7 +7042,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/api/v1/statuses').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/api/v1/statuses').
                     expectToHaveMethod('GET').
                     expectToHaveHeaders(headers);
 
@@ -7031,7 +7067,7 @@ define(() => function ({
         receiveResponse() {
             ajax.recentRequest().
                 expectToHaveMethod('PATCH').
-                expectPathToContain('$REACT_APP_BASE_URL/status').
+                expectPathToContain('https://$REACT_APP_BASE_URL/status').
                 expectBodyToContain({
                     status: 2
                 }).respondSuccessfullyWith({
@@ -7129,7 +7165,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/operator/offline_message').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/operator/offline_message').
                     expectToHaveMethod('DELETE').
                     expectBodyToContain(bodyParams);
 
@@ -7166,7 +7202,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/operator/offline_message').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/operator/offline_message').
                     expectToHaveMethod('POST').
                     expectBodyToContain(bodyParams);
 
@@ -7200,7 +7236,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/operator/offline_message/counters');
+                    expectPathToContain('https://$REACT_APP_BASE_URL/operator/offline_message/counters');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -7330,7 +7366,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/operator/offline_message/list').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/operator/offline_message/list').
                     expectBodyToContain(bodyParams);
 
                 return addResponseModifiers({
@@ -7359,7 +7395,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/settings/offline_message/display_types');
+                    expectToHavePath('https://$REACT_APP_BASE_URL/settings/offline_message/display_types');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -7505,7 +7541,7 @@ define(() => function ({
                 processors.forEach(process => process());
 
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/settings/offline_message/display_types').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/settings/offline_message/display_types').
                     expectBodyToContain(data);
 
                 return addResponseModifiers({
@@ -8215,7 +8251,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('POST').
-                    expectPathToContain('$REACT_APP_BASE_URL/operator/transfer').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/operator/transfer').
                     expectBodyToContain(bodyParams);
 
                 return addResponseModifiers({
@@ -9931,7 +9967,7 @@ define(() => function ({
     me.chatChannelTypeListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/operator/chat/channel_type/list').
+                expectPathToContain('https://$REACT_APP_BASE_URL/operator/chat/channel_type/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -9954,7 +9990,7 @@ define(() => function ({
     me.markListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/operator/mark/list').
+                expectPathToContain('https://$REACT_APP_BASE_URL/operator/mark/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -9977,7 +10013,7 @@ define(() => function ({
     me.chatSettingsRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/operator/settings').
+                expectPathToContain('https://$REACT_APP_BASE_URL/operator/settings').
                 expectToHaveMethod('GET');
 
             const response = {
@@ -10053,7 +10089,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/operator/chat/channel/list').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/operator/chat/channel/list').
                     expectToHaveMethod('GET');
 
                 return addResponseModifiers({
@@ -10777,7 +10813,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/employees').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/employees').
                     expectToHaveMethod('GET');
 
                 return addResponseModifiers({
@@ -10948,7 +10984,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/operator/chat/info').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/operator/chat/info').
                     expectToHaveMethod('GET').
                     expectQueryToContain({ chat_id });
 
@@ -11024,7 +11060,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/operator/chat/pin').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/operator/chat/pin').
                     expectBodyToContain(params);
 
                 spendTime(0)
@@ -11062,7 +11098,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/operator/chat/unpin').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/operator/chat/unpin').
                     expectBodyToContain(params);
 
                 return addResponseModifiers({
@@ -11880,7 +11916,7 @@ define(() => function ({
     me.messageTemplateCreationRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/operator/message_template/list').
+                expectPathToContain('https://$REACT_APP_BASE_URL/operator/message_template/list').
                 expectBodyToContain({
                     title: 'Шаблон 1',
                     text: '',
@@ -11910,7 +11946,7 @@ define(() => function ({
     me.messageTemplateListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/operator/message_template/list').
+                expectPathToContain('https://$REACT_APP_BASE_URL/operator/message_template/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -11931,7 +11967,7 @@ define(() => function ({
     me.commonMessageTemplatesRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/operator/common_message_templates').
+                expectPathToContain('https://$REACT_APP_BASE_URL/operator/common_message_templates').
                 expectToHaveMethod('GET');
 
             return {
@@ -11952,7 +11988,7 @@ define(() => function ({
     me.messageTemplatesSettingsRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/settings/message_templates').
+                expectPathToContain('https://$REACT_APP_BASE_URL/settings/message_templates').
                 expectToHaveMethod('GET');
 
             return {
@@ -12081,7 +12117,7 @@ define(() => function ({
     me.siteListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/operator/site/list').
+                expectPathToContain('https://$REACT_APP_BASE_URL/operator/site/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -12107,7 +12143,7 @@ define(() => function ({
     me.chatTransferGroupsRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/operator/chat_transfer_group/list').
+                expectPathToContain('https://$REACT_APP_BASE_URL/operator/chat_transfer_group/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -12129,7 +12165,7 @@ define(() => function ({
     me.listRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('$REACT_APP_BASE_URL/operator/list').
+                expectPathToContain('https://$REACT_APP_BASE_URL/operator/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -12380,7 +12416,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/status/list').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/status/list').
                     expectToHaveMethod('GET');
 
                 return addResponseModifiers({
@@ -17160,6 +17196,37 @@ define(() => function ({
         });
     };
 
+    me.groupChatsRequest = () => {
+        let chat_id = '7189362';
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            anotherChat() {
+                chat_id = '2718935';
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/group-chats').
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith([]);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatChannelSearchRequest = () => {
         const processors = [];
         let path = '$REACT_APP_BASE_URL/operator';
@@ -17957,7 +18024,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/contact-groups').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/contact-groups').
                     expectToHaveHeaders(headers).
                     expectQueryToContain(queryParams).
                     expectToHaveMethod('GET');
@@ -19364,7 +19431,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('$REACT_APP_BASE_URL/contacts').
+                    expectToHavePath('https://$REACT_APP_BASE_URL/contacts').
                     expectToHaveMethod('GET').
                     expectToHaveHeaders({
                         'X-Auth-Token': token,
@@ -19588,6 +19655,20 @@ define(() => function ({
                         code: -32001,
                         message: 'component_operator_workplace_disabled'
                     }
+                };
+
+                return me;
+            };
+
+            me.unauthorized = () => {
+                response = {
+                    id: 'number',
+                    jsonrpc: '2.0',
+                    result: null,
+                    error: {
+                        code: -32001,
+                        message: 'Unauthorized',
+                    },
                 };
 
                 return me;

@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 3789000..a95edce 100644
+index ecc9d47..a95edce 100644
 --- a/package.json
 +++ b/package.json
 @@ -61,17 +61,7 @@
@@ -7,7 +7,7 @@ index 3789000..a95edce 100644
    },
    "dependencies": {
 -    "@comagic/core": "^0.7.0",
--    "@comagic/workplace-utils": "^1.8.1",
+-    "@comagic/workplace-utils": "0.0.0-int0",
 -    "axios": "^0.24.0",
 -    "magic-ui": "0.0.0-int1",
 -    "mobx": "^6.6.1",

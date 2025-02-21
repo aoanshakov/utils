@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0579dd31..19347095 100644
+index 0579dd31..b9e3717f 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -126,7 +126,7 @@ index 0579dd31..19347095 100644
      devtool: 'inline-source-map',
 +    snapshot: {
 +        managedPaths: [
-+            new RegExp('^(.*/node_modules/(?!@comagic)/.*)$'),
++            new RegExp('^(.*/node_modules/(?!@comagic|broadcast-channel)/.*)$'),
 +        ],
 +    }, 
      optimization: isProductionMode
@@ -548,7 +548,7 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 32137f8d..2a2a5a4e 100644
+index 32137f8d..e45c0354 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,20 @@
@@ -597,7 +597,7 @@ index 32137f8d..2a2a5a4e 100644
      const {
          projectData: { locale },
      } = accountStore;
-@@ -59,27 +68,143 @@ const Root: React.FC<Props> = observer(props => {
+@@ -59,27 +68,142 @@ const Root: React.FC<Props> = observer(props => {
          }
      }, [accountStore.account.project]);
  
@@ -670,17 +670,16 @@ index 32137f8d..2a2a5a4e 100644
 +        (async function () {
 +            const os = 'windows';
 +
-+            const {
-+                height,
-+                callback,
-+            } = platforms[os];
-+
-+            const src = await createIconFactory(os)(4),
++            const { src, width, height } = createIconFactory(os)(0) || {},
 +                img = document.createElement('img');
 +
-+            callback();
++            if (!src) {
++                return;
++            }
 +
-+            img.style.width = img.style.height = `${height}px`;
++            img.style.width = `${width}px`;
++            img.style.height = `${height}px`;
++
 +            img.src = src;
 +            img.className = `cmg-app-${os}-icon`;
 +

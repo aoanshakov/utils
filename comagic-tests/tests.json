@@ -137,6 +137,10 @@
         "services.ats.sip": [
             "helpers/ServicesAtsSip.js",
             "tests/services.ats.sip.js"
+        ],
+        "staff.employees.edit": [
+            "helpers/StaffEmployeesEdit.js",
+            "tests/staff.employees.edit.js"
         ]
     },
     "easystart": {

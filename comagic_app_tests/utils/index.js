@@ -45,6 +45,7 @@ const {
     contacts,
     contactsPatch,
     uisWebRTC,
+    uisWebRTCPatch,
     stub,
     stubCss,
     shadowContentTsxSource,
@@ -85,12 +86,13 @@ const cda = `cd ${application} &&`,
     actions = {},
     packageJson = 'package.json',
     magicUiOverridenFiles = packageJson,
-    coreOverridenFiles = packageJson,
+    coreOverridenFiles = 'package.json src/project/index.ts',
     devSoftphoneOverridenFiles = magicUiOverridenFiles,
     contactsOverridenFiles = packageJson,
     rootStoreAndPackageJsonFiles = 'src/models/RootStore.ts package.json',
     softphoneOverridenFiles = packageJson,
     employeesOverridenFiles = packageJson,
+    uisWebRTCOverridenFiles = packageJson,
     sipLibOverridenFiles = devSoftphoneOverridenFiles,
     devOverridenFiles = 'config/webpack.config.js';
 
@@ -98,7 +100,6 @@ const uiOverridenFiles =
     'src/components/file-drop/file-drop.tsx ' +
     'src/components/file-drop/file-drop.helpers.ts ' +
     'src/components/icon/icon.tsx';
-
 const chatOverridenFiles = 'package.json ' +
     'src/App.tsx ' +
     'src/models/auth/AuthStore.ts ' +
@@ -266,6 +267,16 @@ const overriding = [{
     test: {
         overridenFiles: sipLibOverridenFiles,
         applicationPatch: sipLibPatch
+    }
+}, {
+    application: uisWebRTC,
+    dev: {
+        overridenFiles: uisWebRTCOverridenFiles,
+        applicationPatch: uisWebRTCPatch
+    },
+    test: {
+        overridenFiles: uisWebRTCOverridenFiles,
+        applicationPatch: uisWebRTCPatch
     }
 }, {
     application: contacts,

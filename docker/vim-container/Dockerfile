@@ -25,6 +25,6 @@ RUN apt-get install -y nodejs
 
 RUN npm set registry http://npm.dev.uis.st:80
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
-RUN /bin/bash -c "source ~/.bashrc && nvm && nvm install 14"
+RUN /bin/bash -c "source ~/.bashrc && nvm && nvm install 14 && nvm install 18"
 
 ENTRYPOINT [ "bash" ]

@@ -100,8 +100,15 @@ define(() => function ({
     window.application.run({
         setReactDOM: value => (me.ReactDOM = value),
         setEventBus: eventBus => {
-            const events = {},
-                ignoredEvents = {};
+            const events = {};
+
+            const notIgnoredEvents = {
+                end_prompter_call: true,
+                settings_fetched: true,
+                await_prompter_call: true,
+                call_start: true,
+                call_end: true,
+            };
 
             eventBus.subscribe = (eventName, callback) => {
                 const callbacks = events[eventName] || (events[eventName] = new Set());
@@ -153,7 +160,7 @@ define(() => function ({
                     }
                 };
 
-                !ignoredEvents[actualEventName] && stack.add(event);
+                notIgnoredEvents[actualEventName] && stack.add(event);
                 broadcast(actualEventName, ...args);
             };
 
@@ -163,10 +170,6 @@ define(() => function ({
                 ignoreEvent: eventName => (ignoredEvents[eventName] = true),
                 assumeSomeMessageMayBeSent: () => stack.removeAll()
             };
-
-            me.eventBus.ignoreEvent('log');
-            me.eventBus.ignoreEvent('set_chats_and_offline_messages_count');
-            me.eventBus.ignoreEvent('set_lost_call_count');
         },
         setHistory: value => (history = value),
         setChatsRootStore: value => (chatsRootStore = value),
@@ -1027,7 +1030,7 @@ define(() => function ({
                 const selectTester = testersFactory.createDomElementTester(() =>
                     getSelectField(filter).closest('.ui-select, .cmgui-select'));
 
-                tester.click = () => (click(), spendTime(0), spendTime(0));
+                tester.click = () => (click(), spendTime(0), spendTime(0), spendTime(0), spendTime(0));
 
                 tester.arrow = (tester => {
                     const click = tester.click.bind(tester);
@@ -1426,7 +1429,8 @@ define(() => function ({
                                 data: utils.expectToHaveSubstring([
                                     'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
                                     'Response status: 200 OK; ' +
-                                    'Time consumed 0 ms',
+                                    'Time consumed 0 ms; ' +
+                                    'Without credentials',
 
                                     'POST $REACT_APP_AUTH_URL'
                                 ].join("\n\n")),
@@ -1834,7 +1838,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectToHavePath('https://$REACT_APP_BASE_URL/operator\/channels');
+                    expectToHavePath('https://$REACT_APP_BASE_URL/operator/channels');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -5485,8 +5489,15 @@ define(() => function ({
         receiveResponse: () => {
             ajax.recentRequest().
                 expectToHaveMethod('GET').
-                expectPathToContain('\/api\/v1\/marks').
-                respondSuccessfullyWith(true);
+                expectPathToContain('/api/v1/marks').
+                respondSuccessfullyWith({
+                    data: [{
+                        id: 23482439,
+                        name: 'Некий тег',
+                        is_system: false,
+                        is_available_on_active_call: true,
+                    }],
+                });
 
             spendTime(0);
             spendTime(0);
@@ -5791,6 +5802,20 @@ define(() => function ({
         });
 
         return {
+            notFinal() {
+                params.crm_contact_link = null;
+                params.is_final = false;
+
+                return this;
+            },
+
+            unableToSearchForCrmContact() {
+                delete(params.crm_contact_link);
+                delete(params.is_final);
+
+                return this;
+            },
+
             activeLeads() {
                 addActiveLeads(params);
                 return this;
@@ -16626,6 +16651,12 @@ define(() => function ({
             expectEventNameToEqual('submodule_initilized')
     });
 
+    me.authenticationTypeRequest = () => ({
+        expectToBeSent: () => me.eventBus.
+            nextEvent().
+            expectEventNameToEqual('workplace-utils/src/requester/request(has_sso_auth)')
+    });
+
     me.unreadMessagesCountSettingRequest = () => ({
         expectToBeSent: () => me.eventBus.
             nextEvent().
@@ -17164,6 +17195,22 @@ define(() => function ({
             getRootElement
         );
 
+        const mainPanel = testersFactory.createDomElementTester(() => getRootElement().querySelector(
+            '.cmg-calls, ' +
+
+            '.misc-softphone-' +
+                'misc-sip_lib-src-' +
+                'new-softphone-' +
+                'main-panel-wrapper-' +
+                'styles-module__' +
+                'main-panel-wrapper',
+
+            true,
+        ));
+
+        tester.pressKey = key => mainPanel.pressKey(key);
+        tester.pressEnter = () => mainPanel.pressEnter();
+
         tester.expectToBeCollapsed = () => tester.expectToHaveHeight(212);
         tester.expectToBeExpanded = () => tester.expectToHaveHeight(568);
 
@@ -17180,7 +17227,15 @@ define(() => function ({
         };
 
         return tester;
-    })(() => document.querySelector('#cmg-amocrm-widget') || new JsTester_NoElement());
+    })(() => document.querySelector(
+        '#cmg-amocrm-widget, ' +
+
+        '.misc-softphone-' +
+            'misc-sip_lib-src-' +
+            'new-softphone-' +
+            'styles-module__' +
+            'softphone-container'
+    ) || new JsTester_NoElement());
 
     me.triggerPageResize = () => (triggerResize(document.querySelector('.cmg-softphone-page')), spendTime(0));
     me.antDrawerCloseButton = testersFactory.createDomElementTester('.ant-drawer-close');

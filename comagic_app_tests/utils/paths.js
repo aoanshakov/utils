@@ -60,6 +60,7 @@ module.exports = {
     contactsPatch: `${tests}/contacts-patch.diff`,
     devSoftphonePatch: `${tests}/dev-softphone-patch.diff`,
     sipLibPatch: `${tests}/sip-lib-patch.diff`,
+    uisWebRTCPatch: `${tests}/uis-webrtc-patch.diff`,
     huskyPatch: `${tests}/husky-patch.diff`,
     updaterPatch: `${tests}/updater-patch.diff`,
     misc,
