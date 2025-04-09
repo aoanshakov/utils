@@ -3872,7 +3872,10 @@ function JsTester_DescendantFinder (ascendantElement, utils) {
             ascendantElement,
             comparisons,
             allDescendants,
-            desiredDescendants
+            desiredDescendants: desiredDescendants.map(domElement => ({
+                domElement,
+                isVisible: utils.isVisible(domElement),
+            })),
         });
 
         return desiredDescendants;
@@ -4276,7 +4279,19 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
             return false;
         }
 
-        return !!(domElement.offsetWidth || domElement.offsetHeight || domElement.getClientRects?.()?.length);
+        if (!(domElement.offsetWidth || domElement.offsetHeight || domElement.getClientRects?.()?.length)) {
+            return false;
+        }
+
+        while (domElement) {
+            if (domElement.style?.visibility == 'hidden') {
+                return false;
+            }
+
+            domElement = domElement.parentNode;
+        }
+
+        return true;
     };
     this.getVariablePresentation = function (object) {
         return "\n \n" + debug.getVariablePresentation(object) + "\n \n";
@@ -6449,7 +6464,7 @@ function JsTester_DomElement (
         this.expectToBeVisible();
 
         if (typeof propertyName != 'string') {
-            throw new Errror('Некорректный аргумент');
+            throw new Error('Некорректный аргумент');
         }
 
         var actualValue = getStylePropertyValue(propertyName);
@@ -6460,6 +6475,8 @@ function JsTester_DomElement (
                     expectedValue + '", а не "' + actualValue + '".'
             );
         }
+
+        return this;
     };
     this.expectNotToHaveStyle = function (propertyName, unexpectedValue) {
         this.expectToBeVisible();

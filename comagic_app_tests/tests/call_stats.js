@@ -44,6 +44,20 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             accountRequest = tester.accountRequest().expectToBeSent();
+
+            tester.hostBroadcastChannel().
+                applyLeader().
+                expectToBeSent().
+                waitForSecond();
+
+            tester.hostBroadcastChannel().
+                applyLeader().
+                expectToBeSent().
+                waitForSecond();
+
+            tester.hostBroadcastChannel().
+                tellIsLeader().
+                expectToBeSent();
         });
 
         describe('Пользователь является сотрудником.', function() {
@@ -56,31 +70,66 @@ tests.addTest(options => {
                 const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
                     ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
                     reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
                     authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
-                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests),
-                employeeRequest = tester.employeeRequest().expectToBeSent(requests);
+                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests);
 
                 requests.expectToBeSent();
 
                 ticketsContactsRequest.receiveResponse();
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
-                employeeSettingsRequest.receiveResponse();
-                employeeRequest.receiveResponse();
                 reportGroupsRequest.receiveResponse();
 
-                tester.masterInfoMessage().receive();
-                tester.slavesNotification().additional().expectToBeSent();
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
                 tester.slavesNotification().expectToBeSent();
+
+                tester.slavesNotification().
+                    additional().
+                    expectToBeSent();
 
                 tester.employeesWebSocket.connect();
                 tester.employeesInitMessage().expectToBeSent();
+                tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
-                tester.notificationChannel().tellIsLeader().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.employeeSettingsRequest().receiveResponse();
+                tester.employeeRequest().receiveResponse();
 
                 authCheckRequest.receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
@@ -110,9 +159,10 @@ tests.addTest(options => {
 
                 notificationTester.grantPermission();
 
+                tester.marksRequest().receiveResponse();
                 authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-                registrationRequest = tester.registrationRequest().expectToBeSent();
 
+                registrationRequest = tester.registrationRequest().expectToBeSent();
                 tester.allowMediaInput();
 
                 tester.slavesNotification().
@@ -148,6 +198,44 @@ tests.addTest(options => {
                     tester.statsRequest().receiveResponse();
                 });
 
+                describe('Выбираю период "Текущий месяц".', function() {
+                    beforeEach(function() {
+                        tester.button('Текущий месяц').click();
+
+                        tester.statsRequest().
+                            forCurrentMonth().
+                            receiveResponse();
+                    });
+
+                    it('Открываю раздел "Контакты".', function() {
+                        tester.button('Контакты').click();
+
+                        tester.usersRequest().
+                            forContacts().
+                            expectToBeSent();
+
+                        tester.contactsRequest().
+                            differentNames().
+                            receiveResponse();
+
+                        tester.button('Статистика').click();
+
+                        tester.statsRequest().
+                            forCurrentMonth().
+                            receiveResponse();
+
+                        tester.body.expectTextContentToHaveSubstring('Доступен 511:45:00');
+
+                        tester.button('Сегодня').expectNotToBeChecked();
+                        tester.button('Текущий месяц').expectToBeChecked();
+                    });
+                    it('Отображена статистика за текущий месяц.', function() {
+                        tester.button('Сегодня').expectNotToBeChecked();
+                        tester.button('Текущий месяц').expectToBeChecked();
+
+                        tester.body.expectTextContentToHaveSubstring('Доступен 511:45:00');
+                    });
+                });
                 it(
                     'Нажимаю на кнопку "Выход". Вхожу в лк заново. Запрошена статистика текущего авторизованного ' +
                     'сотрудника.',
@@ -267,6 +355,33 @@ tests.addTest(options => {
                         available().
                         expectToBeSent();
                 });
+                it(
+                    'Софтфон открыт в другом окне. Отображено сообщение о том, ' +
+                    'что софтфон открыт в другом окне.',
+                function() {
+                    tester.eventsWebSocket.disconnect(4429);
+
+                    tester.slavesNotification().
+                        userDataFetched().
+                        twoChannels().
+                        appAlreadyOpened().
+                        enabled().
+                        microphoneAccessGranted().
+                        expectToBeSent();
+
+                    tester.authLogoutRequest().receiveResponse();
+
+                    tester.registrationRequest().
+                        expired().
+                        receiveResponse();
+                    
+                    spendTime(2000);
+                    tester.webrtcWebsocket.finishDisconnecting();
+
+                    tester.statusesDurationItem('Доступен').
+                        icon.
+                        expectToBe('OperatorStatusOnline20');
+                });
                 it('Нажимаю на кнопку "Выгрузить отчёт". Совершается загрузка отчета.', function() {
                     tester.anchor('Выгрузить отчёт').
                         expectAttributeToHaveValue(
@@ -315,6 +430,13 @@ tests.addTest(options => {
                     tester.body.expectTextContentToHaveSubstring('Воронка 00:00:00');
                 });
                 it('Отображена статистика звонков.', function() {
+                    tester.button('Сегодня').expectToBeChecked();
+                    tester.button('Текущий месяц').expectNotToBeChecked();
+
+                    tester.statusesDurationItem('Доступен').
+                        icon.
+                        expectToBe('OperatorStatusOnline20');
+
                     tester.body.expectTextContentToHaveSubstringsConsideringOrder(
                         'Доступен 17:03:30 ' +
                         'Перерыв 23:28:10 ' +

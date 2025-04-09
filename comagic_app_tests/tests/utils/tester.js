@@ -601,19 +601,48 @@ define(() => function ({
             return tester;
         })();
 
-        me.userName = me.accountButton = (selector => {
-            const getDomElement = () => utils.element(getRootElement()).querySelector(selector),
-                tester = testersFactory.createDomElementTester(getDomElement);
+        Object.defineProperty(me, 'icon', {
+            get: () => {
+                const getDomElements = () => utils.element(getRootElement()).querySelectorAll('.cmgui-icon'),
+                    getDomElement = () => utils.element(getRootElement()).querySelector('.cmgui-icon'),
+                    tester = testersFactory.createDomElementTester(getDomElement);
 
-            const putMouseOver = tester.putMouseOver.bind(tester);
-            tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100), spendTime(0), spendTime(0));
+                const augmentTester = tester => {
+                    tester.expectToBe = icon => (tester.expectAttributeToHaveValue('data-component', icon), tester);
+                    return tester;
+                };
 
-            tester.icon = testersFactory.createDomElementTester(
-                () => getDomElement().querySelector('.ui-account-status-icon svg')
-            );
+                augmentTester(tester);
 
-            return softphoneTester.createBottomButtonTester(tester);
-        })('.cm-user-only-account--username, .ui-account, .cmgui-account, .cm-chats--account');
+                tester.atIndex = index =>
+                    augmentTester(testersFactory.createDomElementTester(() => getDomElements()[index]));
+
+                tester.first = tester.atIndex(0);
+                return tester;
+            }
+        });
+
+        ['userName', 'accountButton'].forEach(getterName => Object.defineProperty(me, getterName, {
+            get: () => {
+                const selector = 
+                    '.cm-user-only-account--username, ' +
+                    '.ui-account, ' +
+                    '.cmgui-account, ' +
+                    '.cm-chats--account, ' +
+                    '.cm-account-avatar';
+
+                const getDomElement = () => utils.element(getRootElement()).querySelector(selector),
+                    tester = testersFactory.createDomElementTester(getDomElement);
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), spendTime(100), spendTime(100), spendTime(0), spendTime(0));
+
+                const putMouseOver = tester.putMouseOver.bind(tester);
+                tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100), spendTime(0), spendTime(0));
+
+                return addTesters(softphoneTester.createBottomButtonTester(tester), getDomElement);
+            }
+        }));
 
         (() => {
             const selector =
@@ -678,10 +707,9 @@ define(() => function ({
         })();
 
         const getSvg = selector => {
-            const tester = testersFactory.createAnchorTester(() =>
-                utils.element(getRootElement()).querySelector(selector));
-
-            const click = tester.click.bind(tester);
+            const getDomElement = () => utils.element(getRootElement()).querySelector(selector),
+                tester = testersFactory.createAnchorTester(getDomElement),
+                click = tester.click.bind(tester);
 
             tester.click = () => {
                 click();
@@ -689,6 +717,13 @@ define(() => function ({
                 spendTime(10);
             };
 
+            tester.path = {
+                atIndex: index => testersFactory.createDomElementTester(
+                    () => getDomElement().querySelector('path')
+                ),
+            };
+
+            tester.path.first = tester.path.atIndex(0);
             return tester;
         };
 
@@ -1035,7 +1070,16 @@ define(() => function ({
                 tester.arrow = (tester => {
                     const click = tester.click.bind(tester);
 
-                    tester.click = () => (click(), spendTime(0), spendTime(0));
+                    tester.click = () => {
+                        click();
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                    };
+
                     return tester;
                 })(testersFactory.createDomElementTester(
                     () => getSelectField(filter).closest(
@@ -1142,7 +1186,8 @@ define(() => function ({
             tester.withPlaceholder = expectedPlaceholder => createTester(select => utils.getTextContent(
                 select.querySelector(
                     '.ui-select-placeholder, ' +
-                    '.cmgui-select-placeholder'
+                    '.cmgui-select-placeholder, ' +
+                    '.cmgui-select-label'
                 ) ||
                 new JsTester_NoElement()
             ) == expectedPlaceholder);
@@ -1265,10 +1310,15 @@ define(() => function ({
         return addTesters(tester, getDomElement);
     })();
 
-    me.statusesDurationItem = text => testersFactory.createDomElementTester(() => utils.descendantOfBody().
-        textEquals(text).
-        matchesSelector('.cmg-softphone--call-stats-status-duration .name').
-        find().closest('.cmg-softphone--call-stats-status-duration'));
+    me.statusesDurationItem = text => {
+        const getDomElement = () => utils.descendantOfBody().
+            textEquals(text).
+            matchesSelector('.cmg-softphone--call-stats-status-duration .name').
+            find().
+            closest('.cmg-softphone--call-stats-status-duration');
+
+        return addTesters(testersFactory.createDomElementTester(getDomElement), getDomElement)
+    };
 
     me.modalWindow = (() => {
         const getModalWindow = () => utils.querySelector('.clct-modal, .ui-modal, .cmgui-modal'),
@@ -1601,6 +1651,10 @@ define(() => function ({
     };
 
     me.ticketsContactsRequest = () => {
+        const headers = {
+            'X-Auth-Token': undefined,
+        };
+
         let respond = request => request.respondSuccessfullyWith({
             data: {
                 contacts: [],
@@ -1637,6 +1691,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
+                    expectToHaveHeaders(headers).
                     expectToHavePath('https://$REACT_APP_INFOPIN_BACKEND_HOST/tickets/contacts');
 
                 return addResponseModifiers({
@@ -1647,6 +1702,7 @@ define(() => function ({
                     }
                 });
             },
+
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
             }
@@ -3007,7 +3063,7 @@ define(() => function ({
                 data.push({
                     id: 8,
                     is_worktime: false,
-                    mnemonic: 'asterisk',
+                    mnemonic: null,
                     name: 'Звёздочка',
                     is_select_allowed: true,
                     icon: 'asterisk',
@@ -3035,7 +3091,7 @@ define(() => function ({
                 }, {
                     id: 11,
                     is_worktime: false,
-                    mnemonic: 'bell',
+                    mnemonic: null,
                     name: 'Колокольчик',
                     is_select_allowed: true,
                     icon: 'bell',
@@ -3063,7 +3119,7 @@ define(() => function ({
                 }, {
                     id: 12,
                     is_worktime: false,
-                    mnemonic: 'bottom_left_arrow',
+                    mnemonic: null,
                     name: 'Стрелочка',
                     is_select_allowed: true,
                     icon: 'bottom_left_arrow',
@@ -3091,7 +3147,7 @@ define(() => function ({
                 }, {
                     id: 14,
                     is_worktime: false,
-                    mnemonic: 'dice',
+                    mnemonic: null,
                     name: 'Кости',
                     is_select_allowed: true,
                     icon: 'dice',
@@ -3119,7 +3175,7 @@ define(() => function ({
                 }, {
                     id: 16,
                     is_worktime: false,
-                    mnemonic: 'ellipsis',
+                    mnemonic: null,
                     name: 'Многоточие',
                     is_select_allowed: true,
                     icon: 'ellipsis',
@@ -3147,7 +3203,7 @@ define(() => function ({
                 }, {
                     id: 17,
                     is_worktime: false,
-                    mnemonic: 'exclamation',
+                    mnemonic: null,
                     name: 'Восклицание',
                     is_select_allowed: true,
                     icon: 'exclamation',
@@ -3175,7 +3231,7 @@ define(() => function ({
                 }, {
                     id: 18,
                     is_worktime: false,
-                    mnemonic: 'fast_forward',
+                    mnemonic: null,
                     name: 'Перемотка',
                     is_select_allowed: true,
                     icon: 'fast_forward',
@@ -3203,7 +3259,7 @@ define(() => function ({
                 }, {
                     id: 19,
                     is_worktime: false,
-                    mnemonic: 'find',
+                    mnemonic: null,
                     name: 'Найти',
                     is_select_allowed: true,
                     icon: 'find',
@@ -3231,7 +3287,7 @@ define(() => function ({
                 }, {
                     id: 20,
                     is_worktime: false,
-                    mnemonic: 'funnel',
+                    mnemonic: null,
                     name: 'Воронка',
                     is_select_allowed: true,
                     icon: 'funnel',
@@ -3259,7 +3315,7 @@ define(() => function ({
                 }, {
                     id: 21,
                     is_worktime: false,
-                    mnemonic: 'half_moon',
+                    mnemonic: null,
                     name: 'Луна',
                     is_select_allowed: true,
                     icon: 'half_moon',
@@ -3287,7 +3343,7 @@ define(() => function ({
                 }, {
                     id: 22,
                     is_worktime: false,
-                    mnemonic: 'handset',
+                    mnemonic: null,
                     name: 'Поднял',
                     is_select_allowed: true,
                     icon: 'handset',
@@ -3315,7 +3371,7 @@ define(() => function ({
                 }, {
                     id: 23,
                     is_worktime: false,
-                    mnemonic: 'hangup',
+                    mnemonic: null,
                     name: 'Повесил',
                     is_select_allowed: true,
                     icon: 'hangup',
@@ -3343,7 +3399,7 @@ define(() => function ({
                 }, {
                     id: 24,
                     is_worktime: false,
-                    mnemonic: 'info',
+                    mnemonic: null,
                     name: 'Информация',
                     is_select_allowed: true,
                     icon: 'info',
@@ -3371,7 +3427,7 @@ define(() => function ({
                 }, {
                     id: 25,
                     is_worktime: false,
-                    mnemonic: 'lightning',
+                    mnemonic: null,
                     name: 'Молния',
                     is_select_allowed: true,
                     icon: 'lightning',
@@ -3399,7 +3455,7 @@ define(() => function ({
                 }, {
                     id: 26,
                     is_worktime: false,
-                    mnemonic: 'list',
+                    mnemonic: null,
                     name: 'Список',
                     is_select_allowed: true,
                     icon: 'list',
@@ -3427,7 +3483,7 @@ define(() => function ({
                 }, {
                     id: 27,
                     is_worktime: false,
-                    mnemonic: 'pen',
+                    mnemonic: null,
                     name: 'Ручка',
                     is_select_allowed: true,
                     icon: 'pen',
@@ -3455,7 +3511,7 @@ define(() => function ({
                 }, {
                     id: 28,
                     is_worktime: false,
-                    mnemonic: 'play',
+                    mnemonic: null,
                     name: 'Проигрывание',
                     is_select_allowed: true,
                     icon: 'play',
@@ -3483,7 +3539,7 @@ define(() => function ({
                 }, {
                     id: 29,
                     is_worktime: false,
-                    mnemonic: 'question',
+                    mnemonic: null,
                     name: 'Вопрос',
                     is_select_allowed: true,
                     icon: 'question',
@@ -3511,7 +3567,7 @@ define(() => function ({
                 }, {
                     id: 30,
                     is_worktime: false,
-                    mnemonic: 'rays',
+                    mnemonic: null,
                     name: 'Лучи',
                     is_select_allowed: true,
                     icon: 'rays',
@@ -3539,7 +3595,7 @@ define(() => function ({
                 }, {
                     id: 31,
                     is_worktime: false,
-                    mnemonic: 'star',
+                    mnemonic: null,
                     name: 'Звезда',
                     is_select_allowed: true,
                     icon: 'star',
@@ -3567,7 +3623,7 @@ define(() => function ({
                 }, {
                     id: 32,
                     is_worktime: false,
-                    mnemonic: 'target',
+                    mnemonic: null,
                     name: 'Цель',
                     is_select_allowed: true,
                     icon: 'target',
@@ -5743,6 +5799,16 @@ define(() => function ({
         return addResponseModifiers({
             anotherAuthorizationToken() {
                 headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'
+                return this;
+            },
+
+            forCurrentMonth() {
+                queryParams.date_from = '2019-12-01T00:00:00.000+03:00';
+
+                Object.entries(data).forEach(
+                    ([key, value]) => (typeof value == 'number' && (data[key] = value * 30))
+                );
+
                 return this;
             },
 
@@ -16997,6 +17063,13 @@ define(() => function ({
         return addTesters(tester, getDomElement);
     })();
 
+    me.mainSection = (() => {
+        const getDomElement = () => utils.querySelector('section[test-id="main-section"]'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        return addTesters(tester, getDomElement);
+    })();
+
     me.contactBar = (() => {
         const getContactBar = () => {
             let contactBar = utils.querySelector('.cmg-softphone-contact-bar');
@@ -17516,20 +17589,25 @@ define(() => function ({
     })();
 
     me.statusesList = (() => {
-        const selector = '.ui-account-popup, .cmgui-account-popup, .cm-chats--account-popup',
-            tester = testersFactory.createDomElementTester(selector);
+        const selector = '.ui-account-popup, ' +
+            '.cmgui-account-popup, ' +
+            '.cm-chats--account-popup, ' +
+            '.cm-account-statuses-list-popup';
+
+        const tester = testersFactory.createDomElementTester(selector);
 
         tester.item = text => {
             const domElement = utils.descendantOf(document.querySelector(selector)).
                 matchesSelector(
                     '.ui-account-popup--item, ' +
                     '.cmgui-account-popup--item, ' +
-                    '.cm-chats--account-popup--item'
+                    '.cm-chats--account-popup--item, ' +
+                    '.cm-account-list-item-status'
                 ).
                 textEquals(text).
                 find();
 
-            const tester = testersFactory.createDomElementTester(domElement),
+            const tester = addTesters(testersFactory.createDomElementTester(domElement), () => domElement),
                 click = tester.click.bind(tester),
                 isSelected = () => !!domElement.querySelectorAll('.ui-icon, .cmgui-icon')[1];
 
@@ -17572,7 +17650,11 @@ define(() => function ({
     me.logoutButton = (() => {
         const tester = testersFactory.createDomElementTester(() => {
             let domElement = utils.descendantOfBody().
-                matchesSelector('.ui-popup-content span, .cmgui-popup-content span').
+                matchesSelector(
+                    '.ui-popup-content span, ' +
+                    '.cmgui-popup-content span, ' +
+                    '.cm-account-list-item-logout .cmgui-button'
+                ).
                 textEquals('Выход').
                 find();
 

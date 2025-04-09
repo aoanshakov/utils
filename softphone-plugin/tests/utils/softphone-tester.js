@@ -1420,7 +1420,7 @@ define(function () {
                 search: '',
                 is_strict_date_till: '0',
                 with_names: undefined,
-                from: '2019-10-19T00:00:00.000+03:00',
+                from: '2019-12-12T00:00:00.000+03:00',
                 to: '2019-12-19T23:59:59.999+03:00',
                 call_directions: undefined,
                 call_types: undefined,

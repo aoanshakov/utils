@@ -155,6 +155,7 @@ tests.addTest(options => {
                                     describe('Управление звонками производится при помощи софтфона.', function() {
                                         beforeEach(function() {
                                             settingsRequest.receiveResponse();
+                                            tester.marksRequest().receiveResponse();
 
                                             tester.slavesNotification().
                                                 twoChannels().
@@ -344,7 +345,7 @@ tests.addTest(options => {
                                                     it(
                                                         'Раскрываю список статусов. Отображён список статусов.',
                                                     function() {
-                                                        tester.userName.click();
+                                                        tester.accountButton.click();
                                                         
                                                         tester.statusesList.
                                                             item('Не беспокоить').
@@ -528,6 +529,7 @@ tests.addTest(options => {
                                             softphoneServerConnected().
                                             expectToBeSent();
 
+                                        tester.marksRequest().receiveResponse();
                                         tester.authenticatedUserRequest().receiveResponse();
 
                                         tester.stateSettingRequest().
@@ -561,7 +563,7 @@ tests.addTest(options => {
                                             nextMessage().
                                             expectMessageToStartsWith('ignore:log:').
                                             expectMessageToContain([
-                                                'Time consumed 0 ms',
+                                                'Time consumed 0 ms; Without credentials',
                                                 'POST https://somedomain.com/click2call/79161234567'
                                             ].join("\n\n"));
                                     });
@@ -600,7 +602,9 @@ tests.addTest(options => {
                                         webRTCServerConnected().
                                         expectToBeSent();
 
+                                    tester.marksRequest().receiveResponse();
                                     authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+
                                     tester.registrationRequest().receiveResponse();
 
                                     tester.slavesNotification().
@@ -753,6 +757,7 @@ tests.addTest(options => {
                             tester.statusesRequest().receiveResponse();
                             tester.permissionsRequest().receiveResponse();
                             tester.settingsRequest().receiveResponse();
+                            tester.marksRequest().receiveResponse();
                             tester.authenticatedUserRequest().receiveResponse();
 
                             tester.stateSettingRequest().
@@ -4120,7 +4125,9 @@ tests.addTest(options => {
                                 webRTCServerConnected().
                                 expectToBeSent();
 
+                            tester.marksRequest().receiveResponse();
                             authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+
                             tester.registrationRequest().receiveResponse();
 
                             tester.slavesNotification().
@@ -4298,6 +4305,13 @@ tests.addTest(options => {
                             method: 'set_token',
                             data: tester.anotherOauthToken,
                         });
+
+                        postMessages.
+                            nextMessage().
+                            expectMessageToContain({
+                                method: 'set_token',
+                                data: tester.anotherOauthToken,
+                            });
                     });
 
                     it('Получен запрос изменения состояния.', function() {
@@ -4347,6 +4361,13 @@ tests.addTest(options => {
                             method: 'set_token',
                             data: tester.oauthToken,
                         });
+
+                        postMessages.
+                            nextMessage().
+                            expectMessageToContain({
+                                method: 'set_token',
+                                data: tester.oauthToken,
+                            });
                     });
 
                     it('Получен пустой токен. Предыдущий сохраненный токен не был передан в IFrame.', function() {
@@ -4358,6 +4379,13 @@ tests.addTest(options => {
                             method: 'set_token',
                             data: '',
                         });
+
+                        postMessages.
+                            nextMessage().
+                            expectMessageToContain({
+                                method: 'set_token',
+                                data: '',
+                            });
                     });
                     it('URL IFrame не изменился.', function() {
                         tester.iframe.expectToBeVisible();
@@ -4479,6 +4507,13 @@ tests.addTest(options => {
                                 atIndex(2).email().
                                 atIndex(3).thirdPhone().
                                 expectToBeSent();
+
+                            postMessages.
+                                nextMessage().
+                                expectMessageToContain({
+                                    method: 'set_token',
+                                    data: tester.oauthToken,
+                                });
                         });
 
                         describe('Получен список каналов.', function() {
@@ -4525,15 +4560,21 @@ tests.addTest(options => {
 
                                     it('Появилась левая панель. IFrame не закрывает левую панель.', function() {
                                         tester.page.triggerMutation();
-                                        tester.iframe.expectToHaveLeftOffset(200);
+
+                                        tester.iframe.
+                                            withSrc(
+                                                'https://prod-msk-softphone-widget-iframe.uiscom.ru/' +
+                                                'amocrm/chats/messages'
+                                            ).
+                                            expectToHaveLeftOffset(200);
                                     });
                                     it('IFrame не закрывает левое меню.', function() {
-                                        tester.iframe.expectToHaveLeftOffset(65);
-
-                                        tester.iframe.expectAttributeToHaveValue(
-                                            'src',
-                                            'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/chats/messages',
-                                        );
+                                        tester.iframe.
+                                            withSrc(
+                                                'https://prod-msk-softphone-widget-iframe.uiscom.ru/' +
+                                                'amocrm/chats/messages'
+                                            ).
+                                            expectToHaveLeftOffset(65);
                                     });
                                 });
                                 it('Скрываю группу. Группа скрыта.', function() {
@@ -4551,7 +4592,18 @@ tests.addTest(options => {
                                         group('74951234575').
                                         expectToBeExpanded();
                                 });
-                                it('Выбираю канал.', function() {
+                                it(
+                                    'При наведении курсора мыши на недоступный канал отображается сообщение об ошибке.',
+                                function() {
+                                    tester.rightPanel.
+                                        group('74951234575').
+                                        item('Нижний Новгород').
+                                        expectAttributeToHaveValue(
+                                            'title',
+                                            'По этим контактным данным уже был создан чат другим оператором',
+                                        )
+                                });
+                                it('Выбираю недоступный канал. Ничего не происходит.', function() {
                                     tester.button('Нижний Новгород').click();
                                 });
                             });
@@ -4574,9 +4626,7 @@ tests.addTest(options => {
 
                                 tester.rightPanel.expectToHaveTextContent(
                                     '74951234575 ' +
-
                                     'Нижний Новгород ' +
-                                    'По этим контактным данным уже был создан чат другим оператором ' +
 
                                     'Белгород ' +
                                     'Астана ' +
@@ -4592,7 +4642,42 @@ tests.addTest(options => {
                                 );
                             });
                         });
+                        describe('Получено состояние софтфона.', function() {
+                            beforeEach(function() {
+                                tester.stateSettingRequest().receive();
+                                tester.amocrmStateSettingRequest().expectToBeSent();
+
+                                postMessages.
+                                    nextMessage().
+                                    expectMessageToContain({
+                                        method: 'set_token',
+                                        data: tester.oauthToken,
+                                    });
+                            });
+
+                            it('Нажимаю на иконку трубки. Софтфон видим.', function() {
+                                tester.clickPhoneIcon();
+                                tester.softphoneVisibilityToggleRequest().expectToBeSent();
+
+                                tester.stateSettingRequest().
+                                    visible().
+                                    receive();
+
+                                tester.iframe.
+                                    withSrc('https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/softphone').
+                                    expectToBeVisible();
+                            });
+                            it('Софтфон скрыт.', function() {
+                                tester.iframe.
+                                    withSrc('https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/softphone').
+                                    expectToBeHidden();
+                            });
+                        });
                         it('Отбражен список номера телефонов и E-Mail.', function() {
+                            tester.iframe.
+                                withSrc('https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/softphone').
+                                expectToBeHidden();
+
                             tester.body.expectTextContentToHaveSubstring(
                                 '74951234575 ' +
                                 '74951234576 ' +
@@ -4628,10 +4713,15 @@ tests.addTest(options => {
 
                         it('Покидаю страницу чатов. IFrame чатов скрыт.', function() {
                             tester.leavePage();
-                            tester.iframe.expectToBeHidden();
+
+                            tester.iframe.
+                                withSrc('https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/chats/messages').
+                                expectToBeHidden();
                         });
                         it('Отображён IFrame чатов.', function() {
-                            tester.iframe.expectToBeVisible();
+                            tester.iframe.
+                                withSrc('https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/chats/messages').
+                                expectToBeVisible();
                         });
                     });
                     it('Получен запрос скачивания лога. Лог скачан.', function() {
@@ -4663,14 +4753,19 @@ tests.addTest(options => {
                         tester.navMenuItem.counter.expectToBeHiddenOrNotExist();
                         tester.navMenuItem.expectToBeEnabled();
 
-                        tester.iframe.expectToBeHidden();
+                        tester.iframe.
+                            withSrc('https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/chats/messages').
+                            expectToBeHidden();
                     });
                 });
                 it('Нажимаю на пункт меню. IFrame чатов не отображён.', function() {
                     tester.navMenuItem.click();
                 });
                 it('В DOM добавлен IFrame чатов.', function() {
-                    tester.iframe.expectToBeHidden();
+                    tester.iframe.
+                        withSrc('https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/chats/messages').
+                        expectToBeHidden();
+
                     tester.navMenuItem.expectToBeDisabled();
                 });
             });
@@ -4690,6 +4785,13 @@ tests.addTest(options => {
                         method: 'set_token',
                         data: tester.oauthToken,
                     });
+
+                    postMessages.
+                        nextMessage().
+                        expectMessageToContain({
+                            method: 'set_token',
+                            data: tester.oauthToken,
+                        });
                 });
 
                 it('Открываю страницу контакта. Был отправлен запрос каналов.', function() {
@@ -4703,7 +4805,9 @@ tests.addTest(options => {
                         expectToBeSent();
                 });
                 it('Запрос каналов не был отправлен.', function() {
-                    postMessages.nextMessage().expectNotToExist();
+                    postMessages.
+                        nextMessage().
+                        expectNotToExist();
                 });
             });
         });
@@ -4788,7 +4892,9 @@ tests.addTest(options => {
                             webRTCServerConnected().
                             expectToBeSent();
 
+                        tester.marksRequest().receiveResponse();
                         authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
+
                         tester.registrationRequest().receiveResponse();
 
                         tester.slavesNotification().
@@ -4871,8 +4977,8 @@ tests.addTest(options => {
                         tester.span('Для использования софтфона необходимо авторизоваться').expectToBeVisible();
                     });
                     it('Нажимаю на кнпоку выхода. Открывается окно выхода.', function() {
-                        tester.userName.click();
-                        tester.logoutButton.click();
+                        tester.accountButton.click();
+                        tester.button('Выход').click();
 
                         windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru/ru/logout');
                     });
@@ -4900,6 +5006,7 @@ tests.addTest(options => {
                             softphoneServerConnected().
                             expectToBeSent();
 
+                        tester.marksRequest().receiveResponse();
                         tester.authenticatedUserRequest().receiveResponse();
 
                         tester.stateSettingRequest().
@@ -4971,6 +5078,7 @@ tests.addTest(options => {
                         softphoneServerConnected().
                         expectToBeSent();
 
+                    tester.marksRequest().receiveResponse();
                     tester.authenticatedUserRequest().receiveResponse();
 
                     tester.stateSettingRequest().

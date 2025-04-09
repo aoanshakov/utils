@@ -1,0 +1,9 @@
+frontend:
+  image: "harbor.uis.st/images/web/comagic_app_modules/operator-workplace:frontend-2.1.5"
+
+  envs:
+    REACT_APP_BASE_URL: "https://pp-employee-api.{DOMAIN}"
+    REACT_APP_WS_URL: "wss://pp-employee-realtime-api.{DOMAIN}/websocket"
+    REACT_APP_SSO_WS_URL: "wss://pp-employee-realtime-api.{DOMAIN}/cookie_based_websocket"
+    REACT_APP_SSO_CHECK_WS_URL: "https://pp-employee-realtime-api.{DOMAIN}/sso/check"
+    REACT_APP_AUTH_COOKIE: "auth_pp"

@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 10e5843d..defe6839 100644
+index f258f735..3530feca 100644
 --- a/package.json
 +++ b/package.json
 @@ -11,9 +11,9 @@
@@ -14,31 +14,55 @@ index 10e5843d..defe6839 100644
    ],
    "engines": {
      "node": ">=18.13.0",
-@@ -110,14 +110,12 @@
+@@ -37,7 +37,6 @@
+     "dayjs": "1.11.11",
+     "lodash.debounce": "4.0.8",
+     "lodash.isequal": "4.5.0",
+-    "react": ">= 18.3.1",
+     "react-animate-height": "2.0.23",
+     "react-dnd": "16.0.1",
+     "react-dnd-html5-backend": "16.0.1",
+@@ -107,14 +106,12 @@
      "postcss-lightningcss": "1.0.1",
      "postcss-url": "10.1.3",
-     "prettier": "3.4.2",
+     "prettier": "3.5.2",
 -    "react": "18.3.1",
      "react-animate-height": "2.0.23",
      "react-dnd": "16.0.1",
      "react-dnd-html5-backend": "16.0.1",
      "react-dom": "18.3.1",
      "react-input-mask": "2.0.4",
-     "react-resizable": "3.0.4",
+     "react-resizable": "3.0.5",
 -    "react-router-dom": "6.9.0",
-     "react-virtualized": "9.22.5",
-     "rollup": "4.22.4",
+     "react-virtualized": "9.22.6",
+     "rollup": "4.34.8",
      "rollup-plugin-cleandir": "3.0.0",
 diff --git a/src/components/icon/icon.tsx b/src/components/icon/icon.tsx
-index c602b3de..71932d4a 100644
+index bc4f21e2..48620eef 100644
 --- a/src/components/icon/icon.tsx
 +++ b/src/components/icon/icon.tsx
-@@ -1,3 +1,4 @@
+@@ -1,8 +1,10 @@
 +import * as comagicIcons from '../../icons/comagic';
++import * as commonIcons from '../../icons/common';
++
  import cn from 'classnames';
  import React, { useMemo } from 'react';
  
-@@ -30,6 +31,13 @@ export type IconProps = React.HTMLAttributes<HTMLSpanElement> & {
+ import { PREFIX_CLS } from '../../constants';
+-import { comagicIcons, commonIcons, megafonIcons } from '../../icons/constants';
+ import { Theme, configProviderData } from '../config-provider';
+ import configEventBus, { THEME_EVENT } from '../config-provider/configEventBus';
+ import NotFound from './NotFound';
+@@ -11,7 +13,7 @@ import './icon.less';
+ 
+ type ComagicIcons = (typeof comagicIcons)[number];
+ type CommonIcons = (typeof commonIcons)[number];
+-type MegafonIcons = (typeof megafonIcons)[number];
++type MegafonIcons = (typeof comagicIcons)[number];
+ 
+ export type IconComponent = ComagicIcons | CommonIcons | MegafonIcons;
+ export type IconType = 'primary' | 'accent' | 'secondary' | 'invert' | 'link' | 'success' | 'error' | 'warning';
+@@ -34,6 +36,13 @@ export type IconProps = React.HTMLAttributes<HTMLSpanElement> & {
      type?: IconType;
  };
  
@@ -52,31 +76,36 @@ index c602b3de..71932d4a 100644
  const Icon: React.ForwardRefRenderFunction<unknown, IconProps> = (props, ref) => {
      const {
          component,
-@@ -94,16 +102,14 @@ const Icon: React.ForwardRefRenderFunction<unknown, IconProps> = (props, ref) =>
+@@ -98,22 +107,12 @@ const Icon: React.ForwardRefRenderFunction<unknown, IconProps> = (props, ref) =>
  
      React.useEffect(() => {
          void (async () => {
 -            try {
--                const module = await import(
--                    `../../icons/${configTheme === 'megafon' ? 'megafon' : 'comagic'}/${component}`
--                );
+-                let module: { default: React.ComponentType };
 -
--                setComponent(() => (module as { default: React.ComponentType })?.default);
+-                if (commonIcons.includes(component as CommonIcons)) {
+-                    module = await import(`../../icons/common/${component}.tsx`);
+-                } else {
+-                    module = await import(
+-                        `../../icons/${configTheme === 'megafon' ? 'megafon' : 'comagic'}/${component}.tsx`
+-                    );
+-                }
+-
+-                setComponent(() => module?.default);
 -            } catch (e) {
 -                setComponent(() => NotFound);
 -                console.error(e);
-+            const icons = themes[configTheme];
-+            let Component = icons[component];
-+
-+            if (!Component) {
-+                Component = NotFound;
-             }
+-            }
++            const Component = [commonIcons, themes[configTheme || 'comagic']].reduce(
++                (Component, icons) => Component || icons[component as keyof ComagicIcons],
++                null,
++            ) || NotFound;
 +
 +            setComponent(() => Component);
          })();
      }, [configTheme, component]);
  
-@@ -127,6 +133,9 @@ const Icon: React.ForwardRefRenderFunction<unknown, IconProps> = (props, ref) =>
+@@ -137,6 +136,9 @@ const Icon: React.ForwardRefRenderFunction<unknown, IconProps> = (props, ref) =>
              onMouseEnter={onMouseEnter}
              onMouseLeave={onMouseLeave}
              {...restProps}

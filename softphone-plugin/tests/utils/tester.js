@@ -2429,7 +2429,7 @@ define(() => function ({
                 title: 'Помакова Бисерка Драгановна',
                 options: {
                     body: 'Я люблю тебя',
-                    icon: 'https://be-in-info.ru/comagic/visitor_type/omni.png',
+                    icon: './visitor_type/omni.png',
                     tag: '16479303',
                 },
             },
@@ -2771,12 +2771,15 @@ define(() => function ({
                 postMessages.receive(getMessage());
                 spendTime(0);
             },
+
             expectToBeSent: () => {
                 mainTester.triggerChatsIconMutation();
                 const message = getMessage();
 
                 message.data.channels.push(undefined);
                 postMessages.nextMessage().expectMessageToContain(message);
+
+                spendTime(0);
             },
         };
     };
@@ -2795,26 +2798,15 @@ define(() => function ({
                 'fill="none" ' +
                 'xmlns="http://www.w3.org/2000/svg"' +
             '>' +
-                '<mask ' +
-                    'id="prefix__path-1-inside-1_1345_12003" ' +
-                    'fill="#fff"' +
-                '>' +
-                    '<path ' +
-                        'd="' +
-                            'M17.513 10c.269 0 .488.218.472.487a8.001 8.001 0 11-3.973-7.408.465.465 0 01.144.663.' +
-                            '515.515 0 01-.684.15 7.025 7.025 0 103.536 6.595.515.515 0 01.505-.487z' +
-                        '"' +
-                    '></path>' +
-                '</mask>' +
-
                 '<path ' +
+                    'fill-rule="evenodd" ' +
+                    'clip-rule="evenodd" ' +
                     'd="' +
-                        'M17.513 10c.269 0 .488.218.472.487a8.001 8.001 0 11-3.973-7.408.465.465 0 01.144.663.515.' +
-                        '515 0 01-.684.15 7.025 7.025 0 103.536 6.595.515.515 0 01.505-.487z' +
+                        'M17 10.59a7.026 7.026 0 11-3.528-6.697c.017.01.035.018.053.026.225.097.493.03.631-.177a.465.' +
+                        '465 0 00-.144-.663 7.74 7.74 0 00-.19-.107 8 8 0 104.159 7.583l.004-.068a.465.465 0 00-.' +
+                        '472-.487.512.512 0 00-.505.487 7.135 7.135 0 01-.008.103z' +
                     '" ' +
-                    'stroke="currentColor" ' +
-                    'stroke-width="2" ' +
-                    'mask="url(#prefix__path-1-inside-1_1345_12003)"' +
+                    'fill="currentColor"' +
                 '></path>' +
             '</svg>' +
         '</span>';
@@ -2867,9 +2859,15 @@ define(() => function ({
                 spendTime(0);
 
                 return {
-                    expectResponseToBeSent: () => postMessages.
-                        nextMessage().
-                        expectMessageToContain(getResponseMessage())
+                    expectResponseToBeSent: () => {
+                        mainTester.triggerChatsIconMutation();
+
+                        postMessages.
+                            nextMessage().
+                            expectMessageToContain(getResponseMessage());
+
+                        spendTime(0);
+                    },
                 };
             },
 
@@ -3854,10 +3852,9 @@ define(() => function ({
                 textEquals(expectedTitle).
                 find();
 
-            const tester = testersFactory.createDomElementTester(
-                () => getTitle().closest('.cmg-amocrm-chats-channels-search-field-value')
-            );
+            const getGroup = () => getTitle().closest('.cmg-amocrm-chats-channels-search-field-value');
 
+            const tester = testersFactory.createDomElementTester(getGroup);
             tester.title = testersFactory.createDomElementTester(getTitle);
 
             tester.expectToBeExpanded = () =>
@@ -3866,12 +3863,15 @@ define(() => function ({
             tester.expectToBeCollapsed = () =>
                 tester.expectNotToHaveClass('cmg-amocrm-chats-channels-search-field-value-expanded');
 
+            tester.item = expectedText => testersFactory.createDomElementTester(
+                () => utils.descendantOf(getGroup()).
+                    matchesSelector('.cmg-amocrm-chats-channels-search-results-item').
+                    textEquals(expectedText).
+                    find()
+            );
+
             return tester;
         };
-
-        tester.title = expectedTitle => testersFactory.createDomElementTester(() => {
-
-        });
 
         return tester;
     })();
@@ -4335,14 +4335,27 @@ define(() => function ({
             return tester;
         })();
 
-        me.userName = me.accountButton = (tester => {
-            const putMouseOver = tester.putMouseOver.bind(tester);
-            tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100), spendTime(0), spendTime(0));
+        ['userName', 'accountButton'].forEach(getterName => Object.defineProperty(me, getterName, {
+            get: () => {
+                const selector = 
+                    '.cm-user-only-account--username, ' +
+                    '.ui-account, ' +
+                    '.cmgui-account, ' +
+                    '.cm-chats--account, ' +
+                    '.cm-account-avatar';
 
-            return softphoneTester.createBottomButtonTester(tester);
-        })(testersFactory.createDomElementTester(() => utils.element(getRootElement()).querySelector(
-            '.cm-user-only-account--username, .ui-account, .cmgui-account, .cm-chats--account'
-        )));
+                const getDomElement = () => utils.element(getRootElement()).querySelector(selector),
+                    tester = testersFactory.createDomElementTester(getDomElement);
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), spendTime(100), spendTime(100), spendTime(0), spendTime(0));
+
+                const putMouseOver = tester.putMouseOver.bind(tester);
+                tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(100), spendTime(0), spendTime(0));
+
+                return addTesters(softphoneTester.createBottomButtonTester(tester), getDomElement);
+            }
+        }));
 
         (() => {
             const selector =
@@ -8932,6 +8945,26 @@ define(() => function ({
         };
     };
 
+    me.marksRequest = () => ({
+        receiveResponse: () => {
+            ajax.recentRequest().
+                expectToHaveMethod('GET').
+                expectPathToContain('/api/v1/marks').
+                respondSuccessfullyWith({
+                    data: [{
+                        id: 23482439,
+                        name: 'Некий тег',
+                        is_system: false,
+                        is_available_on_active_call: true,
+                    }],
+                });
+
+            spendTime(0);
+            spendTime(0);
+            spendTime(0);
+        }
+    });
+
     me.markAddingRequest = () => ({
         receiveResponse: () => {
             ajax.recentRequest().
@@ -11017,6 +11050,37 @@ define(() => function ({
         });
     };
 
+    me.groupChatsRequest = () => {
+        let chat_id = '7189362';
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            anotherChat() {
+                chat_id = '2718935';
+                return this;
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/group-chats').
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith([]);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatPinningRequest = () => {
         const params = {
             chat_id: 2718942
@@ -11487,6 +11551,11 @@ define(() => function ({
 
             closed() {
                 setStatus('closed');
+                return this;
+            },
+
+            assignedToCurrentEmployee() {
+                processors.push(data => data.chats.forEach(chat => (chat.employee_id = 20816)));
                 return this;
             },
 
@@ -17168,7 +17237,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/${id}`).
                     expectToHaveMethod('GET');
 
                 return addResponseModifiers({
@@ -17974,7 +18043,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`$REACT_APP_BASE_URL/contacts/${id}/contact-groups`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/${id}/contact-groups`).
                     expectToHaveHeaders(headers).
                     expectToHaveMethod('GET');
 
@@ -21045,20 +21114,25 @@ define(() => function ({
     })();
 
     me.statusesList = (() => {
-        const selector = '.ui-account-popup, .cmgui-account-popup, .cm-chats--account-popup',
-            tester = testersFactory.createDomElementTester(selector);
+        const selector = '.ui-account-popup, ' +
+            '.cmgui-account-popup, ' +
+            '.cm-chats--account-popup, ' +
+            '.cm-account-statuses-list-popup';
+
+        const tester = testersFactory.createDomElementTester(selector);
 
         tester.item = text => {
             const domElement = utils.descendantOf(document.querySelector(selector)).
                 matchesSelector(
                     '.ui-account-popup--item, ' +
                     '.cmgui-account-popup--item, ' +
-                    '.cm-chats--account-popup--item'
+                    '.cm-chats--account-popup--item, ' +
+                    '.cm-account-list-item-status'
                 ).
                 textEquals(text).
                 find();
 
-            const tester = testersFactory.createDomElementTester(domElement),
+            const tester = addTesters(testersFactory.createDomElementTester(domElement), () => domElement),
                 click = tester.click.bind(tester),
                 isSelected = () => !!domElement.querySelectorAll('.ui-icon, .cmgui-icon')[1];
 

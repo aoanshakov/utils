@@ -1,0 +1,2 @@
+#!/bin/bash
+~/utils/omni-server/run-container --port 8083 --application-directory ~/gitlab.uis.dev/omni/build

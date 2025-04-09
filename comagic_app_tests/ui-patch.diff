@@ -1,5 +1,5 @@
 diff --git a/src/components/file-drop/file-drop.helpers.ts b/src/components/file-drop/file-drop.helpers.ts
-index e331fde..989140c 100644
+index e331fde9..989140cb 100644
 --- a/src/components/file-drop/file-drop.helpers.ts
 +++ b/src/components/file-drop/file-drop.helpers.ts
 @@ -4,7 +4,7 @@ export const initInput = (accept: string, multiple?: boolean): HTMLInputElement
@@ -12,23 +12,17 @@ index e331fde..989140c 100644
      if (multiple) {
          inputElement.multiple = multiple;
 diff --git a/src/components/file-drop/file-drop.tsx b/src/components/file-drop/file-drop.tsx
-index 786af31..60f14a3 100644
+index dee89241..888b3e81 100644
 --- a/src/components/file-drop/file-drop.tsx
 +++ b/src/components/file-drop/file-drop.tsx
-@@ -46,6 +46,7 @@ const FileDrop: React.ForwardRefRenderFunction<unknown, FileDropProps> = (props,
-         onDownload,
-     } = props;
- 
-+    const isTest = process.env.REACT_APP_TEST_MODE === 'true';
-     const [isDrag, setDrag] = useState(false);
-     const [isErrorFileType, setErrorFileType] = useState(false);
- 
-@@ -231,7 +232,13 @@ const FileDrop: React.ForwardRefRenderFunction<unknown, FileDropProps> = (props,
+@@ -234,10 +234,14 @@ const FileDrop: React.ForwardRefRenderFunction<unknown, FileDropProps> = (props,
      const handleClick = () => {
          if (isLoadDefault) {
              const element = initInput(accept.join(','), multiple);
+-
+             inputElementRef.current = element;
+ 
 -            element.click();
-+
 +            if (process.env.REACT_APP_TEST_MODE === 'true') {
 +                document.body.appendChild(element);
 +            } else {
@@ -39,16 +33,103 @@ index 786af31..60f14a3 100644
                  beforeUpload((target as HTMLInputElement).files);
              };
 diff --git a/src/components/icon/icon.tsx b/src/components/icon/icon.tsx
-index 7a9d9b6..57b7b1f 100644
+index bc4f21e2..cc136a53 100644
 --- a/src/components/icon/icon.tsx
 +++ b/src/components/icon/icon.tsx
-@@ -116,6 +116,9 @@ const Icon: React.ForwardRefRenderFunction<unknown, PropsWithChildren<IconProps>
+@@ -1,8 +1,10 @@
++import * as comagicIcons from '../../icons/build/comagic';
++import * as commonIcons from '../../icons/build/common';
++
+ import cn from 'classnames';
+ import React, { useMemo } from 'react';
+ 
+ import { PREFIX_CLS } from '../../constants';
+-import { comagicIcons, commonIcons, megafonIcons } from '../../icons/constants';
+ import { Theme, configProviderData } from '../config-provider';
+ import configEventBus, { THEME_EVENT } from '../config-provider/configEventBus';
+ import NotFound from './NotFound';
+@@ -11,9 +13,8 @@ import './icon.less';
+ 
+ type ComagicIcons = (typeof comagicIcons)[number];
+ type CommonIcons = (typeof commonIcons)[number];
+-type MegafonIcons = (typeof megafonIcons)[number];
+ 
+-export type IconComponent = ComagicIcons | CommonIcons | MegafonIcons;
++export type IconComponent = ComagicIcons | CommonIcons;
+ export type IconType = 'primary' | 'accent' | 'secondary' | 'invert' | 'link' | 'success' | 'error' | 'warning';
+ 
+ export type IconProps = React.HTMLAttributes<HTMLSpanElement> & {
+@@ -34,6 +35,13 @@ export type IconProps = React.HTMLAttributes<HTMLSpanElement> & {
+     type?: IconType;
+ };
+ 
++const themes: Record<Theme, ComagicIcons> = {
++    comagic: comagicIcons,
++    novofon: comagicIcons,
++    usa: comagicIcons,
++    megafon: comagicIcons,
++};
++
+ const Icon: React.ForwardRefRenderFunction<unknown, IconProps> = (props, ref) => {
+     const {
+         component,
+@@ -54,7 +62,6 @@ const Icon: React.ForwardRefRenderFunction<unknown, IconProps> = (props, ref) =>
+         ...restProps
+     } = props;
+     const [configTheme, setConfigTheme] = React.useState<Theme>(configProviderData.theme);
+-    const [Component, setComponent] = React.useState<React.ComponentType | null>(null);
+ 
+     const classNames = cn(
+         `${PREFIX_CLS}-icon`,
+@@ -96,34 +103,10 @@ const Icon: React.ForwardRefRenderFunction<unknown, IconProps> = (props, ref) =>
+         };
+     }, []);
+ 
+-    React.useEffect(() => {
+-        void (async () => {
+-            try {
+-                let module: { default: React.ComponentType };
+-
+-                if (commonIcons.includes(component as CommonIcons)) {
+-                    module = await import(`../../icons/common/${component}.tsx`);
+-                } else {
+-                    module = await import(
+-                        `../../icons/${configTheme === 'megafon' ? 'megafon' : 'comagic'}/${component}.tsx`
+-                    );
+-                }
+-
+-                setComponent(() => module?.default);
+-            } catch (e) {
+-                setComponent(() => NotFound);
+-                console.error(e);
+-            }
+-        })();
+-    }, [configTheme, component]);
+-
+-    const renderComponent = useMemo(() => {
+-        if (!Component) {
+-            return null;
+-        }
+-
+-        return <Component {...nestProps} />;
+-    }, [Component, nestProps]);
++    const Component = [commonIcons, themes[configTheme || 'comagic']].reduce(
++        (Component, icons) => Component || icons[component as keyof ComagicIcons],
++        null,
++    ) || NotFound;
+ 
+     return (
+         <span
+@@ -137,8 +120,11 @@ const Icon: React.ForwardRefRenderFunction<unknown, IconProps> = (props, ref) =>
+             onMouseEnter={onMouseEnter}
              onMouseLeave={onMouseLeave}
-             test-id={testId}
-             ref={ref as React.MutableRefObject<HTMLSpanElement>}
+             {...restProps}
 +            {...(process.env.REACT_APP_TEST_MODE === 'true' ? {
 +                ['data-component']: component,
 +            } : {})}
          >
-             <Component {...nestProps} />
+-            {renderComponent}
++            <Component {...nestProps} />
          </span>
+     );
+ };

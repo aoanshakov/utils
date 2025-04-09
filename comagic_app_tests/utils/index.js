@@ -79,6 +79,11 @@ const {
     testsEntripointTarget,
     ui,
     uiPatch,
+    commonIcons,
+    comagicIcons,
+    uiIconsBuild,
+    uiIconsBuildCommon,
+    uiIconsBuildComagic,
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -99,7 +104,8 @@ const cda = `cd ${application} &&`,
 const uiOverridenFiles =
     'src/components/file-drop/file-drop.tsx ' +
     'src/components/file-drop/file-drop.helpers.ts ' +
-    'src/components/icon/icon.tsx';
+    'src/components/icon/icon.tsx'
+
 const chatOverridenFiles = 'package.json ' +
     'src/App.tsx ' +
     'src/models/auth/AuthStore.ts ' +
@@ -159,6 +165,13 @@ actions['init-updater-db'] = [
 ];
 
 const rmVerbose = target => `if [ -e ${target} ]; then rm -rvf ${target}; fi`;
+
+actions['refresh-icons'] = [
+    rmVerbose(uiIconsBuild),
+    `mkdir ${uiIconsBuild}`,
+    `cp -rv ${commonIcons} ${uiIconsBuildCommon}`,
+    `cp -rv ${comagicIcons} ${uiIconsBuildComagic}`,
+];
 
 actions['publish-update'] = [
     `cd ${publisherDir} && node ${publisher}`
@@ -355,7 +368,7 @@ actions['modify-code'] = params => actions['restore-code']({}).
         `cp ${stub} ${misc}`,
         `cp ${stubCss} ${misc}`,
         `cp ${shadowContentTsxSource} ${shadowContentTsxTarget}`
-    ]).concat(actions['fix-permissions']);
+    ]).concat(actions['refresh-icons']).concat(actions['fix-permissions']);
 
 const appModule = ([module, path, args]) => [`web/comagic_app_modules/${module}`, path, args, misc];
 

@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index a00e6a55..23dac18f 100644
+index 5863a434..71f7b4ce 100644
 --- a/package.json
 +++ b/package.json
 @@ -29,9 +29,6 @@
@@ -7,7 +7,7 @@ index a00e6a55..23dac18f 100644
      "@babel/plugin-proposal-private-methods": "7.13.0",
      "@babel/preset-env": "^7.1.0",
 -    "@comagic/softphone-core": "0.0.0-int0",
--    "@comagic/ui": "2.25.0",
+-    "@comagic/ui": "2.60.0",
 -    "@comagic/workplace-utils": "0.0.0-int0",
      "@types/react": "^18.0.28",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
@@ -20,11 +20,14 @@ index a00e6a55..23dac18f 100644
      "mobx": "^6.12.0",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.5",
-@@ -49,7 +45,6 @@
+@@ -49,10 +45,8 @@
      "qs": "6.7.0",
      "react-draggable": "^4.2.0",
      "react-fast-marquee": "1.6.5",
 -    "react-intl": "6.3.2",
      "react-list": "0.8.17",
-     "react-router-dom": "6.23.1",
+     "react-resizable": "3.0.5",
+-    "react-router-dom": "6.23.1",
      "sdp-transform": "2.14.1",
+     "simplebar-react": "^2.2.1",
+     "typescript": "^4.9.5",

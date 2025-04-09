@@ -1,14 +1,16 @@
 diff --git a/package.json b/package.json
-index ecc9d47..a95edce 100644
+index 238e987..6b40106 100644
 --- a/package.json
 +++ b/package.json
-@@ -61,17 +61,7 @@
+@@ -61,21 +61,7 @@
      "webpack-dev-server": "^4.9.3"
    },
    "dependencies": {
--    "@comagic/core": "^0.7.0",
+-    "@comagic/core": "^1.17.0",
+-    "@comagic/ui": "2.60.0",
 -    "@comagic/workplace-utils": "0.0.0-int0",
 -    "axios": "^0.24.0",
+-    "babel-loader": "^8.0.4",
 -    "magic-ui": "0.0.0-int1",
 -    "mobx": "^6.6.1",
 -    "mobx-react-lite": "^3.4.0",
@@ -17,6 +19,8 @@ index ecc9d47..a95edce 100644
 -    "react": "^18.2.0",
 -    "react-dom": "^18.2.0",
 -    "react-intl": "6.3.2",
+-    "react-resizable": "3.0.5",
+-    "string-hash": "1.1.3",
      "uuid": "^8.3.2"
    }
  }

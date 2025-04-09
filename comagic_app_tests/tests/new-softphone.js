@@ -177,9 +177,14 @@ tests.addTest(options => {
                         notificationTester.grantPermission();
 
                         tester.marksRequest().receiveResponse();
-                        tester.callsRequest().forWeek().receiveResponse();
-                        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
+                        tester.callsRequest().
+                            forWeek().
+                            noPhoneNumber().
+                            noContactName().
+                            receiveResponse();
+
+                        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
                         tester.registrationRequest().receiveUnauthorized();
 
                         registrationRequest = tester.registrationRequest().
@@ -468,6 +473,11 @@ tests.addTest(options => {
                                                         'misc-softphone-misc-sip_lib-src-new-softphone-transfer-' +
                                                         'styles-module__disabled'
                                                     );
+
+                                                tester.select.
+                                                    option('Божилова Йовка 296').
+                                                    icon.
+                                                    expectToBe('OperatorStatusPause20');
 
                                                 tester.body.expectTextContentToHaveSubstring(
                                                     'Божилова Йовка 296 ' +
@@ -850,6 +860,19 @@ tests.addTest(options => {
                             tester.expectToneSevenToPlay();
                         });
                     });
+                    it('Нажимаю на кнопку акканта. Отображен список статусов.', function() {
+                        tester.softphone.
+                            accountButton.
+                            click();
+
+                        tester.statusesList.expectToHaveTextContent(
+                            'Доступен ' +
+                            'Перерыв ' +
+                            'Не беспокоить ' +
+                            'Нет на месте ' +
+                            'Нет на работе'
+                        );
+                    });
                     it('Отображена история звонков.', function() {
                         tester.dialpad.removeButton.expectNotToExist();
 
@@ -859,7 +882,7 @@ tests.addTest(options => {
 
                             'Сегодня ' +
 
-                            'Гяурова Марийка ' +
+                            'Номер скрыт абонентом ' +
                             'Входящий 08:03 ' +
 
                             'Вчера ' +

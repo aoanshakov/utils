@@ -286,6 +286,7 @@ define(function () {
                 '.cmgui-tab-title, ' +
                 '.cm-chats--tab-title, ' +
                 '.cm-chats--title, ' +
+                '.cmgui-tab-title, ' +
                 '.src-components-main-menu-nav-item-styles-module__label, ' +
                 '.src-components-main-menu-settings-styles-module__label, ' +
                 '.src-components-main-menu-menu-link-styles-module__item a, ' + 
@@ -330,6 +331,7 @@ define(function () {
                     isSwitch ? fieldTester.click() : click();
 
                     Promise.runAll(false, true);
+                    spendTime(0);
                     spendTime(0);
                     spendTime(0);
                     spendTime(0);
@@ -1522,6 +1524,7 @@ define(function () {
 
                 me.shortPhoneNumber = () => ((processors.push(data => (data[0].number = '56123'))), me)
                 me.chilePhoneNumber = () => ((processors.push(data => (data[0].number = '56123456789'))), me)
+                me.noPhoneNumber = () => ((processors.push(data => (data[0].number = null))), me)
                 me.duplicatedCallSessionId = () => (processors.push(data => (data[1].call_session_id = 980925444)), me);
                 me.isFailed = () => (processors.push(data => data.forEach(item => (item.is_failed = true))), me);
                 me.noContactName = () => (processors.push(data => (data[0].contact_name = null)), me);
@@ -7964,7 +7967,26 @@ define(function () {
                 }
             };
 
+            let prepareSlavesNotification = () => null;
+
             return {
+                shortPhoneDeleted: function () {
+                    message.params.action = 'delete';
+                    data.short_phone = '85293';
+
+                    prepareSlavesNotification = () => (data.short_phone = null);
+                    return this;
+                },
+                shortPhoneInserted: function () {
+                    message.params.action = 'insert';
+                    data.short_phone = '85293';
+
+                    return this;
+                },
+                shortPhoneUpdated: function () {
+                    data.short_phone = '85293';
+                    return this;
+                },
                 wrongStructure: function () {
                     message.params.data = data;
                     return this;
@@ -8000,6 +8022,8 @@ define(function () {
                 slavesNotification: function () {
                     return {
                         expectToBeSent: function () {
+                            prepareSlavesNotification();
+
                             me.nextCrosstabMessage().expectToContain({
                                 type: 'message',
                                 data: {

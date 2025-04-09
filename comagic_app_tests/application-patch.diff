@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0579dd31..b9e3717f 100644
+index 0579dd31..d267a005 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -116,7 +116,7 @@ index 0579dd31..b9e3717f 100644
 +});
 +
 +const iconsRegExp = new RegExp(
-+    ['', '(softphone|softphone', 'src|call_history|uis_webrtc', 'src)', 'icons', ''].join('\\' + path.sep)
++    ['', '(softphone|softphone', 'src|call_history|account|uis_webrtc', 'src)', 'icons', ''].join('\\' + path.sep)
 +);
 +
  module.exports = {
@@ -208,7 +208,7 @@ index 0579dd31..b9e3717f 100644
                  use: [
                      {
                          loader: '@svgr/webpack',
-@@ -352,17 +425,173 @@ module.exports = {
+@@ -352,17 +425,175 @@ module.exports = {
                      },
                  ],
              },
@@ -274,6 +274,7 @@ index 0579dd31..b9e3717f 100644
 +            'softphone/CallStats': 'softphone/src/call_stats/index.tsx',
 +            'softphone/LostCallsCount': 'softphone/src/call_history/counter.tsx',
 +            'softphone/FeedbackWebModal': 'softphone/src/feedback/feedbackWeb/index.tsx',
++            'softphone/VisibilityButton': 'softphone/src/VisibilityButton.tsx',
 +            'softphone/RootStore': 'softphone/src/models/RootStore.ts',
 +            'chats/Root': 'chats/src/Root.tsx',
 +            'chats/Account': 'chats/src/components/account/index.tsx',
@@ -288,9 +289,10 @@ index 0579dd31..b9e3717f 100644
 +            'chats/NotificationWrapper': `${miscDirectory}/Stub.js`,
 +            'chats/Counter': 'chats/src/components/chats/chat-panel/Counter.tsx',
 +            'chats/MenuItemCounter': 'chats/src/components/main/menu/counter.tsx',
-+            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,
 +            'chats/ContactSelect': 'chats/src/components/chats/channel-search/start-channel-select/ContactSelectWrapped.tsx',
 +            'chats/RootStore': 'chats/src/models/RootStore.ts',
++            'chats/ChatSettings': `${miscDirectory}/Stub.js`,
++            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingSubstitutionControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingTrafficControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
@@ -548,10 +550,10 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 32137f8d..e45c0354 100644
+index 32137f8d..70e2b1ea 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
-@@ -1,13 +1,20 @@
+@@ -1,13 +1,21 @@
 -import { CoreProvider } from '@comagic/core';
 +import { CoreProvider, eventBus } from '@comagic/core';
  import * as Sentry from '@sentry/react';
@@ -566,6 +568,7 @@ index 32137f8d..e45c0354 100644
 +import { notification, Modal } from 'magic-ui';
 +import { notification as newNotification } from '@comagic/ui';
 +import { respond } from '@comagic/workplace-utils/src/requester';
++import { getEnvValueGetter } from '@comagic/workplace-utils/src/getEnvValue';
 +import createIconFactory from '@/utils/createIcon';
 +import { getCurrentWindowId } from '@/utils';
 +import { Provider as SoftphoneModeProvider } from '@/components/main/menu/softphone/index';
@@ -575,7 +578,7 @@ index 32137f8d..e45c0354 100644
  
  import history from '@/history';
  
-@@ -15,7 +22,9 @@ import App, { Props } from './App';
+@@ -15,7 +23,9 @@ import App, { Props } from './App';
  import './global';
  import { getIntlLocale, getIntlMessages, getProject } from './i18n';
  
@@ -586,7 +589,7 @@ index 32137f8d..e45c0354 100644
  
  if (sentryDSN) {
      Sentry.init({
-@@ -47,8 +56,8 @@ if (sentryDSN) {
+@@ -47,8 +57,8 @@ if (sentryDSN) {
      });
  }
  
@@ -597,7 +600,7 @@ index 32137f8d..e45c0354 100644
      const {
          projectData: { locale },
      } = accountStore;
-@@ -59,27 +68,142 @@ const Root: React.FC<Props> = observer(props => {
+@@ -59,27 +69,168 @@ const Root: React.FC<Props> = observer(props => {
          }
      }, [accountStore.account.project]);
  
@@ -689,8 +692,34 @@ index 32137f8d..e45c0354 100644
 +    return <></>;
 +};
 +
++const EnvValue = () => {
++    useEffect(() => {
++        ['go2.comagic.ru', ''].forEach(hostName => {
++            const getEnvValue = getEnvValueGetter({
++                hostName,
++                processEnv: {
++                    REACT_APP_BASE_URL: 'https://chats-pp-logic.{DOMAIN}/v1',
++                },
++            });
++
++            [
++                'wss://chats-pp-connector.{DOMAIN}/cookie_based_websocket',
++                '$REACT_APP_BASE_URL/operator',
++            ].forEach(url => {
++                console.log({
++                    hostName,
++                    template: url,
++                    replaced: getEnvValue(url),
++                });
++            });
++        });
++    }, []);
++    return <></>;
++};
++
 +const units = {
 +    icon: Icon,
++    env_value: EnvValue,
 +};
 +
 +let root;

@@ -18,6 +18,9 @@ const src = '/usr/local/src',
     contacts = `${misc}/contacts`,
     employees = `${misc}/operator-workplace`,
     chats = `${misc}/chats`;
+    ui = `${misc}/ui`,
+    uiIcons = `${misc}/ui-icons/node_modules/@comagic/ui/lib/icons`,
+    uiIconsBuild = `${ui}/src/icons/build`;
 
 module.exports = {
     application,
@@ -65,7 +68,7 @@ module.exports = {
     updaterPatch: `${tests}/updater-patch.diff`,
     misc,
     magicUi: `${misc}/magic_ui`,
-    ui: `${misc}/ui`,
+    ui,
     uiPatch: `${tests}/ui-patch.diff`,
     logger: `${misc}/logger`,
     chats,
@@ -91,5 +94,10 @@ module.exports = {
     assets: `${tests}/assets`,
     publisher: `${publisherDir}/index.js`,
     contactsMagicUi: `${contacts}/magic_ui`,
-    contacts
+    contacts,
+    commonIcons: `${uiIcons}/common`,
+    comagicIcons: `${uiIcons}/comagic`,
+    uiIconsBuild,
+    uiIconsBuildCommon: `${uiIconsBuild}/common`,
+    uiIconsBuildComagic: `${uiIconsBuild}/comagic`,
 };
