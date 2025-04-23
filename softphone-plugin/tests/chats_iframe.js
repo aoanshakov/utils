@@ -89,13 +89,13 @@ tests.addTest(options => {
                         webAccountLoginUnavailable().
                         expectToBeSent();
 
-                    tester.chatSettingsRequest().receiveResponse();
-                    tester.channelsRequest().receiveResponse();
-                    tester.chatChannelListRequest().receiveResponse();
-
                     tester.employeeStatusesRequest().
                         oauthToken().
                         receiveResponse();
+
+                    tester.chatSettingsRequest().receiveResponse();
+                    tester.channelsRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
 
                     tester.listRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
@@ -708,7 +708,7 @@ tests.addTest(options => {
                                         });
                                         it('Плейсхолдер не отображается.', function() {
                                             tester.spin.expectToBeVisible();
-                                            tester.body.expectToHaveTextContent('');
+                                            tester.body.expectToHaveTextContent('UIS k');
                                         });
                                     });
                                 });
@@ -865,7 +865,11 @@ tests.addTest(options => {
                                 function() {
                                     tester.chatsWebSocket.disconnect(4429);
 
-                                    tester.body.expectToHaveTextContent('Приложение открыто в другом браузере');
+                                    tester.body.expectToHaveTextContent(
+                                        'UIS k ' +
+                                        'Приложение открыто в другом браузере'
+                                    );
+
                                     tester.closeButton.expectToBeVisible();
                                 });
                                 it('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
@@ -895,6 +899,10 @@ tests.addTest(options => {
                                         receiveResponse();
 
                                     tester.chatListItem('Сообщение #75').expectToBeVisible();
+                                });
+                                it('Нажимаю на кнопку аккаунта. Кнопка выхода скрыта.', function() {
+                                    tester.accountButton.click();
+                                    tester.button('Выход').expectNotToExist();
                                 });
                                 it(
                                     
@@ -1115,7 +1123,11 @@ tests.addTest(options => {
                         expectMessageToStartsWith('ignore:log:').
                         expectMessageToContain('Window message received');
 
-                    tester.body.expectToHaveTextContent('Недостаточно прав на раздел чатов');
+                    tester.body.expectToHaveTextContent(
+                        'UIS -- ' +
+                        'Недостаточно прав на раздел чатов'
+                    );
+
                     tester.closeButton.expectToBeVisible();
                 });
                 it('Чаты недоступны. Чаты скрыты.', function() {
@@ -1175,14 +1187,16 @@ tests.addTest(options => {
                         noData().
                         receiveResponse();
 
-
                     unfilteredPostMessages.
                         nextMessage().
                         expectMessageToStartsWith('ignore:log:').
                         expectMessageToContain('POST $REACT_APP_BASE_URL/operator?method=get_account').
                         expectMessageToContain('{"jsonrpc":"2.0","id":"number","method":"get_account","params":{}}');
 
-                    tester.body.expectToHaveTextContent('Недостаточно прав на раздел чатов');
+                    tester.body.expectToHaveTextContent(
+                        'UIS k ' +
+                        'Недостаточно прав на раздел чатов'
+                    );
                 });
             });
             describe('Получен запрос поиска каналов.', function() {
@@ -1199,13 +1213,13 @@ tests.addTest(options => {
                         softphoneFeatureFlagDisabled().
                         expectToBeSent();
 
-                    tester.chatSettingsRequest().receiveResponse();
-                    tester.channelsRequest().receiveResponse();
-                    tester.chatChannelListRequest().receiveResponse();
-
                     tester.employeeStatusesRequest().
                         oauthToken().
                         receiveResponse();
+
+                    tester.chatSettingsRequest().receiveResponse();
+                    tester.channelsRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
 
                     tester.listRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
@@ -1342,13 +1356,13 @@ tests.addTest(options => {
                     softphoneFeatureFlagDisabled().
                     expectToBeSent();
 
-                tester.chatSettingsRequest().expectToBeSent();
-                tester.channelsRequest().receiveResponse();
-                tester.chatChannelListRequest().expectToBeSent();
-
                 tester.employeeStatusesRequest().
                     anotherOauthToken().
                     expectToBeSent();
+
+                tester.chatSettingsRequest().expectToBeSent();
+                tester.channelsRequest().receiveResponse();
+                tester.chatChannelListRequest().expectToBeSent();
 
                 tester.listRequest().expectToBeSent();
                 tester.siteListRequest().expectToBeSent();
@@ -1378,30 +1392,11 @@ tests.addTest(options => {
                     ...options,
                 });
 
-                accountRequest = tester.accountRequest().
-                    forIframe().
-                    webAccountLoginUnavailable().
-                    expectToBeSent();
-
-                tester.chatSettingsRequest().receiveResponse();
-                tester.channelsRequest().receiveResponse();
-                tester.chatChannelListRequest().receiveResponse();
-
-                tester.employeeStatusesRequest().
-                    oauthToken().
+                tester.widgetSettings().
+                    amocrm().
+                    chatsSettings().
+                    request().
                     receiveResponse();
-
-                tester.listRequest().receiveResponse();
-                tester.siteListRequest().receiveResponse();
-                tester.messageTemplateListRequest().receiveResponse();
-                tester.commonMessageTemplatesRequest().receiveResponse();
-                tester.messageTemplatesSettingsRequest().receiveResponse();
-
-                secondAccountRequest = tester.accountRequest().
-                    forIframe().
-                    fromIframe().
-                    webAccountLoginUnavailable().
-                    expectToBeSent();
 
                 tester.unreadMessagesCountSettingRequest().expectToBeSent();
 
@@ -1415,13 +1410,51 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 tester.submoduleInitilizationEvent().expectToBeSent();
+
+                tester.availabilitySettingRequest().
+                    chats().
+                    expectToBeSent();
+
+                accountRequest = tester.accountRequest().
+                    forIframe().
+                    webAccountLoginUnavailable().
+                    expectToBeSent();
+
+                tester.employeeStatusesRequest().
+                    oauthToken().
+                    receiveResponse();
+
+                tester.chatSettingsRequest().receiveResponse();
+                tester.channelsRequest().receiveResponse();
+                tester.chatChannelListRequest().receiveResponse();
+
+                tester.listRequest().receiveResponse();
+                tester.siteListRequest().receiveResponse();
+                tester.messageTemplateListRequest().receiveResponse();
+                tester.commonMessageTemplatesRequest().receiveResponse();
+                tester.messageTemplatesSettingsRequest().receiveResponse();
+
+                secondAccountRequest = tester.accountRequest().
+                    forIframe().
+                    fromIframe().
+                    webAccountLoginUnavailable().
+                    expectToBeSent();
             });
 
             describe('Удалось получить данные аккаунта.', function() {
                 beforeEach(function() {
+                    postMessages.nextMessage().expectNotToExist();
+
                     accountRequest.
                         operatorWorkplaceAvailable().
                         receiveResponse();
+
+                    unfilteredPostMessages.
+                        nextMessage().
+                        expectMessageToStartsWith('ignore:log:').
+                        expectMessageToContain(
+                            'POST https://dev-int0-chats-logic.uis.st/v1/operator?method=get_account'
+                        );
 
                     tester.employeesBroadcastChannel().
                         applyLeader().
@@ -1518,6 +1551,34 @@ tests.addTest(options => {
                         receiveResponse();
                 });
 
+                describe('Нажимаю на кнопку аккаунта.', function() {
+                    beforeEach(function() {
+                        tester.accountButton.click();
+                    });
+
+                    it('Получен короткий номер сотрудника.', function() {
+                        tester.shortPhoneSettingRequest().
+                            userDataFetched().
+                            receive();
+
+                        tester.body.expectTextContentToHaveSubstring(
+                            'k karadimova ' +
+                            'Внутренний номер: 9119 ' +
+
+                            'Доступен'
+                        );
+                    });
+                    it('Нажимаю на кнопку выхода. Производится выход.', function() {
+                        tester.button('Выход').click();
+                        windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru/ru/logout');
+                    });
+                    it('Отображено имя сотрудника.', function() {
+                        tester.body.expectTextContentToHaveSubstring(
+                            'k karadimova ' +
+                            'Доступен'
+                        );
+                    });
+                });
                 it('От родительского окна получен запрос каналов. Запрос каналов отправлен на сервер.', function() {
                     tester.channelsSearchingRequest().receive();
 
@@ -1552,25 +1613,319 @@ tests.addTest(options => {
                 it('Используется русский язык.', function() {
                     tester.body.expectTextContentToHaveSubstring('Чаты');
                     tester.body.expectTextContentNotToHaveSubstring('Chats');
+
+                    tester.logoutButton.expectNotToExist();
                 });
             });
-            it(
-                'Не удалось получить данные аккаунта из-за ошибки авторизации. Отображено сообщение о том, что ' +
-                'сотрудник не авторизован.',
-            function() {
-                accountRequest.
-                    unauthorized().
-                    receiveResponse();
+            describe('Не удалось получить данные аккаунта из-за ошибки авторизации.', function() {
+                beforeEach(function() {
+                    accountRequest.
+                        unauthorized().
+                        receiveResponse();
 
-                secondAccountRequest.
-                    unauthorized().
-                    receiveResponse();
+                    secondAccountRequest.
+                        unauthorized().
+                        receiveResponse();
 
-                postMessages.nextMessage().expectMessageToContain({
-                    method: 'set_token',
-                    data: '',
+                    postMessages.nextMessage().expectMessageToContain({
+                        method: 'set_token',
+                        data: '',
+                    });
                 });
-                
+
+                it('Нажимаю на кнопку выхода. Открыта страница выхода.', function() {
+                    tester.logoutButton.click();
+                    windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru/ru/logout');
+                });
+                it('Отображено сообщение о том, что сотрудник не авторизован.', function() {
+                    tester.body.expectToHaveTextContent(
+                        'Не авторизован ' +
+                        'Для использования приложения необходимо авторизоваться'
+                    );
+                });
+            });
+            it('Нет прав на чаты. Отображено сообщение об отсутствии прав.', function() {
+                accountRequest.receiveResponse();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.employeesWebSocket.connect();
+                tester.employeesWebsocketConnectedMessage().expectToBeSent();
+
+                tester.employeesInitMessage().
+                    oauthToken().
+                    expectToBeSent();
+
+                tester.employeeSettingsRequest().receiveResponse();
+
+                tester.employeeRequest().
+                    oauthToken().
+                    receiveResponse();
+
+                secondAccountRequest.receiveResponse();
+
+                const thirdAccountRequest = tester.accountRequest().
+                    forIframe().
+                    fromIframe().
+                    webAccountLoginUnavailable().
+                    expectToBeSent();
+
+                tester.chatsWebSocket.connect();
+
+                tester.chatsInitMessage().
+                    oauthToken().
+                    expectToBeSent();
+
+                thirdAccountRequest.receiveResponse();
+
+                tester.offlineMessageCountersRequest().receiveResponse();
+                tester.chatChannelListRequest().receiveResponse();
+                tester.siteListRequest().receiveResponse();
+                tester.markListRequest().receiveResponse();
+                tester.groupChatsRequest().receiveResponse();
+                tester.chatChannelTypeListRequest().receiveResponse();
+
+                tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                tester.offlineMessageListRequest().processing().receiveResponse();
+                tester.offlineMessageListRequest().processed().receiveResponse();
+
+                tester.countersRequest().
+                    noNewChats().
+                    noClosedChats().
+                    noActiveChats().
+                    receiveResponse();
+
+                tester.chatListRequest().
+                    forCurrentEmployee().
+                    noData().
+                    receiveResponse();
+
+                tester.chatListRequest().
+                    forCurrentEmployee().
+                    active().
+                    noData().
+                    receiveResponse();
+
+                tester.chatListRequest().forCurrentEmployee().
+                    closed().
+                    noData().
+                    receiveResponse();
+
+                tester.body.expectToHaveTextContent(
+                    'UIS k ' +
+                    'Недостаточно прав на раздел чатов'
+                );
+            });
+        });
+        describe('Открываю IFrame чатов amoCRM. Сотрудник не авторизован.', function() {
+            beforeEach(function() {
+                tester = new Tester({
+                    application: 'amocrmChatsIframeContent',
+                    isIframe: true,
+                    softphoneHost: 'my.uiscom.ru',
+                    ...options,
+                });
+
+                tester.unreadMessagesCountSettingRequest().expectToBeSent();
+
+                postMessages.
+                    nextMessage().
+                    expectMessageToContain({
+                        method: 'set_token',
+                        data: '',
+                    });
+            });
+
+            describe('В другом окне произошла авторизация.', function() {
+                let widgetSettings;
+
+                beforeEach(function() {
+                    localStorage.setItemInAnotherTab('token', tester.oauthToken);
+
+                    postMessages.
+                        nextMessage().
+                        expectMessageToContain({
+                            method: 'set_token',
+                            data: tester.oauthToken,
+                        });
+
+                    tester.submoduleInitilizationEvent().
+                        operatorWorkplace().
+                        expectToBeSent();
+
+                    tester.submoduleInitilizationEvent().expectToBeSent();
+
+                    widgetSettings = tester.widgetSettings().
+                        amocrm().
+                        chatsSettings().
+                        request().
+                        expectToBeSent();
+                });
+
+                it('Чаты доступны. Производятся запросы данных для чатов.', function() {
+                    widgetSettings.receiveResponse();
+
+                    tester.availabilitySettingRequest().
+                        chats().
+                        expectToBeSent();
+
+                    let requests = ajax.inAnyOrder();
+
+                    const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
+                    const channelsRequest = tester.channelsRequest().expectToBeSent(requests);
+                    const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
+
+                    const employeeStatusesRequest = tester.employeeStatusesRequest().
+                        oauthToken().
+                        expectToBeSent(requests);
+
+                    const listRequest = tester.listRequest().expectToBeSent(requests);
+                    const siteListRequest = tester.siteListRequest().expectToBeSent(requests);
+                    const messageTemplateListRequest = tester.messageTemplateListRequest().expectToBeSent(requests);
+
+                    const commonMessageTemplatesRequest = tester.commonMessageTemplatesRequest().
+                        expectToBeSent(requests);
+
+                    const messageTemplatesSettingsRequest = tester.messageTemplatesSettingsRequest().
+                        expectToBeSent(requests);
+
+                    const secondAccountRequest = tester.accountRequest().
+                        forIframe().
+                        fromIframe().
+                        webAccountLoginUnavailable().
+                        expectToBeSent(requests);
+
+                    const accountRequest = tester.accountRequest().
+                        forIframe().
+                        webAccountLoginUnavailable().
+                        expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    accountRequest.
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.employeesBroadcastChannel().
+                        applyLeader().
+                        expectToBeSent().
+                        waitForSecond();
+
+                    tester.employeesBroadcastChannel().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.employeesWebSocket.connect();
+                    tester.employeesWebsocketConnectedMessage().expectToBeSent();
+
+                    tester.employeesInitMessage().
+                        oauthToken().
+                        expectToBeSent();
+
+                    secondAccountRequest.
+                        operatorWorkplaceAvailable().
+                        receiveResponse();
+
+                    tester.chatsWebSocket.connect();
+
+                    tester.chatsInitMessage().
+                        oauthToken().
+                        expectToBeSent();
+
+                    requests = ajax.inAnyOrder();
+
+                    const employeeSettingsRequest = tester.employeeSettingsRequest().
+                        expectToBeSent(requests);
+
+                    const employeeRequest = tester.employeeRequest().
+                        oauthToken().
+                        expectToBeSent(requests);
+
+                    const thirdAccountRequest = tester.accountRequest().
+                        forIframe().
+                        fromIframe().
+                        webAccountLoginUnavailable().
+                        operatorWorkplaceAvailable().
+                        expectToBeSent(requests);
+
+                    requests.expectToBeSent();
+
+                    thirdAccountRequest.receiveResponse();
+                    employeeSettingsRequest.receiveResponse();
+                    employeeRequest.receiveResponse();
+
+                    tester.chatChannelSearchRequest().
+                        emptySearchString().
+                        receiveResponse();
+
+                    tester.offlineMessageCountersRequest().receiveResponse();
+                    tester.chatChannelListRequest().receiveResponse();
+                    tester.siteListRequest().receiveResponse();
+                    tester.markListRequest().receiveResponse();
+                    tester.groupChatsRequest().receiveResponse();
+
+                    tester.chatChannelTypeListRequest().receiveResponse();
+
+                    tester.offlineMessageListRequest().notProcessed().receiveResponse();
+                    tester.offlineMessageListRequest().processing().receiveResponse();
+                    tester.offlineMessageListRequest().processed().receiveResponse();
+     
+                    tester.countersRequest().
+                        noNewChats().
+                        noClosedChats().
+                        receiveResponse();
+
+                    tester.unreadMessagesCountSettingRequest().
+                        value(75).
+                        expectToBeSent();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        noData().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        active().
+                        receiveResponse();
+
+                    tester.chatListRequest().
+                        forCurrentEmployee().
+                        closed().
+                        noData().
+                        receiveResponse();
+
+                    tester.button('В работе 75').click();
+                });
+                it('Чаты недоступны. Запросы данных для чатов не производятся.', function() {
+                    widgetSettings.
+                        unavailable().
+                        receiveResponse();
+
+                    tester.availabilitySettingRequest().
+                        chats().
+                        unavailable().
+                        expectToBeSent();
+                });
+            });
+            it('Отображено сообщение о том, что сотрудник не авторизован.', function() {
                 tester.body.expectToHaveTextContent(
                     'Не авторизован ' +
                     'Для использования приложения необходимо авторизоваться'
@@ -1606,13 +1961,17 @@ tests.addTest(options => {
                         webAccountLoginUnavailable().
                         expectToBeSent();
 
-                    tester.chatSettingsRequest().receiveResponse();
-                    tester.channelsRequest().receiveResponse();
-                    tester.chatChannelListRequest().receiveResponse();
+                    let requests = ajax.inAnyOrder();
 
-                    tester.employeeStatusesRequest().
+                    const employeeStatusesRequest = tester.employeeStatusesRequest().
                         oauthToken().
-                        receiveResponse();
+                        expectToBeSent(requests);
+
+                    const chatSettingsRequest = tester.chatSettingsRequest().expectToBeSent(requests);
+                    const channelsRequest = tester.channelsRequest().expectToBeSent(requests);
+                    const chatChannelListRequest = tester.chatChannelListRequest().expectToBeSent(requests);
+
+                    requests.expectToBeSent();
 
                     tester.listRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
@@ -1658,7 +2017,7 @@ tests.addTest(options => {
                         oauthToken().
                         expectToBeSent();
 
-                    const requests = ajax.inAnyOrder();
+                    requests = ajax.inAnyOrder();
 
                     const employeeSettingsRequest = tester.employeeSettingsRequest().
                         expectToBeSent(requests);
@@ -1771,10 +2130,6 @@ tests.addTest(options => {
                 ).expectQueryToContain({
                     search: '79283810988',
                 });
-            });
-            it('Нажимаю на кнопку выхода. Открыта страница выхода.', function() {
-                tester.logoutButton.click();
-                windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru/bitrix/logout');
             });
             it('Нажимаю на кнопку скачивания лога. Лог скачан.', function() {
                 tester.bugButton.click();

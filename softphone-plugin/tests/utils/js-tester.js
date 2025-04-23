@@ -978,7 +978,7 @@ function JsTester_RTCPeerConnectionMocker (options) {
     };
 }
 
-function JsTester_Storage () {
+function JsTester_Storage (spendTime) {
     var keys,
         values,
         keyToIndex;
@@ -993,6 +993,9 @@ function JsTester_Storage () {
             oldValue: oldValue,
             newValue: value
         }));
+
+        spendTime(0);
+        spendTime(0);
     };
     this.setItem = function (key, value) {
         if (!(key in values)) {
@@ -1034,7 +1037,7 @@ function JsTester_Storage () {
     this.clear();
 }
 
-function JsTester_StorageMocker () {
+function JsTester_StorageMocker (spendTime) {
     var realLocalStorage = window.localStorage,
         currentLocalStorage = realLocalStorage,
         realSessionStorage = window.sessionStorage,
@@ -1055,8 +1058,8 @@ function JsTester_StorageMocker () {
     });
 
     this.replaceByFake = function () {
-        currentLocalStorage = new JsTester_Storage();
-        currentSessionStorage = new JsTester_Storage();
+        currentLocalStorage = new JsTester_Storage(spendTime);
+        currentSessionStorage = new JsTester_Storage(spendTime);
     };
     this.restoreReal = function () {
         currentLocalStorage = realLocalStorage;
@@ -8233,7 +8236,6 @@ function JsTester_Tests (factory) {
         files = new Map(),
         cookie = new JsTester_RWVariable(''),
         cookieTester = new JsTester_CookieTester(cookie),
-        storageMocker = new JsTester_StorageMocker(),
         timeoutLogger = new JsTester_Logger(),
         downloadPreventer = new JsTester_DownloadPreventer(),
         debug = factory.createDebugger(),
@@ -8258,7 +8260,8 @@ function JsTester_Tests (factory) {
         Promise.runAll(false, true);
     };
 
-    var fileReaderTester = new JsTester_FileReaderTester({ files, spendTime }),
+    var storageMocker = new JsTester_StorageMocker(spendTime),
+        fileReaderTester = new JsTester_FileReaderTester({ files, spendTime }),
         fileReaderMocker = new JsTester_FileReaderMocker(files);
 
     var windowSize = new JsTester_WindowSize(spendTime),

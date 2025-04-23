@@ -458,9 +458,9 @@ define(function () {
                 const getter = text => createTester(
                     () => utils.descendantOf(getRootElement()).
                         textEquals(text).
-                        matchesSelector('.cmg-switch-label').
+                        matchesSelector('.cmg-switch-label, .cmgui-switch-label').
                         find().
-                        closest('.cmg-switch-wrapper').
+                        closest('.cmg-switch-wrapper, .cmgui-switch-container').
                         querySelector(switchButtonSelector)
                 );
 

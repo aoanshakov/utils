@@ -120,19 +120,16 @@ define(() => function ({
     };
 
     {
-
-        let phoneIconClickHandler = function () {
-            throw new Error('Обработчик нажатия на иконку с трубкой не был назначен.');
-        };
+        let phoneIconClickHandler = () => null;
 
         window.AMOCRM = window.APP = {
             widgets: {
                 notificationsPhone: function (args) {
                     phoneIconClickHandler = args.click;
+                },
 
-                    throwPhoneIconExists = function () {
-                        throw new Error('Иконка с трубкой не должна существовать.');
-                    };
+                destroyNotificationsPhone: function (args) {
+                    phoneIconClickHandler = () => null;
                 },
             },
             lang_id: lang,
@@ -943,11 +940,9 @@ define(() => function ({
                     },
                 },
 
-                ...(isChrome ? {
-                    chats: {
-                        [chatsWildcart]: getChatSettings(),
-                    },
-                } : {}),
+                chats: {
+                    [chatsWildcart]: getChatSettings(),
+                },
             };
 
             return settingsProcessors.reduce((value, process) => process(value), value);
@@ -996,6 +991,12 @@ define(() => function ({
 
                 return pattern;
             })();
+
+            me.unavailable = () => (settingsProcessors.push(
+                settings => (settings.settings = {
+                    is_available: false,
+                }, settings)
+            ), me);
 
             me.amocrmExtension = () => {
                 chatSettingsProcessors.push(settings => {
@@ -3261,6 +3262,58 @@ define(() => function ({
         };
     };
 
+    me.availabilitySettingRequest = () => {
+        const message = {
+            method: 'set_available',
+            data: {
+                type: 'softphone',
+                value: true,
+            },
+        };
+
+        return {
+            chats() {
+                message.data.type = 'chats';
+                return this;
+            },
+
+            unavailable() {
+                message.data.value = false;
+                return this;
+            },
+
+            receive: () => postMessages.receive(message),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
+        };
+    };
+
+    me.shortPhoneSettingRequest = () => {
+        const processors = [];
+
+        const getMessage = () => {
+            const message = {
+                method: 'set_short_phone',
+                data: '',
+            };
+
+            processors.forEach(process => process(message));
+            return message;
+        };
+
+        return {
+            userDataFetched() {
+                processors.push(message => {
+                    message.data = '9119';
+                });
+
+                return this;
+            },
+
+            receive: () => postMessages.receive(getMessage()),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+        };
+    };
+
     me.stateSettingRequest = () => {
         const processors = [];
         let expanded = false,
@@ -3274,6 +3327,7 @@ define(() => function ({
                     data: {
                         destroyed: false,
                         userName: '',
+                        shortPhone: null,
                         missedEventsCount: 0,
                         visible: false,
                         role: null,
@@ -3312,7 +3366,11 @@ define(() => function ({
             },
 
             userDataFetched() {
-                processors.push(message => (message.data.data.userName = 'Ганева Стефка'));
+                processors.push(message => {
+                    message.data.data.userName = 'Ганева Стефка';
+                    message.data.data.shortPhone = '9119';
+                });
+
                 return this;
             },
             
@@ -3815,6 +3873,8 @@ define(() => function ({
             me.history.push(`/chrome/chats${search ? `/messages?search=${search}` : ''}`);
         } else if (application == 'bitrixChatsIframe') {
             me.history.push(`/bitrix/chats${search ? `/messages?search=${search}` : ''}`);
+        } else if (application == 'bitrixSoftphoneIframe') {
+            me.history.push('/bitrix/softphone');
         } else if (application == 'notificationsIframe') {
             me.history.push('/chrome/notifications');
         }
@@ -4335,6 +4395,27 @@ define(() => function ({
             return tester;
         })();
 
+        Object.defineProperty(me, 'icon', {
+            get: () => {
+                const getDomElements = () => utils.element(getRootElement()).querySelectorAll('.cmgui-icon'),
+                    getDomElement = () => utils.element(getRootElement()).querySelector('.cmgui-icon'),
+                    tester = testersFactory.createDomElementTester(getDomElement);
+
+                const augmentTester = tester => {
+                    tester.expectToBe = icon => (tester.expectAttributeToHaveValue('data-component', icon), tester);
+                    return tester;
+                };
+
+                augmentTester(tester);
+
+                tester.atIndex = index =>
+                    augmentTester(testersFactory.createDomElementTester(() => getDomElements()[index]));
+
+                tester.first = tester.atIndex(0);
+                return tester;
+            }
+        });
+
         ['userName', 'accountButton'].forEach(getterName => Object.defineProperty(me, getterName, {
             get: () => {
                 const selector = 
@@ -4388,7 +4469,15 @@ define(() => function ({
         })();
 
         me.anchor.withFileName = fileName => testersFactory.createAnchorTester(
-            () => getRootElement().querySelector('a[download="' + fileName + '"]')
+            () => {
+                const elements = getRootElement().querySelectorAll('a[download="' + fileName + '"]');
+
+                if (elements.length > 1) {
+                    throw new Error('Скачано более одного файла с именем "' + fileName + '".');
+                }
+
+                return elements[0];
+            }
         );
 
         (() => {
@@ -4884,7 +4973,8 @@ define(() => function ({
             tester.withPlaceholder = expectedPlaceholder => createTester(select => utils.getTextContent(
                 select.querySelector(
                     '.ui-select-placeholder, ' +
-                    '.cmgui-select-placeholder'
+                    '.cmgui-select-placeholder, ' +
+                    '.cmgui-select-label'
                 ) ||
                 new JsTester_NoElement()
             ) == expectedPlaceholder);
