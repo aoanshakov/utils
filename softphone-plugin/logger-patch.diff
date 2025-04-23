@@ -1,0 +1,26 @@
+diff --git a/package.json b/package.json
+index 07cb1ee..137ec4a 100644
+--- a/package.json
++++ b/package.json
+@@ -31,10 +31,7 @@
+     "webpack-dev-server": "^4.11.1"
+   },
+   "dependencies": {
+-    "@comagic/core": "1.25.1",
+-    "@comagic/ui": "2.60.0",
+     "@types/moment": "^2.13.0",
+-    "axios": "^0.24.0",
+     "broadcast-channel": "4.20.2",
+     "eslint-config-prettier": "^8.10.0",
+     "eslint-plugin-prettier": "^3.4.1",
+@@ -43,9 +40,6 @@
+     "file-saver": "^2.0.5",
+     "mobx-react-lite": "^3.4.0",
+     "moment": "2.29.1",
+-    "prettier": "^2.8.8",
+-    "react": "^18.2.0",
+-    "react-dom": "^18.2.0",
+-    "react-intl": "6.4.5"
++    "prettier": "^2.8.8"
+   }
+ }

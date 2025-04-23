@@ -996,6 +996,7 @@ function JsTester_Storage (spendTime) {
 
         spendTime(0);
         spendTime(0);
+        spendTime(0);
     };
     this.setItem = function (key, value) {
         if (!(key in values)) {
@@ -5485,6 +5486,11 @@ function JsTester_Requests ({ requests, utils }) {
     function getRecentRequest () {
         var request = requests.at(indexOfRecentRequest);
         indexOfRecentRequest ++;
+
+        if (request && !request.url && !request.method) {
+            return getRecentRequest();
+        }
+
         return request;
     }
 

@@ -2156,7 +2156,7 @@ define(function () {
                 },
 
                 forContacts: function () {
-                    path = '$REACT_APP_BASE_URL/employees';
+                    path = '$REACT_APP_BASE_URL_CONTACTS/employees';
                     maybeTriggerScrollRecalculation = () => null;
 
                     headers = {

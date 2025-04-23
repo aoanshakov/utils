@@ -37,9 +37,11 @@ const {
     chatsPatch,
     employeesPatch,
     contactsPatch,
+    omniPatch,
     contacts,
     employees,
     chats,
+    omni,
     core,
     corePatch,
     ui,
@@ -88,10 +90,14 @@ const overriding = [{
     application: employees,
     overridenFiles: packageJson,
     applicationPatch: employeesPatch,
-},  {
+}, {
     application: contacts,
     overridenFiles: packageJson,
     applicationPatch: contactsPatch,
+}, {
+    application: omni,
+    overridenFiles: packageJson,
+    applicationPatch: omniPatch,
 }, {
     application: core,
     overridenFiles: packageJson,
@@ -153,9 +159,7 @@ actions['patch-node-modules'] = [
 ].map(([path, patch]) => `cd ${path} && patch -p1 < ${patch}`);
 
 actions['initialize'] = params => [`git config --global --add safe.directory ${application}`].concat([
-    ['chats/frontend', chats, 'stand-int0', misc],
-    ['web/comagic_app_modules/operator-workplace', employees, 'stand-int0', misc],
-    ['web/comagic_app_modules/contacts', contacts, 'stand-int0', misc],
+    ['omni/frontend', chats, 'stand-int0', misc],
     ['web/logger', logger, 'master', misc],
     ['lib/web/core', core, 'master', misc],
     ['web/magic_ui', magicUi, 'feature/softphone', misc],

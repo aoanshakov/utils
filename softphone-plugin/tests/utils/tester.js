@@ -65,6 +65,7 @@ define(() => function ({
 
     window.isIframe = !!isIframe;
     window.stores = null;
+    window.rootStore = null;
     window.contactStore = null;
     window.chatsStore = null;
     window.employeesStore = null;
@@ -4130,7 +4131,7 @@ define(() => function ({
             const tester = testersFactory.createDomElementTester(
                 () => {
                     const button = utils.element(getRootElement()).
-                        querySelector('.cmgui-icon[data-component=Search20]');
+                        querySelector('.cmgui-icon[data-component=Search20], .cmgui-icon[data-component=Search16]');
 
                     return button;
                 } 
@@ -6102,7 +6103,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectToHavePath('https://$REACT_APP_BASE_URL/api/v1/employees/20816/settings');
+                    expectToHavePath('https://$REACT_APP_BASE_URL_EMPLOYEES/api/v1/employees/20816/settings');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -6145,7 +6146,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectToHavePath('https://$REACT_APP_BASE_URL/api/v1/employees/20816').
+                    expectToHavePath('https://$REACT_APP_BASE_URL_EMPLOYEES/api/v1/employees/20816').
                     expectToHaveHeaders(headers);
 
                 return addResponseModifiers({
@@ -7145,7 +7146,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('https://$REACT_APP_BASE_URL/api/v1/statuses').
+                    expectPathToContain('https://$REACT_APP_BASE_URL_EMPLOYEES/api/v1/statuses').
                     expectToHaveMethod('GET').
                     expectToHaveHeaders(headers);
 
@@ -7685,17 +7686,24 @@ define(() => function ({
     });
 
     const createWebSocketTester = (() => {
-        let lastIndex = -1;
+        const indexes = {};
 
-        return () => {
+        return url => {
             let index;
+
+            const incrementLastIndex = () => {
+                !(url in indexes) && (indexes[url] = -1);
+                indexes[url] = indexes[url] + 1;
+
+                return indexes[url];
+            };
 
             const getWebSocket = () => {
                 if (index === undefined) {
                     throw new Error('Индекс не указан.');
                 }
 
-                return webSockets.getSocket('$REACT_APP_WS_URL', index);
+                return webSockets.getSocket(url, index);
             };
 
             return {
@@ -7712,8 +7720,7 @@ define(() => function ({
                 },
 
                 expectToBeConnecting() {
-                    lastIndex ++;
-                    index = lastIndex;
+                    index = incrementLastIndex();
                     getWebSocket().expectToBeConnecting();
 
                     this.connect = () => getWebSocket().connect();
@@ -7730,7 +7737,7 @@ define(() => function ({
         };
     })();
 
-    const createWebSocketTesterCreator = () => {
+    const createWebSocketTesterCreator = url => {
         const throwError = () => {
             throw new Error('Вебсокет должен быть подключен.');
         };
@@ -7772,7 +7779,7 @@ define(() => function ({
             };
 
             const expectToBeConnecting = () => {
-                const value = createWebSocketTester();
+                const value = createWebSocketTester(url);
                 value.expectToBeConnecting();
 
                 return value;
@@ -7792,8 +7799,8 @@ define(() => function ({
         return tester;
     };
 
-    me.chatsWebSocket = createWebSocketTesterCreator();
-    me.employeesWebSocket = createWebSocketTesterCreator();
+    me.chatsWebSocket = createWebSocketTesterCreator('$REACT_APP_WS_URL');
+    me.employeesWebSocket = createWebSocketTesterCreator('$REACT_APP_WS_URL_EMPLOYEES');
 
     me.offlineMessagesSettingsChangedMessage = () => ({
         receive: () => {
@@ -10142,6 +10149,7 @@ define(() => function ({
             const response = {
                 is_contact_form_available: false,
                 is_chat_acceptance_confirmation: true,
+                is_chat_notification_enabled: true,
             };
 
             return {
@@ -10167,6 +10175,7 @@ define(() => function ({
     me.chatChannelListRequest = () => {
         const data = [{
             id: 101,
+            channel_id: 101,
             is_removed: false,
             name: 'mrDDosT',
             status: 'active',
@@ -10174,6 +10183,7 @@ define(() => function ({
             type: 'telegram'
         }, {
             id: 216395,
+            channel_id: 216395,
             is_removed: false,
             name: 'whatsapp',
             status: 'active',
@@ -10181,6 +10191,7 @@ define(() => function ({
             type: 'whatsapp'
         }, {
             id: 216400,
+            channel_id: 216400,
             is_removed: false,
             name: 'Whats App Waba',
             status: 'active',
@@ -10188,6 +10199,7 @@ define(() => function ({
             type: 'waba',
         }, {
             id: 216401,
+            channel_id: 216401,
             is_removed: false,
             name: 'Telegram Private',
             status: 'active',
@@ -10427,6 +10439,7 @@ define(() => function ({
                         visitor_id: 16479303,
                         name: 'Памакова Бисерка',
                         visitor_name: 'Помакова Бисерка Драгановна',
+                        channel_name: 'Памакова Бисерка',
                         visitor_type: 'omni',
                         account_id: '425802',
                         is_phone_auto_filled: false,
@@ -13017,9 +13030,6 @@ define(() => function ({
                 ajax.recentRequest().
                     expectBodyToContain({
                         method: 'get.tags',
-                        params: {
-                            is_include_rating: true
-                        }
                     }).
                     respondSuccessfullyWith({
                         result: {
@@ -13027,7 +13037,8 @@ define(() => function ({
                                 id: 288,
                                 name: 'Продажа',
                                 rating: 0,
-                                is_system: false
+                                is_system: false,
+                                color: '#9da8ae',
                             }]
                         }
                     });
@@ -17327,7 +17338,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/${id}`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL_CONTACTS/contacts/${id}`).
                     expectToHaveMethod('GET');
 
                 return addResponseModifiers({
@@ -18133,7 +18144,7 @@ define(() => function ({
         return addResponseModifiers({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/${id}/contact-groups`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL_CONTACTS/contacts/${id}/contact-groups`).
                     expectToHaveHeaders(headers).
                     expectToHaveMethod('GET');
 
@@ -18183,7 +18194,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('https://$REACT_APP_BASE_URL/contact-groups').
+                    expectToHavePath('https://$REACT_APP_BASE_URL_CONTACTS/contact-groups').
                     expectToHaveHeaders(headers).
                     expectQueryToContain(queryParams).
                     expectToHaveMethod('GET');
@@ -19619,6 +19630,30 @@ define(() => function ({
         });
     };
 
+    me.someRequest = () => {
+        let response = {};
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                let request = (requests ? requests.someRequest() : ajax.recentRequest());
+
+                const me = addResponseModifiers({
+                    receiveResponse: () => {
+                        request.respondSuccessfullyWith(response);
+                        spendTime(0);
+                    }
+                });
+
+                return me;
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.accountRequest = () => {
         let token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
             method = 'getobj.account',
@@ -20988,7 +21023,8 @@ define(() => function ({
     me.chatListItem = (text, getRootElement = () => document.body) => {
         const domElement = utils.descendantOf(getRootElement()).
             matchesSelector(
-                '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-item-styles-module__root'
+                '.misc-omni-src-modules-chats-' +
+                'components-chats-chats-list-panel-components-chat-list-item-styles-module__root'
             ).
             textContains(text).
             find();
@@ -21052,10 +21088,12 @@ define(() => function ({
             const getDomElement = () => (
                 index === undefined ?
                 utils.querySelector(
-                    '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-styles-module__root'
+                    '.misc-omni-src-modules-chats-' +
+                    'components-chats-chats-list-panel-components-chat-list-styles-module__root'
                 ) :
                 document.querySelectorAll(
-                    '.misc-chats-src-components-chats-chats-list-panel-components-chat-list-styles-module__root'
+                    '.misc-omni-src-modules-chats-' +
+                    'components-chats-chats-list-panel-components-chat-list-styles-module__root'
                 )?.[index]
             );
 
@@ -21072,7 +21110,7 @@ define(() => function ({
 
         tester.header = (() => {
             const getDomElement = () => utils.querySelector(
-                '.misc-chats-src-components-chats-chats-list-panel-styles-module__header'
+                '.misc-omni-src-modules-chats-components-chats-chats-list-panel-styles-module__header'
             );
 
             const tester = testersFactory.createDomElementTester(getDomElement);

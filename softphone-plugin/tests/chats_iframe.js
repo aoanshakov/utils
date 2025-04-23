@@ -178,10 +178,10 @@ tests.addTest(options => {
                                     emptySearchString().
                                     receiveResponse();
 
+                                tester.tagsRequest().receiveResponse();
                                 tester.offlineMessageCountersRequest().receiveResponse();
                                 tester.chatChannelListRequest().receiveResponse();
                                 tester.siteListRequest().receiveResponse();
-                                tester.markListRequest().receiveResponse();
                                 tester.groupChatsRequest().receiveResponse();
 
                                 tester.chatChannelTypeListRequest().receiveResponse();
@@ -325,15 +325,21 @@ tests.addTest(options => {
                                                     tester.scheduledMessagesRequest().receiveResponse();
 
                                                     tester.visitorCardRequest().receiveResponse();
-                                                    tester.chatInfoRequest().receiveResponse();
 
                                                     tester.usersRequest().
                                                         forContacts().
                                                         forIframe().
                                                         receiveResponse();
 
+                                                    tester.chatInfoRequest().receiveResponse();
+
                                                     tester.contactGroupsRequest().
                                                         forIframe().
+                                                        receiveResponse();
+
+                                                    tester.chatListRequest().
+                                                        thirdChat().
+                                                        assignedToCurrentEmployee().
                                                         receiveResponse();
 
                                                     tester.contactGroupsRequest().
@@ -661,23 +667,21 @@ tests.addTest(options => {
 
                                                 tester.scheduledMessagesRequest().receiveResponse();
 
-                                                tester.chatListRequest().
-                                                    active().
-                                                    noData().
-                                                    forCurrentEmployee().
-                                                    isOtherEmployeesAppeals().
-                                                    receiveResponse();
-
                                                 tester.visitorCardRequest().receiveResponse();
-                                                tester.chatInfoRequest().receiveResponse();
 
                                                 tester.usersRequest().
                                                     forContacts().
                                                     forIframe().
                                                     receiveResponse();
 
+                                                tester.chatInfoRequest().receiveResponse();
+
                                                 tester.contactGroupsRequest().
                                                     forIframe().
+                                                    receiveResponse();
+
+                                                tester.chatListRequest().
+                                                    thirdChat().
                                                     receiveResponse();
 
                                                 tester.contactGroupsRequest().
@@ -736,8 +740,17 @@ tests.addTest(options => {
                                             anotherChat().
                                             receiveResponse();
 
+                                        tester.usersRequest().
+                                            forContacts().
+                                            forIframe().
+                                            receiveResponse();
+                                            
                                         tester.chatInfoRequest().
                                             anotherChat().
+                                            receiveResponse();
+
+                                        tester.contactGroupsRequest().
+                                            forIframe().
                                             receiveResponse();
 
                                         tester.visitorCardRequest().receiveResponse();
@@ -748,13 +761,8 @@ tests.addTest(options => {
 
                                         tester.messageListRequest().receiveResponse();
 
-                                        tester.usersRequest().
-                                            forContacts().
-                                            forIframe().
-                                            receiveResponse();
-
-                                        tester.contactGroupsRequest().
-                                            forIframe().
+                                        tester.chatListRequest().
+                                            chat().
                                             receiveResponse();
 
                                         tester.contactGroupsRequest().
@@ -802,13 +810,17 @@ tests.addTest(options => {
                                         tester.visitorCardRequest().receiveResponse();
                                         tester.messageListRequest().receiveResponse();
 
+                                        tester.usersRequest().
+                                            forContacts().
+                                            forIframe().
+                                            receiveResponse();
+
                                         tester.chatInfoRequest().
                                             anotherChat().
                                             receiveResponse();
 
-                                        tester.usersRequest().
-                                            forContacts().
-                                            forIframe().
+                                        tester.chatListRequest().
+                                            chat().
                                             receiveResponse();
 
                                         tester.contactGroupsRequest().
@@ -977,10 +989,6 @@ tests.addTest(options => {
                                 tester.visitorCardRequest().receiveResponse();
                                 tester.messageListRequest().receiveResponse();
 
-                                tester.chatInfoRequest().
-                                    anotherChat().
-                                    receiveResponse();
-
                                 tester.usersRequest().
                                     forContacts().
                                     forIframe().
@@ -988,12 +996,37 @@ tests.addTest(options => {
 
                                 tester.contactRequest().receiveResponse();
 
+                                tester.chatInfoRequest().
+                                    anotherChat().
+                                    receiveResponse();
+
+                                tester.chatListRequest().
+                                    chat().
+                                    receiveResponse();
+
                                 tester.changeMessageStatusRequest().
                                     read().
                                     anotherMessage().
                                     receiveResponse();
 
                                 tester.groupsContainingContactRequest().
+                                    forIframe().
+                                    receiveResponse();
+
+                                tester.contactGroupsRequest().
+                                    forIframe().
+                                    receiveResponse();
+
+                                tester.groupsContainingContactRequest().
+                                    forIframe().
+                                    receiveResponse();
+
+                                tester.contactGroupsRequest().
+                                    forIframe().
+                                    receiveResponse();
+
+                                tester.usersRequest().
+                                    forContacts().
                                     forIframe().
                                     receiveResponse();
 
@@ -1154,10 +1187,10 @@ tests.addTest(options => {
                         oauthToken().
                         expectToBeSent();
 
+                    tester.tagsRequest().receiveResponse();
                     tester.offlineMessageCountersRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
-                    tester.markListRequest().receiveResponse();
                     tester.groupChatsRequest().receiveResponse();
                     tester.chatChannelTypeListRequest().receiveResponse();
 
@@ -1303,10 +1336,10 @@ tests.addTest(options => {
                         addChannel().
                         expectToBeSent();
 
+                    tester.tagsRequest().receiveResponse();
                     tester.offlineMessageCountersRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
-                    tester.markListRequest().receiveResponse();
                     tester.groupChatsRequest().receiveResponse();
 
                     tester.chatChannelTypeListRequest().receiveResponse();
@@ -1513,10 +1546,10 @@ tests.addTest(options => {
                         emptySearchString().
                         receiveResponse();
 
+                    tester.tagsRequest().receiveResponse();
                     tester.offlineMessageCountersRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
-                    tester.markListRequest().receiveResponse();
                     tester.groupChatsRequest().receiveResponse();
 
                     tester.chatChannelTypeListRequest().receiveResponse();
@@ -1603,16 +1636,16 @@ tests.addTest(options => {
                         en().
                         receive();
 
-                    tester.body.expectTextContentToHaveSubstring('Chats');
-                    tester.body.expectTextContentNotToHaveSubstring('Чаты');
+                    tester.body.expectTextContentToHaveSubstring('My chats');
+                    tester.body.expectTextContentNotToHaveSubstring('Мои чаты');
                 });
                 it('Нажимаю на кнопку закрытия. Окно чатов закрыто.', function() {
                     tester.closeButton.click();
                     tester.chatsHidingRequest().expectToBeSent();
                 });
                 it('Используется русский язык.', function() {
-                    tester.body.expectTextContentToHaveSubstring('Чаты');
-                    tester.body.expectTextContentNotToHaveSubstring('Chats');
+                    tester.body.expectTextContentToHaveSubstring('Мои чаты');
+                    tester.body.expectTextContentNotToHaveSubstring('My chats');
 
                     tester.logoutButton.expectNotToExist();
                 });
@@ -1690,10 +1723,10 @@ tests.addTest(options => {
 
                 thirdAccountRequest.receiveResponse();
 
+                tester.tagsRequest().receiveResponse();
                 tester.offlineMessageCountersRequest().receiveResponse();
                 tester.chatChannelListRequest().receiveResponse();
                 tester.siteListRequest().receiveResponse();
-                tester.markListRequest().receiveResponse();
                 tester.groupChatsRequest().receiveResponse();
                 tester.chatChannelTypeListRequest().receiveResponse();
 
@@ -1875,10 +1908,10 @@ tests.addTest(options => {
                         emptySearchString().
                         receiveResponse();
 
+                    tester.tagsRequest().receiveResponse();
                     tester.offlineMessageCountersRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
-                    tester.markListRequest().receiveResponse();
                     tester.groupChatsRequest().receiveResponse();
 
                     tester.chatChannelTypeListRequest().receiveResponse();
@@ -2048,10 +2081,10 @@ tests.addTest(options => {
                         emptySearchString().
                         receiveResponse();
 
+                    tester.tagsRequest().receiveResponse();
                     tester.offlineMessageCountersRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
-                    tester.markListRequest().receiveResponse();
                     tester.groupChatsRequest().receiveResponse();
                     tester.chatChannelTypeListRequest().receiveResponse();
 
