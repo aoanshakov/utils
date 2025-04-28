@@ -1707,6 +1707,10 @@ define(function () {
                     return this;
                 },
 
+                fourthPhone: function() {
+                    return this.fourthPhoneNumber();
+                },
+
                 thirdNumber: function () {
                     numa = 79161234510;
                     return this;
@@ -7231,7 +7235,16 @@ define(function () {
                         } 
                     }),
                     applyLeader: () => ({
-                        expectToBeSent: applyLeader,
+                        expectToBeSent: () => {
+                            applyLeader();
+
+                            return {
+                                waitForSecond: () => {
+                                    spendTime(1000);
+                                    spendTime(0);
+                                },
+                            };
+                        },
                         receive: () => {
                             const message = applyMessage();
                             message.data.token = 'i9js2l68w8';
@@ -7297,6 +7310,14 @@ define(function () {
                 }
 
                 var me = addMethods(extendOthersNotification({
+                    anotherWsUrl: function () {
+                        processors.push(() => (data.params.ws_url = '/ws/B2l8238ghxlh8F2120Rq-nHgosKsnKwegh48Bd02b31'));
+                        return this;
+                    },
+                    noWsUrl: function () {
+                        processors.push(() => (data.params.ws_url = ''));
+                        return this;
+                    },
                     anotherNumberCapacity: function () {
                         processors.push(() => {
                             data.params.numb = '79161238929';

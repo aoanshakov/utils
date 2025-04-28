@@ -1,12 +1,12 @@
 diff --git a/package.json b/package.json
-index 93acd46..cc35a5d 100644
+index 92c6348..e358ace 100644
 --- a/package.json
 +++ b/package.json
-@@ -50,20 +50,22 @@
+@@ -52,20 +52,22 @@
      "webpack": "^5.74.0"
    },
    "dependencies": {
--    "@comagic/core": "^1.17.0",
+-    "@comagic/core": "1.25.1",
 -    "@comagic/softphone-core": "0.0.0-int1",
 -    "@comagic/softphone-widget": "0.0.0-int2",
 -    "@comagic/ui": "2.60.0",
@@ -32,7 +32,7 @@ index 93acd46..cc35a5d 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -74,6 +76,8 @@
+@@ -76,6 +78,8 @@
      "react-router-dom": "6.9.0",
      "string-hash": "^1.1.3",
      "twig": "^1.15.1",

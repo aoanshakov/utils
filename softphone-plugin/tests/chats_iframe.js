@@ -1677,6 +1677,29 @@ tests.addTest(options => {
                     );
                 });
             });
+            it(
+                'На другой вкладке произведён выход. Отображено сообщение о том, что сотрудник не авторизован.',
+            function() {
+                localStorage.setItemInAnotherTab('token', '');
+
+                postMessages.nextMessage().expectMessageToContain({
+                    method: 'set_token',
+                    data: '',
+                });
+
+                accountRequest.
+                    operatorWorkplaceAvailable().
+                    receiveResponse();
+
+                secondAccountRequest.
+                    operatorWorkplaceAvailable().
+                    receiveResponse();
+
+                tester.body.expectToHaveTextContent(
+                    'Не авторизован ' +
+                    'Для использования приложения необходимо авторизоваться'
+                );
+            });
             it('Нет прав на чаты. Отображено сообщение об отсутствии прав.', function() {
                 accountRequest.receiveResponse();
 
@@ -1946,6 +1969,62 @@ tests.addTest(options => {
                         receiveResponse();
 
                     tester.button('В работе 75').click();
+                });
+                it(
+                    'В софтфоне произведён выход из приложения. Получен ответ на запрос настроек чатов. В софтфоне ' +
+                    'произведён вход в приложение. Сообщение об отстутствии прав скрыто.',
+                function() {
+                    localStorage.setItemInAnotherTab('token', '');
+
+                    postMessages.nextMessage().expectMessageToContain({
+                        method: 'set_token',
+                        data: '',
+                    });
+
+                    widgetSettings.receiveResponse();
+
+                    tester.availabilitySettingRequest().
+                        chats().
+                        expectToBeSent();
+
+                    localStorage.setItemInAnotherTab('token', tester.oauthToken);
+
+                    postMessages.
+                        nextMessage().
+                        expectMessageToContain({
+                            method: 'set_token',
+                            data: tester.oauthToken,
+                        });
+
+                    tester.employeeStatusesRequest().
+                        oauthToken().
+                        expectToBeSent();
+
+                    tester.chatSettingsRequest().expectToBeSent();
+                    tester.channelsRequest().expectToBeSent();
+                    tester.chatChannelListRequest().expectToBeSent();
+
+                    tester.listRequest().expectToBeSent();
+                    tester.siteListRequest().expectToBeSent();
+                    tester.messageTemplateListRequest().expectToBeSent();
+                    tester.commonMessageTemplatesRequest().expectToBeSent();
+                    tester.messageTemplatesSettingsRequest().expectToBeSent();
+
+                    tester.accountRequest().
+                        forIframe().
+                        fromIframe().
+                        webAccountLoginUnavailable().
+                        expectToBeSent();
+
+                    tester.widgetSettings().
+                        amocrm().
+                        chatsSettings().
+                        request().
+                        expectToBeSent();
+
+                    tester.body.expectTextContentNotToHaveSubstring(
+                        'Недостаточно прав на раздел чатов'
+                    );
                 });
                 it('Чаты недоступны. Запросы данных для чатов не производятся.', function() {
                     widgetSettings.

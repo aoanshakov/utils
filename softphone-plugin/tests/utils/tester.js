@@ -85,6 +85,182 @@ define(() => function ({
         spendTime(0);
     };
 
+    {
+        let initialized = false,
+            backgroundCallCardInitialized = false;
+        const handlers = {},
+            bindEvent = (event, handler) => (handlers[event] || (handlers[event] = [])).push(handler);
+
+        const createCall = (actualMethod, actualParams) => {
+            if (!initialized) {
+                throw new Error('B24 должен быть инициализирован.');
+            }
+
+            if (actualMethod.includes('CallCard') && !backgroundCallCardInitialized) {
+                throw new Error('Карточка звонка должна быть создана.');
+            }
+
+            return {
+                receiveResult(data) {
+                    if (typeof actualParams != 'function') {
+                        throw new Error(
+                            `В вызов метода ${actualMethod} должен быть передан обработчик результата.`
+                        );
+                    }
+
+                    actualParams(data);
+                    return this;
+                },
+                expectParamsToContain(expectedContent) {
+                    utils.expectObjectToContain(actualParams, expectedContent);
+                    return this;
+                },
+                expectToHaveMethod(expectedMethod) {
+                    if (expectedMethod != actualMethod) {
+                        throw new Error(
+                            `Должен быть вызван метод "${expectedMethod}, тогда, как был вызван ` +
+                            `метод "${actualMethod}".`
+                        );
+                    }
+
+                    return this;
+                },
+                expectNotToExist() {
+                    throw new Error(
+                        `Ни один метод не должен быть вызван, тогда как был вызван метод "${actualMethod}".`
+                    );
+                }
+            };
+        };
+
+        const calls = new JsTester_Queue({
+            expectParamsToContain: expectedContent => {
+                throw new Error(
+                    `Ни один метод не был вызван, тогда как должен быть вызван метод с ` +
+                    `параметрами ${JSON.stringify(expectedContent)}.`
+                );
+            },
+            expectToHaveMethod: expectedMethod => {
+                throw new Error(
+                    `Ни один метод не был вызван, тогда как должен быть вызван метод ${expectedMethod}.`
+                );
+            },
+            expectNotToExist: () => null
+        });
+
+        const fireEvent = (event, ...args) => {
+            if (initialized) {
+                (handlers[event] || []).forEach(handler => handler(...args));
+            } else {
+                throw new Error('B24 должен быть инициализирован.')
+            }
+        };
+
+        const initializeBackgroundCallCard = (...args) => {
+            if (!initialized) {
+                throw new Error('B24 должен быть инициализирован.');
+            }
+
+            backgroundCallCardInitialized = true;
+            fireEvent('BackgroundCallCard::initialized', ...args);
+        };
+
+        {
+            const createParams = params => ({
+                PHONE_NUMBER: '79161234567',
+                CALL_LIST_MODE: false,
+                ...(params || {})
+            });
+
+            const addMethods = args => {
+                const {
+                    me = {},
+                    params,
+                } = args || {};
+
+                const {
+                    PHONE_NUMBER,
+                    CALL_LIST_MODE,
+                } = createParams(params);
+
+                me.outgoingCall = () => initializeBackgroundCallCard({
+                    CALL_ID: 'externalCall.286d1564a6a6716f457d6ff848a54f97.1649835596',
+                    PHONE_NUMBER,
+                    LINE_NUMBER: '',
+                    LINE_NAME: '',
+                    CRM_ENTITY_TYPE: 'CONTACT',
+                    CRM_ENTITY_ID: 9,
+                    CRM_BINDINGS: [{
+                        ENTITY_TYPE: 'CONTACT',
+                        ENTITY_ID: 9
+                    }],
+                    CALL_DIRECTION: 'outgoing',
+                    CALL_STATE: 'idle',
+                    CALL_LIST_MODE,
+                });
+
+                me.entityChanged = () => fireEvent('BackgroundCallCard::entityChanged', { PHONE_NUMBER });
+                return me;
+            };
+
+            me.BX24 = addMethods({
+                me: {
+                    initialize: () => ((initialized = true), fireEvent('init')),
+
+                    callListMode: () => addMethods({
+                        params: {
+                            PHONE_NUMBER: 'hidden',
+                            CALL_LIST_MODE: true,
+                        },
+                    }),
+
+                    anotherPhone: () => addMethods({
+                        params: {
+                            PHONE_NUMBER: '79161234569',
+                        },
+                    }),
+
+                    incomingCall: () => initializeBackgroundCallCard({
+                        CALL_ID: 'externalCall.29ls7h3g9h7292nc33g9nct3984hf347.8378942881',
+                        CALL_DIRECTION: 'incoming'
+                    }),
+
+                    cancelTransfer: () => fireEvent('BackgroundCallCard::cancelTransferButtonClick'),
+
+                    chooseOperatorForTransfer: () => (fireEvent('BackgroundCallCard::transferButtonClick', {
+                        type: 'user',
+                        target: '295'
+                    }), Promise.runAll(false, true)),
+
+                    choosePhoneNumberForTransfer: () => fireEvent('BackgroundCallCard::transferButtonClick', {
+                        type: 'pstn',
+                        target: '295'
+                    }),
+
+                    transfer: () => fireEvent('BackgroundCallCard::completeTransferButtonClick'),
+                    answer: () => fireEvent('BackgroundCallCard::answerButtonClick'),
+                    mute: () => (fireEvent('BackgroundCallCard::muteButtonClick', true), spendTime(0)),
+                    unmute: () => (fireEvent('BackgroundCallCard::muteButtonClick', false), spendTime(0)),
+                    hold: () => (fireEvent('BackgroundCallCard::holdButtonClick', true), spendTime(0)),
+                    unhold: () => (fireEvent('BackgroundCallCard::holdButtonClick', false), spendTime(0)),
+                    close: () => fireEvent('BackgroundCallCard::closeButtonClick'),
+                    hangup: () => fireEvent('BackgroundCallCard::hangupButtonClick'),
+                    skip: () => (fireEvent('BackgroundCallCard::skipButtonClick'), spendTime(0)),
+                    dtmf: signal => fireEvent('BackgroundCallCard::dialpadButtonClick', signal),
+                    recentCall: () => calls.pop()
+                } 
+            });
+        }
+
+        window.BX24 = {
+            init: handler => bindEvent('init', handler),
+            placement: {
+                bindEvent,
+                call: (method, params) => calls.add(createCall(method, params))
+            }
+        };
+    }
+
     me.localStorage = {
         key: key => ({
             expectToBeEmpty: () => {
@@ -2191,6 +2367,11 @@ define(() => function ({
                     };
 
                     return {
+                        containsSubstrings(substrings) {
+                            message.data.data.data = utils.expectToHaveSubstrings(substrings);
+                            return this;
+                        },
+
                         anotherId() {
                             message.data.data.id = '28296h82-28g3-682b-an34-8602838710n0';
                             return this;
@@ -3580,9 +3761,11 @@ define(() => function ({
         });
     };
 
-    me.getUserAgent = () => application == 'amocrmIframeContent' ?
-        'Softphone AmoCRM widget' :
-        'Softphone Chrome Plugin';
+    me.getUserAgent = () => application == 'amocrmIframeContent'
+        ? 'Softphone AmoCRM widget'
+        : application == 'bitrixSoftphoneIframe'
+            ? 'Softphone Bitrix24 application'
+            : 'Softphone Chrome Plugin';
 
     me.ReactDOM = {
         flushSync: () => null
@@ -3875,7 +4058,19 @@ define(() => function ({
         } else if (application == 'bitrixChatsIframe') {
             me.history.push(`/bitrix/chats${search ? `/messages?search=${search}` : ''}`);
         } else if (application == 'bitrixSoftphoneIframe') {
-            me.history.push('/bitrix/softphone');
+            me.history.push(
+                '/bitrix/softphone?' +
+                    'DOMAIN=sber.vlads.dev&' +
+                    'PROTOCOL=1&' +
+                    'LANG=ru&' +
+                    'APP_SID=23f47ed487421c2dfbfc17528f295fc2&' +
+                    'AUTH_ID=6cd38e5f004e48ba004b7cc000000001000003acee2b073187698d3ea46c4082dc9991&' +
+                    'AUTH_EXPIRES=3600&' +
+                    'REFRESH_ID=5c52b65f004e48ba004b7cc00000000100000336bb35bf8b0c68a249c9e312210cdd77&' +
+                    'member_id=91a9ef2628b90ae0c5e8e2a951c5fa11&' +
+                    'status=L&' +
+                    'PLACEMENT=PAGE_BACKGROUND_WORKER'
+            );
         } else if (application == 'notificationsIframe') {
             me.history.push('/chrome/notifications');
         }
@@ -5168,6 +5363,49 @@ define(() => function ({
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
     };
 
+    me.userRequest = () => {
+        const data = {
+            id: 428654,
+            first_name: 'Недялка',
+            last_name: 'Узунова',
+            position_id: null,
+            status_id: 40501,
+            is_in_call: false,
+            short_phone: '362',
+            user_id: 44833,
+            is_sip_online: true,
+            login: 'n.uzunova'
+        };
+
+        function addResponseModifiers (me) {
+            me.noShortNumber = () => {
+                data.short_phone = '';
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('GET').
+                    expectPathToContain('/sup/api/v1/user/295');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({data});
+                        Promise.runAll(false, true);
+                    }
+                });
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.ticketsContactsRequest = () => {
         let respond = request => request.respondSuccessfullyWith({
             data: {
@@ -6147,6 +6385,7 @@ define(() => function ({
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
                     expectToHavePath('https://$REACT_APP_BASE_URL_EMPLOYEES/api/v1/employees/20816').
+                    expectNotToSendCookies().
                     expectToHaveHeaders(headers);
 
                 return addResponseModifiers({
@@ -7684,6 +7923,80 @@ define(() => function ({
             }
         })
     });
+
+    me.startCallRequest = function () {
+        let CALL_LIST_MODE = false;
+
+        return {
+            callListMode: function () {
+                CALL_LIST_MODE = true;
+                return this;
+            },
+            expectToBeSent: function () {
+                me.eventsWebSocket.expectSentMessageToContain({
+                    type: 'start_call',
+                    data: {
+                        CALL_ID: 'externalCall.286d1564a6a6716f457d6ff848a54f97.1649835596',
+                        PHONE_NUMBER: '79161234567',
+                        LINE_NUMBER: '',
+                        LINE_NAME: '',
+                        CRM_ENTITY_TYPE: 'CONTACT',
+                        CRM_ENTITY_ID: 9,
+                        CRM_BINDINGS: [{
+                            ENTITY_TYPE: 'CONTACT',
+                            ENTITY_ID: 9
+                        }],
+                        CALL_DIRECTION: 'outgoing',
+                        CALL_STATE: 'idle',
+                        CALL_LIST_MODE,
+                    }
+                });
+            }
+        };
+    };
+
+    me.callCardStateChangingMessage = function () {
+        const params = {
+            call_id: 'externalCall.286d1564a6a6716f457d6ff848a54f97.1649835596',
+            state: 'show_in_call_card'
+        };
+
+        const createMessage = () => ({
+            type: 'event',
+            name: 'change_call_card_state',
+            params
+        });
+
+        return {
+            showErrorCallCard() {
+                params.state = 'show_error_call_card';
+                return this;
+            },
+
+            anotherCallId() {
+                params.call_id = 'externalCall.692jg942nvb831n375c372ncg39g3n27.6927360216';
+                return this;
+            },
+
+            slavesNotification: () => ({
+                expectToBeSent: () => me.recentCrosstabMessage().expectToContain({
+                    type: 'message',
+                    data: {
+                        type: 'notify_slaves',
+                        data: {
+                            type: 'websocket_message',
+                            message: createMessage(),
+                        },
+                    },
+                }),
+            }),
+
+            receive: () => {
+                me.eventsWebSocket.receiveMessage(createMessage());
+                spendTime(0);
+            } 
+        };
+    };
 
     const createWebSocketTester = (() => {
         const indexes = {};
@@ -9427,6 +9740,7 @@ define(() => function ({
             direction: 'in',
             site_domain_name: 'somesite.com',
             search_query: 'Какой-то поисковый запрос, который не помещается в одну строчку',
+            scenario_name: 'Некий сценарий',
             campaign_name: 'Некая рекламная кампания',
             auto_call_campaign_name: null,
             organization_name: 'ООО "Некая Организация"',
@@ -9982,6 +10296,9 @@ define(() => function ({
     };
 
     me.authTokenRequest = () => {
+        let url = `https://${softphoneHost}/sup/auth/token`;
+        const data = { token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0' };
+
         const bodyParams = {
             token: mainTester.oauthToken,
         };
@@ -9989,6 +10306,8 @@ define(() => function ({
         const addResponseModifiers = me => {
             me.anotherToken = () => (bodyParams.token = mainTester.anotherOauthToken, me);
             me.thirdToken = () => (bodyParams.token = mainTester.fourthOauthToken, me);
+            me.anotherUrl = () => ((url = 'https://somedomain.com/sup/auth/token'), me);
+            me.appUrlSpecified = () => ((data.app_url = 'https://somedomain.com'), me);
 
             return me;
         };
@@ -9997,18 +10316,14 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('POST').
-                    expectToHavePath(`https://${softphoneHost}/sup/auth/token`).
+                    expectToHavePath(url).
                     expectBodyToContain(bodyParams);
 
                 spendTime(0);
 
                 return addResponseModifiers({
                     receiveResponse: () => {
-                        request.respondSuccessfullyWith({
-                            data: {
-                                token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                            },
-                        });
+                        request.respondSuccessfullyWith({ data });
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -20317,7 +20632,34 @@ define(() => function ({
     me.extendMasterNotification((notification, data) => ((notification.revive = () =>
         ((data.action = 'revive'), notification)), notification));
 
+
+    function getNormalizedDefaultSettings () {
+        return {
+            numb: '74950216806',
+            number_capacity_id: 124824,
+            is_use_widget_for_calls: true,
+            is_enable_incoming_call_sound: true,
+            is_need_open_widget_on_call: true,
+            is_need_close_widget_on_call_finished: false,
+            number_capacity_usage_rule: 'auto',
+            ws_url: '/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            sip: {
+                ice_servers: [{
+                    urls: ['stun:stun.uiscom.ru:19302']
+                }],
+                sip_channels_count: 1,
+                sip_host: 'voip.uiscom.ru',
+                sip_login: '077368_22dcb_crm_widget',
+                sip_phone: '077368',
+                sip_password: 'e2tcXhxbfr',
+                webrtc_urls: ['wss://webrtc.uiscom.ru'],
+            }
+        };
+    }
+
     me.extendOthersNotification((notification, data) => {
+        const settings = getNormalizedDefaultSettings();
+
         notification.prompterCallPreparation = () => {
             data.action = 'prepare_to_prompter_call';
 
@@ -20331,6 +20673,31 @@ define(() => function ({
             notification.noSubscriberNumber = () => ((data.data.subscriber_number = null), notification);
             notification.dontShowNotification = () => ((data.data.show_notification = false), notification);
             notification.anotherPhoneNumber = () => ((data.data.call_session_id = 79161234570), notification);
+
+            return notification;
+        };
+
+        notification.anotherNumberCapaticy = function () {
+            settings.numb = '79161238929';
+            settings.number_capacity_id = 124825;
+            settings.number_capacity_comment = 'Некий номер'
+
+            return notification;
+        };
+
+        notification.fixedNumberCapacityRule = function () {
+            settings.number_capacity_usage_rule = 'fixed';
+            return notification;
+        };
+
+        notification.callsAreManagedByAnotherDevice = function () {
+            settings.is_use_widget_for_calls = false;
+            return notification;
+        };
+
+        notification.widgetStateUpdate = function () {
+            data.type = 'update_widget_state';
+            data.params = settings;
 
             return notification;
         };

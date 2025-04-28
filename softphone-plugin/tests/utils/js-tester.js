@@ -4092,6 +4092,10 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
         return new JsTests_SubstringExpectaion(expectedSubstring);
     };
 
+    this.expectToHaveSubstrings = function (expectedSubstrings) {
+        return new JsTests_SubstringsExpectaion(expectedSubstrings);
+    };
+
     this.expectToBeString = function () {
         return new JsTests_StringExpectaion();
     };
@@ -4955,6 +4959,20 @@ function JsTester_Request (request, utils, callStack) {
 
         return this;
     };
+    this.expectToSendCookies = function () {
+        if (!request.withCredentials) {
+            throw new Error('Cookies должны быть отправлены в запросе. ' + this.getDescription());
+        }
+
+        return this;
+    };
+    this.expectNotToSendCookies = function () {
+        if (request.withCredentials) {
+            throw new Error('Cookies не должны быть отправлены в запросе. ' + this.getDescription());
+        }
+
+        return this;
+    };
     this.expectToHavePath = function (expectedValue) {
         if (path != expectedValue) {
             throw new Error(
@@ -5039,6 +5057,8 @@ function JsTester_SomeRequest (args) {
         'expectToHavePath',
         'expectToHaveMethod',
         'expectToHaveHeaders',
+        'expectToSendCookies',
+        'expectNotToSendCookies',
         'testBodyParam',
         'testQueryParam',
         'expectBodyToContain',
@@ -6954,6 +6974,17 @@ function JsTests_TimeExpectation ({
     };
 }
 
+function JsTests_SubstringsExpectaion (expectedSubstrings) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        expectedSubstrings.forEach(
+            expectedSubstring => (new JsTests_SubstringExpectaion(expectedSubstring)).maybeThrowError(
+                actualValue,
+                keyDescription,
+            )
+        );
+    };
+}
+
 JsTests_TimeExpectation.prototype = JsTests_ParamExpectationPrototype;
 JsTests_FileContentSubstringExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_BlobExpectaion.prototype = JsTests_ParamExpectationPrototype;
@@ -6961,6 +6992,7 @@ JsTests_NonStrictExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_EmptyObjectExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_PrefixExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_SubstringExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_SubstringsExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_StringExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_SetInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
 JsTests_NotEmptyExpectaion.prototype = JsTests_ParamExpectationPrototype;
