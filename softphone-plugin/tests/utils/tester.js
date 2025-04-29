@@ -75,6 +75,15 @@ define(() => function ({
     window.getOrigin = () => url;
     me.changeCurrentUrl = () => (url = 'https://amo2comagicdev.amocrm.ru/leads/list/pipeline/6168778');
 
+    {
+        setSoftphoneHost = me.setSoftphoneHost.bind(me);
+
+        me.setSoftphoneHost = value => {
+            softphoneHost = value;
+            setSoftphoneHost(value);
+        };
+    }
+
     me.triggerChatsIconMutation = () => {
         window.chatsIconElement.forEach(icon => icon && triggerMutation(
             icon,
@@ -10117,6 +10126,11 @@ define(() => function ({
             me.setInvalidRTUConfig = () => {
                 response.data.rtu_webrtc_urls = ['wss://rtu-webrtc.uiscom.ru'],
                 response.data.sip_phone = '076909';
+                return me;
+            };
+
+            me.oneChannel = () => {
+                response.data.sip_channels_count = 1;
                 return me;
             };
 

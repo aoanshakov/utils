@@ -25,6 +25,10 @@ define(function () {
             webRtcUrlForGettingSocket = webRtcUrl,
             registrationTesterExtentor = function () {};
 
+        this.setSoftphoneHost = value => {
+            softphoneHost = value;
+        };
+
         window.broadcastChannelCache = {};
         window.softphoneBroadcastChannelCache = {};
 
