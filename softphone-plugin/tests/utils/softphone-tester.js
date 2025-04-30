@@ -4448,7 +4448,7 @@ define(function () {
                 shortPhone: function () {
                     return this.setShortNumber();
                 },
-                withDisplayNname: () {
+                withDisplayNname() {
                     displayName = '"Шопова Златка" ';
                     return this;
                 },

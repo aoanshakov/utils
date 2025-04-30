@@ -26,6 +26,7 @@ docker/vim-container/profile/.npmrc
 docker/vim-container/profile/.nvm/
 docker/vim-container/profile/.viminfo
 docker/vim-container/profile/patch.diff
+docker/vim-container/profile/.local/state/nvim/shada/main.shada
 
 admin-frontend-tests/node_modules
 
