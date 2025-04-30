@@ -1,7 +1,9 @@
+[core]
+    editor = nvim
 [diff]
-	tool = vimdiff
+	tool = nvimdiff
 [merge]
-	tool = vimdiff
+	tool = nvimdiff
 [user]
 	name = Alexander Anshakov
 	email = a.anshakov@uiscom.ru

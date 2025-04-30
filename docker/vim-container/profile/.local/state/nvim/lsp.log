@@ -1,0 +1,16 @@
+[START][2025-04-29 21:24:51] LSP logging initiated
+[WARN][2025-04-29 21:24:51] ...lsp/handlers.lua:564	'Invalid langaugeId "typescript.tsx" provided for uri "file:///usr/local/src/gitlab.uis.dev/softphone-chrome-widget/src/applications/bitrix/softphone/settings/index.tsx". Correcting to "typescriptreact"'
+[START][2025-04-29 21:45:24] LSP logging initiated
+[WARN][2025-04-29 21:45:24] ...lsp/handlers.lua:564	'Invalid langaugeId "typescript.tsx" provided for uri "file:///usr/local/src/gitlab.uis.dev/softphone-chrome-widget/src/applications/bitrix/softphone/index.tsx". Correcting to "typescriptreact"'
+[START][2025-04-29 21:51:55] LSP logging initiated
+[WARN][2025-04-29 21:51:55] ...lsp/handlers.lua:564	'Invalid langaugeId "typescript.tsx" provided for uri "file:///usr/local/src/misc/ns1/gitlab.uis.dev/softphone-chrome-widget/src/applications/amocrm/iframeContent/index.tsx". Correcting to "typescriptreact"'
+[START][2025-04-29 22:35:26] LSP logging initiated
+[WARN][2025-04-29 22:35:26] ...lsp/handlers.lua:564	'Invalid langaugeId "typescript.tsx" provided for uri "file:///usr/local/src/misc/ns1/gitlab.uis.dev/softphone-chrome-widget/src/components/Localized.tsx". Correcting to "typescriptreact"'
+[START][2025-04-29 22:37:50] LSP logging initiated
+[WARN][2025-04-29 22:37:50] ...lsp/handlers.lua:564	'Invalid langaugeId "typescript.tsx" provided for uri "file:///usr/local/src/misc/ns1/gitlab.uis.dev/softphone-chrome-widget/src/components/project/index.tsx". Correcting to "typescriptreact"'
+[START][2025-04-30 07:45:28] LSP logging initiated
+[WARN][2025-04-30 07:45:28] ...lsp/handlers.lua:564	'Invalid langaugeId "typescript.tsx" provided for uri "file:///usr/local/src/gitlab.uis.dev/softphone-chrome-widget/src/applications/bitrix/softphone/settings/index.tsx". Correcting to "typescriptreact"'
+[START][2025-04-30 07:54:36] LSP logging initiated
+[WARN][2025-04-30 07:54:36] .../lua/vim/lsp.lua:52	"method textDocument/definition is not supported by any of the servers registered for the current buffer"
+[WARN][2025-04-30 07:54:38] .../lua/vim/lsp.lua:52	"method textDocument/definition is not supported by any of the servers registered for the current buffer"
+[WARN][2025-04-30 07:54:40] .../lua/vim/lsp.lua:52	"method textDocument/definition is not supported by any of the servers registered for the current buffer"

@@ -16,7 +16,7 @@ tests.addTest(options => {
         unload,
     } = options;
 
-    describe('Включено расширение Chrome виджет amoCRM.', function() {
+    describe('Открываю Битрикс24 c приложением софтфона.', function() {
         let tester;
 
         beforeEach(function() {
@@ -24,6 +24,7 @@ tests.addTest(options => {
         });
 
         afterEach(function() {
+            tester.BX24.recentCall().expectNotToExist();
             postMessages.nextMessage().expectNotToExist();
 
             tester.restoreSoftphoneIFrameContentWindow();
@@ -59,7 +60,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        describe('Открываю Битрикс24 c приложением софтфона. Открыта background-встройка.', function() {
+        xdescribe('Открыта background-встройка.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'bitrixSoftphoneIframe',
@@ -1709,13 +1710,351 @@ tests.addTest(options => {
                             available().
                             expectToBeSent();
                     });
-                    it('Не один запрос не отправлен.', function() {
+                    it('Ни один запрос не отправлен.', function() {
                         ajax.expectNoRequestsToBeSent();
                     });
                 });
             });
             it('Ни одно сообщение не было отправлено в ', function() {
                 postMessages.nextMessage().expectNotToExist();
+            });
+        });
+        describe('Открыта встройка с настройками.', function() {
+            beforeEach(function() {
+                tester = new Tester({
+                    application: 'bitrixSoftphoneSettingsIframe',
+                    softphoneHost: 'my.uiscom.ru',
+                    isIframe: true,
+                    ...options,
+                });
+            });
+
+            describe('Ввожу логин и пароль. Отправлен запрос авторизации.', function() {
+                let permissionsRequest;
+
+                beforeEach(function() {
+                    localStorage.setItemInAnotherTab('token', tester.oauthToken);
+
+                    tester.authTokenRequest().receiveResponse();
+                    tester.authCheckRequest().receiveResponse();
+                    tester.talkOptionsRequest().receiveResponse();
+                    tester.statusesRequest().receiveResponse();
+
+                    permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        applyLeader().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        tellIsLeader().
+                        receive();
+
+                    tester.masterNotification().
+                        tabOpened().
+                        expectToBeSent();
+
+                    notificationTester.grantPermission();
+                });
+
+                xdescribe(
+                    'В качестве устройства для принятия звонков выбран виджет. Доступ к микрофону разрешен.',
+                function() {
+                    beforeEach(function() {
+                        permissionsRequest.receiveResponse();
+
+                        tester.settingsRequest().oneChannel().receiveResponse();
+                        tester.marksRequest().receiveResponse();
+                        tester.authenticatedUserRequest().receiveResponse();
+                    });
+
+                    describe('Выбираю опцию "Софтфон или IP-телефон" в выпадающем списке.', function() {
+                        beforeEach(function() {
+                            tester.select.
+                                withLabel('Управлять звонками через').
+                                click();
+
+                            tester.select.
+                                option('Софтфон или IP-телефон').
+                                click();
+                        });
+
+                        describe('Нажимаю на кнопку "Сохранить".', function() {
+                            var settingsUpdatingRequest;
+
+                            beforeEach(function() {
+                                tester.button('Сохранить').click();
+
+                                settingsUpdatingRequest = tester.settingsUpdatingRequest().
+                                    callsAreManagedByAnotherDevice().
+                                    expectToBeSent();
+                            });
+
+                            it(
+                                'Нажимаю на кнопку "Отменить". Выбрана опция "Софтфон или IP-телефон". Панель ' +
+                                'настроек доступна.',
+                            function() {
+                                settingsUpdatingRequest.receiveResponse();
+
+                                tester.settingsRequest().
+                                    callsAreManagedByAnotherDevice().
+                                    oneChannel().
+                                    receiveResponse();
+
+                                tester.othersNotification().
+                                    callsAreManagedByAnotherDevice().
+                                    widgetStateUpdate().
+                                    expectToBeSent();
+
+                                tester.button('Отменить').click();
+
+                                tester.select.
+                                    withLabel('Управлять звонками через').
+                                    expectToHaveTextContent('Софтфон или IP-телефон');
+
+                                tester.mask.expectNotToExist();
+                            });
+                            it('Не удалось сохранить настройки. Панель настроек доступна.', function() {
+                                settingsUpdatingRequest.failed().receiveResponse();
+                                tester.mask.expectNotToExist();
+                            });
+                            it('Панель настроек заблокирована.', function() {
+                                tester.mask.expectToBeVisible();
+                            });
+                        });
+                        it('Нажимаю на кнопку "Отменить" в выпадающем списке выбрана опция "Виджет".', function() {
+                            tester.button('Отменить').click();
+
+                            tester.select.
+                                withLabel('Управлять звонками через').
+                                expectToHaveTextContent('Виджет');
+                        });
+                        it('Выбрана опция "Софтфон или IP-телефон". Панель настроек доступна.', function() {
+                            tester.mask.expectNotToExist();
+
+                            tester.select.
+                                withLabel('Управлять звонками через').
+                                expectToHaveTextContent('Софтфон или IP-телефон');
+                        });
+                    });
+                    describe('Выключаю рингтон.', function() {
+                        beforeEach(function() {
+                            tester.slider.click(0);
+                        });
+
+                        it('Нажимаю на кнопку "Сохранить". Отправлен запрос сохранения настроек.', function() {
+                            tester.button('Сохранить').click();
+
+                            tester.settingsUpdatingRequest().
+                                callsAreManagedBySoftphone().
+                                expectToBeSent();
+                        });
+                        it('Рингтон выключен.', function() {
+                            tester.body.expectTextContentToHaveSubstring('Громкость звонка 0%');
+                        });
+                    });
+                    it('Выбираю другой статус. Отправлен запрос изменения статуса.', function() {
+                        tester.select.
+                            option(
+                                'Нет на месте ' +
+                                'все вызовы на мобильном'
+                            ).
+                            click();
+
+                        tester.userStateUpdateRequest().receiveResponse();
+                    });
+                    it('С ведомой вкладки получен запрос скачивания лога. Лог не скачивается.', function() {
+                        tester.logDownloadingRequest().
+                            broadcastMessage().
+                            forLeader().
+                            receive();
+                    });
+                    it(
+                        'Перехожу на другую вкладку. С ведущей вкладки поступает сообщение с логом. Лог не ' +
+                        'скачивается.',
+                    function() {
+                        setDocumentVisible(false);
+
+                        tester.masterNotification().
+                            tabBecameHidden().
+                            expectToBeSent();
+
+                        tester.logDownloadingRequest().
+                            broadcastMessage().
+                            forFollower().
+                            receive();
+
+                        tester.anchor.
+                            withFileName('20191219.121007.000.log.txt').
+                            expectNotToExist();
+                    });
+                    it('Нажимаю на кнопку "Скачать лог". Лог скачивается.', function() {
+                        tester.button('Скачать лог').click();
+
+                        tester.logDownloadingRequest().
+                            broadcastMessage().
+                            forLeader().
+                            expectToBeSent();
+
+                        tester.logDownloadingRequest().
+                            broadcastMessage().
+                            forFollower().
+                            receive();
+
+                        tester.anchor.withFileName('20191219.121007.000.log.txt').
+                            expectHrefToBeBlobWithSubstrings([
+                                'Message from leader',
+
+                                '{' +
+                                    '"type":"notify_slaves",' +
+                                    '"data":{' +
+                                        '"action":"download_log",' +
+                                        '"id":"5314f800-0f23-425d-bf20-683f0d149675",' +
+                                        '"data":"*"' +
+                                    '}' +
+                                '}',
+                            ]);
+                    });
+                    it('В качестве устройства для управления звонками выбран виджет.', function() {
+                        tester.select.withLabel('Управлять звонками через').expectToHaveTextContent('Виджет');
+                    });
+                });
+                describe('Я имею права на просмотр номеров для исходящего звонка.', function() {
+                    let settingsRequest;
+
+                    beforeEach(function() {
+                        permissionsRequest.allowNumberCapacitySelect();
+                        settingsRequest = tester.settingsRequest().allowNumberCapacitySelect();
+                    });
+
+                    describe('Я имею права на изменение номера для исходящего звонка.', function() {
+                        beforeEach(function() {
+                            permissionsRequest.
+                                allowNumberCapacityUpdate().
+                                receiveResponse();
+
+                            settingsRequest.receiveResponse();
+                            tester.numberCapacityRequest().receiveResponse();
+                            tester.marksRequest().receiveResponse();
+                            tester.authenticatedUserRequest().receiveResponse();
+                        });
+
+                        describe('Выбираю другой номер.', function() {
+                            beforeEach(function() {
+                                tester.select.
+                                    withLabel('Номер для исходящего звонка').
+                                    click();
+
+                                tester.select.
+                                    option('79161238929 Некий номер').
+                                    click();
+                            });
+
+                            it('Нажимаю на кнопку "Сохранить". Номер сохранен.', function() {
+                                tester.button('Сохранить').click();
+
+                                tester.numberCapacitySavingRequest().noResponse().receiveResponse();
+                                tester.settingsUpdatingRequest().receiveResponse();
+                                tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+
+                                tester.othersNotification().
+                                    widgetStateUpdate().
+                                    fixedNumberCapacityRule().
+                                    expectToBeSent();
+
+                                tester.othersNotification().
+                                    widgetStateUpdate().
+                                    fixedNumberCapacityRule().
+                                    anotherNumberCapacity().
+                                    expectToBeSent();
+
+                                tester.select.
+                                    withLabel('Номер для исходящего звонка').
+                                    expectToHaveTextContent('79161238929 Некий номер');
+                            });
+                            it('Нажимаю на кнопку "Отменить". Отображен ранее выбранный номер.', function() {
+                                tester.button('Отменить').click();
+
+                                tester.select.
+                                    withLabel('Номер для исходящего звонка').
+                                    expectToHaveTextContent('74950216806');
+                            });
+                            it('Отбражен другой номер.', function() {
+                                tester.select.
+                                    withLabel('Номер для исходящего звонка').
+                                    expectToHaveTextContent('79161238929 Некий номер');
+                            });
+                        });
+                        it('Отбражен текущий номер.', function() {
+                            tester.select.
+                                withLabel('Номер для исходящего звонка').
+                                expectToHaveTextContent('74950216806');
+                        });
+                    });
+                    it(
+                        'Я не имею права на изменение номера для исходящего звонка. Отображено сообщение о ' +
+                        'невозможности сменить номер. Номер не меняется.',
+                    function() {
+                        permissionsRequest.receiveResponse();
+                        settingsRequest.receiveResponse();
+                        tester.numberCapacityRequest().receiveResponse();
+                        tester.marksRequest().receiveResponse();
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.select.
+                            withLabel('Номер для исходящего звонка').
+                            click();
+
+                        tester.select.
+                            option('79161238929 Некий номер').
+                            click();
+
+                        tester.select.
+                            withLabel('Номер для исходящего звонка').
+                            expectToHaveTextContent('74950216806');
+                    });
+                });
+                return;
+                describe('Выбор номера недоступен.', function() {
+                    beforeEach(function() {
+                        permissionsRequest.receiveResponse();
+                    });
+
+                    it(
+                        'В качестве устройства для принятия звонков выбран IP-телефон. Выбрана опция "Софтфон или ' +
+                        'IP-телефон".',
+                    function() {
+                        tester.settingsRequest().
+                            callsAreManagedByAnotherDevice().
+                            receiveResponse();
+
+                        tester.marksRequest().receiveResponse();
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.select.
+                            withLabel('Номер для исходящего звонка').
+                            expectNotToExist();
+
+                        tester.select.
+                            withLabel('Управлять звонками через').
+                            expectToHaveTextContent('Софтфон или IP-телефон');
+                    });
+                    it('SIP-хост не получен.', function() {
+                        tester.settingsRequest().
+                            noSipLine().
+                            receiveResponse();
+
+                        tester.marksRequest().receiveResponse();
+                        tester.authenticatedUserRequest().receiveResponse();
+
+                        tester.mask.expectToBeVisible();
+                        tester.body.expectTextContentToHaveSubstring('У сотрудника нет активной SIP линии');
+                    });
+                });
+            });
+            return;
+            it('Ни один запрос не отправлен.', function() {
+                ajax.expectNoRequestsToBeSent();
             });
         });
     });

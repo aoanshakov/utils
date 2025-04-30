@@ -6542,7 +6542,9 @@ function JsTester_DomElement (
             );
         }
     };
-    this.click = function (x, y) {
+    this.click = function (x, y, logEnabled) {
+        logEnabled && console.log('Clicked', getDomElement());
+
         this.mousedown(x, y);
         this.mouseup(x, y);
         Promise.runAll(false, true);

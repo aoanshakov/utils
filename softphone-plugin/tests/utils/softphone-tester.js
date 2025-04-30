@@ -4403,9 +4403,10 @@ define(function () {
         this.outgoingCall = this.outboundCall;
 
         this.incomingCall = function () {
-            var phone = '79161234567';
+            let phone = '79161234567',
+                displayName = '';
 
-            var expectSomeStatus = function (response) {
+            let expectSomeStatus = function (response) {
                 response.expectRinging();
             };
 
@@ -4447,13 +4448,17 @@ define(function () {
                 shortPhone: function () {
                     return this.setShortNumber();
                 },
+                withDisplayNname: () {
+                    displayName = '"Шопова Златка" ';
+                    return this;
+                },
                 receive: function () {
                     sip.request().
                         setServerName('voip.uiscom.ru').
                         setMethod('INVITE').
                         setCallReceiverLogin('077368').
                         setSdpType().
-                        addHeader('From: <sip:' + phone + '@132.121.82.37:5060;user=phone>').
+                        addHeader('From: ' + displayName + '<sip:' + phone + '@132.121.82.37:5060;user=phone>').
                         addHeader('Contact: <sip:' + phone + '@132.121.82.37:5060;user=phone>').
                         setBody([
                             'v=0',
@@ -6140,6 +6145,7 @@ define(function () {
                         receiveResponse: function () {
                             respond(request);
                             Promise.runAll();
+                            spendTime(0);
                         }
                     });
                 },

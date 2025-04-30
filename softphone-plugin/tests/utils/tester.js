@@ -979,6 +979,7 @@ define(() => function ({
 
     me.refreshButton = testersFactory.createDomElementTester('.cmg-chrome-extension-settings-refresh');
     me.popupLogoutButton = testersFactory.createDomElementTester('.cmg-chrome-extension-logout');
+    me.mask = testersFactory.createDomElementTester('.cmg-mask');
 
     me.widgetSettings = () => {
         let softphoneWildcart = 'https://*.uiscom.ru/**',
@@ -2387,7 +2388,7 @@ define(() => function ({
                         },
 
                         expectToBeSent: () => me.recentCrosstabMessage().expectToContain(message),
-                        receive: () => (me.receiveCrosstabMessage(message), spendTime(0))
+                        receive: () => (me.receiveCrosstabMessage(message), spendTime(0), spendTime(0))
                     };
                 },
             }),
@@ -4068,7 +4069,7 @@ define(() => function ({
             me.history.push(`/bitrix/chats${search ? `/messages?search=${search}` : ''}`);
         } else if (application == 'bitrixSoftphoneIframe') {
             me.history.push(
-                '/bitrix/softphone?' +
+                '/bitrix/softphone/background?' +
                     'DOMAIN=sber.vlads.dev&' +
                     'PROTOCOL=1&' +
                     'LANG=ru&' +
@@ -4079,6 +4080,20 @@ define(() => function ({
                     'member_id=91a9ef2628b90ae0c5e8e2a951c5fa11&' +
                     'status=L&' +
                     'PLACEMENT=PAGE_BACKGROUND_WORKER'
+            );
+        } else if (application == 'bitrixSoftphoneSettingsIframe') {
+            me.history.push(
+                '/bitrix/softphone/settings?' +
+                    'DOMAIN=sber.vlads.dev&' +
+                    'PROTOCOL=1&' +
+                    'LANG=ru&' +
+                    'APP_SID=23f47ed487421c2dfbfc17528f295fc2&' +
+                    'AUTH_ID=6cd38e5f004e48ba004b7cc000000001000003acee2b073187698d3ea46c4082dc9991&' +
+                    'AUTH_EXPIRES=3600&' +
+                    'REFRESH_ID=5c52b65f004e48ba004b7cc00000000100000336bb35bf8b0c68a249c9e312210cdd77&' +
+                    'member_id=91a9ef2628b90ae0c5e8e2a951c5fa11&' +
+                    'status=L&' +
+                    'PLACEMENT=USER_PROFILE_MENU'
             );
         } else if (application == 'notificationsIframe') {
             me.history.push('/chrome/notifications');
@@ -5053,8 +5068,8 @@ define(() => function ({
             rootTester.querySelector('.cmg-call-button-start'));
 
         me.select = (getSelectField => {
-            const createTester = (filter = () => true) => {
-                const tester = testersFactory.createDomElementTester(() => getSelectField(filter)),
+            const createTester = (filter = () => true, querySelector = select => select) => {
+                const tester = testersFactory.createDomElementTester(() => querySelector(getSelectField(filter))),
                     click = tester.click.bind(tester);
 
                 const selectTester = testersFactory.createDomElementTester(() =>
@@ -5062,6 +5077,13 @@ define(() => function ({
 
                 tester.click = () => {
                     click();
+
+                    spendTime(0);
+                    spendTime(0);
+                    spendTime(0);
+                    spendTime(0);
+                    spendTime(0);
+                    spendTime(0);
                     spendTime(0);
                     spendTime(0);
                     spendTime(0);
@@ -5122,7 +5144,8 @@ define(() => function ({
                         matchesSelector(
                             '.ui-list-option, ' +
                             '.cmgui-list-option, ' +
-                            '.cm-chats--tags-option'
+                            '.cm-chats--tags-option, ' +
+                            '.ant-select-item-option-content'
                         ).
                         textEquals(text).
                         find();
@@ -5175,6 +5198,11 @@ define(() => function ({
             tester.first = tester.atIndex(0)
             tester.withValue = expectedValue => createTester(select => utils.getTextContent(select) == expectedValue);
 
+            tester.withLabel = label => createTester(
+                select => utils.getTextContent(select.querySelector('.cmg-settings-label')) == label,
+                select => select.querySelector('.ant-select-selection-item'),
+            );
+
             tester.withPlaceholder = expectedPlaceholder => createTester(select => utils.getTextContent(
                 select.querySelector(
                     '.ui-select-placeholder, ' +
@@ -5190,6 +5218,7 @@ define(() => function ({
             '.cmgui-select-field',
             '.ui-select',
             '.cmgui-select',
+            '.cmg-settings-select-wrapper',
         ].reduce((domElement, selector) => domElement || utils.getVisibleSilently(
             Array.prototype.slice.call(
                 (
@@ -9953,7 +9982,23 @@ define(() => function ({
     me.settingsUpdatingRequest = () => {
         const params = {};
 
-        return {
+        let respond = request => request.respondSuccessfullyWith({
+            result: true
+        });
+
+        const addResponseModifiers = me => {
+            me.failed = () => {
+                respond = function (request) {
+                    request.respondUnsuccessfullyWith('500 Internal Server Error Server got itself in trouble');
+                };
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
             incomingCallSoundDisabled() {
                 params.is_enable_incoming_call_sound = false;
                 return this
@@ -9984,6 +10029,11 @@ define(() => function ({
                 return this;
             },
 
+            callsAreManagedBySoftphone() {
+                params.is_use_widget_for_calls = true;
+                return this;
+            },
+
             autoSetStatus() {
                 params.is_need_auto_set_status = true;
                 return this;
@@ -10005,22 +10055,20 @@ define(() => function ({
                     expectToHaveMethod('PATCH').
                     expectBodyToContain(params);
 
-                return {
+                return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith({
-                            result: true
-                        });
+                        respond(request);
 
                         Promise.runAll(false, true);
                         spendTime(0)
                     }
-                }
+                });
             },
 
             receiveResponse() {
                 return this.expectToBeSent().receiveResponse();
             }
-        };
+        });
     };
 
     me.getApplicationSpecificSettings = function () {
@@ -20652,7 +20700,7 @@ define(() => function ({
             numb: '74950216806',
             number_capacity_id: 124824,
             is_use_widget_for_calls: true,
-            is_enable_incoming_call_sound: true,
+            //is_enable_incoming_call_sound: true,
             is_need_open_widget_on_call: true,
             is_need_close_widget_on_call_finished: false,
             number_capacity_usage_rule: 'auto',
@@ -20663,7 +20711,7 @@ define(() => function ({
                 }],
                 sip_channels_count: 1,
                 sip_host: 'voip.uiscom.ru',
-                sip_login: '077368_22dcb_crm_widget',
+                sip_login: '077368',
                 sip_phone: '077368',
                 sip_password: 'e2tcXhxbfr',
                 webrtc_urls: ['wss://webrtc.uiscom.ru'],
