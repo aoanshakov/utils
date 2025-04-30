@@ -97,6 +97,7 @@ define(() => function ({
     {
         let initialized = false,
             backgroundCallCardInitialized = false;
+
         const handlers = {},
             bindEvent = (event, handler) => (handlers[event] || (handlers[event] = [])).push(handler);
 
@@ -263,6 +264,9 @@ define(() => function ({
 
         window.BX24 = {
             init: handler => bindEvent('init', handler),
+            getLang: () => lang,
+            getDomain: () => 'sber.vlads.dev',
+
             placement: {
                 bindEvent,
                 call: (method, params) => calls.add(createCall(method, params))
@@ -20720,7 +20724,7 @@ define(() => function ({
                 ice_servers: [{
                     urls: ['stun:stun.uiscom.ru:19302']
                 }],
-                sip_channels_count: 1,
+                sip_channels_count: 2,
                 sip_host: 'voip.uiscom.ru',
                 sip_login: '077368',
                 sip_phone: '077368',
@@ -20732,6 +20736,11 @@ define(() => function ({
 
     me.extendOthersNotification((notification, data) => {
         const settings = getNormalizedDefaultSettings();
+
+        notification.oneChannel = function () {
+            settings.sip.sip_channels_count = 1;
+            return notification;
+        };
 
         notification.prompterCallPreparation = () => {
             data.action = 'prepare_to_prompter_call';

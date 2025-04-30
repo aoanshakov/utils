@@ -931,6 +931,7 @@ tests.addTest(options => {
                                             beforeEach(function() {
                                                 tester.othersNotification().
                                                     widgetStateUpdate().
+                                                    oneChannel().
                                                     callsAreManagedByAnotherDevice().
                                                     receive();
 
@@ -1089,6 +1090,7 @@ tests.addTest(options => {
                                     function() {
                                         tester.othersNotification().
                                             anotherWsUrl().
+                                            oneChannel().
                                             widgetStateUpdate().
                                             receive();
                                     });
@@ -1098,6 +1100,7 @@ tests.addTest(options => {
                                     function() {
                                         tester.othersNotification().
                                             noWsUrl().
+                                            oneChannel().
                                             widgetStateUpdate().
                                             receive();
                                     });
@@ -1517,6 +1520,7 @@ tests.addTest(options => {
                             'С ведомой вкладки приходят настройки. Соединеине с вебсокетом не производится.',
                         function() {
                             tester.othersNotification().
+                                oneChannel().
                                 widgetStateUpdate().
                                 receive();
 
@@ -1803,6 +1807,7 @@ tests.addTest(options => {
 
                                 tester.othersNotification().
                                     callsAreManagedByAnotherDevice().
+                                    oneChannel().
                                     widgetStateUpdate().
                                     expectToBeSent();
 
@@ -1966,11 +1971,13 @@ tests.addTest(options => {
 
                                 tester.othersNotification().
                                     widgetStateUpdate().
+                                    oneChannel().
                                     fixedNumberCapacityRule().
                                     expectToBeSent();
 
                                 tester.othersNotification().
                                     widgetStateUpdate().
+                                    oneChannel().
                                     fixedNumberCapacityRule().
                                     anotherNumberCapacity().
                                     expectToBeSent();

@@ -45,7 +45,11 @@ const {
     core,
     corePatch,
     ui,
+    uiLib,
     uiPatch,
+    uiLibSource,
+    uiLibTarget,
+    uiLibTargetLib,
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -158,32 +162,60 @@ actions['patch-node-modules'] = [
     [fileSaver, fileSaverPatch]
 ].map(([path, patch]) => `cd ${path} && patch -p1 < ${patch}`);
 
-actions['initialize'] = params => [`git config --global --add safe.directory ${application}`].concat([
-    ['omni/frontend', chats, 'stand-int0', misc],
-    ['web/logger', logger, 'master', misc],
-    ['lib/web/core', core, 'master', misc],
-    ['web/magic_ui', magicUi, 'feature/softphone', misc],
-    ['web/sip_lib', sipLib, 'stand-int0', misc],
-    ['web/uis_webrtc', uisWebRTC, 'stand-int0', sipLib],
-    ['lib/web/ui', ui, 'master', misc],
-].map(([module, path, branch, misc]) => [].
-    concat(!fs.existsSync(path) ? [
-        () => mkdir(path),
-        `cd ${path} && git clone --branch ${branch} git@gitlab.uis.dev:${module}.git .`,
-        `git config --global --add safe.directory ${path}`,
-    ] : [])).reduce((result, item) => result.concat(item), [])).concat(
-    actions['modify-code'],
-).concat(!fs.existsSync(nodeModules) ?  [
-    `${cda} npm set registry http://npm.dev.uis.st:80`,
-    `${cda} npm install --verbose`
-].concat(actions['patch-node-modules']).concat(actions['fix-permissions']) : []);
+actions['copy-ui-lib'] = [
+    rmVerbose(uiLibTarget),
+    `cp -rv ${uiLibSource} ${uiLibTarget}`,
+    `cd ${uiLibTarget} && npm install --verbose`,
+    rmVerbose(uiLib),
+    `cp -rv ${uiLibTargetLib} ${uiLib}`,
+].concat(actions['fix-permissions']);
 
-actions['remove-node-modules'] = overriding.
-    map(({ application }) => [
+actions['initialize'] = params =>
+    [`git config --global --add safe.directory ${application}`]
+        .concat(
+            [
+                ['omni/frontend', chats, 'stand-int0', misc],
+                ['web/logger', logger, 'master', misc],
+                ['lib/web/core', core, 'master', misc],
+                ['web/magic_ui', magicUi, 'feature/softphone', misc],
+                ['web/sip_lib', sipLib, 'stand-int0', misc],
+                ['web/uis_webrtc', uisWebRTC, 'stand-int0', sipLib],
+                ['lib/web/ui', ui, 'master', misc],
+            ]
+            .map(
+                ([module, path, branch, misc]) => []
+                    .concat(
+                        !fs.existsSync(path)
+                            ? [
+                                () => mkdir(path),
+                                `cd ${path} && git clone --branch ${branch} git@gitlab.uis.dev:${module}.git .`,
+                                `git config --global --add safe.directory ${path}`,
+                            ]
+                            : []
+                    )
+            )
+            .reduce((result, item) => result.concat(item), [])
+        )
+        .concat(actions['modify-code'])
+        .concat(
+            !fs.existsSync(nodeModules)
+                ? [
+                    `${cda} npm set registry http://npm.dev.uis.st:80`,
+                    `${cda} npm install --verbose`
+                ]
+                    .concat(actions['patch-node-modules'])
+                    .concat(actions['copy-ui-lib'])
+                    .concat(actions['fix-permissions'])
+                : []
+        );
+
+actions['remove-node-modules'] = overriding
+    .map(({ application }) => [
         rmVerbose(`${application}/node_modules`),
         rmVerbose(`${application}/package-lock.json`)
-    ]).
-    reduce((allCommands, commands) => allCommands.concat(commands), []);
+    ])
+    .reduce((allCommands, commands) => allCommands.concat(commands), [])
+    .concat(rmVerbose(uiLibTarget));
 
 actions['bash'] = [];
 

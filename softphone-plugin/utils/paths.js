@@ -4,7 +4,8 @@ const src = '/usr/local/src',
     tests = `${src}/tests`,
     utils = `${tests}/utils`,
     misc = `${application}/misc`,
-    sipLib = `${misc}/sip_lib`;
+    sipLib = `${misc}/sip_lib`,
+    ui = `${misc}/ui`;
 
 module.exports = {
     application,
@@ -46,6 +47,10 @@ module.exports = {
     omni: `${misc}/omni`,
     corePatch: `${tests}/core-patch.diff`,
     core: `${misc}/core`,
-    ui: `${misc}/ui`,
+    ui,
+    uiLib: `${ui}/lib`,
     uiPatch: `${tests}/ui-patch.diff`,
+    uiLibSource: `${tests}/ui-lib`,
+    uiLibTarget: `${misc}/ui-lib`,
+    uiLibTargetLib: `${misc}/ui-lib/node_modules/@comagic/ui/lib`,
 };
