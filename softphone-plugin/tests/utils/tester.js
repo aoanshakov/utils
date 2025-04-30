@@ -10124,6 +10124,17 @@ define(() => function ({
                 return me;
             };
 
+            me.noSipLine = function () {
+                response.data = {
+                    ws_url: '/ws/XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                    application_version: null,
+                    sip_login: '',
+                    sip_password: ''
+                };
+
+                return me;
+            };
+
             me.noTelephony = () => {
                 Object.keys(response.data).forEach(key => ![
                     'ws_url',

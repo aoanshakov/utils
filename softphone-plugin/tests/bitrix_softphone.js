@@ -60,7 +60,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        xdescribe('Открыта background-встройка.', function() {
+        describe('Открыта background-встройка.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'bitrixSoftphoneIframe',
@@ -1757,7 +1757,7 @@ tests.addTest(options => {
                     notificationTester.grantPermission();
                 });
 
-                xdescribe(
+                describe(
                     'В качестве устройства для принятия звонков выбран виджет. Доступ к микрофону разрешен.',
                 function() {
                     beforeEach(function() {
@@ -1924,7 +1924,10 @@ tests.addTest(options => {
 
                     beforeEach(function() {
                         permissionsRequest.allowNumberCapacitySelect();
-                        settingsRequest = tester.settingsRequest().allowNumberCapacitySelect();
+
+                        settingsRequest = tester.settingsRequest().
+                            oneChannel().
+                            allowNumberCapacitySelect();
                     });
 
                     describe('Я имею права на изменение номера для исходящего звонка.', function() {
@@ -1955,7 +1958,11 @@ tests.addTest(options => {
 
                                 tester.numberCapacitySavingRequest().noResponse().receiveResponse();
                                 tester.settingsUpdatingRequest().receiveResponse();
-                                tester.settingsRequest().allowNumberCapacitySelect().receiveResponse();
+
+                                tester.settingsRequest().
+                                    oneChannel().
+                                    allowNumberCapacitySelect().
+                                    receiveResponse();
 
                                 tester.othersNotification().
                                     widgetStateUpdate().
@@ -2014,7 +2021,6 @@ tests.addTest(options => {
                             expectToHaveTextContent('74950216806');
                     });
                 });
-                return;
                 describe('Выбор номера недоступен.', function() {
                     beforeEach(function() {
                         permissionsRequest.receiveResponse();
@@ -2052,7 +2058,6 @@ tests.addTest(options => {
                     });
                 });
             });
-            return;
             it('Ни один запрос не отправлен.', function() {
                 ajax.expectNoRequestsToBeSent();
             });
