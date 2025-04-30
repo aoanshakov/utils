@@ -1,13 +1,20 @@
 diff --git a/package.json b/package.json
-index f1a9927..26239ab 100644
+index 5b10eba..26239ab 100644
 --- a/package.json
 +++ b/package.json
-@@ -16,8 +16,6 @@
+@@ -11,15 +11,11 @@
+     "build-example": "webpack --mode development",
+     "build": "echo 'skip'"
+   },
+-  "peerDependencies": {
+-    "axios": ">= 0.24.0"
+-  },
+   "dependencies": {
+     "@babel/core": "^7.1.2",
      "@babel/plugin-proposal-class-properties": "^7.8.3",
      "@babel/plugin-proposal-private-methods": "7.13.0",
      "@babel/preset-env": "^7.1.0",
 -    "@comagic/workplace-utils": "0.0.0-int1",
--    "axios": ">= 0.24.0",
      "babel-loader": "^8.0.4",
      "exports-loader": "2.0.0",
      "janus-gateway": "1.1.4",
