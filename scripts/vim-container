@@ -12,10 +12,15 @@ profileDir=$HOME/workspace/utils/docker/vim-container/profile
 
 if [ $(uname | grep Darwin | wc -l) -eq 0 ]
 then
-    arguments="$arguments --user $(id -u) "
-    arguments="$arguments -v $profileDir:/$HOME"
-    arguments="$arguments --mount type=bind,source=/etc/passwd,target=/etc/passwd"
-    arguments="$arguments --mount type=bind,source=/etc/group,target=/etc/group"
+    #arguments="$arguments --user $(id -u) "
+    #arguments="$arguments -v $profileDir:/$HOME"
+    #arguments="$arguments --mount type=bind,source=/etc/passwd,target=/etc/passwd"
+    #arguments="$arguments --mount type=bind,source=/etc/group,target=/etc/group"
+    arguments="$arguments -v $profileDir/.config:/root/.config"
+    arguments="$arguments -v $profileDir/.gitconfig:/root/.gitconfig"
+    arguments="$arguments -v $profileDir/.vim:/root/.vim"
+    arguments="$arguments -v $profileDir/.vimrc:/root/.vimrc"
+    arguments="$arguments -v $profileDir/eslint:/root/eslint"
     arguments="$arguments --mount type=bind,source=$HOME/.ssh/id_ed25519,target=$HOME/.ssh/id_ed25519"
 else
     arguments="$arguments -v $profileDir/.config:/root/.config"

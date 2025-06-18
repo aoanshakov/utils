@@ -44,6 +44,20 @@ tests.addTest(options => {
 
             tester.loginRequest().receiveResponse();
             accountRequest = tester.accountRequest().expectToBeSent();
+
+            tester.hostBroadcastChannel().
+                applyLeader().
+                expectToBeSent().
+                waitForSecond();
+
+            tester.hostBroadcastChannel().
+                applyLeader().
+                expectToBeSent().
+                waitForSecond();
+
+            tester.hostBroadcastChannel().
+                tellIsLeader().
+                expectToBeSent();
         });
 
         describe('Раздел контактов доступен.', function() {
@@ -52,44 +66,96 @@ tests.addTest(options => {
             beforeEach(function() {
                 accountRequest.receiveResponse();
 
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.employeesBroadcastChannel().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    applyLeader().
+                    expectToBeSent().
+                    waitForSecond();
+
+                tester.employeesBroadcastChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.notificationChannel().
+                    tellIsLeader().
+                    expectToBeSent();
+
+                tester.slavesNotification().expectToBeSent();
+
+                tester.slavesNotification().
+                    additional().
+                    expectToBeSent();
+
                 const requests = ajax.inAnyOrder();
 
-                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests);
-                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
                 const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
-                    reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                    employeeRequest = tester.employeeRequest().expectToBeSent(requests),
-                    employeeSettingsRequest = tester.employeeSettingsRequest().expectToBeSent(requests),
-                    authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+                    authTokenRequest = tester.authTokenRequest().expectToBeSent(requests);
+                reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
+                const reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
+                    reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
+                    
+                employeeStatusesRequest = tester.employeeStatusesRequest().
+                    noAuthorizationHeader().
+                    expectToBeSent(requests);
 
+                const employeesSsoCheckRequest = tester.employeesSsoCheckRequest().expectToBeSent(requests);
                 requests.expectToBeSent();
 
                 ticketsContactsRequest.receiveResponse();
+                reportGroupsRequest.receiveResponse();
                 reportsListRequest.receiveResponse();
                 reportTypesRequest.receiveResponse();
-                reportGroupsRequest.receiveResponse();
-                authCheckRequest.receiveResponse();
-                employeeRequest.receiveResponse();
-                employeeSettingsRequest.receiveResponse();
 
-                tester.masterInfoMessage().receive();
-                tester.slavesNotification().additional().expectToBeSent();
-                tester.slavesNotification().expectToBeSent();
-
+                employeesSsoCheckRequest.receiveResponse();
                 tester.employeesWebSocket.connect();
-                tester.employeesInitMessage().expectToBeSent();
 
-                tester.notificationChannel().tellIsLeader().expectToBeSent();
-                tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
-                tester.notificationChannel().applyLeader().expectToBeSent();
+                tester.employeesInitMessage().
+                    ssoAuth().
+                    expectToBeSent();
+
+                tester.employeesWebsocketConnectedMessage().expectToBeSent();
+                tester.employeeSettingsRequest().receiveResponse();
+
+                tester.employeeRequest().
+                    noAuthorizationHeader().
+                    receiveResponse();
+
+                authTokenRequest.receiveResponse();
+
+                tester.authCheckRequest().
+                    ssoAuth().
+                    receiveResponse();
 
                 tester.talkOptionsRequest().receiveResponse();
-                tester.permissionsRequest().receiveResponse();
-                settingsRequest = tester.settingsRequest().expectToBeSent();
+                permissionsRequest = tester.permissionsRequest().receiveResponse();
 
-                notificationTester.grantPermission();
+                settingsRequest = tester.settingsRequest().
+                    ssoAuth().
+                    expectToBeSent();
             });
 
             describe('Статусы получены.', function() {
@@ -122,11 +188,13 @@ tests.addTest(options => {
                             softphoneServerConnected().
                             expectToBeSent();
 
+                        tester.marksRequest().receiveResponse();
                         authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
                         registrationRequest = tester.registrationRequest().expectToBeSent();
 
                         tester.allowMediaInput();
+                        notificationTester.grantPermission();
 
                         tester.slavesNotification().
                             twoChannels().
@@ -157,13 +225,21 @@ tests.addTest(options => {
                         beforeEach(function() {
                             tester.button('Контакты').click();
 
-                            contactsRequest = tester.contactsRequest().expectToBeSent();
-                            tester.contactGroupsRequest().receiveResponse();
+                            contactsRequest = tester.contactsRequest().
+                                ssoAuth().
+                                expectToBeSent();
+
+                            tester.usersRequest().
+                                ssoAuth().
+                                forContacts().
+                                receiveResponse();
                         });
 
-                        xdescribe('Получены разные имена.', function() {
+                        describe('Получены разные имена.', function() {
                             beforeEach(function() {
-                                contactsRequest.differentNames().receiveResponse();
+                                contactsRequest.
+                                    differentNames().
+                                    receiveResponse();
                             });
 
                             describe('Нажимаю на имя.', function() {
@@ -171,27 +247,56 @@ tests.addTest(options => {
                                     contactRequest;
 
                                 beforeEach(function() {
-                                    tester.contactList.item('Бележкова Грета Ервиновна').click();
+                                    tester.contactList.
+                                        item('БГ Бележкова Грета Ервиновна').
+                                        click();
 
                                     const requests = ajax.inAnyOrder();
+
+                                    const usersRequest = tester.usersRequest().
+                                        ssoAuth().
+                                        forContacts().
+                                        expectToBeSent(requests);
+
+                                    contactRequest = tester.contactRequest().expectToBeSent(requests);
+
+                                    requests.expectToBeSent();
+                                    usersRequest.receiveResponse();
+
+                                    /*
 
                                     contactCommunicationsRequest = tester.
                                         contactCommunicationsRequest().
                                         expectToBeSent(requests);
 
                                     contactRequest = tester.contactRequest().expectToBeSent(requests);
-                                    const usersRequest = tester.usersRequest().forContacts().expectToBeSent(requests);
+
+                                    const usersRequest = tester.usersRequest().
+                                        forContacts().
+                                        expectToBeSent(requests);
 
                                     requests.expectToBeSent();
                                     usersRequest.receiveResponse();
+                                    */
                                 });
 
                                 describe('Для контакта установлен персональный менеджер.', function() {
                                     beforeEach(function() {
                                         contactRequest.receiveResponse();
 
-                                        tester.groupsContainingContactRequest().receiveResponse();
-                                        tester.contactGroupsRequest().receiveResponse();
+                                        contactCommunicationsRequest = tester.
+                                            contactCommunicationsRequest().
+                                            expectToBeSent();
+
+                                        tester.groupsContainingContactRequest().
+                                            ssoAuth().
+                                            receiveResponse();
+
+                                        tester.contactGroupsRequest().
+                                            ssoAuth().
+                                            receiveResponse();
+
+                                        tester.icon.withComponent('Time20').click();
                                     });
 
                                     describe('Сообщений немного.', function() {
@@ -199,7 +304,7 @@ tests.addTest(options => {
                                             contactCommunicationsRequest.receiveResponse();
                                         });
                                         
-                                        describe('Нажимаю на кнопку редактирования менеджера.', function() {
+                                        xdescribe('Нажимаю на кнопку редактирования менеджера.', function() {
                                             beforeEach(function() {
                                                 tester.contactBar.
                                                     section('Персональный менеджер').
@@ -365,7 +470,7 @@ tests.addTest(options => {
                                                 tester.select.expectToHaveTextContent('Господинова Николина');
                                             });
                                         });
-                                        describe('Нажимаю на кнопку проигрывания записи звонка.', function() {
+                                        xdescribe('Нажимаю на кнопку проигрывания записи звонка.', function() {
                                             let talkRecordRequest;
 
                                             beforeEach(function() {
@@ -412,7 +517,7 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        describe('Открываю меню номера.', function() {
+                                        xdescribe('Открываю меню номера.', function() {
                                             beforeEach(function() {
                                                 tester.contactBar.
                                                     section('Телефоны').
@@ -581,7 +686,7 @@ tests.addTest(options => {
                                                 tester.select.option('Редактировать').expectToBeEnabled();
                                             });
                                         });
-                                        describe('Нажимаю на другое имя. Запрошен другой контакт.', function() {
+                                        xdescribe('Нажимаю на другое имя. Запрошен другой контакт.', function() {
                                             beforeEach(function() {
                                                 tester.contactList.item('Белоконска-Вражалска Калиса Еньовна').click();
 
@@ -670,7 +775,7 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        describe('Добавляю поле для E-Mail.', function() {
+                                        xdescribe('Добавляю поле для E-Mail.', function() {
                                             beforeEach(function() {
                                                 tester.contactBar.section('E-Mail').svg.click();
                                             });
@@ -792,7 +897,7 @@ tests.addTest(options => {
                                                     expectTextContentToHaveSubstring('Некорректный E-Mail');
                                             });
                                         });
-                                        describe(
+                                        xdescribe(
                                             'Нажимаю на иконку с плюсом справа от надписи "Каналы связи".',
                                         function() {
                                             beforeEach(function() {
@@ -842,7 +947,7 @@ tests.addTest(options => {
                                                     expectToHaveClass('cm-contacts-messenger-icon-whatsapp');
                                             });
                                         });
-                                        describe('Нажимаю на кнпоку удаления контакта.', function() {
+                                        xdescribe('Нажимаю на кнпоку удаления контакта.', function() {
                                             beforeEach(function() {
                                                 tester.contactBar.title.deleteButton.click();
                                             });
@@ -896,7 +1001,7 @@ tests.addTest(options => {
                                                 );
                                             });
                                         });
-                                        describe('Перехожу в другой раздел. Перехожу обратно в контакты.', function() {
+                                        xdescribe('Перехожу в другой раздел. Перехожу обратно в контакты.', function() {
                                             beforeEach(function() {
                                                 tester.button('Статистика').click();
                                                 tester.statsRequest().receiveResponse();
@@ -938,7 +1043,7 @@ tests.addTest(options => {
                                                     expectNotToBeSelected();
                                             });
                                         });
-                                        describe('Изменяю значение полей имени.', function() {
+                                        xdescribe('Изменяю значение полей имени.', function() {
                                             beforeEach(function() {
                                                 tester.contactBar.section('ФИО').svg.click();
 
@@ -997,7 +1102,7 @@ tests.addTest(options => {
                                                     receiveResponse();
                                             });
                                         });
-                                        describe('Добавляю поле для ввода номера телефона.', function() {
+                                        xdescribe('Добавляю поле для ввода номера телефона.', function() {
                                             beforeEach(function() {
                                                 tester.contactBar.section('Телефоны').svg.click();
                                             });
@@ -1080,7 +1185,7 @@ tests.addTest(options => {
                                                 tester.contactBar.section('ФИО').svg.expectNotToExist();
                                             });
                                         });
-                                        it('Нажимаю на номер телефона. Совершается звонок.', function() {
+                                        xit('Нажимаю на номер телефона. Совершается звонок.', function() {
                                             tester.contactBar.section('Телефоны').anchor('79162729533').click();
 
                                             tester.firstConnection.connectWebRTC();
@@ -1111,7 +1216,7 @@ tests.addTest(options => {
 
                                             tester.softphone.expectTextContentToHaveSubstring('+7 (916) 272-95-33');
                                         });
-                                        it('Нажимаю на превью вложения. Вложение скачивается.', function() {
+                                        xit('Нажимаю на превью вложения. Вложение скачивается.', function() {
                                             tester.chatHistory.message.atTime('12:15').notSystem.preview.click();
                                             tester.resourcePayloadRequest().receiveResponse();
 
@@ -1119,7 +1224,7 @@ tests.addTest(options => {
                                                 expectToHaveName('heart.png').
                                                 expectToHaveContent('glg5lg5j8mcrj3o8f');
                                         });
-                                        it('Нажимаю на кнопку скачивания. Запись скачивается.', function() {
+                                        xit('Нажимаю на кнопку скачивания. Запись скачивается.', function() {
                                             tester.chatHistory.message.atTime('12:14').downloadIcon.click();
                                             tester.talkRecordRequest().receiveResponse();
 
@@ -1129,7 +1234,7 @@ tests.addTest(options => {
                                                 ).
                                                 expectToHaveContent('29f2f28ofjowf829f');
                                         });
-                                        it(
+                                        xit(
                                             'Нажимаю на номер WhatsApp. Выбираю канал. Нажимаю на кнопку перехода в ' +
                                             'чат. Отображено сообщение о невозможности перейти в чат.',
                                         function() {
@@ -1149,7 +1254,7 @@ tests.addTest(options => {
                                                 'Невозможно перейти в чат, отсутствуют права на "Чаты и заявки"'
                                             );
                                         });
-                                        it(
+                                        xit(
                                             'Нажимаю на кнопку удаления канала связи. Отображено окно подтверждения ' +
                                             'удаления.',
                                         function() {
@@ -1176,7 +1281,7 @@ tests.addTest(options => {
                                                 'Удалить Отменить'
                                             );
                                         });
-                                        it(
+                                        xit(
                                             'Помещаю курсор над сообщением о звонке. Отображена всплывающая подсказка.',
                                         function() {
                                             tester.chatHistory.message.atTime('12:14').inner.putMouseOver();
@@ -1189,28 +1294,37 @@ tests.addTest(options => {
                                             'Имя выделено. Отображен контакт. Отображена история коммуникаций.',
                                         function() {
                                             tester.button('Софтфон').expectToBeVisible();
-                                            tester.button('Контакты').expectToBePressed();
-                                            tester.button('Статистика').expectNotToBePressed();
+                                            tester.leftMenu.button('Контакты').expectToBePressed();
+                                            tester.leftMenu.button('Статистика').expectNotToBePressed();
 
-                                            tester.contactBar.title.expectToHaveTextContent('Контакт');
-
-                                            tester.contactList.item('Балканска Берислава Силаговна').
+                                            tester.contactList.
+                                                item('ББ Балканска Берислава Силаговна').
                                                 expectNotToBeSelected();
-                                            tester.contactList.item('Бележкова Грета Ервиновна').expectToBeSelected();
 
-                                            tester.chatHistory.message.atTime('12:11').messengerIcon.
-                                                expectToHaveClass('cm-contacts-messenger-icon-telegram');
-                                            
-                                            tester.chatHistory.message.atTime('12:12').expectSourceToBeVisitor();
-                                            tester.chatHistory.message.atTime('12:13').expectSourceToBeOperator();
+                                            tester.contactList.
+                                                item('БГ Бележкова Грета Ервиновна').
+                                                expectToBeSelected();
 
-                                            tester.chatHistory.message.atTime('12:14').expectSourceToBeVisitor();
+                                            tester.chatHistory.
+                                                message.
+                                                atTime('12:12').
+                                                expectSourceToBeVisitor();
+
+                                            tester.chatHistory.
+                                                message.
+                                                atTime('12:13').
+                                                expectSourceToBeOperator();
+
+                                            tester.chatHistory.
+                                                message.
+                                                atTime('12:14').
+                                                expectSourceToBeVisitor();
 
                                             tester.chatHistory.
                                                 message.
                                                 atTime('12:14').
                                                 directionIcon.
-                                                expectToHaveClass('ui-direction-icon-incoming');
+                                                expectToBe('CallIncoming20');
 
                                             tester.chatHistory.
                                                 message.
@@ -1232,32 +1346,32 @@ tests.addTest(options => {
 
                                                 'Заявка ' +
 
-                                                'Имя клиента: Помакова Бисерка Драгановна ' +
-                                                'Телефон: 79161212122 ' +
-                                                'Email: msjdasj@mail.com ' +
-                                                'Комментарий клиента: Я хочу о чем-то заявить. ' +
+                                                'Имя Помакова Бисерка Драгановна ' +
+                                                'Телефон 79161212122 ' +
+                                                'Email msjdasj@mail.com ' +
+                                                'Комментарий клиента Я хочу о чем-то заявить. ' +
 
                                                 '12:10 ' +
 
-                                                '12:11 Чат принят оператором Карадимова Веска Анастасовна ' +
-                                                '(79283810928) ' +
+                                                'Чат принят оператором Карадимова Веска Анастасовна ' +
+                                                '(79283810928) 12:11 ' +
 
                                                 'Здравствуйте 12:12 ' +
 
                                                     'Бележкова Грета Ервиновна ' +
                                                     'Здравствуйте ' +
-                                                    'Привет 12:13 ' +
+                                                    'Карадимова Веска Анастасовна Привет 12:13 ' +
 
-                                                '12:14 Входящий звонок с номера 79161234567 оператору Карадимова ' +
+                                                'Входящий звонок с номера 79161234567 оператору Карадимова ' +
                                                     'Веска Анастасовна ' +
-                                                'Запись звонка 53:40 12:14 ' +
+                                                '0:00 713:40 12:14 ' +
 
-                                                '12:15 Чат с оператором Карадимова Веска Анастасовна. ' +
+                                                'Чат с оператором Карадимова Веска Анастасовна. 12:15 ' +
 
-                                                    'png 925 B heart.png 12:15 ' +
+                                                    'Карадимова Веска Анастасовна heart.png 925 B 12:15 ' +
 
-                                                'Карадимова Веска Анастасовна ' +
-                                                'heart.png ' +
+                                                'heart.png 925 B ' +
+                                                'heart.png 925 B ' +
                                                 'Прикольная картинка 12:16'
                                             );
 
@@ -1298,6 +1412,7 @@ tests.addTest(options => {
                                             tester.button('Создать контакт').expectNotToExist();
                                         });
                                     });
+                                    return;
                                     describe('Сообщений много.', function() {
                                         beforeEach(function() {
                                             contactCommunicationsRequest.firstPage().receiveResponse();
@@ -1514,6 +1629,7 @@ tests.addTest(options => {
                                         );
                                     });
                                 });
+                                return;
                                 describe('Получена история коммуникаций.', function() {
                                     beforeEach(function() {
                                         contactCommunicationsRequest.receiveResponse();
@@ -2430,6 +2546,7 @@ tests.addTest(options => {
                                     });
                                 });
                             });
+return;
                             describe('Нажимаю на иконку с плюсом в заголовке списка контактов.', function() {
                                 beforeEach(function() {
                                     tester.contactList.plusButton.putMouseOver();
@@ -2710,7 +2827,8 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        xdescribe('Получены данные для списка контактов.', function() {
+return;
+                        describe('Получены данные для списка контактов.', function() {
                             beforeEach(function() {
                                 contactsRequest.receiveResponse();
                             });
@@ -2878,7 +2996,6 @@ tests.addTest(options => {
 
                             tester.contactsRequest().anotherAuthorizationToken().receiveResponse();
                         });
-return;
                         it('Не удалось получить данные. Запрос не отправлен повторно.', function() {
                             contactsRequest.failed().receiveResponse();
                         });

@@ -23,3 +23,15 @@ vim.api.nvim_create_autocmd("FileType", {
     })
   end,
 })
+
+-- Basic LSP setup for Rust (rust-analyzer)
+vim.api.nvim_create_autocmd("FileType", {
+  pattern = "rust",
+  callback = function()
+    vim.lsp.start({
+      name = "rust-analyzer",
+      cmd = { "rust-analyzer" },  -- Ensure rust-analyzer is available in PATH
+      root_dir = vim.fs.dirname(vim.fs.find({ "Cargo.toml" }, { upward = true })[1]),  -- Find the root directory based on Cargo.toml
+    })
+  end,
+})

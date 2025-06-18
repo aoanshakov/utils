@@ -12,6 +12,7 @@ Plug 'hrsh7th/cmp-buffer'
 Plug 'hrsh7th/cmp-path'
 Plug 'hrsh7th/cmp-cmdline'
 Plug 'hrsh7th/nvim-cmp'
+Plug 'simrat39/rust-tools.nvim'
 
 " For vsnip users.
 Plug 'hrsh7th/cmp-vsnip'
@@ -169,6 +170,7 @@ vnoremap ;rw :s/<c-r>j/<c-r>k/gc<cr>
 nnoremap ;rw :%s/<c-r>j/<c-r>k/gc<cr>
 nnoremap ;se :lua vim.diagnostic.open_float()<cr>
 nnoremap ;od :lua vim.lsp.buf.definition()<cr>
+nnoremap ;ao :lua vim.lsp.buf.references()<cr>
 
 nnoremap ;jv /\<var <cr>
 nnoremap ;kv ?\<var <cr>

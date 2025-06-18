@@ -48,3 +48,8 @@ electron-updater/updater/
 electron-updater/publisher/node_modules
 electron-updater/tests-server-log.log
 electron-updater/tests-server.pid
+
+rust/file_manager/target
+rust/guessing_game/target
+rust/file_manager/main
+rust/guessing_game/main

@@ -16,6 +16,7 @@ tests.addTest(options => {
         unload,
     } = options;
 
+    
     describe('Открываю Битрикс24 c приложением софтфона.', function() {
         let tester;
 
@@ -24,7 +25,7 @@ tests.addTest(options => {
         });
 
         afterEach(function() {
-            tester.BX24.recentCall().expectNotToExist();
+            tester.BX24.nextCall().expectNotToExist();
             postMessages.nextMessage().expectNotToExist();
 
             tester.restoreSoftphoneIFrameContentWindow();
@@ -121,8 +122,8 @@ tests.addTest(options => {
                                 spendTime(1000);
                                 spendTime(0);
 
-                                tester.slavesNotification().
-                                    additional().
+                                tester.masterInfoMessage().
+                                    tellIsLeader().
                                     expectToBeSent();
 
                                 tester.slavesNotification().
@@ -130,8 +131,8 @@ tests.addTest(options => {
                                     oneChannel().
                                     expectToBeSent();
 
-                                tester.masterInfoMessage().
-                                    tellIsLeader().
+                                tester.slavesNotification().
+                                    additional().
                                     expectToBeSent();
 
                                 tester.connectEventsWebSocket();
@@ -201,7 +202,8 @@ tests.addTest(options => {
                                                 tester.BX24.incomingCall();
                                                 incomingCall = tester.incomingCall().receive();
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                                tester.BX24.nextCall().
+                                                    expectToHaveMethod('CallCardSetUiState').
                                                     expectParamsToContain({
                                                         uiState: 'incoming'
                                                     });
@@ -218,7 +220,13 @@ tests.addTest(options => {
                                                 tester.outCallEvent().receive();
                                                 tester.outCallEvent().slavesNotification().expectToBeSent();
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
+                                                spendTime(0);
+                                                spendTime(0);
+                                                spendTime(0);
+                                                spendTime(0);
+                                                spendTime(0);
+
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
                                                     expectParamsToContain({
                                                         statusText:
                                                             'ВН: +7 (916) 123-45-68, ' +
@@ -242,7 +250,7 @@ tests.addTest(options => {
                                                     confirmed().
                                                     expectToBeSent();
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                                     expectParamsToContain({
                                                         uiState: 'connected'
                                                     });
@@ -259,19 +267,19 @@ tests.addTest(options => {
                                                 });
 
                                                 describe('Номер оператора не найден.', function() {
-                                                    let recentCall;
+                                                    let nextCall;
 
                                                     beforeEach(function() {
                                                         userRequest.noShortNumber().receiveResponse();
 
-                                                        recentCall = tester.BX24.recentCall();
-
                                                         tester.BX24.
-                                                            recentCall().
+                                                            nextCall().
                                                             expectToHaveMethod('CallCardSetUiState').
                                                             expectParamsToContain({
                                                                 uiState: 'connectingOutgoing'
                                                             });
+
+                                                        nextCall = tester.BX24.nextCall();
                                                     });
 
                                                     it(
@@ -281,7 +289,10 @@ tests.addTest(options => {
                                                         tester.BX24.close();
                                                         
                                                         incomingCall.expectByeToBeSent();
-                                                        tester.BX24.recentCall().expectToHaveMethod('CallCardClose');
+
+                                                        tester.BX24.
+                                                            nextCall().
+                                                            expectToHaveMethod('CallCardClose');
 
                                                         tester.slavesNotification().
                                                             oneChannel().
@@ -292,7 +303,7 @@ tests.addTest(options => {
                                                         tester.BX24.incomingCall();
                                                         incomingCall = tester.incomingCall().receive();
 
-                                                        tester.BX24.recentCall().
+                                                        tester.BX24.nextCall().
                                                             expectToHaveMethod('CallCardSetUiState').
                                                             expectParamsToContain({
                                                                 uiState: 'incoming'
@@ -310,7 +321,7 @@ tests.addTest(options => {
                                                         tester.outCallEvent().receive();
                                                         tester.outCallEvent().slavesNotification().expectToBeSent();
 
-                                                        tester.BX24.recentCall().
+                                                        tester.BX24.nextCall().
                                                             expectToHaveMethod('CallCardSetStatusText').
                                                             expectParamsToContain({
                                                                 statusText:
@@ -319,7 +330,7 @@ tests.addTest(options => {
                                                             });
                                                     });
                                                     it('Отображено сообщение об ошибке.', function() {
-                                                        recentCall.
+                                                        nextCall.
                                                             expectToHaveMethod('CallCardSetStatusText').
                                                             expectParamsToContain({
                                                                 statusText: 'Не удалось найти номер оператора'
@@ -404,7 +415,7 @@ tests.addTest(options => {
                                                         holded().
                                                         expectToBeSent();
 
-                                                    tester.BX24.recentCall().expectToHaveMethod('CallCardSetHold').
+                                                    tester.BX24.nextCall().expectToHaveMethod('CallCardSetHold').
                                                         expectParamsToContain({
                                                             held: true
                                                         });
@@ -425,7 +436,7 @@ tests.addTest(options => {
                                                         confirmed().
                                                         expectToBeSent();
 
-                                                    tester.BX24.recentCall().expectToHaveMethod('CallCardSetHold').
+                                                    tester.BX24.nextCall().expectToHaveMethod('CallCardSetHold').
                                                         expectParamsToContain({
                                                             held: false
                                                         });
@@ -451,7 +462,7 @@ tests.addTest(options => {
                                                         muted().
                                                         expectToBeSent();
 
-                                                    tester.BX24.recentCall().expectToHaveMethod('CallCardSetMute').
+                                                    tester.BX24.nextCall().expectToHaveMethod('CallCardSetMute').
                                                         expectParamsToContain({
                                                             muted: true  
                                                         });
@@ -470,7 +481,7 @@ tests.addTest(options => {
                                                         confirmed().
                                                         expectToBeSent();
 
-                                                    tester.BX24.recentCall().expectToHaveMethod('CallCardSetMute').
+                                                    tester.BX24.nextCall().expectToHaveMethod('CallCardSetMute').
                                                         expectParamsToContain({
                                                             muted: false  
                                                         });
@@ -480,13 +491,12 @@ tests.addTest(options => {
                                                 it('Собеседник не слышит голос пользователя.', function() {
                                                     tester.firstConnection.expectToBeMute();
                                                 });
-                                            }
-                                            );
+                                            });
                                             it('Пользватель завершает звонок.', function() {
                                                 tester.BX24.close();
                                                 
                                                 incomingCall.expectByeToBeSent();
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardClose');
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardClose');
 
                                                 tester.slavesNotification().
                                                     oneChannel().
@@ -498,7 +508,7 @@ tests.addTest(options => {
                                                 tester.BX24.hangup();
                                                 
                                                 incomingCall.expectByeToBeSent();
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardClose');
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardClose');
 
                                                 tester.slavesNotification().
                                                     oneChannel().
@@ -510,7 +520,7 @@ tests.addTest(options => {
                                                 tester.BX24.skip();
                                                 
                                                 incomingCall.expectByeToBeSent();
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardClose');
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardClose');
 
                                                 tester.slavesNotification().
                                                     oneChannel().
@@ -520,16 +530,21 @@ tests.addTest(options => {
                                             });
                                             it('Закрываю вкладку. Звонок завешается.', function() {
                                                 unload();
-                                                //tester.masterInfoMessage().leaderDeath().expectToBeSent();
-                                                
-                                                incomingCall.expectByeToBeSent();
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardClose');
 
                                                 tester.slavesNotification().
                                                     oneChannel().
                                                     available().
                                                     ended().
                                                     expectToBeSent();
+
+                                                /*
+                                                tester.masterInfoMessage().
+                                                    leaderDeath().
+                                                    expectToBeSent();
+                                                */
+                                                
+                                                incomingCall.expectByeToBeSent();
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardClose');
                                             });
                                             it('Нажимаю на кнопку в диалпаде.', function() {
                                                 tester.BX24.dtmf('2');
@@ -572,8 +587,13 @@ tests.addTest(options => {
                                                 function() {
                                                     tester.BX24.outgoingCall();
 
+                                                    tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
+                                                        expectParamsToContain({
+                                                            uiState: 'incoming'
+                                                        });
+
                                                     tester.BX24.
-                                                        recentCall().
+                                                        nextCall().
                                                         expectToHaveMethod('CallCardSetStatusText').
                                                         expectParamsToContain({
                                                             statusText:
@@ -581,27 +601,23 @@ tests.addTest(options => {
                                                                 'Сценарий ВАТС: Некий сценарий'
                                                         });
 
-                                                    tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
-                                                        expectParamsToContain({
-                                                            uiState: 'incoming'
-                                                        });
                                                 });
                                                 it(
                                                     'Открыта карточка звонка. Отображена информация о звонке.',
                                                 function() {
                                                     tester.BX24.incomingCall();
 
+                                                    tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
+                                                        expectParamsToContain({
+                                                            uiState: 'incoming'
+                                                        });
+
                                                     tester.BX24.
-                                                        recentCall().
+                                                        nextCall().
                                                         expectToHaveMethod('CallCardSetStatusText').
                                                         expectParamsToContain({
                                                             statusText: 'ВН: +7 (916) 123-45-68, ' +
                                                                 'Сценарий ВАТС: Некий сценарий'
-                                                        });
-
-                                                    tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
-                                                        expectParamsToContain({
-                                                            uiState: 'incoming'
                                                         });
                                                 });
                                             });
@@ -640,18 +656,18 @@ tests.addTest(options => {
 
                                                     tester.BX24.incomingCall();
 
+                                                    tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
+                                                        expectParamsToContain({
+                                                            uiState: 'incoming'
+                                                        });
+
                                                     tester.BX24.
-                                                        recentCall().
+                                                        nextCall().
                                                         expectToHaveMethod('CallCardSetStatusText').
                                                         expectParamsToContain({
                                                             statusText:
                                                                 'ВН: +7 (916) 123-45-68, ' +
                                                                 'Сценарий ВАТС: Некий сценарий'
-                                                        });
-
-                                                    tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
-                                                        expectParamsToContain({
-                                                            uiState: 'incoming'
                                                         });
 
                                                     notificationTester.grantPermission().
@@ -673,14 +689,14 @@ tests.addTest(options => {
                                             beforeEach(function() {
                                                 tester.BX24.outgoingCall();
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
-                                                    expectParamsToContain({
-                                                        statusText: 'Продолжительность дозвона 00:00 мин.'
-                                                    });
-
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                                     expectParamsToContain({
                                                         uiState: 'connectingOutgoing'
+                                                    });
+
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                                    expectParamsToContain({
+                                                        statusText: 'Продолжительность дозвона 00:00 мин.'
                                                     });
 
                                                 tester.firstConnection.connectWebRTC();
@@ -700,7 +716,7 @@ tests.addTest(options => {
                                                 setNow('2019-12-19T12:11:21');
                                                 spendTime(1000);
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
                                                     expectParamsToContain({
                                                         statusText: 'Продолжительность дозвона 01:15 мин.'
                                                     });
@@ -708,7 +724,7 @@ tests.addTest(options => {
                                                 setNow('2019-12-19T14:11:21');
                                                 spendTime(1000);
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
                                                     expectParamsToContain({
                                                         statusText: 'Продолжительность дозвона 02:01:15 часов'
                                                     });
@@ -730,18 +746,18 @@ tests.addTest(options => {
                                                     confirmed().
                                                     expectToBeSent();
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
-                                                    expectParamsToContain({
-                                                        statusText: ''
-                                                    });
-
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                                     expectParamsToContain({
                                                         uiState: 'connected'
                                                     });
+
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                                    expectParamsToContain({
+                                                        statusText: ''
+                                                    });
                                             });
                                             it('Ни один вызов метода BX24 не был вызван.', function() {
-                                                tester.BX24.recentCall().expectNotToExist();
+                                                tester.BX24.nextCall().expectNotToExist();
                                             });
                                         });
                                         describe(
@@ -755,7 +771,7 @@ tests.addTest(options => {
 
                                             it(
                                                 'ошибку. Открывается карточка исходящего звонка. Поступил входящий ' +
-                                                'звонок. Карточка становится карточкой входящего звонка.',
+                                                'звонок. Карточка становится карточкой ошибки.',
                                             function() {
                                                 callCardStateChangingMessage.showErrorCallCard().receive();
 
@@ -766,7 +782,7 @@ tests.addTest(options => {
 
                                                 tester.BX24.outgoingCall();
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                                     expectParamsToContain({
                                                         uiState: 'error'
                                                     });
@@ -784,7 +800,7 @@ tests.addTest(options => {
                                                 tester.outCallEvent().receive();
                                                 tester.outCallEvent().slavesNotification().expectToBeSent();
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
                                                     expectParamsToContain({
                                                         statusText:
                                                             'ВН: +7 (916) 123-45-68, ' +
@@ -803,7 +819,7 @@ tests.addTest(options => {
 
                                                 tester.BX24.outgoingCall();
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                                     expectParamsToContain({
                                                         uiState: 'error'
                                                     });
@@ -821,16 +837,16 @@ tests.addTest(options => {
                                                 tester.outCallEvent().receive();
                                                 tester.outCallEvent().slavesNotification().expectToBeSent();
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
+                                                    expectParamsToContain({
+                                                        uiState: 'incoming'
+                                                    });
+
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
                                                     expectParamsToContain({
                                                         statusText:
                                                             'ВН: +7 (916) 123-45-68, ' +
                                                             'Сценарий ВАТС: Некий сценарий'
-                                                    });
-
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
-                                                    expectParamsToContain({
-                                                        uiState: 'incoming'
                                                     });
                                             });
                                         });
@@ -840,7 +856,7 @@ tests.addTest(options => {
                                             beforeEach(function() {
                                                 tester.BX24.callListMode().outgoingCall();
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                                     expectParamsToContain({
                                                         uiState: 'outgoing'
                                                     });
@@ -853,14 +869,14 @@ tests.addTest(options => {
                                             function() {
                                                 tester.BX24.entityChanged();
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
-                                                    expectParamsToContain({
-                                                        statusText: 'Продолжительность дозвона 00:00 мин.'
-                                                    });
-
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                                     expectParamsToContain({
                                                         uiState: 'connectingOutgoing'
+                                                    });
+
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                                    expectParamsToContain({
+                                                        statusText: 'Продолжительность дозвона 00:00 мин.'
                                                     });
 
                                                 tester.firstConnection.connectWebRTC();
@@ -883,26 +899,26 @@ tests.addTest(options => {
                                                     failed().
                                                     expectToBeSent();
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
-                                                    expectParamsToContain({
-                                                        statusText: ''
-                                                    });
-
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                                     expectParamsToContain({
                                                         uiState: 'outgoing'
                                                     });
 
-                                                tester.BX24.anotherPhone().entityChanged();
-
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
                                                     expectParamsToContain({
-                                                        statusText: 'Продолжительность дозвона 00:00 мин.'
+                                                        statusText: ''
                                                     });
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                                tester.BX24.anotherPhone().entityChanged();
+
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                                     expectParamsToContain({
                                                         uiState: 'connectingOutgoing'
+                                                    });
+
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                                    expectParamsToContain({
+                                                        statusText: 'Продолжительность дозвона 00:00 мин.'
                                                     });
 
                                                 tester.secondConnection.connectWebRTC();
@@ -924,7 +940,7 @@ tests.addTest(options => {
                                                     expectToBeSent();
                                             });
                                             it('Исходящий звонок не совершается.', function() {
-                                                tester.BX24.recentCall().expectNotToExist();
+                                                tester.BX24.nextCall().expectNotToExist();
                                             });
                                         });
                                         describe('Включен режим "IP-телефон".', function() {
@@ -949,28 +965,95 @@ tests.addTest(options => {
                                                 tester.webrtcWebsocket.finishDisconnecting();
                                             });
 
-                                            it(
+                                            describe(
                                                 'Открывается карточка звонка со скрытым новером. Получено событие ' +
-                                                'изменения сущности. Исходящий звонок производится с помощью ' +
-                                                'click-to-call.',
+                                                'изменения сущности.',
                                             function() {
-                                                tester.BX24.callListMode().outgoingCall();
+                                                let widgetSettingsRequest;
 
-                                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                                beforeEach(function() {
+                                                    tester.BX24.callListMode().outgoingCall();
+
+                                                    tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
+                                                        expectParamsToContain({
+                                                            uiState: 'outgoing'
+                                                        });
+
+                                                    tester.BX24.entityChanged();
+
+                                                    widgetSettingsRequest = tester.widgetSettings().
+                                                        bitrix().
+                                                        request().
+                                                        expectToBeSent();
+                                                });
+
+                                                it('Не удалось получить настройки исходящего звонка.', function() {
+                                                    widgetSettingsRequest.
+                                                        noData().
+                                                        receiveResponse();
+
+                                                    tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
+                                                        expectParamsToContain({
+                                                            uiState: 'connectingOutgoing'
+                                                        });
+
+                                                    tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                                        expectParamsToContain({
+                                                            statusText: 'Отстутствуют настройки для вызова IP-телефона',
+                                                        });
+                                                });
+                                                it(
+                                                    'Получены настройки исходящего звонка. Исходящий звонок ' +
+                                                    'производится с помощью click-to-call.',
+                                                function() {
+                                                    widgetSettingsRequest.receiveResponse();
+                                                    tester.click2CallRequest().receiveResponse();
+                                                });
+                                            });
+                                            it('Софтон открыт в другом окне.', function() {
+                                                tester.eventsWebSocket.disconnect(4429);
+
+                                                tester.slavesNotification().
+                                                    userDataFetched().
+                                                    oneChannel().
+                                                    appAlreadyOpened().
+                                                    disabled().
+                                                    microphoneAccessGranted().
+                                                    expectToBeSent();
+
+                                                tester.authLogoutRequest().receiveResponse();
+
+                                                tester.BX24.outgoingCall();
+
+                                                tester.widgetSettings().
+                                                    bitrix().
+                                                    request().
+                                                    receiveResponse();
+
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                                     expectParamsToContain({
-                                                        uiState: 'outgoing'
+                                                        uiState: 'connectingOutgoing'
                                                     });
 
-                                                tester.BX24.entityChanged();
-                                                tester.startCallRequest().callListMode().expectToBeSent();
+                                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                                    expectParamsToContain({
+                                                        statusText:
+                                                            'Ошибка, данный аккаунт уже открыт в другом окне ' +
+                                                            'браузера. Закройте другие окна с Б24 и обновите страницу'
+                                                    });
                                             });
                                             it(
                                                 'Открывается карточка звонка. Исходящий звонок производится с ' +
                                                 'помощью click-to-call.',
                                             function() {
                                                 tester.BX24.outgoingCall();
-                                                tester.startCallRequest().expectToBeSent();
 
+                                                tester.widgetSettings().
+                                                    bitrix().
+                                                    request().
+                                                    receiveResponse();
+
+                                                tester.click2CallRequest().receiveResponse();
                                                 tester.BX24.entityChanged();
                                             });
                                         });
@@ -1007,14 +1090,14 @@ tests.addTest(options => {
 
                                             tester.BX24.outgoingCall();
 
-                                            tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
-                                                expectParamsToContain({
-                                                    statusText: 'Продолжительность дозвона 00:00 мин.'
-                                                });
-
-                                            tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                            tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                                 expectParamsToContain({
                                                     uiState: 'connectingOutgoing'
+                                                });
+
+                                            tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                                expectParamsToContain({
+                                                    statusText: 'Продолжительность дозвона 00:00 мин.'
                                                 });
                                                 
                                             tester.firstConnection.connectWebRTC();
@@ -1039,7 +1122,7 @@ tests.addTest(options => {
                                         tester.BX24.initialize();
                                         tester.BX24.incomingCall();
 
-                                        tester.BX24.recentCall().
+                                        tester.BX24.nextCall().
                                             expectToHaveMethod('CallCardSetUiState').
                                             expectParamsToContain({
                                                 uiState: 'incoming'
@@ -1074,14 +1157,14 @@ tests.addTest(options => {
                                         tester.BX24.initialize();
                                         tester.BX24.outgoingCall();
 
-                                        tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
-                                            expectParamsToContain({
-                                                statusText: 'Отсутствует интернет соединение'
-                                            });
-
-                                        tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                        tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                             expectParamsToContain({
                                                 uiState: 'connectingOutgoing'
+                                            });
+
+                                        tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                            expectParamsToContain({
+                                                statusText: 'Отсутствует интернет соединение'
                                             });
                                     });
                                     it(
@@ -1128,16 +1211,16 @@ tests.addTest(options => {
                                     function() {
                                         tester.BX24.incomingCall();
 
-                                        tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
+                                        tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
+                                            expectParamsToContain({
+                                                uiState: 'connectingOutgoing'
+                                            });
+
+                                        tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
                                             expectParamsToContain({
                                                 statusText:
                                                     'Ошибка, отсутствует доступ к микрофону. Для продолжения работы ' +
                                                     'необходимо предоставить доступ к микрофону и обновить страницу'
-                                            });
-
-                                        tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
-                                            expectParamsToContain({
-                                                uiState: 'connectingOutgoing'
                                             });
                                     });
                                     it(
@@ -1146,16 +1229,16 @@ tests.addTest(options => {
                                     function() {
                                         tester.BX24.outgoingCall();
 
-                                        tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
+                                        tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
+                                            expectParamsToContain({
+                                                uiState: 'connectingOutgoing'
+                                            });
+
+                                        tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
                                             expectParamsToContain({
                                                 statusText:
                                                     'Ошибка, отсутствует доступ к микрофону. Для продолжения работы ' +
                                                     'необходимо предоставить доступ к микрофону и обновить страницу'
-                                            });
-
-                                        tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
-                                            expectParamsToContain({
-                                                uiState: 'connectingOutgoing'
                                             });
                                     });
                                 });
@@ -1213,14 +1296,14 @@ tests.addTest(options => {
                                 tester.BX24.initialize();
                                 tester.BX24.outgoingCall();
 
-                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
-                                    expectParamsToContain({
-                                        statusText: 'SIP-линия не зарегистрирована'
-                                    });
-
-                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                     expectParamsToContain({
                                         uiState: 'connectingOutgoing'
+                                    });
+
+                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                    expectParamsToContain({
+                                        statusText: 'SIP-линия не зарегистрирована'
                                     });
                             });
                         });
@@ -1254,14 +1337,14 @@ tests.addTest(options => {
                                         sending().
                                         receive();
 
-                                    tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
-                                        expectParamsToContain({
-                                            statusText: 'Продолжительность дозвона 00:00 мин.'
-                                        });
-
-                                    tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                    tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                         expectParamsToContain({
                                             uiState: 'connectingOutgoing'
+                                        });
+
+                                    tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                        expectParamsToContain({
+                                            statusText: 'Продолжительность дозвона 00:00 мин.'
                                         });
                                 });
 
@@ -1273,7 +1356,7 @@ tests.addTest(options => {
                                             ended().
                                             receive();
 
-                                        tester.BX24.recentCall().expectToHaveMethod('CallCardClose');
+                                        tester.BX24.nextCall().expectToHaveMethod('CallCardClose');
                                     });
 
                                     describe('Поступил входящий звонок. Получена информация о звонке.', function() {
@@ -1294,18 +1377,18 @@ tests.addTest(options => {
                                         function() {
                                             tester.BX24.incomingCall();
 
-                                            tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
-                                                expectParamsToContain({
-                                                    statusText: 'ВН: +7 (916) 123-45-68, Сценарий ВАТС: Некий сценарий'
-                                                });
-
-                                            tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                            tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                                 expectParamsToContain({
                                                     uiState: 'incoming'
                                                 });
+
+                                            tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                                expectParamsToContain({
+                                                    statusText: 'ВН: +7 (916) 123-45-68, Сценарий ВАТС: Некий сценарий'
+                                                });
                                         });
                                         it('Ни один метод BX24 не был вызван.', function() {
-                                            tester.BX24.recentCall().expectNotToExist();
+                                            tester.BX24.nextCall().expectNotToExist();
                                         });
                                     });
                                     it(
@@ -1319,15 +1402,15 @@ tests.addTest(options => {
                                             receive();
 
                                         tester.BX24.outgoingCall();
-
-                                        tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
-                                            expectParamsToContain({
-                                                statusText: 'Продолжительность дозвона 00:00 мин.'
-                                            });
                                         
-                                        tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                        tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                             expectParamsToContain({
                                                 uiState: 'connectingOutgoing'
+                                            });
+
+                                        tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                            expectParamsToContain({
+                                                statusText: 'Продолжительность дозвона 00:00 мин.'
                                             });
                                     });
                                 });
@@ -1345,14 +1428,14 @@ tests.addTest(options => {
                                             confirmed().
                                             receive();
 
-                                        tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
-                                            expectParamsToContain({
-                                                statusText: ''
-                                            });
-
-                                        tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                                        tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                             expectParamsToContain({
                                                 uiState: 'connected'
+                                            });
+
+                                        tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                            expectParamsToContain({
+                                                statusText: ''
                                             });
                                     });
 
@@ -1368,7 +1451,7 @@ tests.addTest(options => {
                                                 muted().
                                                 receive();
 
-                                            tester.BX24.recentCall().expectToHaveMethod('CallCardSetMute').
+                                            tester.BX24.nextCall().expectToHaveMethod('CallCardSetMute').
                                                 expectParamsToContain({
                                                     muted: true  
                                                 });
@@ -1383,7 +1466,7 @@ tests.addTest(options => {
                                                 confirmed().
                                                 receive();
 
-                                            tester.BX24.recentCall().expectToHaveMethod('CallCardSetMute').
+                                            tester.BX24.nextCall().expectToHaveMethod('CallCardSetMute').
                                                 expectParamsToContain({
                                                     muted: false
                                                 });
@@ -1396,7 +1479,7 @@ tests.addTest(options => {
                                             tester.masterNotification().mute().expectToBeSent();
                                         });
                                         it('Ни один метод SDK не был вызван.', function() {
-                                            tester.BX24.recentCall().expectNotToExist();
+                                            tester.BX24.nextCall().expectNotToExist();
                                         });
                                     });
                                     describe(
@@ -1411,7 +1494,7 @@ tests.addTest(options => {
                                                 holded().
                                                 receive();
 
-                                            tester.BX24.recentCall().expectToHaveMethod('CallCardSetHold').
+                                            tester.BX24.nextCall().expectToHaveMethod('CallCardSetHold').
                                                 expectParamsToContain({
                                                     held: true
                                                 });
@@ -1427,13 +1510,13 @@ tests.addTest(options => {
                                                 confirmed().
                                                 receive();
 
-                                            tester.BX24.recentCall().expectToHaveMethod('CallCardSetHold').
+                                            tester.BX24.nextCall().expectToHaveMethod('CallCardSetHold').
                                                 expectParamsToContain({
                                                     held: false
                                                 });
                                         });
                                         it('Ни один метод SDK не был вызван.', function() {
-                                            tester.BX24.recentCall().expectNotToExist();
+                                            tester.BX24.nextCall().expectNotToExist();
                                         });
                                     });
                                 });
@@ -1457,15 +1540,15 @@ tests.addTest(options => {
 
                                 tester.BX24.incomingCall();
 
-                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
+                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
+                                    expectParamsToContain({
+                                        uiState: 'connectingOutgoing'
+                                    });
+
+                                tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
                                     expectParamsToContain({
                                         statusText: 'Ошибка, отсутствует доступ к микрофону. Для продолжения работы ' +
                                             'необходимо предоставить доступ к микрофону и обновить страницу'
-                                    });
-
-                                tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
-                                    expectParamsToContain({
-                                        uiState: 'connectingOutgoing'
                                     });
 
                                 tester.BX24.skip();
@@ -1482,7 +1565,7 @@ tests.addTest(options => {
                                     microphoneAccessDenied().
                                     receive();
 
-                                tester.BX24.recentCall().expectToHaveMethod('CallCardClose');
+                                tester.BX24.nextCall().expectToHaveMethod('CallCardClose');
                             });
                         });
                     });
@@ -1491,14 +1574,14 @@ tests.addTest(options => {
                             spendTime(1000);
                             spendTime(0);
 
-                            tester.slavesNotification().
-                                additional().
+                            tester.masterInfoMessage().
+                                tellIsLeader().
                                 expectToBeSent();
 
                             tester.slavesNotification().expectToBeSent();
 
-                            tester.masterInfoMessage().
-                                tellIsLeader().
+                            tester.slavesNotification().
+                                additional().
                                 expectToBeSent();
                         });
 
@@ -1506,14 +1589,14 @@ tests.addTest(options => {
                             tester.BX24.initialize();
                             tester.BX24.outgoingCall();
 
-                            tester.BX24.recentCall().expectToHaveMethod('CallCardSetStatusText').
-                                expectParamsToContain({
-                                    statusText: 'Приложение не успело загрузиться, пожалуйста подождите'
-                                });
-
-                            tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').
+                            tester.BX24.nextCall().expectToHaveMethod('CallCardSetUiState').
                                 expectParamsToContain({
                                     uiState: 'connectingOutgoing'
+                                });
+
+                            tester.BX24.nextCall().expectToHaveMethod('CallCardSetStatusText').
+                                expectParamsToContain({
+                                    statusText: 'Приложение не успело загрузиться, пожалуйста подождите'
                                 });
                         });
                         it(
@@ -1536,8 +1619,8 @@ tests.addTest(options => {
                         spendTime(1000);
                         spendTime(0);
 
-                        tester.slavesNotification().
-                            additional().
+                        tester.masterInfoMessage().
+                            tellIsLeader().
                             expectToBeSent();
 
                         tester.slavesNotification().
@@ -1545,8 +1628,8 @@ tests.addTest(options => {
                             oneChannel().
                             expectToBeSent();
 
-                        tester.masterInfoMessage().
-                            tellIsLeader().
+                        tester.slavesNotification().
+                            additional().
                             expectToBeSent();
 
                         tester.connectEventsWebSocket();
@@ -1600,9 +1683,11 @@ tests.addTest(options => {
                         tester.incomingCall().receive();
                         tester.BX24.incomingCall();
 
-                        tester.BX24.recentCall().expectToHaveMethod('CallCardSetUiState').expectParamsToContain({
-                            uiState: 'incoming'
-                        });
+                        tester.BX24.nextCall().
+                            expectToHaveMethod('CallCardSetUiState').
+                            expectParamsToContain({
+                                uiState: 'incoming'
+                            });
 
                         tester.numaRequest().receiveResponse();
 
@@ -1631,14 +1716,14 @@ tests.addTest(options => {
                             expectToBeSent().
                             waitForSecond();;
 
-                        tester.slavesNotification().
-                            additional().
+                        tester.masterInfoMessage().
+                            tellIsLeader().
                             expectToBeSent();
 
                         tester.slavesNotification().expectToBeSent();
 
-                        tester.masterInfoMessage().
-                            tellIsLeader().
+                        tester.slavesNotification().
+                            additional().
                             expectToBeSent();
 
                         authTokenRequest.
@@ -1920,8 +2005,17 @@ tests.addTest(options => {
                                 '}',
                             ]);
                     });
+                    it('Нажимаю на кнопку выхода. Открыта страница выхода.', function() {
+                        tester.logoutButton.click();
+
+                        windowOpener.expectToHavePath(
+                            'https://uc-sso-amocrm-prod-api.uiscom.ru/bitrix/logout'
+                        );
+                    });
                     it('В качестве устройства для управления звонками выбран виджет.', function() {
-                        tester.select.withLabel('Управлять звонками через').expectToHaveTextContent('Виджет');
+                        tester.select.
+                            withLabel('Управлять звонками через').
+                            expectToHaveTextContent('Виджет');
                     });
                 });
                 describe('Я имею права на просмотр номеров для исходящего звонка.', function() {
@@ -1973,13 +2067,13 @@ tests.addTest(options => {
                                     widgetStateUpdate().
                                     oneChannel().
                                     fixedNumberCapacityRule().
+                                    anotherNumberCapacity().
                                     expectToBeSent();
 
                                 tester.othersNotification().
                                     widgetStateUpdate().
                                     oneChannel().
                                     fixedNumberCapacityRule().
-                                    anotherNumberCapacity().
                                     expectToBeSent();
 
                                 tester.select.
@@ -2065,8 +2159,84 @@ tests.addTest(options => {
                     });
                 });
             });
-            it('Ни один запрос не отправлен.', function() {
-                ajax.expectNoRequestsToBeSent();
+            it('Отображена страница авторизации.', function() {
+                tester.body.expectToHaveTextContent(
+                    'Не авторизован ' +
+                    'Для использования приложения необходимо авторизоваться'
+                );
+            });
+        });
+        describe('Открываю страницу авторизации.', function() {
+            beforeEach(function() {
+                tester = new Tester({
+                    application: 'bitrixSoftphoneAuthorizationIframe',
+                    softphoneHost: 'my.uiscom.ru',
+                    isIframe: true,
+                    ...options,
+                });
+            });
+
+            it('Пользователь авторизовался.', function() {
+                localStorage.setItemInAnotherTab('token', tester.oauthToken);
+
+                tester.authTokenRequest().receiveResponse();
+                tester.authCheckRequest().receiveResponse();
+                tester.talkOptionsRequest().receiveResponse();
+                tester.statusesRequest().receiveResponse();
+
+                permissionsRequest = tester.permissionsRequest().expectToBeSent();
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                tester.masterInfoMessage().
+                    tellIsLeader().
+                    receive();
+
+                tester.masterNotification().
+                    tabOpened().
+                    expectToBeSent();
+
+                notificationTester.grantPermission();
+                permissionsRequest.receiveResponse();
+
+                tester.settingsRequest().oneChannel().receiveResponse();
+                tester.marksRequest().receiveResponse();
+                tester.authenticatedUserRequest().receiveResponse();
+
+                spendTime(2000);
+                spendTime(0);
+
+                tester.masterInfoMessage().
+                    applyLeader().
+                    expectToBeSent();
+
+                spendTime(2000);
+                spendTime(0);
+
+                spendTime(2000);
+                spendTime(0);
+
+                tester.slavesNotification().
+                    available().
+                    oneChannel().
+                    receive();
+
+                tester.slavesNotification().
+                    additional().
+                    receive();
+
+                tester.body.expectToHaveTextContent('Авторизованный сотрудник: Ганева Стефка');
+
+                tester.logoutButton.click();
+                windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru/bitrix/logout');
+            });
+            it('Отображена страница авторизации.', function() {
+                tester.body.expectToHaveTextContent(
+                    'Не авторизован ' +
+                    'Для использования приложения необходимо авторизоваться'
+                );
             });
         });
     });

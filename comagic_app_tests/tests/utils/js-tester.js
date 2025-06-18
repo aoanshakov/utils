@@ -405,7 +405,10 @@ function JsTester_NavigatorMock (args) {
                 kind: 'audiooutput',
                 label: 'Встроенный динамик',
                 deviceId: '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943ab'
-            }].concat(additionalDevices));
+            }].concat(additionalDevices).map(device => ({
+                ...device,
+                toJSON: () => device,
+            })));
         }
     };
 

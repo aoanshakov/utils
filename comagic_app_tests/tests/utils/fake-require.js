@@ -38,7 +38,7 @@ define(function () {
                 if (actualChannel != expectedChannel) {
                     throw new Error(
                         'Сообщение должно быть отправлено в канал "' + expectedChannel + '", а не "' + actualChannel +
-                        '".'
+                        '".' + "\n\n" + callStack
                     );
                 }
 

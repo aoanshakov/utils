@@ -4,11 +4,15 @@
     left: 704px;
 }
 
-.misc-softphone-src-styles-module__softphone-content {
+.misc-omni-src-modules-softphone-styles-module__softphone-content {
     height: 100% !important;
 }
 
-.misc-softphone-src-styles-module__softphone-container {
+.misc-omni-src-modules-softphone-styles-module__softphone-container {
     height: 100%;
     overflow-y: hidden;
+}
+
+.cm-app.cm-app-softphone-allowed.cm-app-softphone-visible .cm-large-softphone-app #rootMain {
+    margin-right: 0 !important;
 }

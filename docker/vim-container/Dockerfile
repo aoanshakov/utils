@@ -11,7 +11,9 @@ RUN apt-get install -y \
     tidy \
     rsync \
     zip \
-    wget
+    wget \
+    build-essential \
+    sudo
 
 RUN sed -i -e 's/# ru_RU.UTF-8 UTF-8/ru_RU.UTF-8 UTF-8/' /etc/locale.gen && \
     echo 'LANG="ru_RU.UTF-8"'>/etc/default/locale && \
@@ -34,5 +36,15 @@ RUN npm set registry http://npm.dev.uis.st:80
 RUN npm install -g typescript typescript-language-server
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 RUN /bin/bash -c "source ~/.bashrc && nvm && nvm install 14 && nvm install 18"
+
+ENV CARGO_HOME=/opt/cargo
+ENV RUSTUP_HOME=/opt/rustup
+
+RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
+
+ENV PATH="$CARGO_HOME/bin:${PATH}"
+ENV PATH="$RUSTUP_HOME/bin:${PATH}"
+
+RUN rustup component add rust-analyzer
 
 ENTRYPOINT [ "bash" ]

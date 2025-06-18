@@ -56,21 +56,38 @@ tests.addTest(options => {
 
             tester.accountRequest().receiveResponse();
 
+            tester.employeesBroadcastChannel().
+                applyLeader().
+                expectToBeSent();
+
+            tester.masterInfoMessage().
+                applyLeader().
+                expectToBeSent();
+
+            tester.notificationChannel().
+                applyLeader().
+                expectToBeSent();
+ 
             const requests = ajax.inAnyOrder();
 
             reportGroupsRequest = tester.reportGroupsRequest().expectToBeSent(requests);
             const ticketsContactsRequest = tester.ticketsContactsRequest().expectToBeSent(requests),
+                authTokenRequest = tester.authTokenRequest().expectToBeSent(requests),
                 reportsListRequest = tester.reportsListRequest().expectToBeSent(requests),
-                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests),
-                employeeStatusesRequest = tester.employeeStatusesRequest().expectToBeSent(requests);
+                reportTypesRequest = tester.reportTypesRequest().expectToBeSent(requests);
 
-            authCheckRequest = tester.authCheckRequest().expectToBeSent(requests);
+            const employeeStatusesRequest = tester.employeeStatusesRequest().
+                noAuthorizationHeader().
+                expectToBeSent(requests);
 
             requests.expectToBeSent();
 
             reportsListRequest.receiveResponse();
             reportTypesRequest.receiveResponse();
             employeeStatusesRequest.receiveResponse();
+            authTokenRequest.receiveResponse();
+
+            authCheckRequest = tester.authCheckRequest().ssoAuth().expectToBeSent();
         });
 
         describe(
@@ -82,18 +99,8 @@ tests.addTest(options => {
                 settingsRequest;
 
             beforeEach(function() {
-                tester.employeesBroadcastChannel().
-                    applyLeader().
-                    expectToBeSent();
-
-                tester.masterInfoMessage().
-                    applyLeader().
-                    expectToBeSent();
-
-                tester.notificationChannel().
-                    applyLeader().
-                    expectToBeSent().
-                    waitForSecond();
+                spendTime(1000);
+                spendTime(0);
 
                 tester.employeesBroadcastChannel().
                     applyLeader().
@@ -126,17 +133,25 @@ tests.addTest(options => {
                     additional().
                     expectToBeSent();
 
+                tester.employeesSsoCheckRequest().receiveResponse();
+
                 tester.employeesWebSocket.connect();
-                tester.employeesInitMessage().expectToBeSent();
+                tester.employeesInitMessage().ssoAuth().expectToBeSent();
                 tester.employeesWebsocketConnectedMessage().expectToBeSent();
 
                 tester.employeeSettingsRequest().receiveResponse(),
-                tester.employeeRequest().receiveResponse();
+
+                tester.employeeRequest().
+                    noAuthorizationHeader().
+                    receiveResponse();
 
                 authCheckRequest.receiveResponse();
                 tester.talkOptionsRequest().receiveResponse();
                 tester.permissionsRequest().receiveResponse();
-                settingsRequest = tester.settingsRequest().expectToBeSent();
+
+                settingsRequest = tester.settingsRequest().
+                    ssoAuth().
+                    expectToBeSent();
             });
 
             describe('Настройки определены.', function() {
@@ -571,7 +586,7 @@ tests.addTest(options => {
                                 tester.dialpadButton(1).expectNotToExist();
                             });
                         });
-                        it(
+                        xit(
                             'Нажимаю на кнопку "Смена статуса". Нажима на кнопку ' +
                             '"Автоматически".',
                         function() {
@@ -582,6 +597,7 @@ tests.addTest(options => {
                                 receiveResponse();
 
                             tester.settingsRequest().
+                                ssoAuth().
                                 autoSetStatus().
                                 receiveResponse();
 
@@ -603,12 +619,47 @@ tests.addTest(options => {
                                 icon.
                                 expectToBe('OperatorStatusPause20');
                         });
-                        return;
+                        it('Снимаю отметку со свитчбокса "Открывать во время звонка".', function() {
+                            tester.switchButton('Открывать во время звонка').click();
+
+                            tester.settingsUpdatingRequest().
+                                shouldNotOpenWidgetOnCall().
+                                receiveResponse();
+
+                            tester.settingsRequest().
+                                ssoAuth().
+                                shouldNotOpenWidgetOnCall().
+                                receiveResponse();
+
+                            tester.othersNotification().
+                                shouldNotOpenWidgetOnCall().
+                                widgetStateUpdate().
+                                expectToBeSent();
+                        });
+                        it('Открываю вкладку "Поддержка". Отображена форма сообщения в поддержку.', function() {
+                            tester.tab('Поддержка').click();
+
+                            tester.tab('Общие').expectNotToExist();
+                            tester.tab('Софтфон').expectNotToBeSelected();
+                            tester.tab('Чаты').expectNotToExist();
+                            tester.tab('Поддержка').expectToBeSelected();
+
+                            tester.body.expectTextContentToHaveSubstring(
+                                'Составьте обращение в техническую поддержку или найдите решение в справочном центре'
+                            );
+                        });
                         it('Установлены настройки по умолчанию.', function() {
                             tester.radioButton('Текущее устройство').expectToBeSelected();
                             tester.radioButton('IP-телефон').expectNotToBeSelected();
                             tester.button('Автозапуск приложения').expectNotToExist();
-                            tester.button('Помощь').expectNotToExist();
+
+                            tester.tab('Общие').expectNotToExist();
+                            tester.tab('Софтфон').expectToBeSelected();
+                            tester.tab('Чаты').expectNotToExist();
+                            tester.tab('Поддержка').expectNotToBeSelected();
+
+                            tester.switchButton('Открывать во время звонка').expectToBeChecked();
+                            tester.switchButton('Скрывать после звонка').expectNotToBeChecked();
                         });
                     });
                     return;

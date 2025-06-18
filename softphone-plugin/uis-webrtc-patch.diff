@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 5b10eba..26239ab 100644
+index 215820c..26239ab 100644
 --- a/package.json
 +++ b/package.json
 @@ -11,15 +11,11 @@
@@ -14,7 +14,7 @@ index 5b10eba..26239ab 100644
      "@babel/plugin-proposal-class-properties": "^7.8.3",
      "@babel/plugin-proposal-private-methods": "7.13.0",
      "@babel/preset-env": "^7.1.0",
--    "@comagic/workplace-utils": "0.0.0-int1",
+-    "@comagic/workplace-utils": "0.0.9-int0",
      "babel-loader": "^8.0.4",
      "exports-loader": "2.0.0",
      "janus-gateway": "1.1.4",

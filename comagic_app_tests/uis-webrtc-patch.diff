@@ -1,13 +1,12 @@
 diff --git a/package.json b/package.json
-index 4733f5d..07593d6 100644
+index 5b10eba..abdbf04 100644
 --- a/package.json
 +++ b/package.json
-@@ -16,8 +16,6 @@
+@@ -19,7 +19,6 @@
      "@babel/plugin-proposal-class-properties": "^7.8.3",
      "@babel/plugin-proposal-private-methods": "7.13.0",
      "@babel/preset-env": "^7.1.0",
--    "@comagic/workplace-utils": "0.0.0-int0",
--    "axios": ">= 0.24.0",
+-    "@comagic/workplace-utils": "0.0.0-int1",
      "babel-loader": "^8.0.4",
      "exports-loader": "2.0.0",
      "janus-gateway": "1.1.4",

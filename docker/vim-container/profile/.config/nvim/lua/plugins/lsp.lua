@@ -10,6 +10,9 @@ return {
           -- optional keybindings
         end,
       })
+
+      lspconfig.rust_analyzer.setup({})
+
     end,
   },
 }

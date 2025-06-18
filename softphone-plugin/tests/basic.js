@@ -94,12 +94,7 @@ tests.addTest(options => {
                         unfilteredPostMessages.
                             nextMessage().
                             expectMessageToStartsWith('ignore:log:').
-                            expectMessageToContain('Window message received');
-
-                        unfilteredPostMessages.
-                            nextMessage().
-                            expectMessageToStartsWith('ignore:log:').
-                            expectMessageToContain('Tab state is unknown');
+                            expectMessageToContain('State changed');
                     });
 
                     describe('Вкладка является ведущей.', function() {
@@ -111,17 +106,17 @@ tests.addTest(options => {
                                 leader().
                                 expectToBeSent();
 
+                            tester.masterInfoMessage().
+                                tellIsLeader().
+                                expectToBeSent();
+
+                            tester.slavesNotification().expectToBeSent();
+
                             tester.slavesNotification().
                                 additional().
                                 visible().
                                 expectToBeSent();
 
-                            tester.slavesNotification().expectToBeSent();
-
-                            tester.masterInfoMessage().
-                                tellIsLeader().
-                                expectToBeSent();
-                                
                             authTokenRequest = tester.authTokenRequest().expectToBeSent()
                         });
 
@@ -281,59 +276,32 @@ tests.addTest(options => {
                                                             webSockets.expectNoMessageToBeSent();
                                                         });
                                                     });
-                                                    describe('Открываю настройки.', function() {
-                                                        beforeEach(function() {
-                                                            tester.settingsButton.click();
-                                                            tester.triggerScrollRecalculation();
+                                                    it(
+                                                        'Открываю настройки. Нажимаю на кнопку "Автоматически".',
+                                                    function() {
+                                                        tester.settingsButton.click();
+                                                        tester.triggerScrollRecalculation();
 
-                                                            tester.stateSettingRequest().
-                                                                visible().
-                                                                leader().
-                                                                userDataFetched().
-                                                                expanded().
-                                                                expectToBeSent();
-                                                        });
+                                                        tester.stateSettingRequest().
+                                                            visible().
+                                                            leader().
+                                                            userDataFetched().
+                                                            expanded().
+                                                            expectToBeSent();
 
-                                                        describe('Открываю вкладку "Софтфон".', function() {
-                                                            beforeEach(function() {
-                                                                tester.button('Софтфон').click();
-                                                                tester.triggerScrollRecalculation();
-                                                            });
+                                                        tester.radioButton('Автоматически').click();
 
-                                                            it('Нажима на кнопку "Автоматически".', function() {
-                                                                tester.radioButton('Автоматически').click();
+                                                        tester.settingsUpdatingRequest().
+                                                            autoSetStatus().
+                                                            receiveResponse();
 
-                                                                tester.settingsUpdatingRequest().
-                                                                    autoSetStatus().
-                                                                    receiveResponse();
+                                                        tester.settingsRequest().
+                                                            autoSetStatus().
+                                                            receiveResponse();
 
-                                                                tester.settingsRequest().
-                                                                    autoSetStatus().
-                                                                    receiveResponse();
-
-                                                                tester.othersNotification().
-                                                                    widgetStateUpdate().
-                                                                    expectToBeSent();
-                                                            });
-                                                            it('Отображены настройки софтфона.', function() {
-                                                                tester.switchButton(
-                                                                    'Открывать во время звонка'
-                                                                ).expectNotToExist();
-
-                                                                tester.switchButton(
-                                                                    'Сигнал о завершении звонка'
-                                                                ).expectToBeVisible();
-                                                            });
-                                                        });
-                                                        it('Отображены настройки вкладки "Общие".', function() {
-                                                            tester.switchButton(
-                                                                'Открывать во время звонка'
-                                                            ).expectToBeVisible();
-
-                                                            tester.switchButton(
-                                                                'Сигнал о завершении звонка'
-                                                            ).expectNotToExist();
-                                                        });
+                                                        tester.othersNotification().
+                                                            widgetStateUpdate().
+                                                            expectToBeSent();
                                                     });
                                                     it(
                                                         'Поступил входящий звонок. Поступил еще один входящий ' +
@@ -406,11 +374,17 @@ tests.addTest(options => {
                                                         tester.accountButton.click();
                                                         
                                                         tester.statusesList.
-                                                            item('Не беспокоить').
+                                                            item(
+                                                                'Не беспокоить ' +
+                                                                'только исходящие'
+                                                            ).
                                                             expectToBeSelected();
                                                         
                                                         tester.statusesList.
-                                                            item('Нет на месте').
+                                                            item(
+                                                                'Нет на месте ' +
+                                                                'все вызовы на мобильном'
+                                                            ).
                                                             expectNotToBeSelected();
 
                                                         tester.button('Выход').expectNotToExist();
@@ -486,13 +460,13 @@ tests.addTest(options => {
                                                 tester.stateSettingRequest().
                                                     visible().
                                                     leader().
+                                                    userDataFetched().
                                                     lostCalls(1).
                                                     expectToBeSent();
 
                                                 tester.stateSettingRequest().
                                                     visible().
                                                     leader().
-                                                    userDataFetched().
                                                     lostCalls(1).
                                                     expectToBeSent();
 
@@ -617,15 +591,15 @@ tests.addTest(options => {
                                         unfilteredPostMessages.
                                             nextMessage().
                                             expectMessageToStartsWith('ignore:log:').
-                                            expectMessageToContain('Window message received');
-
-                                        unfilteredPostMessages.
-                                            nextMessage().
-                                            expectMessageToStartsWith('ignore:log:').
                                             expectMessageToContain([
                                                 'Time consumed 0 ms; Without credentials',
                                                 'POST https://somedomain.com/click2call/79161234567'
                                             ].join("\n\n"));
+
+                                        unfilteredPostMessages.
+                                            nextMessage().
+                                            expectMessageToStartsWith('ignore:log:').
+                                            expectMessageToContain('Window message received');
                                     });
                                 });
                                 it('Выбор номер разрешён.', function() {
@@ -712,10 +686,12 @@ tests.addTest(options => {
                                         disallowSoftphoneLogin().
                                         receiveResponse();
 
-                                    tester.masterInfoMessage().leaderDeath().expectToBeSent();
-
                                     tester.slavesNotification().
                                         destroyed().
+                                        expectToBeSent();
+
+                                    tester.masterInfoMessage().
+                                        leaderDeath().
                                         expectToBeSent();
 
                                     tester.authLogoutRequest().receiveResponse();
@@ -737,10 +713,12 @@ tests.addTest(options => {
                                     invalidToken().
                                     receiveResponse();
 
-                                tester.masterInfoMessage().leaderDeath().expectToBeSent();
-
                                 tester.slavesNotification().
                                     destroyed().
+                                    expectToBeSent();
+
+                                tester.masterInfoMessage().
+                                    leaderDeath().
                                     expectToBeSent();
 
                                 tester.authLogoutRequest().receiveResponse();
@@ -754,17 +732,19 @@ tests.addTest(options => {
                                 unfilteredPostMessages.
                                     nextMessage().
                                     expectMessageToStartsWith('ignore:log:').
-                                    expectMessageToContain('Time consumed 0 ms');
+                                    expectMessageToContain('State change');
                             });
                             it('Ну удалось произвести авторизацию.', function() {
                                 authCheckRequest.
                                     expiredToken().
                                     receiveResponse();
 
-                                tester.masterInfoMessage().leaderDeath().expectToBeSent();
-
                                 tester.slavesNotification().
                                     destroyed().
+                                    expectToBeSent();
+
+                                tester.masterInfoMessage().
+                                    leaderDeath().
                                     expectToBeSent();
 
                                 tester.authLogoutRequest().receiveResponse();
@@ -778,7 +758,7 @@ tests.addTest(options => {
                                 unfilteredPostMessages.
                                     nextMessage().
                                     expectMessageToStartsWith('ignore:log:').
-                                    expectMessageToContain('Time consumed 0 ms');
+                                    expectMessageToContain('State change');
                             });
                         });
                         it('Отображено сообщение о том, что происходит авторизация.', function() {
@@ -856,6 +836,11 @@ tests.addTest(options => {
                                     forFollower().
                                     receive();
 
+                                tester.logDownloadingRequest().
+                                    windowMessage().
+                                    withMessageFromLeader().
+                                    expectToBeSent();
+
                                 unfilteredPostMessages.
                                     nextMessage().
                                     expectMessageToStartsWith('ignore:log:').
@@ -867,11 +852,6 @@ tests.addTest(options => {
                                             data: '*',
                                         },
                                     }));
-
-                                tester.logDownloadingRequest().
-                                    windowMessage().
-                                    withMessageFromLeader().
-                                    expectToBeSent();
                             });
                             it(
                                 'Получен лог ведущей вкладки предназначавшийся для другой вкладки. Запрос скачивания ' +
@@ -910,15 +890,15 @@ tests.addTest(options => {
                         leader().
                         expectToBeSent();
 
-                    tester.slavesNotification().
-                        additional().
-                        visible().
+                    tester.masterInfoMessage().
+                        tellIsLeader().
                         expectToBeSent();
 
                     tester.slavesNotification().expectToBeSent();
 
-                    tester.masterInfoMessage().
-                        tellIsLeader().
+                    tester.slavesNotification().
+                        additional().
+                        visible().
                         expectToBeSent();
 
                     tester.authTokenRequest().
@@ -943,14 +923,14 @@ tests.addTest(options => {
                         leader().
                         expectToBeSent();
 
-                    tester.slavesNotification().
-                        additional().
+                    tester.masterInfoMessage().
+                        tellIsLeader().
                         expectToBeSent();
 
                     tester.slavesNotification().expectToBeSent();
 
-                    tester.masterInfoMessage().
-                        tellIsLeader().
+                    tester.slavesNotification().
+                        additional().
                         expectToBeSent();
 
                     tester.authTokenRequest().receiveResponse();
@@ -963,12 +943,12 @@ tests.addTest(options => {
                         disallowSoftphoneLogin().
                         receiveResponse();
 
-                    tester.masterInfoMessage().
-                        leaderDeath().
-                        expectToBeSent();
-
                     tester.slavesNotification().
                         destroyed().
+                        expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        leaderDeath().
                         expectToBeSent();
 
                     tester.authLogoutRequest().receiveResponse();
@@ -1132,12 +1112,10 @@ tests.addTest(options => {
                     grantPermission().
                     recentNotification();
 
-                tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-
-                tester.popupStateSettingRequest().receiveResponse();
-                tester.chatsVisibilitySettingRequest().receiveResponse();
-
                 tester.missedEventsCountSettingRequest().receiveResponse();
+                tester.chatsVisibilitySettingRequest().receiveResponse();
+                tester.popupStateSettingRequest().receiveResponse();
+                tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
             });
 
             describe('Получен токен авторизации и настройки.', function() {
@@ -1151,11 +1129,11 @@ tests.addTest(options => {
                     beforeEach(function() {
                         widgetSettings.receive();
 
-                        tester.popupStateSettingRequest().
+                        tester.chatsVisibilitySettingRequest().
                             settingsFetched().
                             receiveResponse();
 
-                        tester.chatsVisibilitySettingRequest().
+                        tester.popupStateSettingRequest().
                             settingsFetched().
                             receiveResponse();
 
@@ -1221,12 +1199,12 @@ tests.addTest(options => {
 
                                         tester.widgetSettings().
                                             windowMessage().
-                                            insertAfter().
+                                            chatsSettings().
                                             expectToBeSent();
 
                                         tester.widgetSettings().
                                             windowMessage().
-                                            chatsSettings().
+                                            insertAfter().
                                             expectToBeSent();
 
                                         tester.page.triplicate();
@@ -1496,13 +1474,13 @@ tests.addTest(options => {
 
                                     tester.widgetSettings().
                                         windowMessage().
-                                        insertAfter().
-                                        anotherClick2CallHandlers().
+                                        chatsSettings().
                                         expectToBeSent();
 
                                     tester.widgetSettings().
                                         windowMessage().
-                                        chatsSettings().
+                                        insertAfter().
+                                        anotherClick2CallHandlers().
                                         expectToBeSent();
 
                                     tester.phoneButton.
@@ -1585,15 +1563,15 @@ tests.addTest(options => {
                                 function() {
                                     tester.stateRequest().expectResponseToBeSent();
 
+                                    tester.chatsVisibilitySettingRequest().
+                                        initialized().
+                                        settingsFetched().
+                                        receiveResponse();
+
                                     tester.popupStateSettingRequest().
                                         userDataFetched().
                                         settingsFetched().
                                         initialized().
-                                        receiveResponse();
-
-                                    tester.chatsVisibilitySettingRequest().
-                                        initialized().
-                                        settingsFetched().
                                         receiveResponse();
 
                                     tester.iframe.atIndex(1).expectToBeHidden();
@@ -1693,8 +1671,12 @@ tests.addTest(options => {
                         });
                         describe('Получено запрос регистрации вложенного контент-скрипта.', function() {
                             beforeEach(function() {
-                                tester.nestedContentScriptRegistrationRequest().expectResponseToBeSent();
+                                const nestedContentScriptRegistrationRequest =
+                                    tester.nestedContentScriptRegistrationRequest().receive();
+
                                 tester.initializednessEvent().expectToBeSent();
+
+                                nestedContentScriptRegistrationRequest.expectResponseToBeSent();
                             });
 
                             it(
@@ -1709,13 +1691,13 @@ tests.addTest(options => {
                                     initialized().
                                     receiveResponse();
 
+                                tester.initializednessEvent().
+                                    chats().
+                                    expectToBeSent();
+                                    
                                 tester.widgetSettings().
                                     windowMessage().
                                     chatsSettings().
-                                    expectToBeSent();
-
-                                tester.initializednessEvent().
-                                    chats().
                                     expectToBeSent();
                             });
                             it('Запрос инициализации чатов не был отправлен.', function() {
@@ -1883,6 +1865,8 @@ tests.addTest(options => {
                         it('Получен запрос изменения состояния софтфона.', function() {
                             tester.stateSettingRequest().receive();
 
+                            tester.softphoneVisibilityToggleRequest().expectToBeSent();
+
                             tester.widgetSettings().
                                 noSettings().
                                 windowMessage().
@@ -1892,8 +1876,6 @@ tests.addTest(options => {
                                 showed().
                                 initialized().
                                 receiveResponse();
-
-                            tester.softphoneVisibilityToggleRequest().expectToBeSent();
                         });
                         it('IFrame софтфона существует.', function() {
                             tester.iframe.atIndex(1).expectAttributeToHaveValue(
@@ -1909,12 +1891,13 @@ tests.addTest(options => {
                     });
                     it('Получен запрос видимости. В ответ на запрос было отправлено текущее состояние.', function() {
                         tester.stateRequest().expectResponseToBeSent();
-                        tester.popupStateSettingRequest().receiveResponse();
 
                         tester.chatsVisibilitySettingRequest().
                             settingsFetched().
                             initialized().
                             receiveResponse();
+
+                        tester.popupStateSettingRequest().receiveResponse();
                     });
                     it('Кнопка видимости не была добавлена.', function() {
                         tester.body.expectToHaveTextContent(
@@ -1946,11 +1929,11 @@ tests.addTest(options => {
                             rawPhone().
                             receive();
 
-                        tester.popupStateSettingRequest().
+                        tester.chatsVisibilitySettingRequest().
                             settingsFetched().
                             receiveResponse();
 
-                        tester.chatsVisibilitySettingRequest().
+                        tester.popupStateSettingRequest().
                             settingsFetched().
                             receiveResponse();
 
@@ -2031,11 +2014,11 @@ tests.addTest(options => {
                                 success().
                                 expectToBeSent();
 
-                            tester.popupStateSettingRequest().
+                            tester.chatsVisibilitySettingRequest().
                                 settingsFetched().
                                 receiveResponse();
 
-                            tester.chatsVisibilitySettingRequest().
+                            tester.popupStateSettingRequest().
                                 settingsFetched().
                                 receiveResponse();
 
@@ -2094,11 +2077,11 @@ tests.addTest(options => {
 
                             tester.widgetSettings().
                                 windowMessage().
+                                chatsSettings().
                                 expectToBeSent();
 
                             tester.widgetSettings().
                                 windowMessage().
-                                chatsSettings().
                                 expectToBeSent();
 
                             tester.body.expectToHaveTextContent(
@@ -2136,11 +2119,11 @@ tests.addTest(options => {
                             insertHandlerAfterElement().
                             receive();
 
-                        tester.popupStateSettingRequest().
+                        tester.chatsVisibilitySettingRequest().
                             settingsFetched().
                             receiveResponse();
 
-                        tester.chatsVisibilitySettingRequest().
+                        tester.popupStateSettingRequest().
                             settingsFetched().
                             receiveResponse();
 
@@ -2196,11 +2179,11 @@ tests.addTest(options => {
                             success().
                             expectToBeSent();
 
-                        tester.popupStateSettingRequest().
+                        tester.chatsVisibilitySettingRequest().
                             settingsFetched().
                             receiveResponse();
 
-                        tester.chatsVisibilitySettingRequest().
+                        tester.popupStateSettingRequest().
                             settingsFetched().
                             receiveResponse();
 
@@ -2295,11 +2278,11 @@ tests.addTest(options => {
                             success().
                             expectToBeSent();
 
-                        tester.popupStateSettingRequest().
+                        tester.chatsVisibilitySettingRequest().
                             settingsFetched().
                             receiveResponse();
 
-                        tester.chatsVisibilitySettingRequest().
+                        tester.popupStateSettingRequest().
                             settingsFetched().
                             receiveResponse();
 
@@ -2371,11 +2354,11 @@ tests.addTest(options => {
                         success().
                         expectToBeSent();
 
-                    tester.popupStateSettingRequest().
+                    tester.chatsVisibilitySettingRequest().
                         settingsFetched().
                         receiveResponse();
 
-                    tester.chatsVisibilitySettingRequest().
+                    tester.popupStateSettingRequest().
                         settingsFetched().
                         receiveResponse();
 
@@ -2432,11 +2415,11 @@ tests.addTest(options => {
                         success().
                         expectToBeSent();
 
-                    tester.popupStateSettingRequest().
+                    tester.chatsVisibilitySettingRequest().
                         settingsFetched().
                         receiveResponse();
 
-                    tester.chatsVisibilitySettingRequest().
+                    tester.popupStateSettingRequest().
                         settingsFetched().
                         receiveResponse();
 
@@ -2493,11 +2476,11 @@ tests.addTest(options => {
                         success().
                         expectToBeSent();
 
-                    tester.popupStateSettingRequest().
+                    tester.chatsVisibilitySettingRequest().
                         settingsFetched().
                         receiveResponse();
 
-                    tester.chatsVisibilitySettingRequest().
+                    tester.popupStateSettingRequest().
                         settingsFetched().
                         receiveResponse();
 
@@ -2554,11 +2537,11 @@ tests.addTest(options => {
                         success().
                         expectToBeSent();
 
-                    tester.popupStateSettingRequest().
+                    tester.chatsVisibilitySettingRequest().
                         settingsFetched().
                         receiveResponse();
 
-                    tester.chatsVisibilitySettingRequest().
+                    tester.popupStateSettingRequest().
                         settingsFetched().
                         receiveResponse();
 
@@ -2609,11 +2592,11 @@ tests.addTest(options => {
                         insertBeforeNonExistingElement().
                         receive();
 
-                    tester.popupStateSettingRequest().
+                    tester.chatsVisibilitySettingRequest().
                         settingsFetched().
                         receiveResponse();
 
-                    tester.chatsVisibilitySettingRequest().
+                    tester.popupStateSettingRequest().
                         settingsFetched().
                         receiveResponse();
 
@@ -2656,11 +2639,11 @@ tests.addTest(options => {
                         insertAfterLastElement().
                         receive();
 
-                    tester.popupStateSettingRequest().
+                    tester.chatsVisibilitySettingRequest().
                         settingsFetched().
                         receiveResponse();
 
-                    tester.chatsVisibilitySettingRequest().
+                    tester.popupStateSettingRequest().
                         settingsFetched().
                         receiveResponse();
 
@@ -2704,11 +2687,11 @@ tests.addTest(options => {
                         insertInto().
                         receive();
 
-                    tester.popupStateSettingRequest().
+                    tester.chatsVisibilitySettingRequest().
                         settingsFetched().
                         receiveResponse();
 
-                    tester.chatsVisibilitySettingRequest().
+                    tester.popupStateSettingRequest().
                         settingsFetched().
                         receiveResponse();
 
@@ -2753,11 +2736,11 @@ tests.addTest(options => {
                         prependChild().
                         receive();
 
-                    tester.popupStateSettingRequest().
+                    tester.chatsVisibilitySettingRequest().
                         settingsFetched().
                         receiveResponse();
 
-                    tester.chatsVisibilitySettingRequest().
+                    tester.popupStateSettingRequest().
                         settingsFetched().
                         receiveResponse();
 
@@ -2802,11 +2785,11 @@ tests.addTest(options => {
                         buttonElementXpath().
                         receive();
 
-                    tester.popupStateSettingRequest().
+                    tester.chatsVisibilitySettingRequest().
                         settingsFetched().
                         receiveResponse();
 
-                    tester.chatsVisibilitySettingRequest().
+                    tester.popupStateSettingRequest().
                         settingsFetched().
                         receiveResponse();
 
@@ -2850,11 +2833,11 @@ tests.addTest(options => {
                         phoneListXpath().
                         receive();
 
-                    tester.popupStateSettingRequest().
+                    tester.chatsVisibilitySettingRequest().
                         settingsFetched().
                         receiveResponse();
 
-                    tester.chatsVisibilitySettingRequest().
+                    tester.popupStateSettingRequest().
                         settingsFetched().
                         receiveResponse();
 
@@ -2896,11 +2879,11 @@ tests.addTest(options => {
                         noPadding().
                         receive();
 
-                    tester.popupStateSettingRequest().
+                    tester.chatsVisibilitySettingRequest().
                         settingsFetched().
                         receiveResponse();
 
-                    tester.chatsVisibilitySettingRequest().
+                    tester.popupStateSettingRequest().
                         settingsFetched().
                         receiveResponse();
 
@@ -3047,11 +3030,11 @@ tests.addTest(options => {
                             success().
                             expectToBeSent();
 
-                        tester.popupStateSettingRequest().
+                        tester.chatsVisibilitySettingRequest().
                             settingsFetched().
                             receiveResponse();
 
-                        tester.chatsVisibilitySettingRequest().
+                        tester.popupStateSettingRequest().
                             settingsFetched().
                             receiveResponse();
 
@@ -3065,6 +3048,8 @@ tests.addTest(options => {
                             settingsFetched().
                             initialized().
                             receiveResponse();
+                        
+                        tester.initializednessEvent().expectToBeSent();
 
                         tester.widgetSettings().
                             windowMessage().
@@ -3073,8 +3058,6 @@ tests.addTest(options => {
                         tester.submoduleInitilizationEvent().
                             operatorWorkplace().
                             receive();
-                        
-                        tester.initializednessEvent().expectToBeSent();
                     });
 
                     it('Инициализирован субмодуль чатов. Было отправлено событие инициализации.', function() {
@@ -3086,20 +3069,23 @@ tests.addTest(options => {
                             initialized().
                             receiveResponse();
 
+                        tester.initializednessEvent().
+                            chats().
+                            expectToBeSent();
+
                         tester.widgetSettings().
                             windowMessage().
                             chatsSettings().
-                            expectToBeSent();
-
-                        tester.initializednessEvent().
-                            chats().
                             expectToBeSent();
                     });
                     it(
                         'Получен запрос регистрации вложенного контент-скрипта. Было отправлено событие инициализации.',
                     function() {
-                        tester.nestedContentScriptRegistrationRequest().expectResponseToBeSent();
+                        const nestedContentScriptRegistrationRequest =
+                            tester.nestedContentScriptRegistrationRequest().receive();
+
                         tester.initializednessEvent().expectToBeSent();
+                        nestedContentScriptRegistrationRequest.expectResponseToBeSent();
                     });
                     it('Ничего не происходит.', function() {
                         postMessages.nextMessage().expectNotToExist();
@@ -4075,10 +4061,8 @@ tests.addTest(options => {
                     nextMessage().
                     expectMessageToStartsWith('ignore:log:').
                     expectMessageToContain(
-                        'Settings' + "\n\n" +
-
-                        'URL: https://app.uiscom.ru' + "\n" +
-                        'Type: softphone'
+                        'Window message received' + "\n\n" +
+                        'From https://somedomain.com'
                     );
             });
             it('Кнопки не были добавлены.', function() {
@@ -4105,12 +4089,12 @@ tests.addTest(options => {
                     ...options,
                 });
 
-                tester.stateSettingRequest().expectToBeSent();
-
                 postMessages.nextMessage().expectMessageToContain({
                     method: 'set_token',
                     data: '',
                 });
+
+                tester.stateSettingRequest().expectToBeSent();
             });
 
             describe('Получена русская локаль.', function() {
@@ -4150,13 +4134,16 @@ tests.addTest(options => {
                                 leader().
                                 expectToBeSent();
 
+                            tester.masterInfoMessage().
+                                tellIsLeader().
+                                expectToBeSent();
+
+                            tester.slavesNotification().expectToBeSent();
+
                             tester.slavesNotification().
                                 additional().
                                 expectToBeSent();
 
-                            tester.slavesNotification().expectToBeSent();
-                            tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                                
                             postMessages.nextMessage().expectNotToExist();
 
                             tester.authTokenRequest().receiveResponse()
@@ -4299,10 +4286,12 @@ tests.addTest(options => {
                                 invalidToken().
                                 receiveResponse();
 
-                            tester.masterInfoMessage().leaderDeath().expectToBeSent();
-
                             tester.slavesNotification().
                                 destroyed().
+                                expectToBeSent();
+
+                            tester.masterInfoMessage().
+                                leaderDeath().
                                 expectToBeSent();
 
                             tester.authLogoutRequest().receiveResponse();
@@ -4407,8 +4396,8 @@ tests.addTest(options => {
                             leader().
                             receive();
 
-                        tester.amocrmStateSettingRequest().expectToBeSent();
                         tester.softphoneVisibilityToggleRequest().expectToBeSent();
+                        tester.amocrmStateSettingRequest().expectToBeSent();
 
                         tester.stateSettingRequest().
                             visible().
@@ -4605,15 +4594,15 @@ tests.addTest(options => {
                     beforeEach(function() {
                         tester.unreadMessagesCountSettingRequest().receive();
 
-                        tester.iconRequest().
-                            arrow().
-                            receiveResponse();
+                        tester.shortPhoneSettingRequest().expectToBeSent();
 
                         tester.amocrmStateSettingRequest().
                             chats().
                             expectToBeSent();
 
-                        tester.shortPhoneSettingRequest().expectToBeSent();
+                        tester.iconRequest().
+                            arrow().
+                            receiveResponse();
                     });
 
                     describe('Сотрудник авторизован.', function() {
@@ -4624,13 +4613,14 @@ tests.addTest(options => {
                             });
 
                             spendTime(0);
-                            tester.iconRequest().receiveResponse();
 
                             tester.channelsSearchingRequest().
                                 second().anotherPhone().
                                 atIndex(2).email().
                                 atIndex(3).thirdPhone().
                                 expectToBeSent();
+
+                            tester.iconRequest().receiveResponse();
                         });
 
                         describe('Получен список каналов.', function() {
@@ -4939,32 +4929,32 @@ tests.addTest(options => {
             describe('Инициализировано содержимое IFrame. Сотрудник авторизован.', function() {
                 beforeEach(function() {
                     tester.unreadMessagesCountSettingRequest().receive();
-
-                    tester.iconRequest().
-                        arrow().
-                        receiveResponse();
+                    tester.shortPhoneSettingRequest().expectToBeSent();
 
                     tester.amocrmStateSettingRequest().
                         chats().
                         expectToBeSent();
 
+                    tester.iconRequest().
+                        arrow().
+                        receiveResponse();
+
                     postMessages.receive({
                         method: 'set_token',
                         data: tester.oauthToken,
                     });
-
-                    tester.shortPhoneSettingRequest().expectToBeSent();
                 });
 
                 it('Открываю страницу контакта. Был отправлен запрос каналов.', function() {
                     tester.renderContact();
-                    tester.iconRequest().receiveResponse();
 
                     tester.channelsSearchingRequest().
                         second().anotherPhone().
                         atIndex(2).email().
                         atIndex(3).thirdPhone().
                         expectToBeSent();
+
+                    tester.iconRequest().receiveResponse();
                 });
                 it('Запрос каналов не был отправлен.', function() {
                     postMessages.
@@ -4993,13 +4983,12 @@ tests.addTest(options => {
                     request().
                     expectToBeSent();
 
-                tester.stateSettingRequest().expectToBeSent();
-
                 postMessages.nextMessage().expectMessageToContain({
                     method: 'set_token',
                     data: tester.oauthToken,
                 });
 
+                tester.stateSettingRequest().expectToBeSent();
                 tester.amocrmStateSettingRequest().receive();
             });
 
@@ -5008,18 +4997,22 @@ tests.addTest(options => {
                     widgetSettings.receiveResponse();
 
                     tester.masterInfoMessage().receive();
-                    tester.availabilitySettingRequest().expectToBeSent();
 
                     tester.stateSettingRequest().
                         leader().
                         expectToBeSent();
 
-                    tester.slavesNotification().
-                        additional().
+                    tester.availabilitySettingRequest().expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        tellIsLeader().
                         expectToBeSent();
 
                     tester.slavesNotification().expectToBeSent();
-                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
+                    
+                    tester.slavesNotification().
+                        additional().
+                        expectToBeSent();
                         
                     tester.authTokenRequest().receiveResponse()
                     tester.authCheckRequest().receiveResponse();
@@ -5109,11 +5102,6 @@ tests.addTest(options => {
                             data: '',
                         });
 
-                        postMessages.nextMessage().expectMessageToContain({
-                            method: 'set_token',
-                            data: '',
-                        });
-
                         tester.stateSettingRequest().
                             userDataFetched().
                             visible().
@@ -5121,8 +5109,10 @@ tests.addTest(options => {
                             leader().
                             expectToBeSent();
 
-                        tester.masterInfoMessage().leaderDeath().expectToBeSent();
-                        tester.eventsWebSocket.finishDisconnecting();
+                        postMessages.nextMessage().expectMessageToContain({
+                            method: 'set_token',
+                            data: '',
+                        });
 
                         tester.slavesNotification().
                             userDataFetched().
@@ -5131,6 +5121,12 @@ tests.addTest(options => {
                             destroyed().
                             microphoneAccessGranted().
                             expectToBeSent();
+
+                        tester.masterInfoMessage().
+                            leaderDeath().
+                            expectToBeSent();
+
+                        tester.eventsWebSocket.finishDisconnecting();
 
                         tester.authLogoutRequest().receiveResponse();
                         tester.registrationRequest().expired().receiveResponse();
@@ -5225,19 +5221,23 @@ tests.addTest(options => {
                         receiveResponse();
 
                     tester.masterInfoMessage().receive();
-                    tester.availabilitySettingRequest().expectToBeSent();
 
                     tester.stateSettingRequest().
                         leader().
                         expectToBeSent();
 
+                    tester.availabilitySettingRequest().expectToBeSent();
+
+                    tester.masterInfoMessage().
+                        tellIsLeader().
+                        expectToBeSent();
+
+                    tester.slavesNotification().expectToBeSent();
+
                     tester.slavesNotification().
                         additional().
                         expectToBeSent();
 
-                    tester.slavesNotification().expectToBeSent();
-                    tester.masterInfoMessage().tellIsLeader().expectToBeSent();
-                        
                     tester.authTokenRequest().receiveResponse()
                     tester.authCheckRequest().receiveResponse();
 
@@ -5355,22 +5355,20 @@ tests.addTest(options => {
                     grantPermission().
                     recentNotification();
 
-                tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-
-                tester.popupStateSettingRequest().receiveResponse(); 
-                tester.chatsVisibilitySettingRequest().receiveResponse();
-
                 tester.missedEventsCountSettingRequest().receiveResponse();
+                tester.chatsVisibilitySettingRequest().receiveResponse();
+                tester.popupStateSettingRequest().receiveResponse(); 
+                tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
 
                 tester.widgetSettings().
                     storageData().
                     receive();
 
-                tester.popupStateSettingRequest().
+                tester.chatsVisibilitySettingRequest().
                     settingsFetched().
                     receiveResponse();
 
-                tester.chatsVisibilitySettingRequest().
+                tester.popupStateSettingRequest().
                     settingsFetched().
                     receiveResponse();
 
@@ -5407,16 +5405,17 @@ tests.addTest(options => {
                     initialized().
                     receiveResponse();
 
-                tester.iconRequest().receiveResponse();
-
-                tester.channelsSearchingRequest().
-                    second().anotherPhone().
-                    expectToBeSent();
-
                 tester.widgetSettings().
                     windowMessage().
                     chatsSettings().
                     expectToBeSent();
+
+                tester.channelsSearchingRequest().
+                    second().
+                    anotherPhone().
+                    expectToBeSent();
+
+                tester.iconRequest().receiveResponse();
             });
 
             describe('Получен список каналов. Для всех номеров есть доступные каналы.', function() {
@@ -5663,29 +5662,30 @@ tests.addTest(options => {
                 });
                 it('Нажимаю на кнопку канала. Отправлен запрос открытия чата.', function() {
                     tester.channelButton.first.click();
-                    tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
+
+                    tester.chatsVisibilitySettingRequest().
+                        settingsFetched().
+                        initialized().
+                        visible().
+                        receiveResponse();
 
                     tester.chatOpeningRequest().
                         fourthChannel().
                         expectToBeSent();
 
-                    tester.chatsVisibilitySettingRequest().
-                        settingsFetched().
-                        initialized().
-                        visible().
-                        receiveResponse();
+                    tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
                 });
                 it('Получен запрос открытия чата. Отправлен запрос открытия чата.', function() {
                     tester.chatOpeningRequest().receive();
-                    tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-
-                    tester.chatOpeningRequest().expectToBeSent();
 
                     tester.chatsVisibilitySettingRequest().
                         settingsFetched().
                         initialized().
                         visible().
                         receiveResponse();
+
+                    tester.chatOpeningRequest().expectToBeSent();
+                    tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
                 });
                 it('Отображён непустой список каналов.', function() {
                     tester.body.expectTextContentToHaveSubstring(
@@ -5835,21 +5835,21 @@ tests.addTest(options => {
                             chats().
                             receive();
 
-                        tester.initializednessEvent().
-                            chats().
-                            expectToBeSent();
-
-                        const response = tester.iconRequest().receiveResponse();
-
                         tester.channelsSearchingRequest().
                             second().anotherPhone().
+                            expectToBeSent();
+
+                        tester.iconRequest().
+                            receiveResponse().
+                            expectToBeSent();
+
+                        tester.initializednessEvent().
+                            chats().
                             expectToBeSent();
 
                         tester.channelsSearchingResponse().
                             addChannel().
                             receive();
-
-                        response.expectToBeSent();
 
                         tester.channelsSearchingResponse().
                             addChannel().
@@ -5885,11 +5885,12 @@ tests.addTest(options => {
                             chats().
                             receive();
 
-                        tester.iconRequest().receiveResponse();
-
                         tester.channelsSearchingRequest().
-                            second().anotherPhone().
+                            second().
+                            anotherPhone().
                             expectToBeSent();
+
+                        tester.iconRequest().receiveResponse();
 
                         tester.channelsSearchingResponse().
                             addChannel().
@@ -5972,13 +5973,14 @@ tests.addTest(options => {
                 
                 it('Получены настройки. Отображён список каналов.', function() {
                     widgetSettings.receive();
-                    tester.nestedContentScriptRegistrationRequest().receiveResponse();
-
-                    tester.iconRequest().receiveResponse();
 
                     tester.channelsSearchingRequest().
-                        second().anotherPhone().
+                        second().
+                        anotherPhone().
                         expectToBeSent();
+
+                    tester.iconRequest().receiveResponse();
+                    tester.nestedContentScriptRegistrationRequest().receiveResponse();
 
                     tester.channelsSearchingResponse().
                         addChannel().
@@ -6111,20 +6113,19 @@ tests.addTest(options => {
                     grantPermission().
                     recentNotification();
 
-                tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-
-                tester.popupStateSettingRequest().receiveResponse();
-                tester.chatsVisibilitySettingRequest().receiveResponse();
-
-                tester.missedEventsCountSettingRequest().receiveResponse();
+                tester.chatsVisibilitySettingRequest().
+                    settingsFetched().
+                    receiveResponse();
 
                 tester.popupStateSettingRequest().
                     settingsFetched().
                     receiveResponse();
 
-                tester.chatsVisibilitySettingRequest().
-                    settingsFetched().
-                    receiveResponse();
+                tester.missedEventsCountSettingRequest().receiveResponse();
+
+                tester.chatsVisibilitySettingRequest().receiveResponse();
+                tester.popupStateSettingRequest().receiveResponse();
+                tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
 
                 tester.stateSettingRequest().
                     leader().
@@ -6177,11 +6178,11 @@ tests.addTest(options => {
                     emptyToken().
                     expectToBeSent();
 
-                tester.popupStateSettingRequest().
+                tester.chatsVisibilitySettingRequest().
                     initialized().
                     receiveResponse();
 
-                tester.chatsVisibilitySettingRequest().
+                tester.popupStateSettingRequest().
                     initialized().
                     receiveResponse();
 
@@ -6190,34 +6191,34 @@ tests.addTest(options => {
                     receive();
 
                 tester.popupStateSettingRequest().
-                    initialized().
+                    settingsFetched().
+                    receiveResponse();
+
+                tester.chatsVisibilitySettingRequest().
                     settingsFetched().
                     receiveResponse();
 
                 tester.chatsVisibilitySettingRequest().
                     initialized().
-                    settingsFetched().
-                    receiveResponse();
-
-                tester.chatsVisibilitySettingRequest().
                     settingsFetched().
                     receiveResponse();
 
                 tester.popupStateSettingRequest().
+                    initialized().
                     settingsFetched().
                     receiveResponse();
-
-                tester.notificationSettingRequest().
-                    success().
-                    expectToBeSent();
-
-                tester.widgetSettings().
-                    windowMessage().
-                    expectToBeSent();
 
                 tester.widgetSettings().
                     windowMessage().
                     chatsSettings().
+                    expectToBeSent();
+
+                tester.widgetSettings().
+                    windowMessage().
+                    expectToBeSent();
+
+                tester.notificationSettingRequest().
+                    success().
                     expectToBeSent();
             });
             it('Уведомление об успешной автоирзации не отобржено.', function() {
@@ -6251,20 +6252,18 @@ tests.addTest(options => {
                     grantPermission().
                     recentNotification();
 
-                tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-
-                tester.popupStateSettingRequest().receiveResponse();
-                tester.chatsVisibilitySettingRequest().receiveResponse();
-
-                tester.missedEventsCountSettingRequest().receiveResponse();
+                tester.chatsVisibilitySettingRequest().
+                    settingsFetched().
+                    receiveResponse();
 
                 tester.popupStateSettingRequest().
                     settingsFetched().
                     receiveResponse();
 
-                tester.chatsVisibilitySettingRequest().
-                    settingsFetched().
-                    receiveResponse();
+                tester.missedEventsCountSettingRequest().receiveResponse();
+                tester.chatsVisibilitySettingRequest().receiveResponse();
+                tester.popupStateSettingRequest().receiveResponse();
+                tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
 
                 tester.stateSettingRequest().
                     leader().
@@ -6291,18 +6290,20 @@ tests.addTest(options => {
                     initialized().
                     receiveResponse();
 
-                tester.iconRequest().receiveResponse();
-
-                tester.channelsSearchingRequest().
-                    second().anotherPhone().
-                    atIndex(2).email().
-                    expectToBeSent();
-
                 tester.widgetSettings().
                     windowMessage().
                     chatsSettings().
                     amocrmExtension().
                     expectToBeSent();
+
+                tester.channelsSearchingRequest().
+                    second().
+                    anotherPhone().
+                    atIndex(2).
+                    email().
+                    expectToBeSent();
+
+                tester.iconRequest().receiveResponse();
 
                 tester.channelsSearchingResponse().
                     addChannel().
@@ -6332,17 +6333,17 @@ tests.addTest(options => {
                     atIndex(3).
                     click();
 
-                tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-
-                tester.chatOpeningRequest().
-                    fourthChannel().
-                    expectToBeSent();
-
                 tester.chatsVisibilitySettingRequest().
                     settingsFetched().
                     initialized().
                     visible().
                     receiveResponse();
+
+                tester.chatOpeningRequest().
+                    fourthChannel().
+                    expectToBeSent();
+
+                tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
             });
             it('Добавлены кнопки каналов.', function() {
                 tester.body.expectTextContentToHaveSubstringsConsideringOrder(
@@ -6384,15 +6385,15 @@ tests.addTest(options => {
                 leader().
                 expectToBeSent();
 
-            tester.slavesNotification().
-                additional().
-                visible().
+            tester.masterInfoMessage().
+                tellIsLeader().
                 expectToBeSent();
 
             tester.slavesNotification().expectToBeSent();
 
-            tester.masterInfoMessage().
-                tellIsLeader().
+            tester.slavesNotification().
+                additional().
+                visible().
                 expectToBeSent();
                 
             tester.authTokenRequest().
@@ -6506,24 +6507,23 @@ tests.addTest(options => {
                 grantPermission().
                 recentNotification();
 
-            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-
-            tester.popupStateSettingRequest().
-                showed().
-                receiveResponse();
-
-            tester.chatsVisibilitySettingRequest().receiveResponse();
-
-            tester.missedEventsCountSettingRequest().receiveResponse();
-
-            tester.popupStateSettingRequest().
-                showed().
-                settingsFetched().
-                receiveResponse();
-
             tester.chatsVisibilitySettingRequest().
                 settingsFetched().
                 receiveResponse();
+
+            tester.popupStateSettingRequest().
+                showed().
+                settingsFetched().
+                receiveResponse();
+
+            tester.missedEventsCountSettingRequest().receiveResponse();
+            tester.chatsVisibilitySettingRequest().receiveResponse();
+
+            tester.popupStateSettingRequest().
+                showed().
+                receiveResponse();
+
+            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
 
             tester.stateSettingRequest().
                 leader().
@@ -6534,6 +6534,8 @@ tests.addTest(options => {
                 settingsFetched().
                 initialized().
                 receiveResponse();
+
+            tester.softphoneVisibilityToggleRequest().expectToBeSent();
 
             tester.widgetSettings().
                 windowMessage().
@@ -6550,8 +6552,6 @@ tests.addTest(options => {
                 settingsFetched().
                 initialized().
                 receiveResponse();
-
-            tester.softphoneVisibilityToggleRequest().expectToBeSent();
 
             tester.widgetSettings().
                 windowMessage().
@@ -6584,20 +6584,18 @@ tests.addTest(options => {
                 grantPermission().
                 recentNotification();
 
-            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
-
-            tester.popupStateSettingRequest().receiveResponse();
-            tester.chatsVisibilitySettingRequest().receiveResponse();
-
-            tester.missedEventsCountSettingRequest().receiveResponse();
+            tester.chatsVisibilitySettingRequest().
+                settingsFetched().
+                receiveResponse();
 
             tester.popupStateSettingRequest().
                 settingsFetched().
                 receiveResponse();
 
-            tester.chatsVisibilitySettingRequest().
-                settingsFetched().
-                receiveResponse();
+            tester.missedEventsCountSettingRequest().receiveResponse();
+            tester.chatsVisibilitySettingRequest().receiveResponse();
+            tester.popupStateSettingRequest().receiveResponse();
+            tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
 
             tester.stateSettingRequest().
                 leader().
@@ -6624,18 +6622,20 @@ tests.addTest(options => {
                 initialized().
                 receiveResponse();
 
-            tester.iconRequest().receiveResponse();
-
-            tester.channelsSearchingRequest().
-                second().anotherPhone().
-                atIndex(2).email().
-                expectToBeSent();
-
             tester.widgetSettings().
                 windowMessage().
                 chatsSettings().
                 amocrmCallGearExtension().
                 expectToBeSent();
+
+            tester.channelsSearchingRequest().
+                second().
+                anotherPhone().
+                atIndex(2).
+                email().
+                expectToBeSent();
+
+            tester.iconRequest().receiveResponse();
 
             tester.channelsSearchingResponse().
                 addChannel().

@@ -1,22 +1,22 @@
 diff --git a/package.json b/package.json
-index 78ec2f2d..5d7b1970 100644
+index 47e73a61..2ece4b50 100644
 --- a/package.json
 +++ b/package.json
-@@ -21,38 +21,25 @@
+@@ -24,38 +24,25 @@
      "url": "https://gitlab.uis.dev/web/sip_lib/issues"
    },
    "homepage": "https://gitlab.uis.dev/web/sip_lib",
 -  "peerDependencies": {
--    "axios": ">= 0.24.0 < 1.0.0",
--    "@comagic/ui": "^2.60.0"
+-    "@comagic/ui": "^2.60.0",
+-    "axios": ">= 0.24.0 < 1.0.0"
 -  },
    "dependencies": {
      "@babel/core": "^7.1.2",
      "@babel/plugin-proposal-class-properties": "^7.8.3",
      "@babel/plugin-proposal-private-methods": "7.13.0",
      "@babel/preset-env": "^7.1.0",
--    "@comagic/softphone-core": "0.0.0-int1",
--    "@comagic/workplace-utils": "0.0.0-int1",
+-    "@comagic/softphone-core": "0.0.0-0.0.10-int0",
+-    "@comagic/workplace-utils": "0.0.9-int0",
      "@types/react": "^18.0.28",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",

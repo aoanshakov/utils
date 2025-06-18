@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 5f007670..f2e64add 100644
+index 52bda526..ac78a2ca 100644
 --- a/package.json
 +++ b/package.json
 @@ -78,17 +78,11 @@
@@ -10,25 +10,25 @@ index 5f007670..f2e64add 100644
      "@comagic/crud": "2.60.2",
      "@comagic/flow": "0.6.1",
      "@comagic/reports": "6.1.1",
--    "@comagic/softphone-core": "0.0.0-0.0.10-int0",
--    "@comagic/softphone-widget": "0.0.15-int0",
+-    "@comagic/softphone-core": "0.0.0-0.0.6-int0",
+-    "@comagic/softphone-widget": "0.0.9-int0",
 -    "@comagic/ui": "2.65.2",
--    "@comagic/workplace-utils": "0.0.9-int0",
+-    "@comagic/workplace-utils": "0.0.6-int0",
      "@sentry/react": "^7.73.0",
      "async-mutex": "^0.3.2",
 -    "axios": "0.27.2",
      "classnames": "^2.2.6",
      "dayjs": "1.11.11",
      "dompurify": "^2.3.10",
-@@ -104,25 +98,16 @@
+@@ -104,25 +98,18 @@
      "janus-gateway": "1.1.4",
      "lodash.clonedeep": "^4.5.0",
      "madge": "^5.0.1",
 -    "magic-ui": "0.0.0-int1",
--    "mobx": "^6.6.1",
--    "mobx-react-lite": "^3.4.0",
--    "mobx-state-tree": "^5.1.6",
-     "moment": "2.29.4",
+     "mobx": "^6.6.1",
+     "mobx-react-lite": "^3.4.0",
+     "mobx-state-tree": "^5.1.6",
+-    "moment": "2.29.4",
      "nanoid": "^3.2.0",
      "opus-recorder": "^8.0.5",
      "qs": "6.13.0",

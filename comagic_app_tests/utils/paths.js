@@ -100,4 +100,6 @@ module.exports = {
     uiIconsBuild,
     uiIconsBuildCommon: `${uiIconsBuild}/common`,
     uiIconsBuildComagic: `${uiIconsBuild}/comagic`,
+    omniPatch: `${tests}/omni-patch.diff`,
+    omni: `${misc}/omni`,
 };

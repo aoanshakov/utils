@@ -457,12 +457,26 @@ define(function () {
                 };
 
                 const getter = text => createTester(
-                    () => utils.descendantOf(getRootElement()).
-                        textEquals(text).
-                        matchesSelector('.cmg-switch-label').
-                        find().
-                        closest('.cmg-switch-wrapper').
-                        querySelector(switchButtonSelector)
+                    () => {
+                        let switchButton = utils.descendantOf(getRootElement()).
+                            textEquals(text).
+                            matchesSelector('.cmg-switch-label, .cmgui-switch-label').
+                            find().
+                            closest('.cmg-switch-wrapper, .cmgui-switch-container').
+                            querySelector(switchButtonSelector);
+
+                        utils.isNonExisting(switchButton) && (
+                            switchButton = utils.descendantOf(getRootElement()).
+                                textEquals(text).
+                                matchesSelector('.cmgui-typography').
+                                find().
+                                closest('.cmgui-box').
+                                querySelector('.cmgui-switch-container').
+                                querySelector(switchButtonSelector)
+                        );
+
+                        return switchButton;
+                    }
                 );
 
                 getter.atIndex = index => createTester(() =>
@@ -808,7 +822,12 @@ define(function () {
         };
 
         this.createBottomButtonTester = createBottomButtonTester; 
-        this.settingsButton = createBottomButtonTester('.cmg-settings-button');
+
+        this.settingsButton = createBottomButtonTester(
+            '.cmg-settings-button,' +
+            '.cmgui-icon[data-component=Settings24]'
+        );
+
         this.callsHistoryButton = createBottomButtonTester('.cmg-calls-history-button');
 
         this.addressBookButton = (() => {
@@ -2119,7 +2138,8 @@ define(function () {
         this.triggerScrollRecalculation = this.recalculateScroll = triggerScrollRecalculation;
 
         this.requestUsers = function () {
-            let headers = {};
+            let headers = {},
+                hasSSOAuth = false;
 
             var params = {
                 with_active_phones: undefined
@@ -2243,13 +2263,13 @@ define(function () {
 
             return addResponseModifiers({
                 forContacts: function () {
-                    path = '$REACT_APP_BASE_URL/employees';
+                    path = '$REACT_APP_BASE_URL_CONTACTS/employees';
                     maybeTriggerScrollRecalculation = () => null;
 
                     headers = {
                         Authorization: undefined,
-                        'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
-                        'X-Auth-Type': 'jwt'
+                        'X-Auth-Token': hasSSOAuth ? undefined : 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+                        'X-Auth-Type':  hasSSOAuth ? undefined : 'jwt',
                     };
 
                     processors.push(data => {
@@ -2277,6 +2297,15 @@ define(function () {
                 anotherAuthorizationToken() {
                     headers = {
                         Authorization: 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf',
+                    };
+
+                    return this;
+                },
+                ssoAuth() {
+                    hasSSOAuth = true;
+
+                    headers = {
+                        Authorization: undefined,
                     };
 
                     return this;

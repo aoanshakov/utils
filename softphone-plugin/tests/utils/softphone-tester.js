@@ -460,12 +460,26 @@ define(function () {
                 };
 
                 const getter = text => createTester(
-                    () => utils.descendantOf(getRootElement()).
-                        textEquals(text).
-                        matchesSelector('.cmg-switch-label, .cmgui-switch-label').
-                        find().
-                        closest('.cmg-switch-wrapper, .cmgui-switch-container').
-                        querySelector(switchButtonSelector)
+                    () => {
+                        let switchButton = utils.descendantOf(getRootElement()).
+                            textEquals(text).
+                            matchesSelector('.cmg-switch-label, .cmgui-switch-label').
+                            find().
+                            closest('.cmg-switch-wrapper, .cmgui-switch-container').
+                            querySelector(switchButtonSelector);
+
+                        utils.isNonExisting(switchButton) && (
+                            switchButton = utils.descendantOf(getRootElement()).
+                                textEquals(text).
+                                matchesSelector('.cmgui-typography').
+                                find().
+                                closest('.cmgui-box').
+                                querySelector('.cmgui-switch-container').
+                                querySelector(switchButtonSelector)
+                        );
+
+                        return switchButton;
+                    }
                 );
 
                 getter.atIndex = index => createTester(() =>
@@ -651,7 +665,11 @@ define(function () {
                     
                     tester.option = text => {
                         const option = utils.descendantOfBody().
-                            matchesSelector('.ui-list-option, .cmgui-list-option, .cm-chats--tags-option').
+                            matchesSelector(
+                                '.ui-list-option, ' +
+                                '.cmgui-list-option, ' +
+                                '.cm-chats--tags-option'
+                            ).
                             textEquals(text).
                             find();
 

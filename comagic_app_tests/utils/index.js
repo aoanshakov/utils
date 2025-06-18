@@ -84,6 +84,8 @@ const {
     uiIconsBuild,
     uiIconsBuildCommon,
     uiIconsBuildComagic,
+    omni,
+    omniPatch,
 } = require('./paths');
 
 const cda = `cd ${application} &&`,
@@ -301,6 +303,16 @@ const overriding = [{
         overridenFiles: contactsOverridenFiles,
         applicationPatch: contactsPatch
     }
+}, {
+    application: omni,
+    dev: {
+        overridenFiles: packageJson,
+        applicationPatch: omniPatch,
+    },
+    test: {
+        overridenFiles: packageJson,
+        applicationPatch: omniPatch,
+    },
 }];
 
 const shouldTestAnalytics = false;
@@ -396,11 +408,8 @@ actions['copy-magic-ui'] = [
 const standInt0Branch = '--branch stand-int0';
 
 actions['initialize'] = params => [`git config --global --add safe.directory ${application}`].concat([
-    appModule(['chats', chats, standInt0Branch]),
-    appModule(['softphone', softphone, standInt0Branch]),
-    appModule(['contacts', contacts, standInt0Branch]),
+    ['omni/frontend', omni, 'stand-int0', misc],
     appModule(['core', core, '']),
-    appModule(['operator-workplace', employees, standInt0Branch]),
     appModule(['logger', logger, standInt0Branch]),
     ['web/magic_ui', magicUi, 'feature/softphone', misc],
     ['web/sip_lib', sipLib, 'multitab-local', softphoneMisc],

@@ -1,18 +1,26 @@
 diff --git a/package.json b/package.json
-index 5863a434..71f7b4ce 100644
+index 78ec2f2d..e8c041f5 100644
 --- a/package.json
 +++ b/package.json
-@@ -29,9 +29,6 @@
+@@ -21,17 +21,11 @@
+     "url": "https://gitlab.uis.dev/web/sip_lib/issues"
+   },
+   "homepage": "https://gitlab.uis.dev/web/sip_lib",
+-  "peerDependencies": {
+-    "axios": ">= 0.24.0 < 1.0.0",
+-    "@comagic/ui": "^2.60.0"
+-  },
+   "dependencies": {
+     "@babel/core": "^7.1.2",
      "@babel/plugin-proposal-class-properties": "^7.8.3",
      "@babel/plugin-proposal-private-methods": "7.13.0",
      "@babel/preset-env": "^7.1.0",
--    "@comagic/softphone-core": "0.0.0-int0",
--    "@comagic/ui": "2.60.0",
--    "@comagic/workplace-utils": "0.0.0-int0",
+-    "@comagic/softphone-core": "0.0.0-int1",
+-    "@comagic/workplace-utils": "0.0.0-int1",
      "@types/react": "^18.0.28",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
-@@ -40,7 +37,6 @@
+@@ -40,7 +34,6 @@
      "exports-loader": "2.0.0",
      "history": "^5.3.0",
      "jssip": "3.3.4",
@@ -20,11 +28,11 @@ index 5863a434..71f7b4ce 100644
      "mobx": "^6.12.0",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.5",
-@@ -49,10 +45,8 @@
+@@ -49,10 +42,8 @@
      "qs": "6.7.0",
      "react-draggable": "^4.2.0",
      "react-fast-marquee": "1.6.5",
--    "react-intl": "6.3.2",
+-    "react-intl": "6.4.5",
      "react-list": "0.8.17",
      "react-resizable": "3.0.5",
 -    "react-router-dom": "6.23.1",

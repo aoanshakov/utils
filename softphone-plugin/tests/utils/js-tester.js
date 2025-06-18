@@ -102,7 +102,7 @@ function JsTester_UserMediaEventHandlersItem (options) {
     };
 }
 
-function JsTester_QueueItemAppender () {
+function JsTester_StackItemAppender () {
     return function (args) {
         var currentItem = args.currentItem,
             newItem = args.newItem;
@@ -112,7 +112,7 @@ function JsTester_QueueItemAppender () {
     };
 }
 
-function JsTester_StackItemAppender () {
+function JsTester_QueueItemAppender () {
     return function (args) {
         var currentItem = args.currentItem,
             lastItem = args.lastItem,
@@ -3433,8 +3433,9 @@ function JsTester_BroadcastChannelMessage (args) {
 
     this.expectNotToExist = function (exceptions) {
         var exception = new Error(
-            'Ни одно сообщение не должно быть отправлено, тогда как было отправлено сообщение ' +
-                (typeof actualMessage == 'string' ? actualMessage : JSON.stringify(actualMessage)) +
+            'Ни одно сообщение не должно быть отправлено, тогда как в канал "' +  actualChannelName + '" было ' +
+            'отправлено сообщение ' +
+            (typeof actualMessage == 'string' ? actualMessage : JSON.stringify(actualMessage)) +
             '.' + "\n\n" + callStack
         );
 

@@ -1,0 +1,23 @@
+impl<'a> Tree<'a> {
+    pub fn new(
+        items: &'a Vec<Item>,
+        key_handler: fn(item: &vimlike_list::Item, code: String) -> bool
+    ) -> Self {
+        let mut list_items: Vec<vimlike_list::Item> = vec![];
+        let mut items_hash: HashMap<u32, Item> = HashMap::new();
+
+        let mut name_printer: Box<dyn ItemHandler> = Box::new(NamePrinter {});
+        let mut indexer: Box<dyn ItemHandler> = Box::new(Indexer::new());
+
+        simple_traverse(items, &mut name_printer);
+        simple_traverse(items, &mut indexer);
+
+        return Tree {
+            items,
+            list: vimlike_list::VimlikeList::new(
+                list_items,
+                Box::new(KeyHandler::new(key_handler, items_hash.clone())),
+            ),
+        }
+    }
+}

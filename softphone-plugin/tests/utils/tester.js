@@ -110,6 +110,8 @@ define(() => function ({
                 throw new Error('Карточка звонка должна быть создана.');
             }
 
+            const description = `метод "${actualMethod}" с параметрами ${JSON.stringify(actualParams)}`;
+
             return {
                 receiveResult(data) {
                     if (typeof actualParams != 'function') {
@@ -121,23 +123,25 @@ define(() => function ({
                     actualParams(data);
                     return this;
                 },
+
                 expectParamsToContain(expectedContent) {
                     utils.expectObjectToContain(actualParams, expectedContent);
                     return this;
                 },
+
                 expectToHaveMethod(expectedMethod) {
                     if (expectedMethod != actualMethod) {
                         throw new Error(
-                            `Должен быть вызван метод "${expectedMethod}, тогда, как был вызван ` +
-                            `метод "${actualMethod}".`
+                            `Должен быть вызван метод "${expectedMethod}, тогда, как был вызван ${description}.`
                         );
                     }
 
                     return this;
                 },
+
                 expectNotToExist() {
                     throw new Error(
-                        `Ни один метод не должен быть вызван, тогда как был вызван метод "${actualMethod}".`
+                        `Ни один метод не должен быть вызван, тогда как был вызван ${description}.`
                     );
                 }
             };
@@ -257,7 +261,7 @@ define(() => function ({
                     hangup: () => fireEvent('BackgroundCallCard::hangupButtonClick'),
                     skip: () => (fireEvent('BackgroundCallCard::skipButtonClick'), spendTime(0)),
                     dtmf: signal => fireEvent('BackgroundCallCard::dialpadButtonClick', signal),
-                    recentCall: () => calls.pop()
+                    nextCall: () => calls.pop()
                 } 
             });
         }
@@ -1166,7 +1170,7 @@ define(() => function ({
 
         let respond = request => {
             const settings = getSettings();
-            delete(settings[chatsSettings ? 'softphone' : 'chats'])
+            settings && delete(settings[chatsSettings ? 'softphone' : 'chats'])
 
             request.respondSuccessfullyWith(settings);
         };
@@ -1629,6 +1633,11 @@ define(() => function ({
 
             me.amocrm = () => {
                 widget_id = 'amoSoftphone';
+                return me;
+            };
+
+            me.bitrix = () => {
+                widget_id = 'bitrix';
                 return me;
             };
 
@@ -4099,7 +4108,21 @@ define(() => function ({
                     'status=L&' +
                     'PLACEMENT=USER_PROFILE_MENU'
             );
-        } else if (application == 'notificationsIframe') {
+        }  else if (application == 'bitrixSoftphoneAuthorizationIframe') {
+            me.history.push(
+                '/bitrix/softphone/authorization?' +
+                    'DOMAIN=sber.vlads.dev&' +
+                    'PROTOCOL=1&' +
+                    'LANG=ru&' +
+                    'APP_SID=23f47ed487421c2dfbfc17528f295fc2&' +
+                    'AUTH_ID=6cd38e5f004e48ba004b7cc000000001000003acee2b073187698d3ea46c4082dc9991&' +
+                    'AUTH_EXPIRES=3600&' +
+                    'REFRESH_ID=5c52b65f004e48ba004b7cc00000000100000336bb35bf8b0c68a249c9e312210cdd77&' +
+                    'member_id=91a9ef2628b90ae0c5e8e2a951c5fa11&' +
+                    'status=L&' +
+                    'PLACEMENT=USER_PROFILE_MENU'
+            );
+        }else if (application == 'notificationsIframe') {
             me.history.push('/chrome/notifications');
         }
     }
@@ -4492,7 +4515,8 @@ define(() => function ({
                 const getDomElement = () => {
                     const tagEditor = utils.element(getRootElement()).querySelector(
                         '.ui-tag-editor, ' +
-                        '.cmgui-tag-editor'
+                        '.cmgui-tag-editor, ' +
+                        '.cm-chats--tags-container'
                     );
 
                     return utils.isNonExisting(tagEditor) ?
@@ -4530,16 +4554,38 @@ define(() => function ({
                     tester.display.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
                 }
 
+                tester.tag = text => {
+                    const getTagElement = () => utils.descendantOf(getDomElement()).
+                        matchesSelector('.cmgui-tag').
+                        textEquals(text).
+                        find();
+
+                    const tester = testersFactory.createDomElementTester(getTagElement);
+
+                    tester.removeIcon = testersFactory.createDomElementTester(() => utils.element(getTagElement()).querySelector('.cmgui-tag-close'));
+                    return tester;
+                };
+
                 tester.button = (() => {
                     const tester = testersFactory.createDomElementTester(
-                        () => utils.element(getDomElement()).
-                            querySelector('.ui-icon, .cmgui-icon')
+                        () => {
+                            const domElement = utils.element(getDomElement()).querySelector('.cm-chats--tags-add-trigger');
+
+                            return utils.isNonExisting(domElement)
+                                ? utils.element(getDomElement()).querySelector('.ui-icon, .cmgui-icon')
+                                : domElement;
+                        },
                     );
 
                     const click = tester.click.bind(tester);
 
                     tester.click = () => {
                         click();
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
                         spendTime(0);
                     };
 
@@ -5165,17 +5211,22 @@ define(() => function ({
                         'cmgui-list-option-disabled',
                     ];
 
+                    const selectedClassNames = [
+                        'ui-checkbox-checked',
+                        'cmgui-checkbox-checked'
+                    ];
+
                     tester.expectToBeDisabled = () => tester.expectToHaveAnyOfClasses(disabledClassNames);
                     tester.expectToBeEnabled = () => tester.expectToHaveNoneOfClasses(disabledClassNames);
 
-                    tester.expectToBeSelected = logEnabled => {
-                        if (!checkbox.classList.contains('ui-checkbox-checked')) {
+                    tester.expectToBeSelected = () => {
+                        if (!selectedClassNames.some(className => checkbox.classList.contains(className))) {
                             throw new Error(`Опиция "${text}" должна быть отмечена.`);
                         }
                     };
 
                     tester.expectNotToBeSelected = () => {
-                        if (checkbox.classList.contains('ui-checkbox-checked')) {
+                        if (selectedClassNames.some(className => checkbox.classList.contains(className))) {
                             throw new Error(`Опиция "${text}" не должна быть отмечена.`);
                         }
                     };
@@ -5715,14 +5766,34 @@ define(() => function ({
     me.chatMarkingRequest = () => {
         const addResponseModifiers = me => me;
 
+        const bodyParams = {
+            id: 7189362,
+            mark_ids: [587],
+        };
+
         return addResponseModifiers({
+            anotherChat() {
+                bodyParams.id = 2718935;
+                return this;
+            },
+
+            addAnotherTag() {
+                bodyParams.mark_ids.push(213);
+                return this;
+            },
+
+            addThirdTag() {
+                bodyParams.mark_ids.push(6889);
+                return this;
+            },
+
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
                     expectToHavePath('https://$REACT_APP_BASE_URL/operator/chat/mark').
                     expectBodyToContain({
-                        id: 7189362,
-                        mark_ids: [587, undefined]
+                        ...bodyParams,
+                        mark_ids: bodyParams.mark_ids.concat([undefined]),
                     });
 
                 spendTime(0);
@@ -6740,7 +6811,7 @@ define(() => function ({
                 data.push({
                     id: 8,
                     is_worktime: false,
-                    mnemonic: 'asterisk',
+                    mnemonic: null,
                     name: 'Звёздочка',
                     is_select_allowed: false,
                     icon: 'asterisk',
@@ -6768,7 +6839,7 @@ define(() => function ({
                 }, {
                     id: 11,
                     is_worktime: false,
-                    mnemonic: 'bell',
+                    mnemonic: null,
                     name: 'Колокольчик',
                     is_select_allowed: false,
                     icon: 'bell',
@@ -6796,7 +6867,7 @@ define(() => function ({
                 }, {
                     id: 12,
                     is_worktime: false,
-                    mnemonic: 'bottom_left_arrow',
+                    mnemonic: null,
                     name: 'Стрелочка',
                     is_select_allowed: false,
                     icon: 'bottom_left_arrow',
@@ -6824,7 +6895,7 @@ define(() => function ({
                 }, {
                     id: 14,
                     is_worktime: false,
-                    mnemonic: 'dice',
+                    mnemonic: null,
                     name: 'Кости',
                     is_select_allowed: false,
                     icon: 'dice',
@@ -6852,7 +6923,7 @@ define(() => function ({
                 }, {
                     id: 16,
                     is_worktime: false,
-                    mnemonic: 'ellipsis',
+                    mnemonic: null,
                     name: 'Многоточие',
                     is_select_allowed: false,
                     icon: 'ellipsis',
@@ -6880,7 +6951,7 @@ define(() => function ({
                 }, {
                     id: 17,
                     is_worktime: false,
-                    mnemonic: 'exclamation',
+                    mnemonic: null,
                     name: 'Восклицание',
                     is_select_allowed: false,
                     icon: 'exclamation',
@@ -6908,7 +6979,7 @@ define(() => function ({
                 }, {
                     id: 18,
                     is_worktime: false,
-                    mnemonic: 'fast_forward',
+                    mnemonic: null,
                     name: 'Перемотка',
                     is_select_allowed: false,
                     icon: 'fast_forward',
@@ -6936,7 +7007,7 @@ define(() => function ({
                 }, {
                     id: 19,
                     is_worktime: false,
-                    mnemonic: 'find',
+                    mnemonic: null,
                     name: 'Найти',
                     is_select_allowed: false,
                     icon: 'find',
@@ -6964,7 +7035,7 @@ define(() => function ({
                 }, {
                     id: 20,
                     is_worktime: false,
-                    mnemonic: 'funnel',
+                    mnemonic: null,
                     name: 'Воронка',
                     is_select_allowed: false,
                     icon: 'funnel',
@@ -6992,7 +7063,7 @@ define(() => function ({
                 }, {
                     id: 21,
                     is_worktime: false,
-                    mnemonic: 'half_moon',
+                    mnemonic: null,
                     name: 'Луна',
                     is_select_allowed: false,
                     icon: 'half_moon',
@@ -7020,12 +7091,20 @@ define(() => function ({
                 }, {
                     id: 22,
                     is_worktime: false,
-                    mnemonic: 'handset',
+                    mnemonic: null,
                     name: 'Поднял',
                     is_select_allowed: false,
                     icon: 'handset',
                     color: '#6c9297',
                     priority: 7,
+
+                    is_able_to_accept_chat_transfer: true,
+                    is_able_to_transfer_chat: true,
+                    is_able_to_accept_chat: true,
+                    is_able_to_close_chat_offline_message: true,
+                    is_able_in_forwarding_scenario: true,
+                    is_able_to_send_chat_messages: true,
+
                     in_external_allowed_call_directions: [
                         'in',
                         'out'
@@ -7048,7 +7127,7 @@ define(() => function ({
                 }, {
                     id: 23,
                     is_worktime: false,
-                    mnemonic: 'hangup',
+                    mnemonic: null,
                     name: 'Повесил',
                     is_select_allowed: false,
                     icon: 'hangup',
@@ -7076,7 +7155,7 @@ define(() => function ({
                 }, {
                     id: 24,
                     is_worktime: false,
-                    mnemonic: 'info',
+                    mnemonic: null,
                     name: 'Информация',
                     is_select_allowed: false,
                     icon: 'info',
@@ -7104,7 +7183,7 @@ define(() => function ({
                 }, {
                     id: 25,
                     is_worktime: false,
-                    mnemonic: 'lightning',
+                    mnemonic: null,
                     name: 'Молния',
                     is_select_allowed: false,
                     icon: 'lightning',
@@ -7132,7 +7211,7 @@ define(() => function ({
                 }, {
                     id: 26,
                     is_worktime: false,
-                    mnemonic: 'list',
+                    mnemonic: null,
                     name: 'Список',
                     is_select_allowed: false,
                     icon: 'list',
@@ -7160,7 +7239,7 @@ define(() => function ({
                 }, {
                     id: 27,
                     is_worktime: false,
-                    mnemonic: 'pen',
+                    mnemonic: null,
                     name: 'Ручка',
                     is_select_allowed: false,
                     icon: 'pen',
@@ -7188,7 +7267,7 @@ define(() => function ({
                 }, {
                     id: 28,
                     is_worktime: false,
-                    mnemonic: 'play',
+                    mnemonic: null,
                     name: 'Проигрывание',
                     is_select_allowed: false,
                     icon: 'play',
@@ -7216,7 +7295,7 @@ define(() => function ({
                 }, {
                     id: 29,
                     is_worktime: false,
-                    mnemonic: 'question',
+                    mnemonic: null,
                     name: 'Вопрос',
                     is_select_allowed: false,
                     icon: 'question',
@@ -7244,7 +7323,7 @@ define(() => function ({
                 }, {
                     id: 30,
                     is_worktime: false,
-                    mnemonic: 'rays',
+                    mnemonic: null,
                     name: 'Лучи',
                     is_select_allowed: false,
                     icon: 'rays',
@@ -7272,7 +7351,7 @@ define(() => function ({
                 }, {
                     id: 31,
                     is_worktime: false,
-                    mnemonic: 'star',
+                    mnemonic: null,
                     name: 'Звезда',
                     is_select_allowed: false,
                     icon: 'star',
@@ -7300,7 +7379,7 @@ define(() => function ({
                 }, {
                     id: 32,
                     is_worktime: false,
-                    mnemonic: 'target',
+                    mnemonic: null,
                     name: 'Цель',
                     is_select_allowed: false,
                     icon: 'target',
@@ -7328,7 +7407,7 @@ define(() => function ({
                 }, {
                     id: 10,
                     is_worktime: false,
-                    mnemonic: 'auto_out_call',
+                    mnemonic: null,
                     name: 'Исходящий обзвон',
                     is_select_allowed: false,
                     icon: 'auto_out_call',
@@ -12054,6 +12133,16 @@ define(() => function ({
                 return this;
             },
 
+            addAnotherTag() {
+                processors.push(data => data.chats.forEach(chat => (chat.mark_ids.push('6889'))));
+                return this;
+            },
+
+            removeSecondTag() {
+                processors.push(data => data.chats.forEach(chat => (chat.mark_ids = chat.mark_ids.filter(mark_id => mark_id != '213'))));
+                return this;
+            },
+
             thirdChat() {
                 chat(7189362);
 
@@ -12362,6 +12451,38 @@ define(() => function ({
             
             chat() {
                 chat(2718935);
+
+                getData = () => [{
+                    context: {
+                        phone: '79283810928'
+                    },
+                    chat_channel_id: 101,
+                    chat_channel_state: null,
+                    chat_channel_type: 'telegram',
+                    date_time: '2020-01-20T17:25:22.098210',
+                    id: 2718937,
+                    employee_id: null,
+                    is_chat_channel_active: false,
+                    last_message: {
+                        message: 'Я люблю тебя',
+                        date: '2021-02-21T12:24:53.000Z',
+                        is_operator: false,
+                        resource_type: null,
+                        resource_name: null
+                    },
+                    mark_ids: ['587', '213'],
+                    phone: null,
+                    name: 'Помакова Бисерка Драгановна',
+                    site_id: 4663,
+                    status: 'new',
+                    visitor_id: 16479305,
+                    visitor_name: 'Томова Денка Райчовна',
+                    visitor_type: 'omni',
+                    account_id: null,
+                    is_phone_auto_filled: false,
+                    unread_message_count: 1
+                }];
+
                 return this;
             },
 
@@ -12748,7 +12869,7 @@ define(() => function ({
                         }, {
                             id: 20818,
                             full_name: 'Костова Марвуда Любенова',
-                            status_id: 5,
+                            status_id: 22,
                             photo_link: null
                         }]
                     });
@@ -13416,10 +13537,45 @@ define(() => function ({
         };
     };
 
+    me.tagsCreatingRequest = () => {
+        return {
+            receiveResponse() {
+                ajax.recentRequest().
+                    expectToHaveHeaders({
+                        Authorization: `Bearer ${mainTester.oauthToken}`,
+                    }).
+                    expectBodyToContain({
+                        method: 'create.tags',
+                        params: {
+                            name: 'Новый тег',
+                            color: 'color1',
+                        },
+                    }).
+                    respondSuccessfullyWith({
+                        result: {
+                            data: {
+                                id: 6889,
+                                name: 'Новый тег',
+                                rating: 2,
+                                is_system: true,
+                                color: 'color1',
+                            },
+                        },
+                    });
+
+                Promise.runAll(false, true);
+                spendTime(0)
+            }
+        };
+    };
+
     me.tagsRequest = () => {
         return {
             receiveResponse() {
                 ajax.recentRequest().
+                    expectToHaveHeaders({
+                        Authorization: `Bearer ${mainTester.oauthToken}`,
+                    }).
                     expectBodyToContain({
                         method: 'get.tags',
                     }).
@@ -13430,6 +13586,79 @@ define(() => function ({
                                 name: 'Продажа',
                                 rating: 0,
                                 is_system: false,
+                                color: '#9da8ae',
+                            }, {
+                                id: 587,
+                                name: 'Нереализованная сделка',
+                                rating: 2,
+                                is_system: true,
+                                color: '#9da8ae',
+                            }, {
+                                id: 87,
+                                name: 'Спам',
+                                is_system: true,
+                                rating: 6,
+                                color: '#9da8ae',
+                            }, {
+                                id: 213,
+                                name: 'Скупка краденого',
+                                is_system: true,
+                                rating: 1,
+                                color: '#9da8ae',
+                            }, {
+                                id: 88,
+                                name: 'Нецелевой контакт',
+                                is_system: true,
+                                rating: 3,
+                                color: '#9da8ae',
+                            }, {
+                                id: 148,
+                                name: 'Генератор лидов',
+                                is_system: true,
+                                rating: 7,
+                                color: '#9da8ae',
+                            }, {
+                                id: 86,
+                                name: 'Фрод',
+                                is_system: true,
+                                rating: 4,
+                                color: '#9da8ae',
+                            }, {
+                                id: 89,
+                                name: 'Лид',
+                                is_system: true,
+                                rating: 5,
+                                color: '#9da8ae',
+                            }, {
+                                id: 2,
+                                name: 'В обработке',
+                                is_system: true,
+                                rating: 5,
+                                color: '#9da8ae',
+                            }, {
+                                id: 495,
+                                name: 'Отложенный звонок',
+                                is_system: true,
+                                rating: 5,
+                                color: '#9da8ae',
+                            }, {
+                                id: 1,
+                                name: 'Не обработано',
+                                is_system: true,
+                                rating: 5,
+                                color: '#9da8ae',
+                            }, {
+                                id: 511,
+                                name: 'Обработано',
+                                is_system: true,
+                                rating: 5,
+                                color: '#9da8ae',
+                            }, {
+                                id: 91,
+                                name: 'Кобыла и трупоглазые жабы искали цезию, нашли поздно кобылаитрупоглазыежаб' +
+                                    'ыискалицезиюнашлипоздноутромсвистящегохна',
+                                is_system: true,
+                                rating: 5,
                                 color: '#9da8ae',
                             }]
                         }
@@ -17791,7 +18020,7 @@ define(() => function ({
 
     me.chatChannelSearchRequest = () => {
         const processors = [];
-        let path = '$REACT_APP_BASE_URL/operator';
+        let path = 'https://$REACT_APP_BASE_URL/operator';
 
         const params = {
             contact: {

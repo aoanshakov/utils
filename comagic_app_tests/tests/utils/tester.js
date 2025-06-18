@@ -84,6 +84,7 @@ define(() => function ({
 
     window.rootConfig = { appName, platform };
     window.broadcastChannelCache = {};
+    window.rootStore = null;
     window.employeesStore = null;
     window.softphoneStore = null;
     window.chatsStore = null;
@@ -340,6 +341,31 @@ define(() => function ({
 
     const getContactCommunicationsSpinWrapper = () =>
         getSpinWrapper(() => utils.querySelector('.cm-chats--chat-panel-history'));
+
+    const createIconTester = getDomElements => {
+        const tester = testersFactory.createDomElementTester(() => {
+            const domElements = getDomElements();
+
+            if (domElements.length != 1) {
+                return null;
+            }
+            
+            return domElements[0];
+        });
+
+        const augmentTester = tester => {
+            tester.expectToBe = icon => (tester.expectAttributeToHaveValue('data-component', icon), tester);
+            return tester;
+        };
+
+        augmentTester(tester);
+        
+        tester.atIndex = index =>
+            augmentTester(testersFactory.createDomElementTester(() => getDomElements()[index]));
+
+        tester.first = tester.atIndex(0);
+        return tester;
+    };
 
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
@@ -603,23 +629,13 @@ define(() => function ({
 
         Object.defineProperty(me, 'icon', {
             get: () => {
-                const getDomElements = () => utils.element(getRootElement()).querySelectorAll('.cmgui-icon'),
-                    getDomElement = () => utils.element(getRootElement()).querySelector('.cmgui-icon'),
-                    tester = testersFactory.createDomElementTester(getDomElement);
+                const tester = createIconTester(() => utils.element(getRootElement()).querySelectorAll('.cmgui-icon'));
 
-                const augmentTester = tester => {
-                    tester.expectToBe = icon => (tester.expectAttributeToHaveValue('data-component', icon), tester);
-                    return tester;
-                };
+                tester.withComponent = icon =>
+                    utils.element(getRootElement()).querySelector('.cmgui-icon[data-component="' + icon + '"]');
 
-                augmentTester(tester);
-
-                tester.atIndex = index =>
-                    augmentTester(testersFactory.createDomElementTester(() => getDomElements()[index]));
-
-                tester.first = tester.atIndex(0);
                 return tester;
-            }
+            },
         });
 
         ['userName', 'accountButton'].forEach(getterName => Object.defineProperty(me, getterName, {
@@ -785,6 +801,28 @@ define(() => function ({
         me.playIcon = getSvg('.play_svg__cmg-icon, .cm-chats--audio-player--main-button svg');
         me.downloadIcon = getSvg('.download_svg__cmg-icon, .cm-contacts-communications-download-button');
         me.svg = getSvg('svg');
+
+        me.tab = text => {
+            const tester = testersFactory.createDomElementTester(
+                utils.descendantOf(getRootElement()).
+                    matchesSelector('.cmgui-tab').
+                    textContains(text).
+                    find()
+            );
+
+            const click = tester.click.bind(tester);
+
+            tester.click = () => {
+                click();
+                spendTime(0);
+                spendTime(0);
+            };
+
+            tester.expectNotToBeSelected = () => tester.expectNotToHaveClass('cmgui-tab-active');
+            tester.expectToBeSelected = () => tester.expectToHaveClass('cmgui-tab-active');
+
+            return tester;
+        };
 
         me.table = (() => {
             const getTable = () => utils.element(getRootElement()).querySelector('.ant-table, .ui-table, .cmgui-table'),
@@ -1553,6 +1591,36 @@ define(() => function ({
                 };
             },
         };
+    };
+
+    me.employeesSsoCheckRequest = () => {
+        let respond = request => request.respondSuccessfullyWith({
+            data: {},
+        });
+
+        const addResponseModifiers = me => {
+            me.failed = () => (respond = request => request.respondUnauthorizedWith('401 Unauthorized'), me);
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectToHavePath('$REACT_APP_SSO_CHECK_WS_URL_EMPLOYEES').
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        respond(request);
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
     };
 
     me.ssoCheckRequest = () => {
@@ -2662,7 +2730,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectToHavePath('https://$REACT_APP_BASE_URL/api/v1/employees/20816/settings');
+                    expectToHavePath('https://$REACT_APP_BASE_URL_EMPLOYEES/api/v1/employees/20816/settings');
 
                 return addResponseModifiers({
                     receiveResponse() {
@@ -2709,7 +2777,7 @@ define(() => function ({
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('GET').
-                    expectToHavePath('https://$REACT_APP_BASE_URL/api/v1/employees/20816').
+                    expectToHavePath('https://$REACT_APP_BASE_URL_EMPLOYEES/api/v1/employees/20816').
                     expectToHaveHeaders(headers);
 
                 return addResponseModifiers({
@@ -3760,7 +3828,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('$REACT_APP_BASE_URL/api/v1/statuses').
+                    expectPathToContain('$REACT_APP_BASE_URL_EMPLOYEES/api/v1/statuses').
                     expectToHaveMethod('GET').
                     expectToHaveHeaders(headers);
 
@@ -3947,13 +4015,13 @@ define(() => function ({
         });
     };
 
-    me.ssoWsCheckingRequest = () => {
+    me.chatsSsoWsCheckRequest = () => {
         const data = {},
             addResponseModifiers = me => me;
 
         return addResponseModifiers({
             expectToBeSent(requests) {
-                const request = (requests ? requests.someRequest() : fetch.recentRequest()).
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectPathToContain('$REACT_APP_SSO_CHECK_WS_URL');
 
                 return addResponseModifiers({
@@ -4330,10 +4398,17 @@ define(() => function ({
     });
 
     const createWebSocketTester = (() => {
-        let lastIndex = -1;
+        const indexes = {};
 
         return url => {
             let index;
+
+            const incrementLastIndex = () => {
+                !(url in indexes) && (indexes[url] = -1);
+                indexes[url] = indexes[url] + 1;
+
+                return indexes[url];
+            };
 
             const getWebSocket = () => {
                 if (index === undefined) {
@@ -4347,30 +4422,39 @@ define(() => function ({
                 finishDisconnecting: () => {
                     getWebSocket().finishDisconnecting();
                 },
+ 
                 disconnect: code => {
                     getWebSocket().disconnect(code);
                 },
+
                 disconnectAbnormally: code => {
                     getWebSocket().disconnectAbnormally(code);
                 },
-                connect: () => {
-                    lastIndex ++;
-                    index = lastIndex;
+
+                expectToBeConnecting() {
+                    index = incrementLastIndex();
+                    getWebSocket().expectToBeConnecting();
+
+                    this.connect = () => getWebSocket().connect();
+                },
+
+                connect() {
+                    this.expectToBeConnecting();
                     getWebSocket().connect();
                 },
+
                 expectSentMessageToContain: message => getWebSocket().expectSentMessageToContain(message),
                 receive: message => getWebSocket().receiveMessage(message)
             };
         };
     })();
 
-    const createWebSocketTesterCreator = () => {
+    const createWebSocketTesterCreator = url => {
         const throwError = () => {
             throw new Error('Вебсокет должен быть подключен.');
         };
 
         const tester = {};
-        let url = '$REACT_APP_WS_URL';
 
         const applyMethods = () => {
             tester.finishDisconnecting = throwError;
@@ -4378,18 +4462,15 @@ define(() => function ({
             tester.receive = throwError;
             tester.disconnect = throwError;
             tester.disconnectAbnormally = throwError;
-            tester.ssoAuth = () => (url = '$REACT_APP_SSO_WS_URL', tester),
 
-            tester.connect = () => {
-                const value = createWebSocketTester(url);
-
+            const connect = value => {
                 tester.disconnect = code => {
                     value.disconnect(code);
                     applyMethods();
                 };
 
-                tester.disconnectAbnormally = code => {
-                    value.disconnectAbnormally(code);
+                tester.disconnectAbnormally = () => {
+                    value.disconnectAbnormally();
                     applyMethods();
                 };
 
@@ -4402,19 +4483,36 @@ define(() => function ({
                 tester.receive = value.receive;
 
                 value.connect();
+                spendTime(0);
 
                 tester.connect = () => {
                     throw new Error('Вебсокет не должен быть подключен.');
                 };
             };
+
+            const expectToBeConnecting = () => {
+                const value = createWebSocketTester(url);
+                value.expectToBeConnecting();
+
+                return value;
+            };
+
+            tester.expectToBeConnecting = () => {
+                const value = expectToBeConnecting();
+                tester.connect = () => connect(value);
+
+                return tester;
+            };
+
+            tester.connect = () => connect(expectToBeConnecting());
         };
 
         applyMethods();
         return tester;
     };
 
-    me.chatsWebSocket = createWebSocketTesterCreator();
-    me.employeesWebSocket = createWebSocketTesterCreator();
+    me.chatsWebSocket = createWebSocketTesterCreator('$REACT_APP_SSO_WS_URL');
+    me.employeesWebSocket = createWebSocketTesterCreator('$REACT_APP_SSO_WS_URL_EMPLOYEES');
 
     me.offlineMessagesSettingsChangedMessage = () => ({
         receive: () => {
@@ -4441,7 +4539,7 @@ define(() => function ({
 
         return {
             ssoAuth() {
-                jwt = '';
+                jwt = undefined;
                 return this;
             },
 
@@ -4670,9 +4768,20 @@ define(() => function ({
     };
 
     me.chatsInitMessage = () => {
-        let access_token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+        const params = {
+            access_token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            access_type: 'jwt',
+            employee_id: 20816
+        };
 
         return {
+            ssoAuth() {
+                params.access_token = undefined;
+                params.access_type = undefined;
+
+                return this;
+            },
+
             anotherAuthorizationToken() {
                 access_token = '935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf';
                 return this;
@@ -4680,11 +4789,7 @@ define(() => function ({
 
             expectToBeSent: () => me.chatsWebSocket.expectSentMessageToContain({
                 method: 'init',
-                params: {
-                    access_token,
-                    access_type: 'jwt',
-                    employee_id: 20816
-                }
+                params,
             })
         };
     };
@@ -5797,6 +5902,11 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            ssoAuth() {
+                headers['X-Auth-Type'] = undefined;
+                return this;
+            },
+
             anotherAuthorizationToken() {
                 headers.Authorization = 'Bearer 935jhw5klatxx2582jh5zrlq38hglq43o9jlrg8j3lqj8jf'
                 return this;
@@ -6174,6 +6284,11 @@ define(() => function ({
         const params = {};
 
         return {
+            shouldNotOpenWidgetOnCall() {
+                params.is_need_open_widget_on_call = false;
+                return this;
+            },
+
             incomingCallSoundDisabled() {
                 params.is_enable_incoming_call_sound = false;
                 return this
@@ -6319,6 +6434,11 @@ define(() => function ({
 
                 ['sip_host', 'sip_login', 'sip_phone', 'sip_password'].forEach(key => (response.data[key] = null));
 
+                return me;
+            };
+
+            me.shouldNotOpenWidgetOnCall = () => {
+                response.data.is_need_open_widget_on_call = false;
                 return me;
             };
 
@@ -6707,6 +6827,7 @@ define(() => function ({
             const response = {
                 is_contact_form_available: false,
                 is_chat_acceptance_confirmation: true,
+                is_chat_notification_enabled: false,
             };
 
             return {
@@ -6729,6 +6850,40 @@ define(() => function ({
         }
     });
 
+    me.chatSettingsUpdatingRequest = () => {
+        const response = {};
+
+        const addResponseModifiers = me => {
+            me.chatNotificationEnabled = () => {
+                response.is_chat_notification_enabled = true;
+                return me;
+            };
+
+            return me;
+        };
+        
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('$REACT_APP_BASE_URL/operator/settings').
+                    expectToHaveMethod('PATCH');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatChannelListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
@@ -6740,6 +6895,7 @@ define(() => function ({
                     request.respondSuccessfullyWith({
                         data: [{
                             id: 101,
+                            channel_id: 101,
                             is_removed: false,
                             name: 'mrDDosT',
                             status: 'active',
@@ -6747,6 +6903,7 @@ define(() => function ({
                             type: 'telegram'
                         }, {
                             id: 216395,
+                            channel_id: 216395,
                             is_removed: true,
                             name: 'whatsapp',
                             status: 'active',
@@ -9346,9 +9503,6 @@ define(() => function ({
                 ajax.recentRequest().
                     expectBodyToContain({
                         method: 'get.tags',
-                        params: {
-                            is_include_rating: true
-                        }
                     }).
                     respondSuccessfullyWith({
                         result: {
@@ -9356,7 +9510,8 @@ define(() => function ({
                                 id: 288,
                                 name: 'Продажа',
                                 rating: 0,
-                                is_system: false
+                                is_system: false,
+                                color: '#9da8ae',
                             }]
                         }
                     });
@@ -13669,7 +13824,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/${id}`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL_CONTACTS/contacts/${id}`).
                     expectToHaveMethod('GET');
 
                 return addResponseModifiers({
@@ -14408,7 +14563,7 @@ define(() => function ({
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/${id}/communications`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL_CONTACTS/contacts/${id}/communications`).
                     expectQueryToContain(queryParams).
                     expectToHaveMethod('GET');
 
@@ -14462,19 +14617,25 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            ssoAuth() {
+                headers.Authorization = undefined;
+                headers['X-Auth-Token'] = undefined;
+                headers['X-Auth-Type'] = undefined;
+
+                return this;
+            },
+
             forIframe() {
-                requestProcessors.push(() => (headers = {
-                    Authorization: `Bearer ${me.oauthToken}`,
-                    'X-Auth-Token': undefined,
-                    'X-Auth-Type': undefined,
-                }));
+                headers.Authorization = `Bearer ${me.oauthToken}`;
+                headers['X-Auth-Token'] = undefined;
+                headers['X-Auth-Type'] = undefined;
 
                 return this;
             },
 
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath(`https://$REACT_APP_BASE_URL/contacts/${id}/contact-groups`).
+                    expectToHavePath(`https://$REACT_APP_BASE_URL_CONTACTS/contacts/${id}/contact-groups`).
                     expectToHaveHeaders(headers).
                     expectToHaveMethod('GET');
 
@@ -14512,9 +14673,16 @@ define(() => function ({
         const addResponseModifiers = me => me;
 
         return addResponseModifiers({
+            ssoAuth() {
+                headers['X-Auth-Token'] = undefined;
+                headers['X-Auth-Type'] = undefined;
+
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('https://$REACT_APP_BASE_URL/contact-groups').
+                    expectToHavePath('https://$REACT_APP_BASE_URL_CONTACTS/contact-groups').
                     expectToHaveHeaders(headers).
                     expectQueryToContain(queryParams).
                     expectToHaveMethod('GET');
@@ -15088,6 +15256,11 @@ define(() => function ({
     me.contactsRequest = () => {
         let total_count = 250,
             token = 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0';
+
+        const headers = {
+            'X-Auth-Token': token,
+            'X-Auth-Type': 'jwt'
+        };
 
         const params = {
             limit: '100',
@@ -15942,14 +16115,18 @@ define(() => function ({
                 return this;
             },
 
+            ssoAuth() {
+                headers['X-Auth-Token'] = undefined;
+                headers['X-Auth-Type'] = undefined;
+
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectToHavePath('https://$REACT_APP_BASE_URL/contacts').
+                    expectToHavePath('https://$REACT_APP_BASE_URL_CONTACTS/contacts').
                     expectToHaveMethod('GET').
-                    expectToHaveHeaders({
-                        'X-Auth-Token': token,
-                        'X-Auth-Type': 'jwt'
-                    }).
+                    expectToHaveHeaders(headers).
                     expectQueryToContain(params);
 
                 const me = addResponseModifiers({
@@ -16145,6 +16322,13 @@ define(() => function ({
                         },
                         {
                             'unit_id': 'offline_messages_management',
+                            'is_delete': true,
+                            'is_insert': true,
+                            'is_select': true,
+                            'is_update': true,
+                        },
+                        {
+                            'unit_id': 'contact_communication_history',
                             'is_delete': true,
                             'is_insert': true,
                             'is_select': true,
@@ -16862,21 +17046,10 @@ define(() => function ({
                     return tester;
                 })();
 
-                tester.directionIcon = testersFactory.createDomElementTester(() => {
-                    const domElements = Array.prototype.filter.call(
-                        getMessageElement(filter).querySelectorAll('svg'),
-
-                        domElement => {
-                            return ((domElement.getAttribute('class') || '') + '').includes('ui-direction-icon');
-                        }
-                    );
-
-                    if (domElements.length == 1) {
-                        return domElements[0];
-                    }
-
-                    return new JsTester_NoElement();
-                });
+                tester.directionIcon = createIconTester(
+                    () => getMessageElement(filter).
+                        querySelectorAll('.cmgui-icon.contacts-direction-icon')
+                );
 
                 const messageBody  = testersFactory.createDomElementTester(() => {
                     const messageElement = getMessageElement(filter);
@@ -16895,6 +17068,7 @@ define(() => function ({
                 tester.expectSourceToBeVisitor = () => messageBody.expectToHaveClass(
                     'cm-chats--chat-history-message-source-visitor'
                 );
+
 
                 tester.expectToBeDelivered = () => testersFactory.createDomElementTester(
                     () => getMessageElement(filter).querySelector('.cm-chats--chat-history-message-text')
@@ -16996,7 +17170,7 @@ define(() => function ({
 
             atTime: desiredTime => createMessageTester((filter = () => true) => {
                 const domElements = utils.descendantOf(getDomElement()).
-                    matchesSelector('.cm-chats--chat-history-message-time').
+                    matchesSelector('.cm-chats--chat-history-message-info .cmgui-typography-display-inline').
                     textEquals(desiredTime).
                     findAll().
                     filter(domElement => {

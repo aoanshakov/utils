@@ -1,5 +1,5 @@
 diff --git a/config/webpack.config.js b/config/webpack.config.js
-index 0579dd31..d267a005 100644
+index 0579dd31..ffd084d6 100644
 --- a/config/webpack.config.js
 +++ b/config/webpack.config.js
 @@ -6,8 +6,9 @@ const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
@@ -13,16 +13,17 @@ index 0579dd31..d267a005 100644
  
  const { ModuleFederationPlugin } = webpack.container;
  const pkgJson = require('../package.json');
-@@ -18,6 +19,8 @@ const BUILD_PLATFORM = process.env.BUILD_PLATFORM || 'windows';
+@@ -18,6 +19,9 @@ const BUILD_PLATFORM = process.env.BUILD_PLATFORM || 'windows';
  const REACT_APP = /^REACT_APP_/i;
  
  const appDirectory = fs.realpathSync(process.cwd());
 +const miscDirectory = `${appDirectory}/misc`;
 +const magicUIDirectory = `${miscDirectory}/magic_ui`;
++const omniDirectory = `${miscDirectory}/omni`;
  const publicDir = path.resolve(appDirectory, 'public');
  const buildDir = path.resolve(appDirectory, 'build');
  const dotenv = path.resolve(appDirectory, '.env');
-@@ -25,9 +28,21 @@ const isProductionMode = NODE_ENV !== 'development';
+@@ -25,9 +29,21 @@ const isProductionMode = NODE_ENV !== 'development';
  const webpackMode = isProductionMode ? 'production' : 'development';
  const localIdentName = isProductionMode ? '[hash:base64]' : '[path][name]__[local]';
  const isBundleAnalyzerPlugin = false;
@@ -44,7 +45,7 @@ index 0579dd31..d267a005 100644
  };
  
  const fontsOptions = isProductionMode
-@@ -104,10 +119,11 @@ const webpackDefinePlugin = () => {
+@@ -104,10 +120,11 @@ const webpackDefinePlugin = () => {
      return opts;
  };
  
@@ -57,7 +58,7 @@ index 0579dd31..d267a005 100644
          },
          {
              loader: 'css-loader',
-@@ -136,15 +152,11 @@ const getSharedDeps = () => {
+@@ -136,15 +153,11 @@ const getSharedDeps = () => {
          'react-router-dom',
          'history',
          'classnames',
@@ -73,7 +74,7 @@ index 0579dd31..d267a005 100644
      ].reduce((shared, key) => {
          shared[key] = {
              requiredVersion: deps[key],
-@@ -158,7 +170,6 @@ const getSharedDeps = () => {
+@@ -158,7 +171,6 @@ const getSharedDeps = () => {
          ...baseDeps,
      };
  
@@ -81,7 +82,7 @@ index 0579dd31..d267a005 100644
      return baseDeps;
  };
  
-@@ -214,7 +225,9 @@ const plugins = () => {
+@@ -214,7 +226,9 @@ const plugins = () => {
              ignoreOrder: true,
          }),
  
@@ -92,7 +93,7 @@ index 0579dd31..d267a005 100644
              name: 'shell',
              shared: getSharedDeps(),
              remotes: {
-@@ -260,6 +273,11 @@ const plugins = () => {
+@@ -260,6 +274,11 @@ const plugins = () => {
              },
          }),
          new ExternalRemotesPlugin(),
@@ -104,7 +105,7 @@ index 0579dd31..d267a005 100644
      ];
  
      if (isProductionMode) {
-@@ -283,11 +301,27 @@ const plugins = () => {
+@@ -283,11 +302,24 @@ const plugins = () => {
      return pluginsList;
  };
  
@@ -115,14 +116,11 @@ index 0579dd31..d267a005 100644
 +    '@hooks': path.resolve(appDirectory, './src/hooks'),
 +});
 +
-+const iconsRegExp = new RegExp(
-+    ['', '(softphone|softphone', 'src|call_history|account|uis_webrtc', 'src)', 'icons', ''].join('\\' + path.sep)
-+);
-+
  module.exports = {
      entry: './src/index.tsx',
      target: NODE_ENV == 'softphone' ? 'electron-renderer' : 'web',
      mode: webpackMode,
++    //devtool: false,
      devtool: 'inline-source-map',
 +    snapshot: {
 +        managedPaths: [
@@ -132,7 +130,7 @@ index 0579dd31..d267a005 100644
      optimization: isProductionMode
          ? {
                minimize: true,
-@@ -303,6 +337,21 @@ module.exports = {
+@@ -303,6 +335,21 @@ module.exports = {
      },
      module: {
          rules: [
@@ -154,7 +152,7 @@ index 0579dd31..d267a005 100644
              {
                  test: /\.(ts|tsx)$/,
                  use: {
-@@ -311,7 +360,7 @@ module.exports = {
+@@ -311,7 +358,7 @@ module.exports = {
                          transpileOnly: true,
                      },
                  },
@@ -163,7 +161,7 @@ index 0579dd31..d267a005 100644
              },
              {
                  test: /\.css$/,
-@@ -321,6 +370,29 @@ module.exports = {
+@@ -321,6 +368,29 @@ module.exports = {
                  test: /\.less$/,
                  use: cssLoaders(lessLoader),
              },
@@ -193,7 +191,7 @@ index 0579dd31..d267a005 100644
              {
                  test: /\.(png|jpg)$/,
                  loader: 'url-loader',
-@@ -331,12 +403,13 @@ module.exports = {
+@@ -331,7 +401,7 @@ module.exports = {
                  },
              },
              {
@@ -202,40 +200,21 @@ index 0579dd31..d267a005 100644
                  loader: 'file-loader',
                  options: fontsOptions,
              },
-             {
-                 test: /\.svg(\?v=\d+\.\d+\.\d+)?$/,
-+                exclude: iconsRegExp,
-                 use: [
+@@ -341,7 +411,9 @@ module.exports = {
                      {
                          loader: '@svgr/webpack',
-@@ -352,17 +425,175 @@ module.exports = {
+                         options: {
+-                            svgo: false,
++                            svgoConfig: {
++                                plugins: ['cleanupIDs'],
++                            },
+                         },
+                     },
+                     {
+@@ -352,17 +424,180 @@ module.exports = {
                      },
                  ],
              },
-+            {
-+                test: iconsRegExp,
-+                use: ({resource}) => [{
-+                    loader: 'babel-loader',
-+                    options: {
-+                        presets: ['@babel/preset-react', '@babel/preset-env'],
-+                        comments: false
-+                    }
-+                }, {
-+                    loader: '@svgr/webpack',
-+                    options: {
-+                        babel: false,
-+                        icon: true,
-+                        svgoConfig: {
-+                            plugins: [{
-+                                cleanupIDs: {
-+                                    prefix: `svg${hash(path.relative(__dirname, resource))}`,
-+                                    force: true
-+                                }
-+                            }]
-+                        }
-+                    }
-+                }]
-+            },
 +            {
 +                test: require.resolve('janus-gateway'),
 +                loader: 'exports-loader',
@@ -255,44 +234,49 @@ index 0579dd31..d267a005 100644
 -            '@hooks': path.resolve(appDirectory, './src/hooks'),
 +            '@comagic/core/lib': `${miscDirectory}/core/src`,
 +            ...createAliases(appDirectory),
-+            'contacts/Root': `${miscDirectory}/contacts/src/Root.tsx`,
-+            'contacts/ContactBar': `${miscDirectory}/contacts/src/components/contact-bar/ContactBarWrapper.tsx`,
-+            'contacts/ContactSelect':
-+                `${miscDirectory}/contacts/src/components/contact-bar/start-channel-select/ContactSelectWrapper.tsx`,
-+            'contacts/ContactSettings': `${miscDirectory}/contacts/src/components/settings`,
-+            'contacts/ContactList': 'contacts/src/components/contact-list-table',
-+            'contacts/ContactListNew': 'contacts/src/components/contact-list',
++            'omni/Contacts': `${omniDirectory}/src/modules/contacts/Root.tsx`,
++            'omni/ContactBar': `${omniDirectory}/src/modules/contacts/components/contact-bar/ContactBarWrapper.tsx`,
++            'omni/ContactSelect':
++                `${omniDirectory}/src/modules/chats/components/chats/channel-search/start-channel-select/ContactSelectWrapped.tsx`,
++            'omni/ContactSettings': `${omniDirectory}/src/modules/contacts/components/settings`,
++            'omni/ContactList': `${omniDirectory}/src/modules/contacts/components/contact-list-table`,
++            'omni/ContactListNew': `${omniDirectory}/src/modules/contacts/components/contact-list`,
 +            'leadgen/Root': `${miscDirectory}/Stub.js`,
 +            'leadgen/TemplatesSettings': `${miscDirectory}/Stub.js`,
-+            'softphone/ContextProvider': 'softphone/src/ContextProvider.tsx',
-+            'softphone/NewSoftphone': 'softphone/src/NewSoftphone.tsx',
-+            'softphone/Root': 'softphone/src/Root.tsx',
-+            'softphone/Account': 'softphone/src/Account.tsx',
-+            'softphone/AccountHeader': 'softphone/src/AccountHeader.tsx',
-+            'softphone/Settings': 'softphone/src/Settings.tsx',
-+            'softphone/CallHistory': 'softphone/src/call_history/index.tsx',
-+            'softphone/CallStats': 'softphone/src/call_stats/index.tsx',
-+            'softphone/LostCallsCount': 'softphone/src/call_history/counter.tsx',
-+            'softphone/FeedbackWebModal': 'softphone/src/feedback/feedbackWeb/index.tsx',
-+            'softphone/VisibilityButton': 'softphone/src/VisibilityButton.tsx',
-+            'softphone/RootStore': 'softphone/src/models/RootStore.ts',
-+            'chats/Root': 'chats/src/Root.tsx',
-+            'chats/Account': 'chats/src/components/account/index.tsx',
-+            'chats/BasicAccount': 'chats/src/components/account/BasicAccount.tsx',
-+            'chats/ReportChatHistoryDrawer': 'chats/src/components/chats/chat-panel/ReportChatHistoryDrawer.tsx',
-+            'chats/HistoryLogWrapped': 'chats/src/components/chats/chat-panel/HistoryLogWrapped.tsx',
-+            'chats/AudioPlayerWrapped': 'chats/src/components/chats/chat-panel/AudioContentWrapped.tsx',
-+            'chats/MessageWrapped': 'chats/src/components/chats/chat-panel/MessageWrapped.tsx',
-+            'chats/QuoteWrapped': 'chats/src/components/chats/chat-panel/QuoteWrapped.tsx',
-+            'chats/HistoryItemWrapped': 'chats/src/components/offline-messages/components/panel/components/history-item-wrapped/index.tsx',
-+            'chats/Menu': 'chats/src/components/main/menu/index.tsx',
-+            'chats/NotificationWrapper': `${miscDirectory}/Stub.js`,
-+            'chats/Counter': 'chats/src/components/chats/chat-panel/Counter.tsx',
-+            'chats/MenuItemCounter': 'chats/src/components/main/menu/counter.tsx',
-+            'chats/ContactSelect': 'chats/src/components/chats/channel-search/start-channel-select/ContactSelectWrapped.tsx',
-+            'chats/RootStore': 'chats/src/models/RootStore.ts',
-+            'chats/ChatSettings': `${miscDirectory}/Stub.js`,
-+            'chatsDistribution/Root': `${miscDirectory}/Stub.js`,
++            'omni/ContextProvider': `${omniDirectory}/src/context/Provider.tsx`,
++
++            'omni/NewSoftphone': `${omniDirectory}/src/modules/softphone/NewSoftphone.tsx`,
++            'omni/Softphone': `${omniDirectory}/src/modules/softphone/Root.tsx`,
++            'omni/SoftphoneAccount': `${omniDirectory}/src/modules/softphone/Account.tsx`,
++            'omni/AccountHeader': `${omniDirectory}/src/modules/softphone/AccountHeader.tsx`,
++            'omni/Settings': `${omniDirectory}/src/modules/softphone/Settings.tsx`,
++            'omni/CallHistory': `${omniDirectory}/src/modules/softphone/call_history/index.tsx`,
++            'omni/CallStats': `${omniDirectory}/src/modules/softphone/call_stats/index.tsx`,
++            'omni/LostCallsCount': `${omniDirectory}/src/modules/softphone/call_history/counter.tsx`,
++            'omni/FeedbackWebModal': `${omniDirectory}/src/modules/softphone/feedback/feedbackWeb/index.tsx`,
++            'omni/VisibilityButton': `${omniDirectory}/src/modules/softphone/VisibilityButton.tsx`,
++            'omni/SoftphoneStore': `${omniDirectory}/src/modules/softphone/models/RootStore.ts`,
++
++            'omni/Root': `${omniDirectory}/src/modules/chats/Root.tsx`,
++            'omni/ChatsAccount': `${omniDirectory}/src/modules/chats/components/account/index.tsx`,
++            'omni/BasicAccount': `${omniDirectory}/src/modules/chats/components/account/BasicAccount.tsx`,
++            'omni/ReportChatHistoryDrawer': `${omniDirectory}/src/modules/chats/components/chats/chat-panel/ReportChatHistoryDrawer.tsx`,
++            'omni/HistoryLogWrapped': `${omniDirectory}/src/modules/chats/components/chats/chat-panel/HistoryLogWrapped.tsx`,
++            'omni/AudioPlayerWrapped': `${omniDirectory}/src/modules/chats/components/chats/chat-panel/AudioContentWrapped.tsx`,
++            'omni/MessageWrapped': `${omniDirectory}/src/modules/chats/components/chats/chat-panel/MessageWrapped.tsx`,
++            'omni/QuoteWrapped': `${omniDirectory}/src/modules/chats/components/chats/chat-panel/QuoteWrapped.tsx`,
++            'omni/HistoryItemWrapped':
++                `${omniDirectory}/src/modules/chats/components/offline-messages/components/panel/components/history-item-wrapped/index.tsx`,
++            'omni/Menu': `${omniDirectory}/src/modules/chats/components/main/menu/index.tsx`,
++            'omni/NotificationWrapper': `${omniDirectory}/src/modules/chats/services/notifications/NotificationWrapper.tsx`,
++            'omni/Counter': `${omniDirectory}/src/modules/chats/components/chats/chat-panel/Counter.tsx`,
++            'omni/MenuItemCounter': `${omniDirectory}/src/modules/chats/components/main/menu/counter.tsx`,
++            'omni/ContactSelect':
++                `${omniDirectory}/src/modules/chats/components/chats/channel-search/start-channel-select/ContactSelectWrapped.tsx`,
++            'omni/RootStore': `${omniDirectory}/src/modules/chats/models/RootStore.ts`,
++            'omni/ChatSettings': `${omniDirectory}/src/modules/chats/components/chat-settings/softphone/ChatSettings.tsx`,
++            'omni/ChatsDistributionRoot': `${miscDirectory}/Stub.js`,
++
 +            'callTracking/CalltrackingSubstitutionControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingTrafficControl': `${miscDirectory}/Stub.js`,
 +            'callTracking/CalltrackingNumbers': `${miscDirectory}/Stub.js`,
@@ -302,6 +286,7 @@ index 0579dd31..d267a005 100644
 +            'callTracking/SitesV3': `${miscDirectory}/Stub.js`,
 +            'callTracking/Root': `${miscDirectory}/Stub.js`,
 +            'callTracking/SiteForm': `${miscDirectory}/Stub.js`,
++
 +            'analytics/CreateDashboardButton': `${miscDirectory}/Stub.js`,
 +            'analytics/AdAnalytics': `${miscDirectory}/Stub.js`,
 +            'analytics/CreateReport': `${miscDirectory}/Stub.js`,
@@ -320,14 +305,16 @@ index 0579dd31..d267a005 100644
 +            'analytics/RadioGroup': `${miscDirectory}/Stub.js`,
 +            'analytics/Monitoring': `${miscDirectory}/Stub.js`,
 +            'analytics/Visits': `${miscDirectory}/Stub.js`,
++
 +            'supervisorWorkplace/Root': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/Menu': `${miscDirectory}/Stub.js`,
 +            'supervisorWorkplace/NotificationWorkplace': `${miscDirectory}/Stub.js`,
++
 +            'marketplace/Auth': `${miscDirectory}/Stub.js`,
 +            'marketplace/Root': `${miscDirectory}/Stub.js`,
-+            'employees/getStore': 'employees/src/utils/getStore',
-+            'employees/Root': 'employees/src/Root.tsx',
-+        },
++
++            'omni/Account': `${omniDirectory}/src/modules/employees/Root.tsx`,
+         },
 +
 +        plugins: [{
 +            apply: resolver => resolver.getHook('resolve').tapAsync('RelativeAliasResolvingPlugin', (
@@ -352,12 +339,33 @@ index 0579dd31..d267a005 100644
 +                    const {
 +                        directory,
 +                        aliases
-+                    } = subModules.concat(['softphone', 'contacts', 'operator-workplace']).map(module => {
++                    } = subModules.concat(['omni']).map(module => {
 +                        const directory = `${miscDirectory}/${module}`;
 +
 +                        return {
 +                            directory,
-+                            aliases: createAliases(directory)
++                            aliases: {
++                                ...createAliases(directory),
++
++                                '@employees': path.resolve(directory, './src/modules/employees'),
++                                '@chats': path.resolve(directory, './src/modules/chats/'),
++                                '@chats-models': path.resolve(directory, './src/modules/chats/models'),
++                                '@chats-hooks': path.resolve(directory, './src/modules/chats/hooks'),
++                                '@chats-lib': path.resolve(directory, './src/modules/chats/components/lib'),
++
++                                '@contacts': path.resolve(directory, './src/modules/contacts/'),
++                                '@contacts-hooks': path.resolve(directory, './src/modules/contacts/hooks'),
++                                '@contacts-models': path.resolve(directory, './src/modules/contacts/models'),
++
++                                '@softphone': path.resolve(directory, './src/modules/softphone/'),
++                                '@softphone-hooks': path.resolve(directory, './src/modules/softphone/hooks'),
++                                '@softphone-models': path.resolve(directory, './src/modules/softphone/models'),
++
++                                '@chats-distribution': path.resolve(directory, './src/modules/chats-distribution/'),
++                                '@chats-distribution-hooks': path.resolve(directory, './src/modules/chats-distribution/hooks'),
++                                '@chats-distribution-models': path.resolve(directory, './src/modules/chats-distribution/models'),
++                            }
++
 +                        };
 +                    }).find(({
 +                        directory,
@@ -383,13 +391,13 @@ index 0579dd31..d267a005 100644
 +
 +        fallback: {
 +            fs: false,
-         },
++        },
 +
      },
      output: {
          clean: true,
 diff --git a/package.json b/package.json
-index 911d3426..6a4aca02 100644
+index 911d3426..6a12b5d1 100644
 --- a/package.json
 +++ b/package.json
 @@ -22,7 +22,6 @@
@@ -400,7 +408,7 @@ index 911d3426..6a4aca02 100644
      "@svgr/webpack": "^5.1.0",
      "@trivago/prettier-plugin-sort-imports": "^3.3.0",
      "@types/classnames": "^2.2.9",
-@@ -67,37 +66,55 @@
+@@ -67,14 +66,23 @@
      "webpack-merge": "^5.7.3"
    },
    "dependencies": {
@@ -422,12 +430,11 @@ index 911d3426..6a4aca02 100644
      "auto-launch": "^5.0.5",
      "axios": "^0.24.0",
 +    "babel-loader": "^8.0.4",
-+    "chats": "./misc/chats",
++    "omni": "./misc/omni",
      "classnames": "^2.2.6",
-+    "contacts": "./misc/contacts",
      "dotenv": "^8.2.0",
      "dotenv-expand": "^5.1.0",
-     "electron-log": "^4.3.0",
+@@ -82,22 +90,29 @@
      "electron-notarize": "1.2.2",
      "electron-store": "^6.0.1",
      "electron-updater": "^5.0.3",
@@ -452,7 +459,6 @@ index 911d3426..6a4aca02 100644
      "react-intl": "^6.0.5",
      "react-router-dom": "6.9.0",
 +    "simplebar-react": "^2.4.1",
-+    "softphone": "./misc/softphone",
      "stream-buffers": "^3.0.2",
 +    "string-hash": "^1.1.3",
 +    "uis-softphone": "./misc/softphone/misc/sip_lib",
@@ -550,7 +556,7 @@ index eb9c62ef..5fb7fee9 100644
          historyApiFallback: true,
          // для проксирования запросов на production
 diff --git a/src/bootstrap.tsx b/src/bootstrap.tsx
-index 32137f8d..70e2b1ea 100644
+index 32137f8d..a319828e 100644
 --- a/src/bootstrap.tsx
 +++ b/src/bootstrap.tsx
 @@ -1,13 +1,21 @@
@@ -583,8 +589,8 @@ index 32137f8d..70e2b1ea 100644
  import { getIntlLocale, getIntlMessages, getProject } from './i18n';
  
 -const sentryDSN = process.env.SENTRY_DSN;
-+const ContextProvider = React.lazy(() => import('softphone/ContextProvider')),
-+    Counter = React.lazy(() => import('chats/Counter')),
++const ContextProvider = React.lazy(() => import('omni/ContextProvider')),
++    Counter = React.lazy(() => import('omni/Counter')),
 +    sentryDSN = process.env.REACT_APP_TEST_MODE == 'true' ? '' :  process.env.SENTRY_DSN;
  
  if (sentryDSN) {
@@ -600,7 +606,7 @@ index 32137f8d..70e2b1ea 100644
      const {
          projectData: { locale },
      } = accountStore;
-@@ -59,27 +69,168 @@ const Root: React.FC<Props> = observer(props => {
+@@ -59,27 +69,169 @@ const Root: React.FC<Props> = observer(props => {
          }
      }, [accountStore.account.project]);
  
@@ -609,6 +615,7 @@ index 32137f8d..70e2b1ea 100644
 +    }, [shouldShowNewSoftphone]);
 +
 +    const context = useMemo(() => ({
++        authStore,
 +        rootStore,
 +        isSingleApp: props.appName === 'softphone',
 +        softphoneSettingsPath: '/softphone/settings',
@@ -1275,7 +1282,7 @@ index 8ae6e87b..00000000
 -    faviconLinkElement.setAttribute('href', faviconUrl);
 -};
 diff --git a/src/models/auth/AuthStore.ts b/src/models/auth/AuthStore.ts
-index fa214b30..5c65cf0c 100644
+index fa214b30..7d512921 100644
 --- a/src/models/auth/AuthStore.ts
 +++ b/src/models/auth/AuthStore.ts
 @@ -1,19 +1,53 @@
@@ -1399,7 +1406,7 @@ index fa214b30..5c65cf0c 100644
          sessionStorage.removeItem(AUTH_KEY);
          sessionStorage.removeItem('access_token');
      }
-@@ -90,12 +148,16 @@ const removeToken = (skipLocalStorage = false) => {
+@@ -90,28 +148,36 @@ const removeToken = (skipLocalStorage = false) => {
      window.dispatchEvent(new Event('tokenRemove'));
  };
  
@@ -1418,9 +1425,12 @@ index fa214b30..5c65cf0c 100644
 +        isChecked: types.optional(types.boolean, false),
 +        dontKeepMeSignedIn: types.optional(types.boolean, false),
      })
-     .views(self => ({
-         get token(): Auth {
-@@ -106,12 +168,21 @@ export const AuthStore = Loader.named('AuthStore')
+-    .views(self => ({
+-        get token(): Auth {
+-            return getToken();
+-        },
+-    }))
+     .actions(self => {
          const { httpRpcAuth } = getEnv(self);
          const { authStore, accountStore, notificationStore, resetStore } = getRoot<typeof RootStore>(self);
  
@@ -1444,7 +1454,7 @@ index fa214b30..5c65cf0c 100644
          };
  
          const cancelNotifications = () => {
-@@ -125,19 +196,41 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -125,19 +191,41 @@ export const AuthStore = Loader.named('AuthStore')
              setAuthorized(false);
              cancelPendingRequests('canceled by logout');
              eventBus.broadcast('logout');
@@ -1494,7 +1504,7 @@ index fa214b30..5c65cf0c 100644
  
              try {
                  const token = getToken();
-@@ -148,10 +241,18 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -148,10 +236,18 @@ export const AuthStore = Loader.named('AuthStore')
                      password,
                      project: getProject(),
                      old_jwt,
@@ -1515,7 +1525,7 @@ index fa214b30..5c65cf0c 100644
              } catch (e) {
                  removeToken();
  
-@@ -161,45 +262,131 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -161,45 +257,131 @@ export const AuthStore = Loader.named('AuthStore')
              }
          });
  
@@ -1664,7 +1674,7 @@ index fa214b30..5c65cf0c 100644
                  }
              });
              window.addEventListener('doRefreshToken', (event: CustomEvent) => {
-@@ -207,10 +394,6 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -207,10 +389,6 @@ export const AuthStore = Loader.named('AuthStore')
                  if (eventWindowId !== authStore.windowId) {
                      authStore
                          .fetchRefresh()
@@ -1675,7 +1685,7 @@ index fa214b30..5c65cf0c 100644
                          .catch(e => console.error(e));
                  }
              });
-@@ -226,6 +409,8 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -226,6 +404,8 @@ export const AuthStore = Loader.named('AuthStore')
                          if (accountStoreUserId !== null && jwtUserId !== accountStoreUserId) {
                              window.location.href = '/';
                          }
@@ -1684,7 +1694,7 @@ index fa214b30..5c65cf0c 100644
                      }
                  }
              }, 1000);
-@@ -233,10 +418,18 @@ export const AuthStore = Loader.named('AuthStore')
+@@ -233,10 +413,18 @@ export const AuthStore = Loader.named('AuthStore')
  
          return {
              fetchLoginUser,
