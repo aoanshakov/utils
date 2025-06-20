@@ -5787,6 +5787,11 @@ define(() => function ({
                 return this;
             },
 
+            addFourthTag() {
+                bodyParams.mark_ids.push(288);
+                return this;
+            },
+
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('POST').
@@ -12135,6 +12140,11 @@ define(() => function ({
 
             addAnotherTag() {
                 processors.push(data => data.chats.forEach(chat => (chat.mark_ids.push('6889'))));
+                return this;
+            },
+
+            addThirdTag() {
+                processors.push(data => data.chats.forEach(chat => (chat.mark_ids.push('288'))));
                 return this;
             },
 
@@ -21191,6 +21201,31 @@ define(() => function ({
         return tester;
     })();
 
+    const createIconTester = getDomElements => {
+        const tester = testersFactory.createDomElementTester(() => {
+            const domElements = getDomElements();
+
+            if (domElements.length != 1) {
+                return null;
+            }
+            
+            return domElements[0];
+        });
+
+        const augmentTester = tester => {
+            tester.expectToBe = icon => (tester.expectAttributeToHaveValue('data-component', icon), tester);
+            return tester;
+        };
+
+        augmentTester(tester);
+        
+        tester.atIndex = index =>
+            augmentTester(testersFactory.createDomElementTester(() => getDomElements()[index]));
+
+        tester.first = tester.atIndex(0);
+        return tester;
+    };
+
     const addCommunicationPanelTestingMethods = selector => {
         const getDomElement = () => utils.querySelector(selector),
             getHeader = () => getDomElement().closest('.cm-chats--history-wrapper'),
@@ -21212,30 +21247,29 @@ define(() => function ({
 
                 tester.inner = (() => {
                     const tester = testersFactory.createDomElementTester(
-                        () => getMessageElement(filter).querySelector('.cm-contacts-system-message-inner')
+                        () => getMessageElement(filter).querySelector(
+                            '.cm-contacts-system-message-inner, ' +
+                            '.cm-contacts--chat-panel-history--call-record-info'
+                        )
                     );
 
                     const putMouseOver = tester.putMouseOver.bind(tester);
-                    tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+                    tester.putMouseOver = () => {
+                        putMouseOver();
+                        spendTime(250);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                    };
 
                     return tester;
                 })();
 
-                tester.directionIcon = testersFactory.createDomElementTester(() => {
-                    const domElements = Array.prototype.filter.call(
-                        getMessageElement(filter).querySelectorAll('svg'),
-
-                        domElement => {
-                            return ((domElement.getAttribute('class') || '') + '').includes('ui-direction-icon');
-                        }
-                    );
-
-                    if (domElements.length == 1) {
-                        return domElements[0];
-                    }
-
-                    return new JsTester_NoElement();
-                });
+                tester.directionIcon = createIconTester(
+                    () => getMessageElement(filter).
+                        querySelectorAll('.cmgui-icon.contacts-direction-icon')
+                );
 
                 const messageBody  = testersFactory.createDomElementTester(() => {
                     const messageElement = getMessageElement(filter);
@@ -21263,8 +21297,17 @@ define(() => function ({
                     () => getMessageElement(filter).querySelector('.cm-chats--chat-history-message-text')
                 ).expectToHaveClass('cm-chats--is-unknown-message');
 
-                tester.preview = testersFactory.createDomElementTester(() =>
-                    getMessageElement(filter).querySelector('.cm-chats--preview'));
+                tester.preview = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => getMessageElement(filter).
+                            querySelector('.cm-chats--chat-history-image-preview')
+                    );
+
+                    const click = tester.click.bind(tester);
+                    tester.click = () => (click(), spendTime(0));
+
+                    return tester;
+                })();
 
                 tester.ellipsisButton = (() => {
                     const tester = testersFactory.createDomElementTester(
@@ -21280,7 +21323,7 @@ define(() => function ({
                 const downloadAnchor = Array.prototype.find.call(
                     getMessageElement(filter).querySelectorAll('a'),
                     domElement => domElement.style.display == 'none'
-                ) || noElement;
+                ) || document.body.querySelector('a[data-role="file-saver"]') || noElement;
 
                 if (!downloadAnchors.has(downloadAnchor)) {
                     downloadAnchors.add(downloadAnchor);
@@ -21299,12 +21342,7 @@ define(() => function ({
                     },
 
                     expectToHaveContent: expectedContent => {
-                        if (downloadAnchor == noElement) {
-                            tester.downloadIcon.expectHrefToBeBlobWithContent(expectedContent);
-                        } else {
-                            downloadAnchorTester.expectHrefToHaveHash(expectedContent);
-                        }
-
+                        downloadAnchorTester.expectHrefToBeBlobWithContent(expectedContent);
                         return tester.downloadedFile;
                     }
                 };
@@ -21340,7 +21378,7 @@ define(() => function ({
             };
 
             tester.notSystem = createTester(domElement => {
-                const messageElement = domElement.closest('.cm-contacts-system-message');
+                const messageElement = domElement.closest('.cm-chats--chat-history-message-source-system');
                 return !messageElement || messageElement instanceof JsTester_NoElement;
             });
 
@@ -21355,11 +21393,7 @@ define(() => function ({
 
             atTime: desiredTime => createMessageTester((filter = () => true) => {
                 const domElements = utils.descendantOf(getDomElement()).
-                    matchesSelector(
-                        '.cm-chats--chat-history-message-time, ' +
-                        '.cm-chats--chat-history-message-info > ' +
-                        '.cmgui-typography-display-inline'
-                    ).
+                    matchesSelector('.cm-chats--chat-history-message-info .cmgui-typography-display-inline').
                     textEquals(desiredTime).
                     findAll().
                     filter(domElement => {

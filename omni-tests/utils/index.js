@@ -1,4 +1,4 @@
-const { Args, isOneOf, isListOf, isString } = require('./arguments'),
+const { Args, isOneOf, isListOf, isString, isTrue } = require('./arguments'),
     fs = require('fs'),
     execute = require('./execute'),
     mkdir = require('./mkdir'),
@@ -28,35 +28,24 @@ const modules = [{
     repository: 'comagic-app/desktop',
     directory: 'desktop',
     configSection: 'host',
-    envFileName: '.env',
+    envFileName: 'env/.env',
     script: 'dev',
-    branch: '{stand}'
+    branch: 'feature/web'
 }, {
     repository: 'comagic-app/frontend',
     directory: 'comagic-app',
     configSection: 'host',
-    envFileName: '.env',
+    envFileName: 'envs/.env',
     script: 'dev',
 }, {
-    repository: 'chats/frontend',
-    directory: 'chats',
-    param: 'REACT_APP_MODULE_CHATS',
-}, {
-    repository: 'softphone/frontend',
-    directory: 'softphone',
-    param: 'REACT_APP_MODULE_SOFTPHONE',
-}, {
-    repository: 'web/comagic_app_modules/contacts',
-    directory: 'contacts',
-    param: 'REACT_APP_MODULE_CONTACTS',
-}, {
-    repository: 'web/comagic_app_modules/operator-workplace',
-    directory: 'operator-workplace',
-    param: 'REACT_APP_MODULE_EMPLOYEES',
+    repository: 'omni/frontend',
+    directory: 'omni',
+    param: 'REACT_APP_MODULE_OMNI',
 }];
 
 const moduleNames = modules.map(({ repository, directory }) => directory),
-    isHost = directory => ['desktop', 'comagic-app'].includes(directory),
+    allHosts = ['desktop', 'comagic-app'],
+    isHost = directory => allHosts.includes(directory),
     submoduleNames = moduleNames.filter(directory => !isHost(directory)),
     replaceWithStand = ({ value, params }) => value?.split('{stand}').join(params.stand || ''),
     dependenciesParams = ['peerDependencies', 'dependencies'];
@@ -331,12 +320,7 @@ actions['initialize'] = params => {
     ];
 };
 
-const local = params => 
-    params.local ?
-        params.local.length > 0 ?
-            params.local :
-            submoduleNames :
-        [];
+const local = params => params.remote ? [] : submoduleNames;
 
 actions['set-env'] = params => [
     () => {
@@ -387,6 +371,8 @@ actions['clear'] = [
 ];
 actions['bash'] = [];
 
+const hosts = params => 'hosts' in params ? params.hosts : ['desktop']; 
+
 actions['run'] = params =>
     actions['initialize'](params).
     concat(actions['set-env'](params)).
@@ -394,7 +380,10 @@ actions['run'] = params =>
         const path = modulePath(directory),
             serverLog = `${path}/server.log`;
 
-        if (!isHost(directory) && !local(params).includes(directory)) {
+        if (
+            (!isHost(directory) && !local(params).includes(directory)) ||
+            (isHost(directory) && !hosts(params).includes(directory))
+        ) {
             return result;
         }
 
@@ -412,8 +401,11 @@ const {action, ...params} = (new Args({
     stand: {
         validate: isString,
     },
-    local: {
-        validate: isListOf.apply(null, submoduleNames),
+    remote: {
+        validate: isTrue,
+    },
+    hosts: {
+        validate: isListOf.apply(null, allHosts),
     },
     module: {
         validate: isListOf.apply(null, moduleNames),

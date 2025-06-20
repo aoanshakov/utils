@@ -142,17 +142,11 @@ then
     tmux new -d -s omni-logs \; \
         rename-window "desktop" \; \
         new-window -n "web" \; \
-        new-window -n "chats" \; \
-        new-window -n "contacts" \; \
-        new-window -n "operator-workplace" \; \
-        new-window -n "softphone"
+        new-window -n "omni"
 
     tmux send-keys -t omni-logs:0 "tail -f $applicationDirectory/desktop/server.log" ENTER
     tmux send-keys -t omni-logs:1 "tail -f $applicationDirectory/comagic-app/server.log" ENTER
-    tmux send-keys -t omni-logs:2 "tail -f $applicationDirectory/chats/server.log" ENTER
-    tmux send-keys -t omni-logs:3 "tail -f $applicationDirectory/contacts/server.log" ENTER
-    tmux send-keys -t omni-logs:4 "tail -f $applicationDirectory/operator-workplace/server.log" ENTER
-    tmux send-keys -t omni-logs:5 "tail -f $applicationDirectory/softphone/server.log" ENTER
+    tmux send-keys -t omni-logs:2 "tail -f $applicationDirectory/omni/server.log" ENTER
 
     if [ $? -ne 0 ]
     then

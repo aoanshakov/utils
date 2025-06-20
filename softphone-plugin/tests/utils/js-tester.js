@@ -5506,7 +5506,7 @@ function JsTester_Requests ({ requests, utils }) {
 
     function getRecentRequest () {
         var request = requests.at(indexOfRecentRequest);
-        indexOfRecentRequest ++;
+        request && (indexOfRecentRequest ++);
 
         if (request && !request.url && !request.method) {
             return getRecentRequest();

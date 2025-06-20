@@ -870,7 +870,10 @@ tests.addTest(options => {
                                             tester.tagField.button.click();
                                         });
 
-                                        describe('Создаю новый тег. Отправлен запрос проставления нового тега для открытого чата.', function() {
+                                        describe(
+                                            'Создаю новый тег. Отправлен запрос проставления нового тега для ' +
+                                            'открытого чата.',
+                                        function() {
                                             let chatMarkingRequest;
 
                                             beforeEach(function() {
@@ -908,13 +911,149 @@ tests.addTest(options => {
                                                 ajax.expectNoRequestsToBeSent();
                                             });
                                         });
+                                        it(
+                                            'Отмечаю тег. Отмечены теги, проставленные для открытого чата. Закрываю ' +
+                                            'окно выбора тегов. Отправлен запрос добавления тегов.',
+                                        function() {
+                                            tester.select.option('Продажа').click();
+                                            ajax.expectNoRequestsToBeSent();
+
+                                            tester.select.option('Нереализованная сделка').expectToBeSelected();
+                                            tester.select.option('Скупка краденого').expectToBeSelected();
+                                            tester.select.option('Продажа').expectToBeSelected();
+                                            tester.select.option('Спам').expectNotToBeSelected();
+
+                                            tester.tagField.
+                                                tag('Нереализованная сделка').
+                                                expectToBeVisible();
+
+                                            tester.tagField.
+                                                tag('Скупка краденого').
+                                                expectToBeVisible();
+
+                                            tester.tagField.
+                                                tag('Продажа').
+                                                expectNotToExist();
+
+                                            tester.tagField.
+                                                tag('Спам').
+                                                expectNotToExist();
+
+                                            tester.chatHistory.
+                                                message.
+                                                atTime('12:13').
+                                                click();
+
+                                            tester.chatMarkingRequest().
+                                                anotherChat().
+                                                addAnotherTag().
+                                                addFourthTag().
+                                                receiveResponse();
+
+                                            tester.chatListRequest().
+                                                chat().
+                                                addThirdTag().
+                                                receiveResponse();
+
+                                            tester.tagField.
+                                                tag('Нереализованная сделка').
+                                                expectToBeVisible();
+
+                                            tester.tagField.
+                                                tag('Скупка краденого').
+                                                expectToBeVisible();
+
+                                            tester.tagField.
+                                                tag('Продажа').
+                                                expectToBeVisible();
+
+                                            tester.tagField.
+                                                tag('Спам').
+                                                expectNotToExist();
+                                        });
                                         it('Отмечены теги, проставленные для открытого чата.', function() {
                                             tester.select.option('Нереализованная сделка').expectToBeSelected();
                                             tester.select.option('Скупка краденого').expectToBeSelected();
                                             tester.select.option('Продажа').expectNotToBeSelected();
+                                            tester.select.option('Спам').expectNotToBeSelected();
+
+                                            tester.tagField.
+                                                tag('Нереализованная сделка').
+                                                expectToBeVisible();
+
+                                            tester.tagField.
+                                                tag('Скупка краденого').
+                                                expectToBeVisible();
+
+                                            tester.tagField.
+                                                tag('Продажа').
+                                                expectNotToExist();
+
+                                            tester.tagField.
+                                                tag('Спам').
+                                                expectNotToExist();
                                         });
                                     });
-                                    xit('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
+                                    describe('Нажимаю на иконку с крестиком в правой части одно из тегов.', function() {
+                                        beforeEach(function() {
+                                            tester.tagField.
+                                                tag('Скупка краденого').
+                                                removeIcon.
+                                                click();
+
+                                            tester.chatMarkingRequest().
+                                                anotherChat().
+                                                receiveResponse();
+
+                                            tester.chatListRequest().
+                                                chat().
+                                                removeSecondTag().
+                                                receiveResponse();
+                                        });
+
+                                        it('Открываю список тегов. Удалённый тег не отображается.', function() {
+                                            tester.tagField.button.click();
+
+                                            tester.select.option('Нереализованная сделка').expectToBeSelected();
+                                            tester.select.option('Скупка краденого').expectNotToBeSelected();
+                                            tester.select.option('Продажа').expectNotToBeSelected();
+                                            tester.select.option('Спам').expectNotToBeSelected();
+
+                                            tester.tagField.
+                                                tag('Нереализованная сделка').
+                                                expectToBeVisible();
+
+                                            tester.tagField.
+                                                tag('Скупка краденого').
+                                                expectNotToExist();
+
+                                            tester.tagField.
+                                                tag('Продажа').
+                                                expectNotToExist();
+
+                                            tester.tagField.
+                                                tag('Спам').
+                                                expectNotToExist();
+                                        });
+                                        it('Тег удалён.', function() {
+                                            tester.tagField.
+                                                tag('Нереализованная сделка').
+                                                expectToBeVisible();
+
+                                            tester.tagField.
+                                                tag('Скупка краденого').
+                                                expectNotToExist();
+
+                                            tester.tagField.
+                                                tag('Продажа').
+                                                expectNotToExist();
+
+                                            tester.tagField.
+                                                tag('Спам').
+                                                expectNotToExist();
+                                        });
+                                    });
+                                    it('Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.', function() {
                                         tester.chatHistory.
                                             header.
                                             closeButton.
@@ -922,40 +1061,27 @@ tests.addTest(options => {
 
                                         tester.chatsHidingRequest().expectToBeSent();
                                     });
-                                    it('Нажимаю на иконку с крестиком в правой части одно из тегов.', function() {
-                                        tester.tagField.
-                                            tag('Скупка краденого').
-                                            removeIcon.
-                                            click();
-
-                                        tester.chatMarkingRequest().
-                                            anotherChat().
-                                            receiveResponse();
-
-                                        tester.chatListRequest().
-                                            chat().
-                                            removeSecondTag().
-                                            receiveResponse();
-
-                                        tester.contactBar.expectTextContentToHaveSubstring(
-                                            'Теги ' +
-                                            'Нереализованная сделка'
-                                        );
-
-                                        tester.contactBar.expectTextContentNotToHaveSubstring('Скупка краденого');
-                                    });
                                     it('Чат открыт.', function() {
                                         tester.contactBar.expectTextContentToHaveSubstring(
                                             'ФИО ' +
                                             'Помакова Бисерка Драгановна'
                                         );
 
-                                        tester.contactBar.expectTextContentToHaveSubstring(
-                                            'Теги ' +
+                                        tester.tagField.
+                                            tag('Нереализованная сделка').
+                                            expectToBeVisible();
 
-                                            'Нереализованная сделка ' +
-                                            '',
-                                        );
+                                        tester.tagField.
+                                            tag('Скупка краденого').
+                                            expectToBeVisible();
+
+                                        tester.tagField.
+                                            tag('Продажа').
+                                            expectNotToExist();
+
+                                        tester.tagField.
+                                            tag('Спам').
+                                            expectNotToExist();
                                     });
                                 });
                                 return;
