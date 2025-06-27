@@ -13,6 +13,7 @@
 // https://on.cypress.io/configuration
 // ***********************************************************
 
+import './ipc_renderer';
 import './websocket';
 
 // Import commands.js using ES2015 syntax:

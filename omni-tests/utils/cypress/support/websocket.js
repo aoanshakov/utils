@@ -1,3 +1,5 @@
+import { SentMessages }  from './sent_messages';
+
 const doNothing = () => {};
 
 const waitForValueBeingEqualTo = (getActualValue, expectedValue, message) =>
@@ -7,9 +9,16 @@ const waitForValueBeingEqualTo = (getActualValue, expectedValue, message) =>
 
 function FakeWebSocketCore({ url, constants, logEnabled }) {
     let readyState = constants.CLOSED,
-        connectionState = 'connecting',
-        messages = [],
-        messageIndex = 0;
+        connectionState = 'connecting';
+
+    const messages = new SentMessages({
+        logEnabled,
+        assertionMessages: {
+            messageBeingSentAssertion: `Сообщение должно быть отправлено в вебсокет с URL ${url}`,
+            contentInclusionAssertion: `В вебсокет с URL ${url} должно быть отправлено сообщение`,
+            paramsDescription: `сообщения, отправленного в вебсокет с URL ${url}`,
+        },
+    });
 
     const listenerPropeties = {
         onopen: doNothing,
@@ -123,7 +132,7 @@ function FakeWebSocketCore({ url, constants, logEnabled }) {
         expectToBeConnected();
 
         if (typeof message != 'string') {
-            message = JSON.parse(message);
+            message = JSON.stringify(message);
         }
 
         callListeners('message', [new MessageEvent('message', {
@@ -135,40 +144,17 @@ function FakeWebSocketCore({ url, constants, logEnabled }) {
         return readyState;
     };
 
-    this.send = function (message) {
+    this.send = function (data) {
         expectToBeConnected();
-
-        logEnabled && console.log(message);
-        messages.push(message);
+        messages.send(data);
     };
 
-    this.popRecentlySentMessage = function () {
-        return waitForValueBeingEqualTo(
-            () => {
-                console.log('WAIT FOR VALUE', {
-                    messageIndex,
-                    messageCount: messages.length,
-                    messageSent: messageIndex >= messages.length,
-                });
-
-                return messages.length >= messageIndex;
-            },
-            true,
-            `Сообщение должно быть отправлено в вебсокет с URL ${url}.`,
-        ).then(() => {
-            const message = messages[messageIndex];
-
-            messageIndex ++;
-            return message;
-        });
+    this.popNextSentMessage = function () {
+        return messages.popNextSentMessage();
     };
 
-    this.expectSentMessageToContain = function (expectedContent) {
-        return this.popRecentlySentMessage().
-            then(actualMessage => {
-                console.log('ACTUAL MESSAGE', actualMessage);
-                expect(JSON.parse(actualMessage)).to.deep.include(expectedContent);
-            });
+    this.expectSentMessageToInclude = function (expectedContent) {
+        return messages.expectSentMessageToInclude(expectedContent);
     };
 };
 
@@ -201,12 +187,12 @@ function FakeWebSocketTester (getCore) {
         return getCore().then(core => core.waitForBeingDisconnecting());
     };
 
-    this.expectSentMessageToContain = function (expectedContent) {
-        return getCore().then(core => core.expectSentMessageToContain());
+    this.expectSentMessageToInclude = function (expectedContent) {
+        return getCore().then(core => core.expectSentMessageToInclude(expectedContent));
     };
 
-    this.popRecentlySentMessage = function (expectation) {
-        return getCore().then(core => core.popRecentlySentMessage());
+    this.popNextSentMessage = function () {
+        return getCore().then(core => core.popNextSentMessage());
     };
 }
 
@@ -217,7 +203,7 @@ function FakeWebSocketTesters (cores) {
 
     this.withUrl = function (url) {
         return new FakeWebSocketTester(
-            () => waitForValueBeingEqualTo(() => !!cores[url], true, `Вебсокет с ${url} не был создан`)
+            () => waitForValueBeingEqualTo(() => !!cores[url], true, `Вебсокет с ${url} должен быть создан`)
                 .then(() => cores[url])
         );
     };

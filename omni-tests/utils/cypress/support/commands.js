@@ -13,8 +13,13 @@
 // Cypress.Commands.add('login', (email, password) => { ... })
 //
 
+const buttonSelector = '.ui-button, .cmgui-button';
+
 Cypress.Commands.add('textField', () => cy.get('.ui-input > input'));
-Cypress.Commands.add('button', text => cy.get('.ui-button').contains(text));
+Cypress.Commands.add('button', text => cy.get(buttonSelector).contains(text));
+Cypress.Commands.add('notification', () => cy.get('.cmgui-notification'));
+Cypress.Commands.add('appRoot', () => cy.get('#root'));
+Cypress.Commands.add('rootMain', () => cy.get('#rootMain'));
 
 const processText = value => {
     if (!value) {
@@ -28,63 +33,56 @@ const processText = value => {
     return (value || '').replace(/<[^<>]*>/g, ' ').replace(/&nbsp;/g, ' ').replace(/[\s]+/g, ' ').trim();
 };
 
-Cypress.Commands.add('appRoot', () => cy.get('#root'));
-
 chai.Assertion.overwriteMethod('text', function (_super) {
     return function (expected) {
         const subject = this._obj,
             el = subject?.[0] || subject,
-            actual = processText(el);
+            actual = processText(el),
+            { contains } = (this.__flags || {});
 
-        if (expected instanceof RegExp) {
-            this.assert(
-                expected.test(actual),
-                `expected element text to match #{exp}, but got #{act}`,
-                `expected element text not to match #{exp}`,
-                expected,
-                actual
-            );
+        if (contains) {
+            if (expected instanceof RegExp) {
+                this.assert(
+                    expected.test(actual),
+                    `expected element text to match #{exp}, but got #{act}`,
+                    `expected element text not to match #{exp}`,
+                    expected,
+                    actual
+                );
+            } else {
+                this.assert(
+                    actual.includes(expected),
+                    `expected element text to include #{exp}, but got #{act}`,
+                    `expected element text not to include #{exp}`,
+                    expected,
+                    actual
+                );
+            }
         } else {
-            this.assert(
-                actual === expected,
-                `expected element text to be #{exp}, but got #{act}`,
-                `expected element text not to be #{exp}`,
-                expected,
-                actual
-            );
-        }
-    };
-});
-
-chai.Assertion.overwriteMethod('include.text', function (_super) {
-    return function (expected) {
-        const subject = this._obj,
-            el = subject?.[0] || subject,
-            actual = processText(el);
-
-        if (expected instanceof RegExp) {
-            this.assert(
-                expected.test(actual),
-                `expected element text to match #{exp}, but got #{act}`,
-                `expected element text not to match #{exp}`,
-                expected,
-                actual
-            );
-        } else {
-            this.assert(
-                actual.includes(expected),
-                `expected element text to include #{exp}, but got #{act}`,
-                `expected element text not to include #{exp}`,
-                expected,
-                actual
-            );
+            if (expected instanceof RegExp) {
+                this.assert(
+                    expected.test(actual),
+                    `expected element text to match #{exp}, but got #{act}`,
+                    `expected element text not to match #{exp}`,
+                    expected,
+                    actual
+                );
+            } else {
+                this.assert(
+                    actual === expected,
+                    `expected element text to be #{exp}, but got #{act}`,
+                    `expected element text not to be #{exp}`,
+                    expected,
+                    actual
+                );
+            }
         }
     };
 });
 
 chai.Assertion.overwriteProperty('disabled', function (original) {
     return function () {
-        const button = this._obj?.[0]?.closest('.ui-button');
+        const button = this._obj?.[0]?.closest(buttonSelector);
 
         if (!button) {
             return original.apply(this);
@@ -162,14 +160,14 @@ const defineWebSocket = ({
     get() {
         const websocket = cy.websockets.withUrl(url);
 
-        Object.entries(messages).forEach(([name, message]) => {
+        Object.entries(messages).forEach(([name, { spy = () => {}, data }]) => {
             websocket[name] = {
                 expectToBeSent() {
-                    websocket.expectSentMessageToContain(message);
+                    websocket.expectSentMessageToInclude(data).then(message => spy(message));
                 },
 
                 receive() {
-                    websocket.receiveMessage(message);
+                    websocket.receiveMessage(message.data);
                 },
             };
         });
@@ -185,8 +183,12 @@ defineWebSocket({
     url: 'wss://dev-int0-comagic-employee-realtime.uis.st/cookie_based_websocket',
     messages: {
         initMessage: {
-            name: 'init',
-            params: { jwt: undefined },
+            spy: message => expect(message.params.jwt).to.be.undefined,
+
+            data: {
+                name: 'init',
+                params: {},
+            },
         },
     },
 });
@@ -208,12 +210,36 @@ defineRequestInterception({
 });
 
 defineRequestInterception({
+    alias: 'employeeSettingsRequest',
+    method: 'GET',
+    url: 'https://dev-int0-comagic-employee-rest.uis.st/api/v1/employees/20816/settings',
+    stub: jsonBody({
+        is_chat_acceptance_confirmation: true,
+        is_need_hide_numbers: false,
+    }),
+});
+
+defineRequestInterception({
+    alias: 'employeeRequest',
+    method: 'GET',
+    url: 'https://dev-int0-comagic-employee-rest.uis.st/api/v1/employees/20816',
+    stub: jsonBody({
+        id: 20816,
+        first_name: 'Стефка',
+        last_name: 'Ганева',
+        position_id: 0,
+        status_id: 1,
+    }),
+});
+
+defineRequestInterception({
     alias: 'tokenRequest',
     method: 'GET',
     url: 'https://dev-int0-softphone-rest-api.uis.st/sup/auth/token*',
     spy: request => request.its('request.query')
         .should(query => {
-            expect(query).to.have.property('widget_type', 'call_center_web');
+            expect(query?.widget_type).to.be.undefined;
+            expect(query?.widget_id).to.be.a('string').and.not.empty;
         }),
     stub: jsonBody({
         data: {
@@ -703,6 +729,50 @@ Cypress.Commands.add('withLabel', { prevSubject: 'element' }, (subject, label) =
     return cy.wrap(subject)
         .should(inputs => [...inputs].find(filter))
         .then(inputs => inputs.filter((index, input) => filter(input)));
+});
+
+Object.defineProperty(cy, 'init', {
+    get() {
+        return ({
+            win,
+            version = '6.2.64',
+        }) => {
+            cy.websockets.reset();
+            win.WebSocket = cy.websocketsFactory.createConstructor();
+            win.fakeIpcRenderer = cy.ipcRendererFactory.createFakeIpcRenderer();
+
+            !win.process && (win.process = {});
+            !win.process.versions && (win.process.versions = {});
+            !win.process.versions.electron && (win.process.versions.electron = '1.0.0');
+            win.process.argv = [`--app-version=${version}`];
+            win.fakeEnv = { REACT_APP_EARLIEST_SUPPORTED_DESKTOP_APP_VERSION: '6.1.70' };
+
+            cy.ipcRenderer.appVersion = () => cy.ipcRenderer.receiveMessage('[ipc.main]:app-version', version);
+            cy.ipcRenderer.updateDownloaded = () => cy.ipcRenderer.receiveMessage('[ipc.main]:update-downloaded');
+
+            cy.ipcRenderer.quitAndInstall = () =>
+                cy.ipcRenderer.expectMessageToBeSent('[ipc.renderer]:quit-and-install');
+
+            cy.ipcRenderer.downloadUpdate = () =>
+                cy.ipcRenderer.expectMessageToBeSent('[ipcRenderer.window]:download-update');
+
+
+            cy.ipcRenderer.updateAvailable = () => {
+                cy.ipcRenderer.receiveMessage(
+                    '[ipc.main]:softphone-update-data',
+                    {
+                        updateServerUrl: 'https://dev-int0-electron-release-server.uis.st',
+                        path: 'uis/stable',
+                        version: '6.2.65',
+                    },
+                );
+
+                cy.ipcRenderer.receiveMessage('[ipc.main]:update-available');
+            };
+        };
+    },
+
+    set() {},
 });
 
 //
