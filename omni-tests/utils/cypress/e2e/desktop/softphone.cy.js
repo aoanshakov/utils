@@ -5,6 +5,132 @@ describe('Открываю десктопное приложение.', () => {
         cy.unauthorized();
     });
 
+    describe('Ввожу логин и пароль. Нажимаю на кнопку "Войти". Отправлен запрос авторизации.', () => {
+        beforeEach(() => {
+            cy.visit('https://go.localhost.uis.st:8080', {
+                onBeforeLoad(win) {
+                    cy.init({ win });
+                },
+            });
+
+            cy.textField()
+                .withLabel('Логин')
+                .type('botusharova');
+
+            cy.textField()
+                .withLabel('Пароль')
+                .type('8Gls8h31agwLf5k');
+        });
+
+        describe('Авторизация произведена успешно. Отправлены запросы аккаунта и сататусов.', function() {
+            let loginRequest,
+                tokenRequest,
+                accountRequest,
+                statusesRequest,
+                reportsListRequest,
+                employeesSsoCheckRequest,
+                employeeSettingsRequest,
+                employeeRequest;
+
+            beforeEach(function() {
+                loginRequest = cy.loginRequest.hold();
+                accountRequest = cy.accountRequest.hold();
+                statusesRequest = cy.statusesRequest.hold();
+                reportsListRequest = cy.reportsListRequest.hold();
+                tokenRequest = cy.tokenRequest.hold();
+                employeesSsoCheckRequest = cy.employeesSsoCheckRequest.hold();
+                employeeSettingsRequest = cy.employeeSettingsRequest.hold();
+                employeeRequest = cy.employeeRequest.hold();
+
+                cy.button('Войти').click();
+                loginRequest.receiveResponse();
+
+            });
+
+            describe('Получены статусы и данные аккаунта.', function() {
+                beforeEach(function() {
+                    accountRequest.receiveResponse();
+                    statusesRequest.receiveResponse();
+                    reportsListRequest.receiveResponse();
+                    tokenRequest.expectToBeSent();
+
+                    employeesSsoCheckRequest.receiveResponse();
+                    cy.employeesWebsocket.connect().then(() => cy.clock());
+
+                    employeeSettingsRequest.receiveResponse();
+                    employeeRequest.receiveResponse();
+                });
+
+                describe('Получена версия приложения.', function() {
+                    beforeEach(function() {
+                        cy.ipcRenderer.appVersion();
+                    });
+
+                    describe('Получено обновление.', function() {
+                        beforeEach(function() {
+                            cy.ipcRenderer.updateAvailable();
+                            cy.then(() => cy.tick(2000));
+                        });
+
+                        describe('Нажимаю на кнопку "Скачать".', function() {
+                            beforeEach(function() {
+                                cy.button('Скачать').click();
+
+                                cy.ipcRenderer.downloadUpdate();
+                                cy.ipcRenderer.updateDownloaded();
+                            });
+                            
+                            it('Нажимаю на кнопку "Установить". Обновление устанавливается.', function() {
+                                cy.ipcRenderer.enableLogging();
+
+                                cy.button('Установить').click();
+                                cy.ipcRenderer.quitAndInstall();
+                            });
+                            it('Отображена кнопка установки обновления.', function() {
+                                cy.notification().should(
+                                    'have.text',
+
+                                    'Доступно обновление приложения ' +
+                                    'Установить'
+                                );
+                            });
+                        });
+                        it('Отображено сообщение о необходимости обновить приложение.', function() {
+                            cy.rootMain().should('include.text', 'Статистика вызовов');
+
+                            cy.notification().should(
+                                'have.text',
+
+                                'Доступно обновление приложения ' +
+                                'Скачать'
+                            );
+                        });
+                    });
+                    it('Сообщение о необходимости обновить приложение не отображено.', function() {
+                        cy.then(() => cy.tick(2000));
+                        cy.notification().should('not.exist');
+                    });
+                });
+                it('Отправлен запрос инициализации вебсокета сотрудников.', function() {
+                    cy.employeesWebsocket.initMessage.expectToBeSent();
+                });
+            });
+            it('РМО недоступно.', function() {
+                accountRequest.expectToBeSent();
+                statusesRequest.expectToBeSent();
+
+                cy.appRoot().should('have.text', '6.2.64 --');
+            });
+        });
+        it('Кнопка "Войти" заблокирована.', () => {
+            loginRequest = cy.loginRequest.hold();
+
+            cy.button('Войти').click();
+            loginRequest.expectToBeSent();
+
+            cy.button('Войти').should('be.disabled');
+        });
+    });
     describe(
         'Открываю устаревшую версию десктопного приложения.',
     () => {
@@ -59,12 +185,10 @@ describe('Открываю десктопное приложение.', () => {
                         cy.button('Установить приложение').click();
                         cy.ipcRenderer.quitAndInstall();
                     });
-                    return;
                     it('Кнопка обновления заблокирована.', function() {
                         cy.button('Обновить приложение').should('be.disabled');
                     });
                 });
-                return;
                 it('Отображено сообщение о необходимости установить обновление.', function() {
                     cy.rootMain().should(
                         'have.text',
@@ -78,137 +202,74 @@ describe('Открываю десктопное приложение.', () => {
                     );
                 });
             });
-            return;
             it('Сообщение о необходимости обновить приложение не отображено.', function() {
                 cy.rootMain().should('include.text', 'Статистика вызовов');
             });
         });
     });
-    return;
     describe(
-        'Открываю десктопное приложение. Ввожу логин и пароль. Нажимаю на кнопку "Войти". Отправлен запрос ' +
-        'авторизации.',
+        'Открываю устаревшую версию десктопного приложения. Открываю окно софтфофона.',
     () => {
-        beforeEach(() => {
-            cy.visit('https://go.localhost.uis.st:8080', {
+        beforeEach(function() {
+            cy.visit('https://go.localhost.uis.st:8080/#isSoftphoneMode', {
                 onBeforeLoad(win) {
-                    cy.init({ win });
+                    cy.init({
+                        win,
+                        version: '6.1.69',
+                        windowId: 'softphone',
+                    });
                 },
             });
 
-            cy.textField()
-                .withLabel('Логин')
-                .type('botusharova');
-
-            cy.textField()
-                .withLabel('Пароль')
-                .type('8Gls8h31agwLf5k');
+            cy.viewport(366, 629);
         });
 
-        describe('Авторизация произведена успешно. Отправлены запросы аккаунта и сататусов.', function() {
-            let accountRequest,
-                statusesRequest,
-                tokenRequest;
+        describe('Получена версия приложения.', function() {
+            let tokenRequest;
 
             beforeEach(function() {
-                tokenRequest = cy.tokenRequest.hold();
                 cy.loginRequest.stub();
+                cy.accountRequest.stub();
+                const tokenRequest = cy.tokenRequest.hold();
+                cy.reportsListRequest.stub();
+                cy.statusesRequest.stub();
+                cy.employeesSsoCheckRequest.stub();
+                cy.employeeSettingsRequest.hold();
+                cy.employeeRequest.hold();
+
+                cy.textField()
+                    .withLabel('Логин')
+                    .type('botusharova');
+
+                cy.textField()
+                    .withLabel('Пароль')
+                    .type('8Gls8h31agwLf5k');
 
                 cy.button('Войти').click();
+                tokenRequest.expectToBeSent();
+
+                cy.ipcRenderer.appVersion();
             });
 
-            describe('Получены статусы и данные аккаунта.', function() {
-                beforeEach(function() {
-                    cy.accountRequest.stub();
-                    cy.statusesRequest.stub();
-                    cy.reportsListRequest.stub();
-                    cy.employeesSsoCheckRequest.stub();
+            it('Получено обновление. Отображено сообщение о необходимости установить обновление.', function() {
+                cy.ipcRenderer.updateAvailable();
 
-                    tokenRequest.expectToBeSent();
+                cy.rootMain().should(
+                    'have.text',
 
-                    cy.employeeSettingsRequest.hold();
-                    cy.employeeRequest.hold();
+                    'Обновите приложение ' +
 
-                    cy.employeesWebsocket.connect().then(() => cy.clock());
-                });
+                    'Версия приложения 6.1.69. Данная версия больше не поддерживается. Доступна более новая ' +
+                    'версия приложения ' +
 
-                describe('Получена версия приложения.', function() {
-                    beforeEach(function() {
-                        cy.ipcRenderer.appVersion();
-                    });
-
-                    describe('Получено обновление.', function() {
-                        beforeEach(function() {
-                            cy.ipcRenderer.updateAvailable();
-                            cy.then(() => cy.tick(2000));
-                        });
-
-                        describe('Нажимаю на кнопку "Скачать".', function() {
-                            beforeEach(function() {
-                                cy.button('Скачать').click();
-
-                                cy.ipcRenderer.downloadUpdate();
-                                cy.ipcRenderer.updateDownloaded();
-                            });
-                            
-                            it('Нажимаю на кнопку "Установить". Обновление устанавливается.', function() {
-                                cy.ipcRenderer.enableLogging();
-
-                                cy.button('Установить').click();
-                                cy.ipcRenderer.quitAndInstall();
-                            });
-                            return;
-                            it('Отображена кнопка установки обновления.', function() {
-                                cy.notification().should(
-                                    'have.text',
-
-                                    'Доступно обновление приложения ' +
-                                    'Установить'
-                                );
-                            });
-                        });
-                        return;
-                        it('Отображено сообщение о необходимости обновить приложение.', function() {
-                            cy.rootMain().should('include.text', 'Статистика вызовов');
-
-                            cy.notification().should(
-                                'have.text',
-
-                                'Доступно обновление приложения ' +
-                                'Скачать'
-                            );
-                        });
-                    });
-                    return;
-                    it('Сообщение о необходимости обновить приложение не отображено.', function() {
-                        cy.then(() => cy.tick(2000));
-                        cy.notification().should('not.exist');
-                    });
-                });
-                return;
-                it('Отправлен запрос инициализации вебсокета сотрудников.', function() {
-                    cy.employeesWebsocket.initMessage.expectToBeSent();
-                });
+                    'Обновить приложение'
+                );
             });
-            return;
-            it('РМО недоступно.', function() {
-                accountRequest = cy.accountRequest.hold();
-                statusesRequest = cy.statusesRequest.hold();
-
-                accountRequest.expectToBeSent();
-                statusesRequest.expectToBeSent();
-
-                cy.appRoot().should('have.text', '--');
+            it('Сообщение о необходимости обновить приложение не отображено.', function() {
+                cy.textField().
+                    withPlaceholder('Введите номер').
+                    should('exist');
             });
-        });
-        return;
-        it('Кнопка "Войти" заблокирована.', () => {
-            loginRequest = cy.loginRequest.hold();
-
-            cy.button('Войти').click();
-            loginRequest.expectToBeSent();
-
-            cy.button('Войти').should('be.disabled');
         });
     });
 });

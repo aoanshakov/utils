@@ -44,11 +44,16 @@ function IpcRendererTester ({ log, messages, listeners }) {
 
     this.receiveMessage = function (channel) {
         cy.then(() => {
-            const args = Array.prototype.slice.call(arguments, 0);
+            try {
+                const args = Array.prototype.slice.call(arguments, 0);
 
-            (listeners[channel] || []).forEach(function (listener) {
-                listener.apply(null, args);
-            });
+                (listeners[channel] || []).forEach(function (listener) {
+                    listener.apply(null, args);
+                });
+            } catch (e) {
+                console.error(e);
+                throw e;
+            }
         });
     };
 }
@@ -69,6 +74,7 @@ function IpcRendererFactory () {
 
     this.createFakeIpcRenderer = function () {
         messages.reset();
+        Object.keys(listeners).forEach(channel => delete(listeners[channel]));
 
         ipcRenderer = new IpcRenderer({ log, messages, listeners });
         return ipcRenderer;

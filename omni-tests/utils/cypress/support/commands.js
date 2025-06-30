@@ -15,7 +15,7 @@
 
 const buttonSelector = '.ui-button, .cmgui-button';
 
-Cypress.Commands.add('textField', () => cy.get('.ui-input > input'));
+Cypress.Commands.add('textField', () => cy.get('input'));
 Cypress.Commands.add('button', text => cy.get(buttonSelector).contains(text));
 Cypress.Commands.add('notification', () => cy.get('.cmgui-notification'));
 Cypress.Commands.add('appRoot', () => cy.get('#root'));
@@ -96,7 +96,7 @@ chai.Assertion.overwriteProperty('disabled', function (original) {
     };
 });
 
-const holdedRequests = new Set();
+const holdedRequests = {};
 
 const defineRequestInterception = ({
     alias,
@@ -106,14 +106,8 @@ const defineRequestInterception = ({
     spy = () => {},
 }) => Object.defineProperty(cy, alias, {
     get() {
-        let resolve,
-            count = 0,
-            lastCount = 0;
-
-        const intercept = response => {
-            count ++;
-            cy.intercept(method, url, response).as(alias);
-        };
+        const intercept = response => cy.intercept(method, url, response).as(alias),
+            getHoldedRequests = () => (holdedRequests[alias] || (holdedRequests[alias] = new Set()));
 
         return {
             stub() {
@@ -121,22 +115,29 @@ const defineRequestInterception = ({
             },
 
             hold() {
-                intercept(() => new Promise(value => {
-                    holdedRequests.add(value);
-                    resolve = value;
-                }));
+                intercept(request => new Promise(resolve => getHoldedRequests().add(() => {
+                    request.reply(stub);
+                    resolve();
+                })));
 
                 return {
                     expectToBeSent() {
-                        expect(count).to.be.greaterThan(lastCount);
-                        lastCount = count;
+                        cy.wrap(getHoldedRequests()).its('size').should(
+                            'be.above',
+                            0,
+                            `Request @${alias} should be sent`
+                        );
 
                         spy(cy.get(`@${alias}`));
 
                         return {
                             receiveResponse() {
-                                holdedRequests.delete(resolve);
-                                resolve(stub);
+                                cy.then(() => {
+                                    getHoldedRequests().forEach(resolve => {
+                                        getHoldedRequests().delete(resolve);
+                                        resolve();
+                                    });
+                                });
                             },
                         };
                     },
@@ -239,7 +240,8 @@ defineRequestInterception({
     spy: request => request.its('request.query')
         .should(query => {
             expect(query?.widget_type).to.be.undefined;
-            expect(query?.widget_id).to.be.a('string').and.not.empty;
+            expect(query?.browser_id).to.be.a('string');
+            expect(query?.browser_id).to.be.not.empty;
         }),
     stub: jsonBody({
         data: {
@@ -731,12 +733,23 @@ Cypress.Commands.add('withLabel', { prevSubject: 'element' }, (subject, label) =
         .then(inputs => inputs.filter((index, input) => filter(input)));
 });
 
+Cypress.Commands.add('withPlaceholder', { prevSubject: 'element' }, (subject, placeholder) => {
+    const filter = input => input.getAttribute('placeholder') === placeholder;
+
+    return cy.wrap(subject)
+        .should(inputs => [...inputs].find(filter))
+        .then(inputs => inputs.filter((index, input) => filter(input)));
+});
+
 Object.defineProperty(cy, 'init', {
     get() {
         return ({
             win,
             version = '6.2.64',
+            windowId = 'main',
         }) => {
+            Object.keys(holdedRequests).forEach(alias => delete(holdedRequests[alias]));
+
             cy.websockets.reset();
             win.WebSocket = cy.websocketsFactory.createConstructor();
             win.fakeIpcRenderer = cy.ipcRendererFactory.createFakeIpcRenderer();
@@ -744,7 +757,7 @@ Object.defineProperty(cy, 'init', {
             !win.process && (win.process = {});
             !win.process.versions && (win.process.versions = {});
             !win.process.versions.electron && (win.process.versions.electron = '1.0.0');
-            win.process.argv = [`--app-version=${version}`];
+            win.process.argv = [`--app-version=${version}`, `--window-id=${windowId}`];
             win.fakeEnv = { REACT_APP_EARLIEST_SUPPORTED_DESKTOP_APP_VERSION: '6.1.70' };
 
             cy.ipcRenderer.appVersion = () => cy.ipcRenderer.receiveMessage('[ipc.main]:app-version', version);
