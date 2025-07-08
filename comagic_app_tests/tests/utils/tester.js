@@ -799,7 +799,13 @@ define(() => function ({
         })();
 
         me.playIcon = getSvg('.play_svg__cmg-icon, .cm-chats--audio-player--main-button svg');
-        me.downloadIcon = getSvg('.download_svg__cmg-icon, .cm-contacts-communications-download-button');
+
+        me.downloadIcon = getSvg(
+            '.download_svg__cmg-icon, ' +
+            '.cm-contacts-communications-download-button, ' +
+            '.cmgui-icon[data-component=Download20]'
+        );
+
         me.svg = getSvg('svg');
 
         me.tab = text => {
@@ -6922,6 +6928,174 @@ define(() => function ({
             this.expectToBeSent().receiveResponse();
         }
     });
+
+    me.visitorExternalSearchingRequest = () => {
+        const processors = [];
+
+        const params = {
+            search_string: undefined,
+            chat_channel_types: ['whatsapp', 'waba', 'telegram_private', 'sms', undefined],
+            contact: {
+                phone: undefined,
+                email: undefined,
+                username: undefined,
+            },
+        };
+
+        const headers = {
+            Authorization: undefined,
+            'X-Auth-Token': 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0',
+            'X-Auth-Type': 'jwt'
+        };
+
+        const response = {
+            result: [{
+                chat_channel_type: 'telegram',
+                found_list: [{
+                    phone: '79283810988',
+                }]
+            }],
+        };
+
+        const addResponseModifiers = me => {
+            me.telegramPrivate = () => {
+                response.result[0].chat_channel_type = 'telegram_private';
+                return me;
+            };
+
+            me.addWaba = () => {
+                response.result.push({
+                    chat_channel_type: 'waba',
+                    found_list: [{
+                        id: 7189364,
+                        phone: '79283810988',
+                    }],
+                });
+
+                return me;
+            };
+
+            me.addWhatsApp = () => {
+                response.result.push({
+                    chat_channel_type: 'whatsapp',
+                    found_list: [{
+                        id: 7189364,
+                        phone: '79283810988',
+                    }],
+                });
+
+                return me;
+            };
+
+            me.waba = () => {
+                response.result[0].chat_channel_type = 'waba';
+                return me;
+            };
+
+            me.whatsApp = () => {
+                response.result[0].chat_channel_type = 'whatsapp';
+                return me;
+            };
+
+            me.noData = () => {
+                response.result[0].found_list = [];
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            ssoAuth() {
+                headers.Authorization = undefined;
+                headers['X-Auth-Token'] = undefined;
+                headers['X-Auth-Type'] = undefined;
+
+                return this;
+            },
+
+            anotherToken() {
+                headers.Authorization = `Bearer ${mainTester.oauthToken}`;
+                headers['X-Auth-Token'] = undefined;
+                headers['X-Auth-Type'] = undefined;
+
+                return this;
+            },
+
+            onlyWhatsAppOut() {
+                params.is_only_whatsapp_out = true;
+                return this;
+            },
+
+            anotherSearchString() {
+                params.contact.phone = '79283810988';
+                return this;
+            },
+
+            thirdSearchString() {
+                params.contact.phone = '79283810989';
+                return this;
+            },
+
+            fourthSearchString() {
+                params.contact.phone = '74951234575';
+                return this;
+            },
+
+            fifthSearchString() {
+                params.contact.phone = '74951234576';
+                return this;
+            },
+
+            sixthSearchString() {
+                params.contact.phone = '79164725823';
+                return this;
+            },
+
+            email() {
+                params.contact.email = 'tomova@gmail.com';
+                params.chat_channel_types = ['email', undefined];
+                response.result[0].chat_channel_type = 'email';
+
+                return this;
+            },
+
+            noSearchString() {
+                params.contact = null;
+                return this;
+            },
+
+            emptySearchString() {
+                return this.noSearchString();
+            },
+
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('BASE_URL').
+                    expectToHaveMethod('POST').
+                    expectToHaveHeaders(headers).
+                    expectBodyToContain({
+                        method: 'visitor_external_search',
+                        params,
+                    });
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        processors.forEach(process => process());
+                        request.respondSuccessfullyWith(response);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     me.searchResultsRequest = () => {
         const processors = [];
@@ -13885,7 +14059,7 @@ define(() => function ({
 
     me.chatChannelSearchRequest = () => {
         const processors = [];
-        let path = '$REACT_APP_BASE_URL/operator';
+        let path = 'https://$REACT_APP_BASE_URL/operator';
 
         const params = {
             contact: {
@@ -14176,9 +14350,10 @@ define(() => function ({
                         request.respondSuccessfullyWith(response);
 
                         Promise.runAll(false, true);
-                        spendTime(0)
-                        spendTime(0)
-                        spendTime(0)
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
                     }
                 });
             },
@@ -17037,11 +17212,21 @@ define(() => function ({
 
                 tester.inner = (() => {
                     const tester = testersFactory.createDomElementTester(
-                        () => getMessageElement(filter).querySelector('.cm-contacts-system-message-inner')
+                        () => getMessageElement(filter).querySelector(
+                            '.cm-contacts-system-message-inner, ' +
+                            '.cm-contacts--chat-panel-history--call-record-info'
+                        )
                     );
 
                     const putMouseOver = tester.putMouseOver.bind(tester);
-                    tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+                    tester.putMouseOver = () => {
+                        putMouseOver();
+                        spendTime(250);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                    };
 
                     return tester;
                 })();
@@ -17078,8 +17263,17 @@ define(() => function ({
                     () => getMessageElement(filter).querySelector('.cm-chats--chat-history-message-text')
                 ).expectToHaveClass('cm-chats--is-unknown-message');
 
-                tester.preview = testersFactory.createDomElementTester(() =>
-                    getMessageElement(filter).querySelector('.cm-chats--preview'));
+                tester.preview = (() => {
+                    const tester = testersFactory.createDomElementTester(
+                        () => getMessageElement(filter).
+                            querySelector('.cm-chats--chat-history-image-preview')
+                    );
+
+                    const click = tester.click.bind(tester);
+                    tester.click = () => (click(), spendTime(0));
+
+                    return tester;
+                })();
 
                 tester.ellipsisButton = (() => {
                     const tester = testersFactory.createDomElementTester(
@@ -17095,7 +17289,7 @@ define(() => function ({
                 const downloadAnchor = Array.prototype.find.call(
                     getMessageElement(filter).querySelectorAll('a'),
                     domElement => domElement.style.display == 'none'
-                ) || noElement;
+                ) || document.body.querySelector('a[data-role="file-saver"]') || noElement;
 
                 if (!downloadAnchors.has(downloadAnchor)) {
                     downloadAnchors.add(downloadAnchor);
@@ -17114,12 +17308,7 @@ define(() => function ({
                     },
 
                     expectToHaveContent: expectedContent => {
-                        if (downloadAnchor == noElement) {
-                            tester.downloadIcon.expectHrefToBeBlobWithContent(expectedContent);
-                        } else {
-                            downloadAnchorTester.expectHrefToHaveHash(expectedContent);
-                        }
-
+                        downloadAnchorTester.expectHrefToBeBlobWithContent(expectedContent);
                         return tester.downloadedFile;
                     }
                 };
@@ -17155,7 +17344,7 @@ define(() => function ({
             };
 
             tester.notSystem = createTester(domElement => {
-                const messageElement = domElement.closest('.cm-contacts-system-message');
+                const messageElement = domElement.closest('.cm-chats--chat-history-message-source-system');
                 return !messageElement || messageElement instanceof JsTester_NoElement;
             });
 
@@ -17346,7 +17535,15 @@ define(() => function ({
                     );
 
                     const click = tester.click.bind(tester);
-                    tester.click = () => (click(), spendTime(0), spendTime(0));
+
+                    tester.click = () => {
+                        click();
+
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                    };
 
                     return tester;
                 })();

@@ -1595,18 +1595,51 @@ function JsTester_BiquadFilter (debug) {
     this.connect = function () {};
 }
 
-function JsTester_TypedArray () {
-    var array = [];
+function JsTester_TypedArray (array) {
+    array = array
+        ? Array.isArray(array)
+            ? array
+            : [array]
+        : [];
 
     this.set = function (items, start) {
-        array.splice.apply(array, [start, 0].concat(items));
+        array = array.splice.apply(array, [start, 0]);
+        items.forEach(item => array.push(item));
     };
-}
 
-function JsTester_Buffer (args) {
+    this.forEach = callback => array.forEach(callback);
+
+    this.toJSON = () => ({
+        type: 'Typed Array',
+        value: array,
+    });
+
     Object.defineProperty(this, 'length', {
         get: function () {
-            return 1;
+            return array.length;
+        },
+        set: function () {}
+    }); 
+}
+
+function JsTester_Buffer (buffers) {
+    const channels = {};
+
+    for (let channelNumber = 0; channelNumber < 2; channelNumber ++) {
+        const array = [],
+            chars = Array.isArray(buffers) ? buffers[0] : buffers,
+            { length } = buffers;
+
+        for (let i = 0; i < length; i ++) {
+            array.push(chars.charCodeAt(i));
+        }
+
+        channels[channelNumber] = new JsTester_TypedArray(array);
+    }
+
+    Object.defineProperty(this, 'length', {
+        get: function () {
+            return channels[0].length;
         },
         set: function () {}
     }); 
@@ -1626,8 +1659,13 @@ function JsTester_Buffer (args) {
     }); 
     
     this.getChannelData = function (index) {
-        return new JsTester_TypedArray();
+        return channels[index];
     };
+
+    this.toJSON = () => ({
+        type: 'Buffer',
+        value: Object.values(channels)[0],
+    });
 }
 
 function JsTester_AudioNode () {
@@ -1662,6 +1700,7 @@ function JsTester_AudioContextMock (args) {
             },
             failure: function () {
                 failure(new DOMException('Unable to decode audio data', 'UnableToDecodeAudioData'));
+
             }
         });
     }
@@ -1675,7 +1714,7 @@ function JsTester_AudioContextMock (args) {
         return new JsTester_AudioNode();
     };
     this.decodeAudioData = function (buffer) {
-        var fakeBuffer = new JsTester_Buffer(),
+        var fakeBuffer = new JsTester_Buffer(buffer),
             binary = '',
             bytes = new Uint8Array(buffer),
             length = bytes.byteLength,
@@ -1685,7 +1724,7 @@ function JsTester_AudioContextMock (args) {
             binary += String.fromCharCode(bytes[i]);
         }
 
-        bufferToContent.set(fakeBuffer, window.btoa(binary));
+        bufferToContent.set(fakeBuffer, binary ? window.btoa(binary) : buffer);
 
         if (arguments.length == 1) {
             return new Promise(function (resolve, reject) {
@@ -2648,6 +2687,11 @@ function JsTester_BlobFactory (args) {
             constructorArguments: Array.prototype.slice.call(arguments, 0),
             utils: utils
         }));
+
+        object.toJSON = () => ({
+            type: 'Blob',
+            value: args,
+        });
 
         return object;
     };
@@ -6215,9 +6259,8 @@ function JsTester_DomElement (
             cancelable: true
         }));
     };
-    this.expectAttributeToHaveValue = function (attributeName, expectedValue) {
+    this.expectAttributeToHaveValue = function (attributeName, expectedValue, isLogEnabled) {
         this.expectToBeVisible();
-
         var actualValue = getDomElement().getAttribute(attributeName);
 
         if (actualValue != expectedValue) {
@@ -7519,6 +7562,7 @@ function JsTester_WebSocketFactory ({
 
         return constructor;
     };
+
     this.createCollection = function () {
         return new JsTester_WebSockets(sockets);
     };
@@ -7600,11 +7644,13 @@ function JsTester_WebSockets (sockets) {
 
         return socketsWithUrl[index];
     };
+
     this.expectNoWebSocketToBeCreatedWithURL = function (url) {
         if (url in sockets) {
             throw new Error('Ни один веб-сокет не должен быть создан с URL ' + url);
         }
     };
+
     this.expectNoMessageToBeSent = function (exceptions) {
         function checkCompliance () {
             forEach(function (socket) {
@@ -7623,21 +7669,25 @@ function JsTester_WebSockets (sockets) {
             exceptions.push(e);
         }
     };
+
     this.expectWasConnected = function (exceptions) {
         forEach(function (socket) {
             socket.expectWasConnected(exceptions);
         });
     };
+
     this.expectNotDisconnecting = function (exceptions) {
         forEach(function (socket) {
             socket.expectNotDisconnecting(exceptions);
         });
     };
+
     this.logMessages = function () {
         forEach(function (socket) {
             socket.logMessages();
         });
     };
+
     this.afterEach = function (exceptions) {
         forEach(function (socket) {
             socket.afterEach(exceptions);

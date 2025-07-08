@@ -4560,9 +4560,19 @@ define(() => function ({
                         textEquals(text).
                         find();
 
-                    const tester = testersFactory.createDomElementTester(getTagElement);
+                    const tester = testersFactory.createDomElementTester(getTagElement),
+                        putMouseOver = tester.putMouseOver.bind(tester);
+
+                    tester.putMouseOver = () => {
+                        putMouseOver();
+                        spendTime(100);
+                        spendTime(0);
+                        spendTime(0);
+                        spendTime(0);
+                    };
 
                     tester.removeIcon = testersFactory.createDomElementTester(() => utils.element(getTagElement()).querySelector('.cmgui-tag-close'));
+
                     return tester;
                 };
 
@@ -12051,6 +12061,43 @@ define(() => function ({
                 return me;
             };
 
+            me.assignedToCurrentEmployee = () => {
+                processors.push(data => data.chats.forEach(chat => (chat.employee_id = 20816)));
+                return me;
+            };
+
+            me.addAnotherTag = () => {
+                processors.push(data => data.chats.forEach(chat => (chat.mark_ids.push('6889'))));
+                return me;
+            };
+
+            me.addThirdTag = () => {
+                processors.push(data => data.chats.forEach(chat => (chat.mark_ids.push('288'))));
+                return me;
+            };
+
+            me.addManyTags = () => {
+                processors.push(data => data.chats.forEach(chat => (chat.mark_ids.push(
+                    '288',
+                    '87',
+                    '88',
+                    '148',
+                    '86',
+                    '89',
+                    '2',
+                    '495',
+                    '1',
+                    '511',
+                ))));
+
+                return me;
+            };
+
+            me.removeSecondTag = () => {
+                processors.push(data => data.chats.forEach(chat => (chat.mark_ids = chat.mark_ids.filter(mark_id => mark_id != '213'))));
+                return me;
+            };
+
             return me;
         }
 
@@ -12130,26 +12177,6 @@ define(() => function ({
 
             closed() {
                 setStatus('closed');
-                return this;
-            },
-
-            assignedToCurrentEmployee() {
-                processors.push(data => data.chats.forEach(chat => (chat.employee_id = 20816)));
-                return this;
-            },
-
-            addAnotherTag() {
-                processors.push(data => data.chats.forEach(chat => (chat.mark_ids.push('6889'))));
-                return this;
-            },
-
-            addThirdTag() {
-                processors.push(data => data.chats.forEach(chat => (chat.mark_ids.push('288'))));
-                return this;
-            },
-
-            removeSecondTag() {
-                processors.push(data => data.chats.forEach(chat => (chat.mark_ids = chat.mark_ids.filter(mark_id => mark_id != '213'))));
                 return this;
             },
 
@@ -12470,7 +12497,7 @@ define(() => function ({
                     chat_channel_state: null,
                     chat_channel_type: 'telegram',
                     date_time: '2020-01-20T17:25:22.098210',
-                    id: 2718937,
+                    id: 2718935,
                     employee_id: null,
                     is_chat_channel_active: false,
                     last_message: {

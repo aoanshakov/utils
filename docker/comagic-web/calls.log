@@ -1,0 +1,33 @@
+staff.update_employee_other_chats_permissions(
+    59644,
+    NULL,
+    'employees',
+    NULL,
+    585049,
+    true
+)
+
+staff.update_employee_other_chats_permissions(
+    4735,
+    NULL,
+    'employees',
+    NULL,
+    745888,
+    true
+)
+
+Remote error: null value in column "employee_id" of relation "employee_other_chats_permission_type" violates not-null constraint
+Remote detail: Failing row contains (140051, null, employees, 59644).
+
+Remote context: SQL statement "insert into permission.employee_other_chats_permission_type(employee_id, type, app_id)
+    values (aemployee_id, aemployee_other_chats_permission_type, aapp_id)"
+
+    PL/pgSQL function staff.update_employee_other_chats_permissions(integer,integer,text,integer[],integer,boolean)
+    line 17 at SQL statement\nunnamed portal with parameters:
+
+    $1 = '59644',
+    $2 = NULL,
+    $3 = 'employees',
+    $4 = NULL,
+    $5 = '585049',
+    $6 = 't'

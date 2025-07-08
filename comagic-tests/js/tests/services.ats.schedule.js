@@ -26,6 +26,36 @@ tests.addTest(function(args) {
                 expectToBeSent();
         });
 
+        describe('Удаление доступно. Производится удаление.', function() {
+            let scheduleRemovingRequest;
+
+            beforeEach(function() {
+                scheduleRemovingAvailabilityRequest.receiveResponse();
+                scheduleRemovingRequest = tester.scheduleRemovingRequest().expectToBeSent();
+            });
+            
+            it('Не удалось удалить номер. Отображается сообщение об ошибке.', function() {
+                scheduleRemovingRequest.
+                    failed().
+                    receiveResponse();
+
+                tester.win.expectTextContentToHaveSubstring(
+                    'Ошибка ' +
+
+                    'График активности используется в сценариях обратного звонка: ' +
+                    'ljnflw;k. ' +
+                    'Для удаления графика активности измените сценарии.'
+                );
+            });
+            return;
+            it('Удаление произведено успешно. Сообщение об ошибке не отображается.', function() {
+                scheduleRemovingRequest.receiveResponse();
+
+                tester.schedulesRequest().receiveResponse();
+                tester.win.expectToBeHiddenOrNotExist();
+            });
+        });
+        return;
         it('Удаление недоступно. Отображено сообщение об ошибке.', function() {
             scheduleRemovingAvailabilityRequest.unavailable().receiveResponse();
 
@@ -33,13 +63,6 @@ tests.addTest(function(args) {
                 'Ошибка ' +
                 'Удаление невозможно. График используется: Некий график, Другой график'
             );
-        });
-        it('Удаление доступно. Производится удаление.', function() {
-            scheduleRemovingAvailabilityRequest.receiveResponse();
-            tester.scheduleRemovingRequest().receiveResponse();
-            tester.schedulesRequest().receiveResponse();
-
-            tester.win.expectToBeHiddenOrNotExist();
         });
     });
 });

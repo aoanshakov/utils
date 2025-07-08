@@ -34,6 +34,7 @@ RUN nvim --version
 
 RUN npm set registry http://npm.dev.uis.st:80
 RUN npm install -g typescript typescript-language-server
+RUN npm install -g vscode-langservers-extracted
 RUN curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
 RUN /bin/bash -c "source ~/.bashrc && nvm && nvm install 14 && nvm install 18"
 

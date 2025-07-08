@@ -14,6 +14,9 @@ Plug 'hrsh7th/cmp-cmdline'
 Plug 'hrsh7th/nvim-cmp'
 Plug 'simrat39/rust-tools.nvim'
 
+Plug 'williamboman/mason.nvim'
+Plug 'williamboman/mason-lspconfig.nvim'
+
 " For vsnip users.
 Plug 'hrsh7th/cmp-vsnip'
 Plug 'hrsh7th/vim-vsnip'
@@ -171,9 +174,7 @@ nnoremap ;rw :%s/<c-r>j/<c-r>k/gc<cr>
 nnoremap ;se :lua vim.diagnostic.open_float()<cr>
 nnoremap ;od :lua vim.lsp.buf.definition()<cr>
 nnoremap ;ao :lua vim.lsp.buf.references()<cr>
-
-nnoremap ;jv /\<var <cr>
-nnoremap ;kv ?\<var <cr>
+nnoremap ;je ?^ *[0-9]\+:[0-9]\+ \+error<cr>
 
 match ErrorMsg '\%>120v.\+'
 nnoremap ;en 0120l

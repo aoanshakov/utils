@@ -38,6 +38,17 @@ function ServicesAtsSchedule(args) {
         };
 
         function addMethods (me) {
+            me.failed = () => {
+                response = {
+                    success: false,
+                    message:
+                        'График активности используется в сценариях обратного звонка: <br>ljnflw;k.<br>Для ' +
+                        'удаления графика активности измените сценарии.',
+                };
+
+                return me;
+            };
+
             return me;
         }
 
@@ -52,6 +63,7 @@ function ServicesAtsSchedule(args) {
                 return addMethods({
                     receiveResponse: function () {
                         request.respondSuccessfullyWith(response);
+                        wait();
                     }
                 });
             },

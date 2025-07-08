@@ -35,3 +35,12 @@ vim.api.nvim_create_autocmd("FileType", {
     })
   end,
 })
+
+--require('lspconfig').eslint.setup({
+--  on_attach = function(client, bufnr)
+--    client.server_capabilities.documentFormattingProvider = true
+--  end,
+--  settings = {
+--    format = { enable = true },
+--  },
+--})
