@@ -1,0 +1,86 @@
+У меня почему-то не получается отфильтровать по user_id. Если запрашиваю всех сотрудников, то удаётся получить список
+
+```
+Fri Aug 01 2025 15:00:45 GMT+0300 (Moscow Standard Time) [https://dev-int0-softphone-widget-iframe.uis.st/amocrm/chats/messages] Response status: 200; Time consumed 3439 ms; Without credentials
+
+POST https://dev-int0-dataapi-jsonrpc.uis.st/v2.0?method=get.employees
+
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjF6b3p5cFF6djFhWElOcnNicXlXX1VHdW1wajdLVVpxeUpsRjdBQkF1dGsiLCJ0eXAiOiJKV1QifQ.eyJqdGkiOiIzMDEyNDRiNC0zMTkzLTQxOWQtOTIyOC0xZjZmMTE2NTU0ODgiLCJzaWQiOiJiNTNkYzJjYzI1ZmM0MDA4YTQ3OGI3MTgyMTAyMDE4MiIsImlzcyI6Imh0dHBzOi8vZGV2LWludDAtdWMtc3NvLWFwaS51aXMuc3QiLCJhdWQiOlsiaHR0cHM6Ly9kZXYtaW50MC1jb21hZ2ljLWVtcGxveWVlLXJlc3QudWlzLnN0IiwiaHR0cHM6Ly9kZXYtaW50MC1tcmt0LXVjLWZsb3ctYXBwLW5vZGVzLnVpcy5zdCIsImh0dHBzOi8vZGV2LWludDAtc29mdHBob25lLXJlc3QtYXBpLnVpcy5zdCIsImh0dHBzOi8vZGV2LWludDAtY29tYWdpYy1lbXBsb3llZS1yZWFsdGltZS51aXMuc3QiLCJodHRwczovL2Rldi1pbnQwLW9tbmktY2hhdHMtbG9naWMudWlzLnN0IiwiaHR0cHM6Ly9kZXYtaW50MC1kYXRhYXBpLWpzb25ycGMudWlzLnN0IiwiaHR0cHM6Ly9kZXYtaW50MC1jb21hZ2ljLWNvbnRhY3RzLWJhY2tlbmQudWlzLnN0IiwiaHR0cHM6Ly9jaGF0cy1pbnQwLWxvZ2ljLnVpcy5zdCJdLCJzdWIiOiJDb21hZ2ljREJ8Y29tYWdpY3w0NzM1fDIyMjQ5NCIsInN1YmQiOnsicHJvamVjdCI6ImNvbWFnaWMiLCJkYXRhX2NlbnRlciI6Im1vc2NvdyIsImFwcF9pZCI6NDczNSwiY3VzdG9tZXJfaWQiOjI2NTQzNiwidXNlcl9pZCI6MjIyNDk0LCJsb2dpbiI6InRlc3Rlcmt1cyIsImlzX3N5c3RlbSI6ZmFsc2UsInRpbWV6b25lIjoiRXVyb3BlL01vc2NvdyIsImxjIjoicnUifSwiY2xpZW50X2lkIjoiaHR0cHM6Ly9kZXYtaW50MC1tcmt0LXVjLWZsb3ctYXBwLW5vZGVzLnVpcy5zdCIsImlhdCI6MTc1Mzk4MTg1N30.lYZButi2duD76cLrGSVYZ8M0lGAV15REWyP8x2vRzWfJsw_Mv9agDtIHrlAWcRKusd1IQNXYiXyl8cmrWWWwJ_grYfNPyvBQyGsQ7lkvQ6Gd1v2vG1W5l90kPgX4cLW8Oja_G8pf7JdOyw9B54U_bbflw2vH2cxD3rdBI_zL06o2v7-A20ar_-Rlz-9DBJhriE9qUbyfSJQaDtWiPMeHXW5j99yvUE6LmiY1CKznwfG1ZUSb5SlJJfAMIJl7kFDmdrl1PZ5bpcKCB7W34MJ4hnLkdmJh4c5tSG1nsjUNeg7JdroEVGMZiI2UPhdX1w43RKW0kA1D1MQWVnOAY9fVFuZvAe-rM9arCcLxenr3gRS9e0p4xbUXMw2q7_TbUHShwyQCDueacuf4jFWX_8pMeNkqjP4nnIs_XGT094W9rIVhqS2_fbqxefhzPVqWlmPFcsvgPDkz3krLV4g_9Ej1IkpNemgtyS_2ZiNVcU1C4bsWO39IVOrIJVBpG9gXsSdqzmeM7RYMh_NsQ5SaaruCiZG_8pagsl52TJqIZI5ANqwD-ak5OIkM6y-yBLz58wsxqH4LQRz1243fKG_3E_3Pj1B_FZ4XFnYQqyFeC7R9RwWhoCkYrzYIiLG2-c64w2XmOPzqrLaIJJ16zB5jWxQJ3qqa2TNJC9UHbkw1jKre-mE
+
+{
+    "jsonrpc":"2.0",
+    "id":"number",
+    "method":"get.employees",
+    "params":{}
+}
+
+{
+    "jsonrpc":"2.0",
+    "id":"number",
+    "result":{
+        "data":[{
+            "id":568711,
+            "full_name":"000011 Привет 1",
+            ...
+        }, ...],
+
+        "metadata":{
+            "total_items":666,
+            "version":null,
+            "limits":{
+                "hour_limit":100000,
+                "hour_remaining":99987,
+                "hour_reset":3555
+            }
+        }
+    }
+}
+```
+
+Если запрашиваю с параметром user_id, то пишет, что "Permission denied"
+
+```
+Fri Aug 01 2025 14:46:40 GMT+0300 (Moscow Standard Time) [https://dev-int0-softphone-widget-iframe.uis.st/amocrm/chats/messages] Response status: 200; Time consumed 53 ms; Without credentials
+
+POST https://dev-int0-dataapi-jsonrpc.uis.st/v2.0?method=get.employees
+
+Authorization: Bearer eyJhbGciOiJSUzI1NiIsImtpZCI6IjF6b3p5cFF6djFhWElOcnNicXlXX1VHdW1wajdLVVpxeUpsRjdBQkF1dGsiLCJ0eXAiOiJKV1QifQ.eyJqdGkiOiIzMDEyNDRiNC0zMTkzLTQxOWQtOTIyOC0xZjZmMTE2NTU0ODgiLCJzaWQiOiJiNTNkYzJjYzI1ZmM0MDA4YTQ3OGI3MTgyMTAyMDE4MiIsImlzcyI6Imh0dHBzOi8vZGV2LWludDAtdWMtc3NvLWFwaS51aXMuc3QiLCJhdWQiOlsiaHR0cHM6Ly9kZXYtaW50MC1jb21hZ2ljLWVtcGxveWVlLXJlc3QudWlzLnN0IiwiaHR0cHM6Ly9kZXYtaW50MC1tcmt0LXVjLWZsb3ctYXBwLW5vZGVzLnVpcy5zdCIsImh0dHBzOi8vZGV2LWludDAtc29mdHBob25lLXJlc3QtYXBpLnVpcy5zdCIsImh0dHBzOi8vZGV2LWludDAtY29tYWdpYy1lbXBsb3llZS1yZWFsdGltZS51aXMuc3QiLCJodHRwczovL2Rldi1pbnQwLW9tbmktY2hhdHMtbG9naWMudWlzLnN0IiwiaHR0cHM6Ly9kZXYtaW50MC1kYXRhYXBpLWpzb25ycGMudWlzLnN0IiwiaHR0cHM6Ly9kZXYtaW50MC1jb21hZ2ljLWNvbnRhY3RzLWJhY2tlbmQudWlzLnN0IiwiaHR0cHM6Ly9jaGF0cy1pbnQwLWxvZ2ljLnVpcy5zdCJdLCJzdWIiOiJDb21hZ2ljREJ8Y29tYWdpY3w0NzM1fDIyMjQ5NCIsInN1YmQiOnsicHJvamVjdCI6ImNvbWFnaWMiLCJkYXRhX2NlbnRlciI6Im1vc2NvdyIsImFwcF9pZCI6NDczNSwiY3VzdG9tZXJfaWQiOjI2NTQzNiwidXNlcl9pZCI6MjIyNDk0LCJsb2dpbiI6InRlc3Rlcmt1cyIsImlzX3N5c3RlbSI6ZmFsc2UsInRpbWV6b25lIjoiRXVyb3BlL01vc2NvdyIsImxjIjoicnUifSwiY2xpZW50X2lkIjoiaHR0cHM6Ly9kZXYtaW50MC1tcmt0LXVjLWZsb3ctYXBwLW5vZGVzLnVpcy5zdCIsImlhdCI6MTc1Mzk4MTg1N30.lYZButi2duD76cLrGSVYZ8M0lGAV15REWyP8x2vRzWfJsw_Mv9agDtIHrlAWcRKusd1IQNXYiXyl8cmrWWWwJ_grYfNPyvBQyGsQ7lkvQ6Gd1v2vG1W5l90kPgX4cLW8Oja_G8pf7JdOyw9B54U_bbflw2vH2cxD3rdBI_zL06o2v7-A20ar_-Rlz-9DBJhriE9qUbyfSJQaDtWiPMeHXW5j99yvUE6LmiY1CKznwfG1ZUSb5SlJJfAMIJl7kFDmdrl1PZ5bpcKCB7W34MJ4hnLkdmJh4c5tSG1nsjUNeg7JdroEVGMZiI2UPhdX1w43RKW0kA1D1MQWVnOAY9fVFuZvAe-rM9arCcLxenr3gRS9e0p4xbUXMw2q7_TbUHShwyQCDueacuf4jFWX_8pMeNkqjP4nnIs_XGT094W9rIVhqS2_fbqxefhzPVqWlmPFcsvgPDkz3krLV4g_9Ej1IkpNemgtyS_2ZiNVcU1C4bsWO39IVOrIJVBpG9gXsSdqzmeM7RYMh_NsQ5SaaruCiZG_8pagsl52TJqIZI5ANqwD-ak5OIkM6y-yBLz58wsxqH4LQRz1243fKG_3E_3Pj1B_FZ4XFnYQqyFeC7R9RwWhoCkYrzYIiLG2-c64w2XmOPzqrLaIJJ16zB5jWxQJ3qqa2TNJC9UHbkw1jKre-mE
+
+{
+    "jsonrpc":"2.0",
+    "id":"number",
+    "method":"get.employees",
+    "params":{
+        "user_id":222494
+    }
+}
+
+{
+    "jsonrpc":"2.0",
+    "id":"number",
+    "error":{
+        "code":-32003,
+        "message":"Permission denied",
+        "data":{
+            "mnemonic":"forbidden",
+            "field":null,
+            "value":null,
+            "params":{},
+            "extended_helper":null
+        }
+    }
+}
+```
+
+Я проверил JWT-токен и там тот самый user_id, который я передаю в метод get.employees
+
+```
+{
+  "subd": {
+    ...
+    "user_id": 222494,
+    "login": "testerkus",
+  },
+  ...
+}
+```

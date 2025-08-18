@@ -1,0 +1,20 @@
+{
+  "id": 23481069,
+  "type": 16,
+  "name": "UIS Chats",
+  "account_id": 32052838,
+  "pipeline_id": 0,
+  "origin_id": null,
+  "origin_title": "UIS Avito",
+  "origin_icon": "https://st1.amocrm.ru/origins_icons/ru.app-flow-uis-av.svg",
+  "source_name": "",
+  "origin": "ru.app-flow-uis-av",
+  "has_whatsapp_modal_location": false,
+  "can_work_with_chats": true,
+  "is_waba": false,
+  "is_sandbox": false,
+  "is_supports_list_message": false,
+  "params": null,
+  "supports_delivery_notification": false,
+  "disabled": false
+}

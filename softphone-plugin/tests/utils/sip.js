@@ -155,6 +155,7 @@ define(function () {
 
             return this;
         };
+
         this.expectToHaveMethod = function (expectedMethod) {
             if (method != expectedMethod) {
                 throw new Error('Сообщение должно быть отправлено методом "' + expectedMethod + '", а не "' +
@@ -163,6 +164,7 @@ define(function () {
 
             return this;
         };
+
         this.response = function () {
             return new SipResponseBuilder(headers, serverName, webSocket, uaOptions, lastSessionId);
         };

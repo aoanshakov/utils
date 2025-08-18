@@ -371,6 +371,11 @@ function JsTester_NavigatorMock (args) {
         setActionHandler: () => null,
     };
 
+    function Device (data) {
+        this.toJSON = () => data;
+        Object.entries(data).forEach(([key, value]) => (this[key] = value));
+    }
+
     this.mediaDevices = {
         getUserMedia: getMediaDevicesUserMedia,
         addEventListener: function (eventName, listener) {
@@ -401,7 +406,7 @@ function JsTester_NavigatorMock (args) {
                 kind: 'audiooutput',
                 label: 'Встроенный динамик',
                 deviceId: '6943f509802439f2c170bea3f42991df56faee134b25b3a2f2a13f0fad6943ab'
-            }].concat(additionalDevices));
+            }].concat(additionalDevices).map(data => new Device(data)));
         }
     };
 

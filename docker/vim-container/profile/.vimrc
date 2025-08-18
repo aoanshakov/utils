@@ -333,6 +333,7 @@ function! SetUpEslint()
         let isReactApp = isReactApp || stridx(path, '/bitrix_widget/') != -1
         let isReactApp = isReactApp || stridx(path, '/softphone-chrome-widget/') != -1
         let isReactApp = isReactApp || stridx(path, '/softphone-plugin/') != -1
+        let isReactApp = isReactApp || stridx(path, '/omni/') != -1
 
         if stridx(path, '/bitrix-digital-pipeline/script.js') != -1
             let isReactApp = 0

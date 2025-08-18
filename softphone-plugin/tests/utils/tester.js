@@ -2,6 +2,7 @@ define(() => function ({
     url = 'https://app.uiscom.ru',
     testersFactory,
     utils,
+    widgetsInstalled = [], //comagic_widget, novofon_widget, uis_widget, amo_callgear,
     triggerResize,
     ajax,
     debug,
@@ -30,6 +31,7 @@ define(() => function ({
     amocrmLead,
     renderAmocrmLead,
     renderAmocrmCallgearLead,
+    env,
 }) {
     let history,
         eventBus,
@@ -39,6 +41,7 @@ define(() => function ({
         Modal;
 
     const mainTester = me;
+    window.fakeEnv = env;
 
     me.oauthToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJqdGkiOiI4NjZhZTFkZC02M2E2LTRhMTItOGVkZC1hODcyMmUwNjhlODAiLCJzaWQiOiJmYjZhYWJkMC05YjIzLTQzNDAtYjFkNC1hYTk4ZTIxYjAxYzciLCJpc3MiOiJodHRwczovL3Byb2QtbXNrLXVjLXNzby1hcGkubm92b2Zvbi5ydSIsImF1ZCI6WyJodHRwczovL3Byb2QtbXNrLWRhdGFhcGktanNvbnJwYy5ub3ZvZm9uLnJ1IiwiaHR0cHM6Ly9ucG9pZGtjZmZkZ2xrZm1qYm1waGhrb2JjY2FpY2JlaC5jaHJvbWl1bWFwcC5vcmciLCJodHRwczovL3Byb2QtbXNrLXNvZnRwaG9uZS1yZXN0LWFwaS5ub3ZvZm9uLnJ1Il0sInN1YiI6IkNvbWFnaWNEQnxub3ZvZm9ufDEwNnw0NTEiLCJzdWJkIjp7ImFwcF9pZCI6MTA2LCJjdXN0b21lcl9pZCI6Mjg5MTU2NCwidXNlcl9pZCI6NDUxLCJsb2dpbiI6ImJpdHJpeHRlc3QiLCJpc19zeXN0ZW0iOmZhbHNlLCJsYyI6InJ1In0sImNsaWVudF9pZCI6Imh0dHBzOi8vbnBvaWRrY2ZmZGdsa2ZtamJtcGhoa29iY2NhaWNiZWguY2hyb21pdW1hcHAub3JnIiwiaWF0IjoxNzA5NjM4NjM0fQ.M1uICzMCt0VZPG2b5nUSN160vslzOSWI_P9mmQj-0L0';
     me.anotherOauthToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwic3ViZCI6eyJsb2dpbiI6Im1hc2hhbF9tYXJvdW4iLCJkYXRhX2NlbnRlciI6ImR1YmFpIn0sImlhdCI6MTUxNjIzOTAyMn0.wQZ-FOFf69mY6WN0o83cIrs71N5ulkvew-PkLT4_eYg';
@@ -219,7 +222,13 @@ define(() => function ({
 
             me.BX24 = addMethods({
                 me: {
-                    initialize: () => ((initialized = true), fireEvent('init')),
+                    initialize: () => {
+                        initialized = true;
+                        fireEvent('init');
+
+                        spendTime(0);
+                        spendTime(0);
+                    },
 
                     callListMode: () => addMethods({
                         params: {
@@ -318,6 +327,8 @@ define(() => function ({
 
         window.AMOCRM = window.APP = {
             widgets: {
+                list: widgetsInstalled.reduce((list, name) => (list[name] = {}, list), {}),
+
                 notificationsPhone: function (args) {
                     phoneIconClickHandler = args.click;
                 },
@@ -329,11 +340,21 @@ define(() => function ({
             lang_id: lang,
         };
 
-        me.clickPhoneIcon = function () {
-            phoneIconClickHandler();
-            spendTime(0);
-            spendTime(0);
-        };
+        me.phoneIcon = (() => {
+            return {
+                expectNotToExist: () => {
+                    if (phoneIconClickHandler) {
+                        throw new Error('Иконка телефона должна отсутствовать');
+                    }
+                },
+
+                click: () => {
+                    phoneIconClickHandler?.();
+                    spendTime(0);
+                    spendTime(0);
+                },
+            };
+        })();
 
         me.contactPhone = value => ({
             click: () => {
@@ -366,6 +387,7 @@ define(() => function ({
 
     window.setNotificationIframe = createIframeSetter('restoreNotificationIFrameContentWindow');
     window.setSoftphoneIframe = createIframeSetter('restoreSoftphoneIFrameContentWindow');
+    window.setSalesbotIframe = createIframeSetter('restoreSalesbotIFrameContentWindow');
     window.setChatsIframe = createIframeSetter('restoreChatsIFrameContentWindow');
 
     function AuthFlowLaunching ({
@@ -1187,10 +1209,10 @@ define(() => function ({
                 return pattern;
             })();
 
+            const getAmocrmSettings = settings => settings.settings || (settings.settings = {});
+
             me.unavailable = () => (settingsProcessors.push(
-                settings => (settings.settings = {
-                    is_available: false,
-                }, settings)
+                settings => (getAmocrmSettings(settings).is_available = false, settings),
             ), me);
 
             me.amocrmExtension = () => {
@@ -1350,7 +1372,7 @@ define(() => function ({
                             },
                         },
                     }];
-                    
+
                     return settings;
                 });
 
@@ -1633,6 +1655,58 @@ define(() => function ({
 
             me.amocrm = () => {
                 widget_id = 'amoSoftphone';
+
+                settingsProcessors.push(
+                    settings => ((getAmocrmSettings(settings).sources = [{
+                        id: 23495103,
+                        name: 'ASK_TGbot',
+                        origin: 'amo.ext.32052838.2',
+                        chat_channel_id: 40790,
+                        employee_id: null,
+                        group_id: null,
+                    }, {
+                        id: 23495104,
+                        name: 'WhatsApp Web 21',
+                        origin: 'amo.ext.32052838',
+                        chat_channel_id: 40791,
+                        employee_id: 20816,
+                        group_id: null,
+                    }, {
+                        id: 23495107,
+                        name: 'WhatsApp Web 31',
+                        origin: 'amo.ext.32052838',
+                        chat_channel_id: 40792,
+                        employee_id: null,
+                        group_id: null,
+                    }, {
+                        id: 23495101,
+                        name: 'lykov_test_bot',
+                        origin: 'amo.ext.32052838.2',
+                        chat_channel_id: 40793,
+                    }, {
+                        id: 23495102,
+                        name: 'rykov_test_bot',
+                        origin: 'amo.ext.32052839.2',
+                        chat_channel_id: 40794,
+                        employee_id: 248592,
+                        group_id: null,
+                    }, {
+                        id: 23495105,
+                        name: 'bykov_test_bot',
+                        origin: 'amo.ext.32052840.2',
+                        chat_channel_id: 40794,
+                        employee_id: null,
+                        group_id: 775873,
+                    }, {
+                        id: 23495106,
+                        name: 'zykov_test_bot',
+                        origin: 'amo.ext.32052841.2',
+                        chat_channel_id: 40794,
+                        employee_id: null,
+                        group_id: 815663,
+                    }]), settings),
+                );
+
                 return me;
             };
 
@@ -2105,6 +2179,74 @@ define(() => function ({
 
         window.application.openSettings();
         spendTime(0);
+    };
+
+    const salesbotSettings = {
+        should_message_to_last_chat: true,
+        channel_id: 216400,
+        message: 'Некое сообщение, отправляемое при каких-то изменениях свойств сделки',
+    };
+
+    const defaultSalesbotSettings = {
+        should_message_to_last_chat: false,
+        channel_id: 101,
+        message: '',
+    };
+
+    me.salesbot = () => {
+        let getValues = () => ({});
+
+        const getParams = () => JSON.parse(window.application.onSalesbotDesignerSave(Array.from(
+            document.querySelectorAll('.salesbot-designer__widgets-param')
+        ).reduce((values, element) =>
+            (values[element.dataset?.fieldName] = element.querySelector(
+                '.js-sb-designer-widget-manual-value input'
+            )?.value, values),
+
+            {},
+        )))[0].question[0].params;
+
+        return {
+            settingsSaved() {
+                getValues = () => {
+                    return Object.entries(salesbotSettings).reduce(
+                        (values, [key, value]) => (values[key] = String(value), values),
+                        {},
+                    );
+                };
+
+                return this;
+            },
+
+            hook: () => ({
+                expectUrlToBe(expectedUrl) {
+                    const actualUrl = getParams().url;
+
+                    if (actualUrl !== expectedUrl) {
+                        throw new Error(
+                            `Хук должен быть отправлен на URL ${JSON.stringify(expectedUrl)}, ` +
+                            `тогда как он был отправлен на URL ${JSON.stringify(actualUrl)}`
+                        );
+                    }
+
+                    return this;
+                },
+
+                expectBodyToContain(expectedValues) {
+                    return utils.expectObjectToContain(
+                        getParams().data,
+                        expectedValues,
+                    );
+                },
+            }),
+
+            open() {
+                removeElements();
+
+                window.application.openSalesbot(getValues());
+                spendTime(0);
+            },
+        };
     };
 
     if (isAuthorized) {
@@ -2731,6 +2873,115 @@ define(() => function ({
         };
     };
 
+    me.localeSettingRequest = () => {
+        const message = {
+            method: 'set_locale',
+            data: 'ru',
+        };
+
+        return {
+            en() {
+                message.data = 'en';
+                return this;
+            },
+
+            receive: () => postMessages.receive(message),
+            expectToBeSent: () => {
+                postMessages.nextMessage().expectMessageToContain(message);
+            },
+        };
+    };
+
+    me.bitrixSalesbotParamsSettingRequest = () => {
+        const message = {
+            method: 'set_state',
+            data: {
+                type: 'salesbot',
+                data: { authorized: false },
+            },
+        };
+
+        return {
+            authorized() {
+                message.data.data.authorized = true;
+                return this;
+            },
+
+            receive: () => postMessages.receive(message),
+            expectToBeSent: () => {
+                postMessages.nextMessage().expectMessageToContain(message);
+            },
+        };
+    };
+
+    me.salesbotParamsSettingRequest = () => {
+        const processors = [],
+            secondProcessors = [];
+
+        const getMessage = () => {
+            const message = {
+                method: 'set_state',
+                data: {
+                    type: 'salesbot',
+                    data: {},
+                },
+            };
+
+            [processors, secondProcessors].forEach(
+                processors => processors.forEach(process => process(message))
+            );
+
+            return message;
+        };
+
+        const filled = () => processors.push(message => (message.data.data = defaultSalesbotSettings));
+
+        const setValue = (name, value) => {
+            filled();
+            secondProcessors.push(message => (message.data.data[name] = value));
+        };
+
+        const fill = name => setValue(name, salesbotSettings[name]);
+
+        return {
+            shouldMessageToLastChat() {
+                fill('should_message_to_last_chat');
+                return this;
+            },
+
+            anotherChannel() {
+                fill('channel_id');
+                return this;
+            },
+
+            messageFilled() {
+                fill('message');
+                return this;
+            },
+
+            variableAdded() {
+                setValue('message', salesbotSettings.message + '{{lead.id}}');
+                return this;
+            },
+
+            filled() {
+                secondProcessors.push(message => (message.data.data = {...salesbotSettings}));
+                return this;
+            },
+
+            receive: () => postMessages.receive(getMessage()),
+            expectToBeSent: () => {
+                const message = getMessage();
+
+                Object.keys(salesbotSettings).forEach(
+                    key => !(key in message.data.data) && (message.data.data[key] = undefined)
+                );
+
+                postMessages.nextMessage().expectMessageToContain(message);
+            },
+        };
+    };
+
     me.channelsSearchingResponse = () => {
         const processors = [];
 
@@ -3276,6 +3527,136 @@ define(() => function ({
         };
     };
 
+    {
+        const channels = [{
+            id: 101,
+            name: 'mrDDosT',
+            type: 'telegram',
+        }, {
+            id: 216395,
+            name: 'Whats App',
+            type: 'whatsapp',
+        }, {
+            id: 216400,
+            name: 'Whats App Waba',
+            type: 'waba',
+        }, {
+            id: 216401,
+            name: 'Telegram Private',
+            type: 'telegram_private',
+        }];
+
+        me.savedValuesSettingRequest = () => {
+            const processors = [];
+
+            const getMessage = () => {
+                const message = {
+                    method: 'set_saved_values',
+                    data: {
+                        error: '',
+                        channels,
+                        values: defaultSalesbotSettings,
+                    },
+                };
+
+                processors.forEach(process => process(message));
+                return message;
+            };
+
+            return {
+                serverError() {
+                    processors.push(message => {
+                        message.data.error = 'Произошла ошибка сервера';
+                        message.data.channels = [];
+                    });
+
+                    return this;
+                },
+
+                settingsSaved() {
+                    processors.push(message => (message.data.values = {...salesbotSettings}));
+                    return this;
+                },
+
+                receive: () => postMessages.receive(getMessage()),
+                expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(getMessage()),
+            };
+        };
+
+        me.salesbotChannelsRequest = () => {
+            const requestMessage = { method: 'get_salesbot_channels' };
+            let isBitrix = false;
+
+            const responseMessage = {
+                method: 'set_salesbot_channels',
+                data: {
+                    error: '',
+                    channels,
+                },
+            };
+
+            const addResponseModifiers = me => {
+                me.serverError = () => {
+                    responseMessage.data.error = 'Произошла ошибка сервера';
+                    responseMessage.data.channels = [];
+
+                    return me;
+                };
+
+                me.disallowed = () => {
+                    responseMessage.data.error = 'Недостаточно прав на раздел чатов';
+                    responseMessage.data.channels = [];
+
+                    return me;
+                };
+
+                me.unavailable = () => {
+                    responseMessage.data.error = 'Чаты недоступны';
+                    responseMessage.data.channels = [];
+
+                    return me;
+                };
+
+                return me;
+            };
+
+            return addResponseModifiers({
+                bitrix() {
+                    isBitrix = true;
+                    return this;
+                },
+
+                receive: () => {
+                    !isBitrix && postMessages.receive(requestMessage);
+
+                    return addResponseModifiers({
+                        expectResponseToBeSent: () => postMessages.
+                            nextMessage().
+                            expectMessageToContain(responseMessage),
+                    });
+                },
+
+                expectToBeSent: () => {
+                    !isBitrix && postMessages.
+                        nextMessage().
+                        expectMessageToContain(requestMessage);
+
+                    return addResponseModifiers({
+                        receiveResponse: () => postMessages.receive(responseMessage),
+                    });
+                },
+
+                expectResponseToBeSent() {
+                    this.receive().expectResponseToBeSent();
+                },
+
+                receiveResponse() {
+                    return this.expectToBeSent().receiveResponse();
+                },
+            });
+        };
+    }
+
     me.channelsSearchingRequest = () => {
         const processors = [];
         let depricated = false;
@@ -3412,7 +3793,7 @@ define(() => function ({
 
             fourthChannel() {
                 processors.push(message => {
-                    message.data.channel_id = 216405;
+                    message.data.channel_id = 40791;
                 });
 
                 return this;
@@ -3436,7 +3817,8 @@ define(() => function ({
     };
 
     me.amocrmStateSettingRequest = () => {
-        const processors = [];
+        const processors = [],
+            secondProcessors = [];
 
         const getMessage = () => {
             const message = {
@@ -3447,7 +3829,10 @@ define(() => function ({
                 },
             };
 
-            processors.forEach(process => process(message));
+            [processors, secondProcessors].forEach(
+                processors => processors.forEach(process => process(message))
+            );
+
             return message;
         };
 
@@ -3458,7 +3843,16 @@ define(() => function ({
             },
 
             chats() {
-                processors.push(message => delete(message.data.url));
+                processors.push(message => {
+                    delete(message.data.url);
+                    message.data.softphone_enabled = true;
+                });
+
+                return this;
+            },
+
+            softphoneDisabled() {
+                secondProcessors.push(message => message.data.softphone_enabled = false);
                 return this;
             },
 
@@ -3489,6 +3883,47 @@ define(() => function ({
 
             receive: () => postMessages.receive(message),
             expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
+        };
+    };
+
+    me.sourcesSettingRequest = () => {
+        const message = {
+            method: 'set_sources',
+            data: [{
+                id: 23495103,
+                origin: 'amo.ext.32052838.2',
+                chat_channel_id: 40790,
+                is_mine: false,
+            }, {
+                id: 23495104,
+                origin: 'amo.ext.32052838',
+                chat_channel_id: 40791,
+                is_mine: true,
+            }, {
+                id: 23495107,
+                origin: 'amo.ext.32052838',
+                chat_channel_id: 40792,
+                is_mine: false,
+            }, {
+                id: 23495101,
+                origin: 'amo.ext.32052838.2',
+                chat_channel_id: 40793,
+                is_mine: false,
+            }, {
+                id: 23495105,
+                origin: 'amo.ext.32052840.2',
+                chat_channel_id: 40794,
+                is_mine: true,
+            }],
+        };
+
+        return {
+            receive: () => postMessages.receive(message),
+
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain({
+                ...message,
+                data: message.data.concat(undefined),
+            }),
         };
     };
 
@@ -3859,7 +4294,8 @@ define(() => function ({
             '#pages-container, ' +
             '#card_fields, ' +
             'div[data-widget-item="uismarketplace.uis2_chats_widget"], ' +
-            '.nav__menu__item__icon-integration'
+            '.nav__menu__item__icon-integration, ' +
+            '.cmg-to-remove'
         ),
         element => element.remove(),
     );
@@ -3946,7 +4382,8 @@ define(() => function ({
                     '<div class="nav__menu__item__title">UIS Чаты</div>' +
                 '</a>' +
                 
-                `<link rel="stylesheet" type="text/css" href="${getUrl('app.css')}" />`
+                `<link rel="stylesheet" type="text/css" href="${getUrl('app.css')}" />` +
+                `<link rel="stylesheet" type="text/css" href="${getUrl('salesbot.css')}" />`
             );
 
             navMenuItem.className = 'nav__menu__item nav__menu__item__icon-integration';
@@ -3959,6 +4396,362 @@ define(() => function ({
 
             pageHolder.create();
             document.body.appendChild(navMenuItem);
+
+            {
+
+                const div = document.createElement('div');
+                div.className = 'cmg-to-remove cmg-lead-wrapper';
+
+                div.innerHTML = amocrmLead;
+                document.body.appendChild(div);
+            }
+
+            me.contactPhonePopup = (() => {
+                const getPopup = () => document.
+                    querySelector('.js-control-phone').
+                    parentNode.
+                    querySelector('.js-tip-holder .tips');
+
+                const getItems = () => Array.from(getPopup().querySelectorAll('.tips-item')),
+                    tester = testersFactory.createDomElementTester(getPopup);
+
+                tester.item = text => testersFactory.createDomElementTester(
+                    () => getItems().find(item => utils.getTextContent(item) == text)
+                );
+
+                tester.expectToHaveTextContent = expectedContent => {
+                    const actualContent = getItems().reduce(
+                        (result, domElement) => (result.push(
+                            utils.isVisible(domElement)
+                                ? utils.getTextContent(domElement)
+                                : ''
+                        ), result),
+                        [],
+                    ).filter(item => !!item).join(' ');
+
+                    if (actualContent !== expectedContent) {
+                        throw new Error(
+                            `Выпадающий список отображающийся при нажати на номер контакта должен иметь ` +
+                            `такое содержимое "${expectedContent}", однако он имеет такое содержимое ` +
+                            `"${actualContent}".`
+                        );
+                    }
+                };
+
+                tester.show = () => {
+                    getPopup().querySelector('.js-tip-items').innerHTML =
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item " ' +
+                            'data-type="phone" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type="" ' +
+                            'data-widget="uismarketplacedev"' +
+                        '>' +
+                            '<span class="tips-icon icon icon-inline icon-phone-dark"></span>' +
+                                'UIS Chats' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="write_first" ' +
+                            'data-source-id="23495101" ' +
+                            'data-source-origin="amo.ext.32052838" ' +
+                            'data-contact-id="70907915" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<img ' +
+                                    'src="https://st1.amocrm.ru/origins_icons/amo.ext.32052838.svg" ' +
+                                    'class="tips-icon" ' +
+                                    'width="14" ' +
+                                    'height="14" ' +
+                                    'alt="lykov_test_bot (UIS WhatsApp)"' +
+                                '>' +
+                            '</span>' +
+                            'lykov_test_bot (UIS WhatsApp)' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="write_first" ' +
+                            'data-source-id="23495102" ' +
+                            'data-source-origin="amo.ext.32052839.2" ' +
+                            'data-contact-id="70907915" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<img ' +
+                                    'src="https://st1.amocrm.ru/origins_icons/amo.ext.32052838.svg" ' +
+                                    'class="tips-icon" ' +
+                                    'width="14" ' +
+                                    'height="14" ' +
+                                    'alt="rykov_test_bot (UIS WhatsApp)"' +
+                                '>' +
+                            '</span>' +
+                            'rykov_test_bot (UIS WhatsApp)' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item " ' +
+                            'data-type="write_first" ' +
+                            'data-source-id="23495103" ' +
+                            'data-source-origin="amo.ext.32052838" ' +
+                            'data-contact-id="70907915" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<img ' +
+                                    'src="https://st1.amocrm.ru/origins_icons/amo.ext.32052838.svg" ' +
+                                    'class="tips-icon" ' +
+                                    'width="14" ' +
+                                    'height="14" ' +
+                                    'alt="ASK_TGbot (UIS WhatsApp)"' +
+                                '>' +
+                            '</span>' +
+                            'ASK_TGbot (UIS WhatsApp)' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="write_first" ' +
+                            'data-source-id="23495104" ' +
+                            'data-source-origin="amo.ext.32052838" ' +
+                            'data-contact-id="70907915" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<img ' +
+                                    'src="https://st1.amocrm.ru/origins_icons/amo.ext.32052838.svg" ' +
+                                    'class="tips-icon" ' +
+                                    'width="14" ' +
+                                    'height="14" ' +
+                                    'alt="WhatsApp Web 21 (UIS WhatsApp)"' +
+                                '>' +
+                            '</span>' +
+                            'WhatsApp Web 21 (UIS WhatsApp)' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="write_first" ' +
+                            'data-source-id="23495107" ' +
+                            'data-source-origin="amo.ext.32052838" ' +
+                            'data-contact-id="70907915" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<img ' +
+                                    'src="https://st1.amocrm.ru/origins_icons/amo.ext.32052838.svg" ' +
+                                    'class="tips-icon" ' +
+                                    'width="14" ' +
+                                    'height="14" ' +
+                                    'alt="WhatsApp Web 31 (UIS WhatsApp)"' +
+                                '>' +
+                            '</span>' +
+                            'WhatsApp Web 31 (UIS WhatsApp)' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="write_first" ' +
+                            'data-source-id="23495101" ' +
+                            'data-source-origin="amo.ext.32052838.2" ' +
+                            'data-contact-id="70907915" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<img ' +
+                                    'src="' +
+                                        'https://st1.amocrm.ru/origins_icons/amo.ext.32052838.2.svg' +
+                                    '" ' +
+                                    'class="tips-icon" ' +
+                                    'width="14" ' +
+                                    'height="14" ' +
+                                    'alt="lykov_test_bot (UIS Telegram Bot)"' +
+                                '>' +
+                            '</span>' +
+                            'lykov_test_bot (UIS Telegram Bot)' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="write_first" ' +
+                            'data-source-id="23495103" ' +
+                            'data-source-origin="amo.ext.32052838.2" ' +
+                            'data-contact-id="70907915" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<img ' +
+                                    'src="' +
+                                        'https://st1.amocrm.ru/origins_icons/' +
+                                            'amo.ext.32052838.2.svg' +
+                                    '" ' +
+                                    'class="tips-icon" ' +
+                                    'width="14" ' +
+                                    'height="14" ' +
+                                    'alt="ASK_TGbot (UIS Telegram Bot)"' +
+                                '>' +
+                            '</span>' +
+                            'ASK_TGbot (UIS Telegram Bot)' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="write_first" ' +
+                            'data-source-id="23495104" ' +
+                            'data-source-origin="amo.ext.32052838.2" ' +
+                            'data-contact-id="70907915" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<img ' +
+                                    'src="' +
+                                        'https://st1.amocrm.ru/origins_icons/' +
+                                            'amo.ext.32052838.2.svg' +
+                                    '" ' +
+                                    'class="tips-icon" ' +
+                                    'width="14" ' +
+                                    'height="14" ' +
+                                    'alt="WhatsApp Web 21 (UIS Telegram Bot)"' +
+                                '>' +
+                            '</span>' +
+                            'WhatsApp Web 21 (UIS Telegram Bot)' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="write_first" ' +
+                            'data-source-id="23495107" ' +
+                            'data-source-origin="amo.ext.32052838.2" ' +
+                            'data-contact-id="70907915" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<img ' +
+                                    'src="' +
+                                        'https://st1.amocrm.ru/origins_icons/' +
+                                            'amo.ext.32052838.2.svg' +
+                                    '" ' +
+                                    'class="tips-icon" ' +
+                                    'width="14" ' +
+                                    'height="14" ' +
+                                    'alt="WhatsApp Web 31 (UIS Telegram Bot)"' +
+                                '>' +
+                            '</span>' +
+                            'WhatsApp Web 31 (UIS Telegram Bot)' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="write_first" ' +
+                            'data-source-id="23495105" ' +
+                            'data-source-origin="amo.ext.32052840.2" ' +
+                            'data-contact-id="70907915" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<img ' +
+                                    'src="' +
+                                        'https://st1.amocrm.ru/origins_icons/' +
+                                            'amo.ext.32052838.2.svg' +
+                                    '" ' +
+                                    'class="tips-icon" ' +
+                                    'width="14" ' +
+                                    'height="14" ' +
+                                    'alt="bykov_test_bot"' +
+                                '>' +
+                            '</span>' +
+                            'bykov_test_bot' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="write_first" ' +
+                            'data-source-id="23495106" ' +
+                            'data-source-origin="amo.ext.32052841.2" ' +
+                            'data-contact-id="70907915" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<img ' +
+                                    'src="' +
+                                        'https://st1.amocrm.ru/origins_icons/' +
+                                            'amo.ext.32052838.2.svg' +
+                                    '" ' +
+                                    'class="tips-icon" ' +
+                                    'width="14" ' +
+                                    'height="14" ' +
+                                    'alt="zykov_test_bot"' +
+                                '>' +
+                            '</span>' +
+                            'zykov_test_bot' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="copy" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<span class="tips-icon tips-svg-icon">' +
+                                    '<svg class="svg-icon svg-common--copy-dims">' +
+                                        '<use xlink:href="#common--copy"></use>' +
+                                    '</svg>' +
+                                '</span>' +
+                            '</span>' +
+                            'Копировать' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="edit" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<span class="tips-icon icon icon-inline icon-pencil"></span>' +
+                            '</span>' +
+
+                            'Редактировать' +
+                        '</div>';
+
+                    getPopup().
+                        style.
+                        display = 'block';
+
+                    mainTester.page.triggerMutation();
+                };
+
+                return tester;
+            })();
 
             break;
         }
@@ -3980,6 +4773,16 @@ define(() => function ({
             setHistory,
             setNotification,
             active,
+            bitrixSalesbotSettings: Object.entries(salesbotSettings).reduce(
+                (settings, [key, value]) => (
+                    settings[key] = typeof value == 'boolean'
+                        ? value ? 'Y' : 'N'
+                        : value,
+
+                    settings
+                ),
+                {},
+            ),
             setEventBus: eventBus => {
                 const events = {},
                     ignoredEvents = {};
@@ -4122,8 +4925,12 @@ define(() => function ({
                     'status=L&' +
                     'PLACEMENT=USER_PROFILE_MENU'
             );
-        }else if (application == 'notificationsIframe') {
+        } else if (application == 'bitrixSalesbotIframe') {
+            me.history.push('/bitrix/salesbot');
+        } else if (application == 'notificationsIframe') {
             me.history.push('/chrome/notifications');
+        } else if (application == 'amocrmSalesbotIframe') {
+            me.history.push('/amocrm/salesbot');
         }
     }
 
@@ -4184,7 +4991,7 @@ define(() => function ({
     })();
 
     me.navMenuItem = (() => {
-        const getElement = () => utils.querySelector('.nav__menu__item'),
+        const getElement = () => utils.querySelector('.nav__menu__item:not([data-entity="settings"])'),
             tester = testersFactory.createDomElementTester(getElement),
             disabledClassName = 'cmg-amocrm-chats-menu-item-disabled';
 
@@ -5264,8 +6071,21 @@ define(() => function ({
             tester.withValue = expectedValue => createTester(select => utils.getTextContent(select) == expectedValue);
 
             tester.withLabel = label => createTester(
-                select => utils.getTextContent(select.querySelector('.cmg-settings-label')) == label,
-                select => select.querySelector('.ant-select-selection-item'),
+                element => utils.getTextContent(
+                    element.classList.contains('cmg-salesbot-form-label')
+                        ? element
+                        : element.querySelector('.cmg-settings-label')
+                ) == label,
+
+                element => {
+                    const settingsSelect = element.querySelector('.ant-select-selection-item');
+
+                    if (settingsSelect) {
+                        return settingsSelect;
+                    }
+
+                    return element.nextSibling?.querySelector('.cmgui-select');
+                },
             );
 
             tester.withPlaceholder = expectedPlaceholder => createTester(select => utils.getTextContent(
@@ -5284,6 +6104,7 @@ define(() => function ({
             '.ui-select',
             '.cmgui-select',
             '.cmg-settings-select-wrapper',
+            '.cmg-salesbot-form-label',
         ].reduce((domElement, selector) => domElement || utils.getVisibleSilently(
             Array.prototype.slice.call(
                 (
@@ -7858,6 +8679,7 @@ define(() => function ({
 
                         Promise.runAll(false, true);
                         spendTime(0)
+                        spendTime(0)
                     },
                 });
             },
@@ -9881,6 +10703,7 @@ define(() => function ({
             auto_call_campaign_name: null,
             organization_name: 'ООО "Некая Организация"',
             contact_full_name: 'Шалева Дора',
+            source: 'Яндекс.Директ',
             crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/382030',
             is_transfer: false,
             transferred_by_employee_full_name: '',
@@ -10671,7 +11494,7 @@ define(() => function ({
             id: 216395,
             channel_id: 216395,
             is_removed: false,
-            name: 'whatsapp',
+            name: 'Whats App',
             status: 'active',
             status_reason: '',
             type: 'whatsapp'
@@ -10734,7 +11557,14 @@ define(() => function ({
 
         const params = {
             search_string: undefined,
-            chat_channel_types: ['whatsapp', 'waba', 'telegram_private', 'sms', undefined],
+            chat_channel_types: [
+                'whatsapp',
+                'waba',
+                'telegram_private',
+                'sms',
+                'max',
+                undefined,
+            ],
             contact: {
                 phone: undefined,
                 email: undefined,
@@ -12897,17 +13727,29 @@ define(() => function ({
                             id: 20816,
                             full_name: 'Карадимова Веска Анастасовна',
                             status_id: 1,
-                            photo_link: null
+                            photo_link: null,
+                            groups: [{
+                                group_id: 775873,
+                                group_name: 'Тестовая Декина Саша'
+                            }],
                         }, {
                             id: 20817,
                             full_name: 'Чакърова Райна Илковна',
                             status_id: 1,
-                            photo_link: null
+                            photo_link: null,
+                            groups: [{
+                                group_id: 815663,
+                                group_name: 'Группа кампании исх. обзвона "2303" (2)'
+                            }],
                         }, {
                             id: 20818,
                             full_name: 'Костова Марвуда Любенова',
                             status_id: 22,
-                            photo_link: null
+                            photo_link: null,
+                            groups: [{
+                                group_id: 815663,
+                                group_name: 'Группа кампании исх. обзвона "2303" (2)'
+                            }],
                         }]
                     });
 
@@ -13603,6 +14445,48 @@ define(() => function ({
                 Promise.runAll(false, true);
                 spendTime(0)
             }
+        };
+    };
+
+    me.employeesDataApiRequest = () => {
+        return {
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveHeaders({
+                        Authorization: `Bearer ${mainTester.oauthToken}`,
+                    }).
+                    expectBodyToContain({
+                        method: 'get.employees',
+                    });
+
+                return {
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            result: {
+                                data: [{
+                                    id: 568711,
+                                    groups: [{
+                                        group_id: 815663,
+                                        group_name: 'Группа кампании исх. обзвона "2303" (2)'
+                                    }],
+                                }, {
+                                    id: 20816,
+                                    groups: [{
+                                        group_id: 775873,
+                                        group_name: 'Тестовая Декина Саша'
+                                    }],
+                                }]
+                            }
+                        });
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                };
+            },
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            },
         };
     };
 

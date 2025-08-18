@@ -192,26 +192,50 @@ define(function () {
                                 '</div>' +
                             '</div>' +
                             '<div class="js-tip-holder">' +
-                                '<div class="tips js-tip card-cf-actions-tip " id="">' +
+                                '<div class="tips js-tip card-cf-actions-tip tips-at-top">' +
                                     '<div class="tips__inner custom-scroll js-tip-items">' +
-                                        '<div class="tips-item js-tips-item js-cf-actions-item " data-type="phone" data-id="" data-forced="" data-value="" data-suggestion-type="">' +
-                                            '<span class="tips-icon-container">' +
-                                                '<span class="tips-icon icon icon-inline icon-phone-dark"></span>' +
-                                            '</span> Позвонить' +
+                                        '<div ' +
+                                            'class="tips-item js-tips-item js-cf-actions-item " ' +
+                                            'data-type="phone" ' +
+                                            'data-id="" ' +
+                                            'data-forced="" ' +
+                                            'data-value="" ' +
+                                            'data-suggestion-type="" ' +
+                                            'data-widget="uismarketplacedev"' +
+                                        '>' +
+                                            '<span class="tips-icon icon icon-inline icon-phone-dark"></span>' +
+                                                'UIS Chats' +
                                         '</div>' +
-                                        '<div class="tips-item js-tips-item js-cf-actions-item " data-type="copy" data-id="" data-forced="" data-value="" data-suggestion-type="">' +
+                                        '<div ' +
+                                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                                            'data-type="copy" ' +
+                                            'data-id="" ' +
+                                            'data-forced="" ' +
+                                            'data-value="" ' +
+                                            'data-suggestion-type=""' +
+                                        '>' +
                                             '<span class="tips-icon-container">' +
                                                 '<span class="tips-icon tips-svg-icon">' +
                                                     '<svg class="svg-icon svg-common--copy-dims">' +
                                                         '<use xlink:href="#common--copy"></use>' +
                                                     '</svg>' +
                                                 '</span>' +
-                                            '</span> Копировать' +
+                                            '</span>' +
+                                            'Копировать' +
                                         '</div>' +
-                                        '<div class="tips-item js-tips-item js-cf-actions-item " data-type="edit" data-id="" data-forced="" data-value="" data-suggestion-type="">' +
+                                        '<div ' +
+                                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                                            'data-type="edit" ' +
+                                            'data-id="" ' +
+                                            'data-forced="" ' +
+                                            'data-value="" ' +
+                                            'data-suggestion-type=""' +
+                                        '>' +
                                             '<span class="tips-icon-container">' +
                                                 '<span class="tips-icon icon icon-inline icon-pencil"></span>' +
-                                            '</span> Редактировать' +
+                                            '</span>' +
+
+                                            'Редактировать' +
                                         '</div>' +
                                     '</div>' +
                                 '</div>' +

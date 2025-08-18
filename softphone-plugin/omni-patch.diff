@@ -1,33 +1,33 @@
 diff --git a/package.json b/package.json
-index 5f007670..f2e64add 100644
+index 195b2f6c..bd246aa5 100644
 --- a/package.json
 +++ b/package.json
-@@ -78,17 +78,11 @@
+@@ -79,17 +79,10 @@
    },
    "dependencies": {
      "@babel/runtime": "^7.13.9",
 -    "@comagic/core": "^1.17.0",
-     "@comagic/crud": "2.60.2",
-     "@comagic/flow": "0.6.1",
-     "@comagic/reports": "6.1.1",
--    "@comagic/softphone-core": "0.0.0-0.0.10-int0",
--    "@comagic/softphone-widget": "0.0.15-int0",
--    "@comagic/ui": "2.65.2",
--    "@comagic/workplace-utils": "0.0.9-int0",
+     "@comagic/crud": "2.60.5",
+     "@comagic/flow": "0.6.4",
+-    "@comagic/reports": "8.0.2",
+-    "@comagic/softphone-core": "0.0.0-0.0.15-int0",
+-    "@comagic/softphone-widget": "0.0.36-int0",
+-    "@comagic/ui": "3.5.5",
+-    "@comagic/workplace-utils": "0.0.17-int0",
      "@sentry/react": "^7.73.0",
      "async-mutex": "^0.3.2",
 -    "axios": "0.27.2",
      "classnames": "^2.2.6",
      "dayjs": "1.11.11",
      "dompurify": "^2.3.10",
-@@ -104,25 +98,16 @@
+@@ -105,25 +98,16 @@
      "janus-gateway": "1.1.4",
      "lodash.clonedeep": "^4.5.0",
      "madge": "^5.0.1",
 -    "magic-ui": "0.0.0-int1",
--    "mobx": "^6.6.1",
--    "mobx-react-lite": "^3.4.0",
--    "mobx-state-tree": "^5.1.6",
+-    "mobx": "6.6.1",
+-    "mobx-react-lite": "3.4.0",
+-    "mobx-state-tree": "5.1.8",
      "moment": "2.29.4",
      "nanoid": "^3.2.0",
      "opus-recorder": "^8.0.5",

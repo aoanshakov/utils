@@ -1,0 +1,67 @@
+Я сделал форму настроек Salesbot. Пока без выпадающего списка каналов, но можно уже проверить сохранение настроек. Тебе
+нужно будет отрендерить такой шаблон
+
+```
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <script defer="defer" src="https://dev-int0-softphone-widget-iframe.uis.st/bitrixSalesbot/static/js/index.js"></script>
+        <script defer="defer" src="//api.bitrix24.com/api/v1/"></script>
+
+        <script>
+            addEventListener('applicationInitialized', () => runApplication({{ current_values }}));
+        </script>
+    </head>
+
+    <body></body>
+</html>
+```
+
+где вместо {{ current_values }} нужно подставить сохранённые значения формы из тела POST-запроса в формате JSON
+
+Сам робот должен включать такие параметры
+
+```
+"PROPERTIES": {
+    "should_message_to_last_chat": {
+        "Name": {
+            "ru": "Писать в последний диалог",
+            "en": "Should message to last chat"
+        },
+        "Description": {
+            "ru": "Писать в последний диалог",
+            "en": "Should message to last chat"
+        },
+        "Type": "bool",
+        "Required": "N",
+        "Multiple": "N"
+    },
+    "channel_id": {
+        "Name": {
+            "ru": "Откуда писать",
+            "en": "Source channel"
+        },
+        "Description": {
+            "ru": "Откуда писать",
+            "en": "Source channel"
+        },
+        "Type": "int",
+        "Required": "N",
+        "Multiple": "N"
+    },
+    "message": {
+        "Name": {
+            "ru": "Текст сообщения",
+            "en": "Message text"
+        },
+        "Description": {
+            "ru": "Текст сообщения",
+            "en": "Message text"
+        },
+        "Type": "text",
+        "Required": "N",
+        "Multiple": "N"
+    }
+},
+```

@@ -593,9 +593,11 @@ define(function () {
 
                 const putMouseOver = tester.putMouseOver.bind(tester);
                 tester.putMouseOver = () => (putMouseOver(), spendTime(100), spendTime(0));
+
+                const checkedClasses = ['ui-checkbox-checked', 'cmgui-checkbox-checked'];
                 
-                tester.expectToBeChecked = () => tester.expectToHaveClass('ui-checkbox-checked');
-                tester.expectNotToBeChecked = () => tester.expectNotToHaveClass('ui-checkbox-checked');
+                tester.expectToBeChecked = () => tester.expectToHaveAnyOfClasses(checkedClasses);
+                tester.expectNotToBeChecked = () => tester.expectToHaveNoneOfClasses(checkedClasses);
 
                 return tester;
 
@@ -3954,7 +3956,7 @@ define(function () {
             var expires = '60',
                 sip_login = '077368',
                 sip_host = 'voip.uiscom.ru',
-                softphoneType = 'Web',
+                softphoneType = 'comagic Softphone Web',
                 doSomething = function () {};
                 
             var checkAuthorization = function (request) {
@@ -4032,7 +4034,19 @@ define(function () {
                     this.receiveResponse();
                 },
                 desktopSoftphone: function () {
-                    softphoneType = 'Desktop';
+                    softphoneType = 'comagic Softphone Desktop';
+                    return this;
+                },
+                amocrmWidget: function () {
+                    softphoneType = 'Softphone AmoCRM widget';
+                    return this;
+                },
+                chromeExtension: function () {
+                    softphoneType = 'Softphone Chrome Plugin';
+                    return this;
+                },
+                bitrixApplication: function () {
+                    softphoneType = 'Softphone Bitrix24 application';
                     return this;
                 },
                 authorization: function () {
@@ -4082,9 +4096,7 @@ define(function () {
                             expectHeaderToContain('From', '<sip:' + sip_login + '@' + sip_host + '>').
                             expectHeaderToContain('To', '<sip:' + sip_login + '@' + sip_host + '>').
                             expectHeaderToHaveValue('Expires', 'Expires: ' + expires).
-                            expectHeaderToHaveValue(
-                                'User-Agent', 'User-Agent: ' + me.getUserAgent(softphoneType)
-                            )
+                            expectHeaderToHaveValue('User-Agent', `User-Agent: ${softphoneType}`)
                     );
 
                     return {

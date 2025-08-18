@@ -1,0 +1,3718 @@
+/* 
+  важно, чтобы переменные были именно на root,
+  поскольку верстка может выходить за рамки workarea,
+  например списки у контролов
+*/
+* {
+  --salesbot-designer-color-platinum: #e8e8e8;
+  --salesbot-designer-color-crayola-blue: #2d7ffb;
+  --salesbot-designer-color-mystic: #edf0f5;
+
+  /* typography */
+  --salesbot-designer-text-primary: #363b44;
+  --salesbot-designer-text-secondary-light: #8f9a9d;
+  --salesbot-designer-text-secondary-dark: #8f9a9d;
+
+  /* background */
+  --salesbot-designer-background-default: #f5f5f5;
+  --salesbot-designer-background-primary: #ffffff;
+
+  /* border */
+  --salesbot-designer-border-default: #e5e5e5;
+  --salesbot-designer-border-primary: #d5d5d5;
+
+  /* block */
+  --salesbot-designer-block-background: rgba(245, 245, 245, 0.8);
+  --salesbot-designer-block-border: #bcbcbc;
+
+  /* action */
+  --salesbot-designer-action-background: var(--salesbot-designer-background-primary);
+  --salesbot-designer-action-exit-background: var(--salesbot-designer-color-platinum);
+
+  /* validation */
+  --salesbot-designer-validation-background: var(--salesbot-designer-color-mystic);
+  --salesbot-designer-validation-border: var(--salesbot-designer-color-crayola-blue);
+  --salesbot-designer-validation-action-background: #ebeff5;
+
+  /* action show */
+  --salesbot-designer-action-show-background: #2d7ffb;
+  --salesbot-designer-action-show-button-background: #418bfa;
+  --salesbot-designer-action-show-button-placeholder-background: #2f80ed;
+  --salesbot-designer-action-show-button-border: #a0c6ff;
+
+  /* action show wa */
+  --salesbot-designer-action-send-external-message-background: #27ae60;
+  --salesbot-designer-action-send-external-message-button-background: none;
+  --salesbot-designer-action-send-external-message-button-border: rgba(255, 255, 255, 0.8);
+
+  /* connection */
+  --salesbot-designer-connection-background: #8f9a9d;
+
+  /* scrollbar */
+  --salesbot-designer-scrollbar-track-background: #eaeaea;
+  --salesbot-designer-scrollbar-thumb-background: #cdcdcd;
+}
+.salesbot-designer__workarea {
+  color: #363b44;
+  color: var(--salesbot-designer-text-primary);
+}
+.sb-custom-scroll {
+  -webkit-overflow-scrolling: touch;
+}
+.sb-scrollbar-tester::-webkit-scrollbar {
+  height: 0;
+  width: 0;
+}
+.sb-custom-scroll::-webkit-scrollbar {
+  width: 7px;
+  height: 0;
+}
+.sb-custom-scroll::-webkit-scrollbar-track {
+  background: #eaeaea;
+  background: var(--salesbot-designer-scrollbar-track-background);
+}
+.sb-custom-scroll::-webkit-scrollbar-thumb {
+  border-radius: 3px;
+  background: #cdcdcd;
+  background: var(--salesbot-designer-scrollbar-thumb-background);
+}
+/* Common styles */
+.salesbot-designer__workarea input[type='text'],
+.salesbot-designer__workarea input[type='email'],
+.salesbot-designer__workarea input[type='search'],
+.salesbot-designer__workarea input[type='password'],
+.salesbot-designer__workarea textarea {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+/* Chrome, Safari, Edge, Opera */
+.salesbot-designer__workarea input[type='number']::-webkit-outer-spin-button,
+.salesbot-designer__workarea input[type='number']::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+/* Firefox */
+.salesbot-designer__workarea input[type='number'] {
+  -moz-appearance: textfield;
+}
+.sb-text-input::-moz-placeholder {
+  font-weight: normal;
+  color: rgba(103, 110, 121, 0.502);
+}
+.sb-text-input::placeholder {
+  font-weight: normal;
+  color: rgba(103, 110, 121, 0.502);
+}
+.sb-text-input:not(.sb-text-input-visible-placeholder):focus::-moz-placeholder {
+  color: transparent;
+}
+.sb-text-input:not(.sb-text-input-visible-placeholder):focus::placeholder {
+  color: transparent;
+}
+.salesbot-designer__workarea input::-webkit-contacts-auto-fill-button {
+  visibility: hidden;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+}
+.salesbot-designer__workarea input::-ms-clear {
+  display: none;
+}
+.salesbot-designer__workarea input,
+.salesbot-designer__workarea textarea,
+.salesbot-designer__workarea [contenteditable],
+.salesbot-designer__workarea [contenteditable] div,
+.salesbot-designer__workarea [contenteditable] span {
+  -webkit-user-select: text;
+     -moz-user-select: text;
+          user-select: text;
+  outline: none;
+  line-height: 20px;
+}
+.sb-text-input {
+  border: 1px solid #d5d5d5;
+  border: 1px solid var(--salesbot-designer-border-primary);
+  border-radius: 3px;
+  font-size: 15px;
+  height: 36px;
+  padding: 8px 9px 7px;
+  box-sizing: border-box;
+  color: #363b44;
+  color: var(--salesbot-designer-text-primary);
+  background: #ffffff;
+  background: var(--salesbot-designer-background-primary);
+}
+.sb-text-input:disabled {
+  background: transparent;
+  border-color: #dfdfdf;
+  border-bottom-width: 1px;
+  color: var(--palette-text-primary);
+}
+.sb-control-select {
+  position: relative;
+  z-index: 10;
+  height: 36px;
+}
+.sb-control-select-white .sb-control-select--button {
+      background: #ffffff;
+      background: var(--salesbot-designer-background-primary);
+    }
+.sb-control-select--search-container {
+      pointer-events: all;
+      position: absolute;
+      top: -33px;
+      left: -13px;
+
+      display: flex;
+      justify-content: space-between;
+      grid-gap: 4px;
+      gap: 4px;
+      align-items: center;
+      width: 100%;
+      padding: 6px 5px;
+
+      background-color: #ffffff;
+
+      background-color: var(--salesbot-designer-background-primary);
+      border-top-left-radius: 3px;
+      border-top-right-radius: 3px;
+      border: 1px solid #e5e5e5;
+      border: 1px solid var(--salesbot-designer-border-default);
+      border-bottom-width: 0px;
+    }
+.sb-control-select--search-container .search-icon {
+        flex-shrink: 0;
+
+        width: 16px;
+        height: 16px;
+
+        cursor: default;
+        fill: #8f9a9d;
+        fill: var(--salesbot-designer-text-secondary-dark);
+      }
+.sb-control-select--search-clear {
+      pointer-events: all;
+      flex-shrink: 0;
+
+      width: 16px;
+      height: 16px;
+
+      cursor: pointer;
+    }
+.sb-control-select--search-clear .clear-icon {
+        stroke: #363b44;
+        stroke: var(--salesbot-designer-text-primary);
+      }
+.sb-control-select--search-input {
+      display: block;
+      width: 100%;
+      overflow: hidden;
+      box-sizing: border-box;
+
+      font-size: 14px;
+      font-weight: 400;
+      line-height: 19px;
+
+      color: #363b44;
+
+      color: var(--salesbot-designer-text-primary)
+    }
+.sb-control-select--search-input::-moz-placeholder {
+        color: #8f9a9d;
+        color: var(--salesbot-designer-text-secondary-dark);
+      }
+&-input::-moz-placeholder {
+        color: #8f9a9d;
+        color: var(--salesbot-designer-text-secondary-dark);
+      }
+.sb-control-select--search-input::placeholder {
+        color: #8f9a9d;
+        color: var(--salesbot-designer-text-secondary-dark);
+      }
+.sb-control-select--button {
+
+    position: relative;
+    width: 100%;
+    height: 100%;
+    z-index: 10;
+    text-align: left;
+    outline: none;
+    padding-top: 1px;
+
+    border: 1px solid #e5e5e5;
+
+    border: 1px solid var(--salesbot-designer-border-default);
+    border-bottom-width: 2px;
+    border-radius: 3px;
+    background: linear-gradient(to bottom, #fcfcfc 0%, #f8f8f9 100%);
+    padding-right: 25px;
+    padding-left: 9px;
+    color: inherit;
+  }
+.sb-control-select--button-colored {
+      border: none;
+      padding-top: 1px;
+      padding-bottom: 2px;
+    }
+.sb-control-select--button-inner {
+      overflow: hidden;
+    }
+.sb-control-select--button:after {
+      content: '';
+    }
+.sb-control-select--button:focus {
+      border-color: #c1c1c1;
+    }
+.sb-control-select--button[disabled='Y'] {
+      background: transparent;
+      color: #b3b6bd;
+      border-color: #dfdfdf;
+      border-bottom-width: 1px;
+    }
+.sb-control-select--button[data-before]:before {
+      content: attr(data-before);
+    }
+.sb-control-select--button[data-after]:after {
+      content: attr(data-after);
+      top: 0;
+    }
+.sb-control-select--list {
+    display: none;
+  }
+.sb-control-select--list-opened {
+      display: block;
+      width: 100%;
+      left: -13px;
+      border: 1px solid #e5e5e5;
+      border: 1px solid var(--salesbot-designer-border-default);
+      background-color: #ffffff;
+      background-color: var(--salesbot-designer-background-primary);
+      padding: 0;
+      padding-right: 11px;
+      height: auto;
+      margin: 0;
+      margin-right: -13px;
+
+      border-radius: 3px;
+
+      overflow: auto;
+
+      position: absolute;
+      max-height: 240px;
+      bottom: auto;
+      top: 0
+    }
+.sb-control-select--list-opened.sb-control-select--list-to-top {
+        bottom: 3px;
+        top: auto !important;
+      }
+.sb-control-select--list--item {
+      cursor: pointer;
+      position: relative;
+      list-style-type: none;
+
+      padding: 8px 6px 7px 0px;
+      margin: 0 -11px 0 0;
+
+      overflow: hidden;
+      box-sizing: border-box;
+    }
+.sb-control-select--list--item-inner {
+        position: relative;
+        display: block;
+        padding-left: 22px;
+        white-space: nowrap;
+        width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        word-wrap: normal;
+        color: #363b44;
+        color: var(--salesbot-designer-text-primary);
+        z-index: 2;
+      }
+.sb-control-select--list--item-not-found {
+        width: 100%;
+        height: 100%;
+
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 8px 6px 7px 0px;
+
+        color: #363b44;
+
+        color: var(--salesbot-designer-text-primary);
+
+        cursor: default;
+      }
+.sb-control-select--list--item-link .sb-control-select--list--item-inner {
+          color: #0085c3;
+        }
+.sb-control-select--list--item-key_selected {
+        background: #f5f5f5;
+        background: var(--salesbot-designer-background-default);
+      }
+.sb-control-select--list--item[data-disabled] {
+        font-size: 11px;
+        text-transform: uppercase;
+        font-weight: bold;
+        color: #acb0b3;
+      }
+.sb-control-select--list--item-selected .sb-control-select--list--item-inner {
+          background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5IiBoZWlnaHQ9IjciIHZpZXdCb3g9IjAgMCA5IDciPgogIDxwYXRoIGlkPSJmZWVkLXRhc2siIGQ9Ik0yNDkuMDEsMTQ4Ny43M2wtNS44NzgsNi4yOC0wLjEtLjExLTAuMS4xMS0yLjkzOS0zLjE0LDAuNjkzLS43NCwyLjM0OCwyLjUxLDUuMjg2LTUuNjVaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjQwIC0xNDg3KSIvPgo8L3N2Zz4K)
+            8px 6px no-repeat;
+        }
+.sb-control-select--icon {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translate(0, -50%);
+  }
+.sb-control-select[data-with-full-text-search='true'] .sb-control-select--list-opened {
+    border-top-left-radius: 0px;
+    border-top-right-radius: 0px;
+  }
+.sb-control-select[data-with-full-text-search='true'] .sb-control-select--list--item-selected .sb-control-select--list--item-inner {
+    background: url(data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSI5IiBoZWlnaHQ9IjciIHZpZXdCb3g9IjAgMCA5IDciPgogIDxwYXRoIGlkPSJmZWVkLXRhc2siIGQ9Ik0yNDkuMDEsMTQ4Ny43M2wtNS44NzgsNi4yOC0wLjEtLjExLTAuMS4xMS0yLjkzOS0zLjE0LDAuNjkzLS43NCwyLjM0OCwyLjUxLDUuMjg2LTUuNjVaIiB0cmFuc2Zvcm09InRyYW5zbGF0ZSgtMjQwIC0xNDg3KSIvPgo8L3N2Zz4K)
+      8px 4px no-repeat;
+  }
+html.touch .sb-control-select--list-opened .sb-control-select--list--item:active:before,
+html.no-touch .sb-control-select--list-opened .sb-control-select--list--item:hover:before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: -11px;
+  bottom: 0;
+  left: 0;
+  background-color: #f5f5f5;
+  background-color: var(
+    --salesbot-designer-background-default
+  ); /* @todo-theme проверить кейс с разноцветными полями */
+  z-index: 1;
+}
+.sb-control-hint {
+  display: flex;
+  align-items: center;
+  padding: 0 11px;
+  font-size: 13px;
+  height: 25px;
+  color: var(--palette-text-secondary-dark);
+  border: 1px solid #bcbcbc;
+  border-radius: 3px;
+  background: #f5f5f5;
+  background: var(--salesbot-designer-background-default);
+  -webkit-user-select: none;
+     -moz-user-select: none;
+          user-select: none;
+  white-space: nowrap;
+  position: relative;
+}
+.sb-control-hint_top::before,
+    .sb-control-hint_top::after {
+      content: '';
+      position: absolute;
+      border: 0 solid transparent;
+    }
+.sb-control-hint_top::before {
+      bottom: -14px;
+      left: 19px;
+      border-width: 7px;
+      border-top-color: #d6d6d6;
+    }
+.sb-control-hint_top::after {
+      bottom: -12px;
+      left: 20px;
+      border-width: 6px;
+      border-top-color: #fcfcfc;
+    }
+.sb-tips {
+  display: none;
+  position: absolute;
+  left: 0;
+  z-index: 100;
+  font-size: 15px;
+  box-sizing: border-box;
+}
+.sb-tips__inner {
+    width: auto;
+    background: #ffffff;
+    background: var(--salesbot-designer-background-primary);
+    border: 1px solid #e5e5e5;
+    border: 1px solid var(--salesbot-designer-border-default);
+    border-radius: 3px;
+    max-height: 400px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+.sb-tips-at-top {
+    top: auto !important;
+    bottom: 100% !important
+  }
+.sb-tips-at-top:before {
+      top: 100%;
+      border-width: 5px 5px 0 5px;
+      border-color: #f9f9fa rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0);
+    }
+.sb-tips-at-top:after {
+      border-color: #ccc rgba(0, 0, 0, 0) rgba(0, 0, 0, 0) rgba(0, 0, 0, 0);
+      border-width: 7px 8px 0 7px;
+      top: 100%;
+      margin-top: 1px;
+    }
+.sb-tips_has-selected .sb-tips-item {
+      padding-left: 22px;
+    }
+.sb-tips-item {
+    white-space: nowrap;
+    padding: 0 15px;
+    text-align: left;
+    position: relative;
+    display: flex;
+    align-items: center;
+    height: 34px;
+    overflow: hidden
+  }
+.sb-tips-item.js-sb-tips-item {
+      cursor: pointer
+    }
+.sb-tips-item.js-sb-tips-item:--enter {
+        background-color: #f5f5f5;
+        background-color: var(--salesbot-designer-background-default);
+      }
+.sb-tips-item_disabled.js-sb-tips-item-disabled {
+      cursor: default;
+      color: var(--palette-text-secondary-dark);
+    }
+.sb-tips-item:hover {
+      background-color: #f5f5f5;
+      background-color: var(--salesbot-designer-background-default);
+    }
+.sb-tips-icon {
+    margin-right: 7px;
+  }
+.sb-tips-tooltip {
+    display: flex;
+    white-space: normal;
+    align-items: center;
+    position: absolute;
+    overflow: visible;
+    z-index: 100;
+    height: 56px;
+    width: 272px;
+    color: #f14c4c;
+    background-color: #ffffff;
+    background-color: var(--salesbot-designer-background-primary);
+    padding: 0px 9px;
+    font-size: 14px;
+    line-height: 1.4;
+    border: 1px solid #e5e5e5;
+    border: 1px solid var(--salesbot-designer-border-default);
+    border-radius: 3px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+  }
+.sb-tips-tooltip:before,
+  .sb-tips-tooltip:after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    top: 21px;
+    left: -8px;
+    border-top: 5px solid transparent;
+    border-right: 9px solid #ffffff;
+    border-bottom: 5px solid transparent;
+  }
+.sb-tips-tooltip:before {
+    left: -9px;
+    border-right-color: #ccc;
+  }
+html.touch .sb-tips-item:active {
+  background-color: none;
+}
+.salesbot-designer__fields-mention {
+  position: relative;
+}
+.salesbot-designer__fields-mention-raw-placeholder {
+    display: none;
+    position: absolute;
+
+    color: rgba(255, 255, 255, 0.6);
+    -webkit-user-select: none;
+       -moz-user-select: none;
+            user-select: none;
+    pointer-events: none;
+  }
+.salesbot-designer__fields-mention[data-raw-placeholder-shown='true'] .salesbot-designer__fields-mention-raw-placeholder {
+      display: block;
+    }
+.salesbot-designer__fields-mention-area[data-placeholder]:empty:not(:focus):before {
+    content: attr(data-placeholder);
+
+    color: rgba(255, 255, 255, 0.6);
+    -webkit-user-select: none;
+       -moz-user-select: none;
+            user-select: none;
+    pointer-events: none;
+  }
+.salesbot-designer__fields-mention-scroll-hider {
+    overflow: hidden;
+  }
+.salesbot-designer__fields-mention-area {
+    overflow-y: auto;
+    overflow-x: hidden;
+    cursor: text
+  }
+.salesbot-designer__fields-mention-area.disabled {
+      cursor: default;
+    }
+/* Пока могут использоваться шаблоны без scroll-hider-а, оставим этот каскад */
+.salesbot-designer__fields-mention-scroll-hider .salesbot-designer__fields-mention-area {
+      overflow-y: scroll;
+      resize: none;
+      min-height: 20px;
+      width: calc(100% + 20px);
+      padding-right: 20px;
+    }
+.salesbot-designer__fields-mention-area .atwho-inserted span[data-id] {
+        background-image: linear-gradient(to right, rgba(255, 255, 255, 0.3) 50%, transparent 50%);
+        background-position: 0 1.04em;
+        background-repeat: repeat-x;
+        background-size: 3px 1px;
+      }
+.salesbot-designer__fields-mention-area_black .atwho-inserted span[data-id] {
+          background-image: linear-gradient(to right, rgba(0, 0, 0, 0.3) 50%, transparent 50%);
+        }
+.salesbot-designer__fields-mention-list {
+    z-index: 11111;
+    background: #ffffff;
+    background: var(--salesbot-designer-background-primary);
+    border: 1px solid #e5e5e5;
+    border: 1px solid var(--salesbot-designer-border-default);
+    border-radius: 3px;
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+    max-height: 202px;
+    width: 200px;
+    overflow-x: hidden;
+    overflow-y: auto
+  }
+.salesbot-designer__fields-mention-list.atwho-view .atwho-header:hover {
+        cursor: default;
+      }
+.salesbot-designer__fields-mention-list.atwho-view .cur {
+        background: #f5f5f5;
+        background: var(--salesbot-designer-background-default);
+      }
+.salesbot-designer__fields-mention-list.atwho-view strong {
+        background: #fffecd;
+        color: #363b44;
+      }
+.salesbot-designer__fields-mention-list.atwho-view ul {
+        list-style: none;
+        padding: 0;
+        margin: auto;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+.salesbot-designer__fields-mention-list.atwho-view ul li {
+          color: #363b44;
+          color: var(--salesbot-designer-text-primary);
+          display: flex;
+          align-items: center;
+          font-size: 13px;
+          height: 30px;
+          padding: 0 10px;
+          cursor: pointer;
+          white-space: pre;
+          text-overflow: ellipsis;
+          overflow: hidden;
+        }
+.salesbot-designer__fields-mention-list.atwho-view small {
+        font-size: smaller;
+        color: #777;
+        font-weight: normal;
+      }
+.salesbot-designer__fields-mention-inline {
+    border: 0;
+    padding: 0;
+    border-bottom: 1px dashed;
+    border-radius: 0;
+    min-height: 15px;
+    display: inline-flex;
+  }
+.salesbot-designer__fields-mention-inline span,
+    .salesbot-designer__fields-mention-inline [contenteditable] {
+      line-height: 15px !important;
+    }
+.salesbot-designer__fields-mention-inline .salesbot-designer__fields-mention-area {
+    min-width: 35px;
+    overflow: hidden;
+    /* Какая-то бага непонятная, когда очень длинный текст */
+    padding-left: 1px;
+  }
+.salesbot-designer__media-loader {
+  width: 100%;
+  height: 177px;
+  border: 1px dashed #bbd6ff;
+  border-radius: 10px;
+  margin: 6px 0 8px;
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+.salesbot-designer__media-loader_bottom-block {
+    display: flex;
+    margin-top: 4px;
+  }
+.salesbot-designer__media-loader_upload-button {
+    position: relative;
+    margin-right: 8px;
+    text-decoration: underline;
+    cursor: pointer
+  }
+.salesbot-designer__media-loader_upload-button:after {
+      content: '';
+      border-right: 1px solid #bbd6ff;
+      position: absolute;
+      height: 100%;
+      right: -8px;
+    }
+.salesbot-designer__media-loader_drop-text {
+    margin-left: 7px;
+  }
+.salesbot-designer__media-loader_dnd-text,
+  .salesbot-designer__media-loader_upload-text,
+  .salesbot-designer__media-loader_upload-button,
+  .salesbot-designer__media-loader_drop-text {
+    font-size: 13px;
+    color: #bbd6ff;
+  }
+.salesbot-designer__media-loader_first-screen {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+.salesbot-designer__media-loader_first-screen svg {
+      width: auto;
+      height: 60px;
+      fill: #bbd6ff;
+    }
+.salesbot-designer__media-loader_file-not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+.salesbot-designer__media-loader_file-not-found svg {
+      width: 15px;
+      height: 15px;
+      fill: #bbd6ff;
+    }
+.salesbot-designer__media-loader_dnd-text {
+    display: none;
+    width: 210px;
+    text-align: center;
+  }
+.salesbot-designer__media-loader_controls,
+  .salesbot-designer__media-loader_preview {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    z-index: 1;
+  }
+.salesbot-designer__media-loader_controls {
+    z-index: 3;
+
+    display: none;
+    justify-content: center;
+
+    background: rgba(0, 0, 0, 0.6);
+  }
+.salesbot-designer__media-loader_controls-wrapper {
+      display: flex;
+      align-items: flex-start;
+      height: 70px;
+    }
+.salesbot-designer__media-loader_video-play-button {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 1;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+.salesbot-designer__action:not([data-attachment-type='video']) .salesbot-designer__media-loader_video-play-button {
+      display: none;
+    }
+.salesbot-designer__media-loader_video-play-button svg {
+      fill: white;
+      height: 40px;
+    }
+.salesbot-designer__media-loader_preview {
+    width: 100%;
+    height: 100%;
+    -o-object-fit: cover;
+       object-fit: cover;
+  }
+.salesbot-designer__media-loader_delete-block,
+  .salesbot-designer__media-loader_replace-block,
+  .salesbot-designer__media-loader_crop-block,
+  .salesbot-designer__media-loader_voice-convert {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    width: 84px;
+    margin: 0 7px;
+
+    cursor: pointer;
+  }
+.salesbot-designer__media-loader_voice-convert {
+    width: 84px;
+
+    text-align: center;
+  }
+.salesbot-designer__media-loader_voice-convert svg {
+      height: 28px;
+      width: 28px;
+    }
+.salesbot-designer__media-loader_control-icon {
+    display: flex;
+    align-items: center;
+    height: 40px;
+  }
+.salesbot-designer__media-loader_control-icon:not(.salesbot-designer__media-loader_control-icon_crop) svg {
+        fill: #bbd6ff;
+      }
+.salesbot-designer__media-loader_control-text {
+    font-size: 13px;
+    line-height: 15px;
+    color: #bbd6ff;
+  }
+.salesbot-designer__media-loader_pre-dnd .salesbot-designer__media-loader_preview,
+    .salesbot-designer__media-loader_pre-dnd .salesbot-designer__media-loader_first-screen,
+    .salesbot-designer__media-loader_pre-dnd .salesbot-designer__media-loader_file-not-found,
+    .salesbot-designer__media-loader.js-dnd-salesbot .salesbot-designer__media-loader_preview,
+    .salesbot-designer__media-loader.js-dnd-salesbot .salesbot-designer__media-loader_first-screen,
+    .salesbot-designer__media-loader.js-dnd-salesbot .salesbot-designer__media-loader_file-not-found {
+      display: none;
+    }
+.salesbot-designer__media-loader_pre-dnd .salesbot-designer__media-loader_dnd-text, .salesbot-designer__media-loader.js-dnd-salesbot .salesbot-designer__media-loader_dnd-text {
+      display: block;
+    }
+.salesbot-designer__media-loader_pre-dnd .salesbot-designer__media-loader, .salesbot-designer__media-loader.js-dnd-salesbot .salesbot-designer__media-loader {
+      border: 1px dashed #bbd6ff;
+    }
+.salesbot-designer__media-loader_pre-dnd .salesbot-designer__media-loader {
+      background: linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
+    }
+.salesbot-designer__media-loader.js-dnd-salesbot .salesbot-designer__media-loader {
+      background: inherit;
+    }
+.salesbot-designer__media-loader_load-finished .salesbot-designer__media-loader:hover .salesbot-designer__media-loader_controls {
+        display: flex;
+        align-items: center;
+      }
+.salesbot-designer__media-loader_load-finished .salesbot-designer__media-loader:hover .salesbot-designer__media-loader_video-play-button:not(.salesbot-designer__media-loader_video-play-button_permanent) {
+        display: none;
+      }
+.salesbot-designer__media-loader[\:has\(img\)] {
+    border: none;
+  }
+.salesbot-designer__media-loader:has(img) {
+    border: none;
+  }
+.salesbot-designer__media-loader .cropper-container {
+    display: none;
+  }
+.salesbot-designer__media-loader_pre-dnd .salesbot-designer__media-loader_preview,
+  .salesbot-designer__media-loader_pre-dnd .salesbot-designer__media-loader_first-screen,
+  .salesbot-designer__media-loader_pre-dnd .salesbot-designer__media-loader_file-not-found,
+  .js-dnd-salesbot .salesbot-designer__media-loader_preview,
+  .js-dnd-salesbot .salesbot-designer__media-loader_first-screen,
+  .js-dnd-salesbot .salesbot-designer__media-loader_file-not-found {
+    display: none;
+  }
+.salesbot-designer__media-loader_pre-dnd .salesbot-designer__media-loader_dnd-text, .js-dnd-salesbot .salesbot-designer__media-loader_dnd-text {
+    display: block;
+  }
+.salesbot-designer__media-loader_pre-dnd .salesbot-designer__media-loader, .js-dnd-salesbot .salesbot-designer__media-loader {
+    border: 1px dashed #bbd6ff;
+  }
+.salesbot-designer__media-loader_pre-dnd .salesbot-designer__media-loader {
+    background: linear-gradient(0deg, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5));
+  }
+.js-dnd-salesbot .salesbot-designer__media-loader {
+    background: inherit;
+  }
+.sb-designer-deadline_select {
+  position: relative;
+}
+.sb-designer-deadline_select__list__item {
+    padding: 8px 9px
+  }
+.sb-designer-deadline_select__list__item:not(.sb-designer-deadline_select__list__item-custom) {
+      cursor: pointer;
+    }
+.sb-designer-deadline_select .sb-designer-deadline_select__list__item_communication {
+  padding: 10px 0px 9px 11px;
+}
+.sb-designer-deadline_select__header,
+.sb-designer-deadline_select__input,
+.sb-designer-deadline_select__btn {
+  display: inline-block;
+}
+.sb-designer-deadline_select__btn {
+  max-height: 38px;
+  padding: 10px;
+  border: 1px solid #d5d5d5;
+  border: 1px solid var(--salesbot-designer-border-primary);
+  border-radius: 3px;
+  vertical-align: middle;
+  color: #363b44;
+  color: var(--salesbot-designer-text-primary);
+  font-size: 14px;
+  line-height: 14px;
+  outline: 0;
+  z-index: 1;
+  white-space: nowrap;
+  text-decoration: none;
+  position: relative;
+  background: var(--palette-background-primary);
+  font-weight: 700;
+  cursor: pointer;
+}
+.sb-designer-deadline_select__button-input-inner {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+.sb-designer-deadline_select__header {
+  vertical-align: top;
+  padding-top: 8px;
+  margin-right: 5px;
+}
+.minimized .sb-designer-deadline_select__header {
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.sb-designer-deadline_select__input {
+  position: relative;
+  margin-right: 10px;
+  line-height: 21px;
+  vertical-align: top;
+}
+.sb-designer-deadline_select__input-hours {
+  margin-right: 5px;
+}
+.minimized .sb-designer-deadline_select__input {
+  margin-right: 6px;
+}
+.sb-designer-deadline_select__input .sb-text-input {
+  display: block;
+  width: 62px;
+  padding-right: 30px;
+}
+.sb-designer-deadline_select__input_communication .sb-text-input {
+  padding-right: 0px;
+  padding-left: 6px;
+  font-size: 12px;
+  width: 64px;
+}
+.sb-designer-deadline_select__input_communication {
+  margin-right: 4px;
+}
+.is_empty.sb-designer-deadline_select__input .sb-text-input {
+  border-color: #f57472 !important;
+}
+.minimized .sb-designer-deadline_select__input .sb-text-input {
+  width: 58px;
+}
+.sb-designer-deadline_select__input_descr {
+  display: block;
+  position: absolute;
+  font-size: 13px;
+  top: 8px;
+  right: 9px;
+  color: #92989b;
+}
+.is_empty .sb-designer-deadline_select__input_descr {
+  color: #f57472 !important;
+}
+.sb-designer-deadline_select__additional-caption {
+  border-bottom: 1px dashed;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  display: inline-flex;
+  line-height: 15px;
+}
+.sb-designer-deadline_select__caption_comunication {
+  padding: 6px 10px;
+}
+.sb-designer-deadline_select__caption .tasks-date__caption__text {
+  font-size: 15px;
+  margin: 0 5px;
+}
+.sb-designer-deadline_select__list {
+  display: none;
+  z-index: 25;
+}
+.sb-designer-deadline_select.expanded .sb-designer-deadline_select__list {
+  display: block;
+  width: 350px;
+  position: absolute;
+  left: -50%;
+  top: 0;
+  border: 1px solid #e5e5e5;
+  border: 1px solid var(--salesbot-designer-border-default);
+  background: #ffffff;
+  background: var(--salesbot-designer-background-primary);
+}
+.sb-designer-deadline_select .sb-designer-deadline_select__list__item_communication:last-child {
+  padding-top: 3px;
+}
+html.touch .sb-designer-deadline_select__list__item:active,
+html.no-touch .sb-designer-deadline_select__list__item:hover {
+  background: #f5f5f5;
+  background: var(--salesbot-designer-background-default);
+}
+.sb-designer-deadline_select__list__item-custom {
+  cursor: default;
+  padding-top: 10px;
+  padding-bottom: 10px;
+}
+html.touch
+  .sb-designer-deadline_select__list__item.sb-designer-deadline_select__list__item-custom:active,
+html.no-touch
+  .sb-designer-deadline_select__list__item.sb-designer-deadline_select__list__item-custom:hover {
+  background: #ffffff;
+  background: var(--salesbot-designer-background-primary);
+}
+.salesbot-designer__weekdays {
+  position: relative;
+  display: inline;
+}
+.salesbot-designer__weekdays-label {
+    display: inline-flex;
+    cursor: pointer;
+  }
+.salesbot-designer__weekdays-value {
+    border-bottom: 1px dashed;
+    cursor: pointer;
+    line-height: 15px;
+    display: inline-block;
+    white-space: nowrap;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+.salesbot-designer__weekdays-select {
+    display: none;
+    top: 33px;
+    left: -90px;
+    position: absolute
+  }
+.salesbot-designer__weekdays-select:before {
+      content: '';
+      position: absolute;
+      top: -7px;
+      left: 50%;
+      margin-left: -6px;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 6px 7px;
+      border-color: transparent transparent #d5d5d5;
+      border-color: transparent transparent var(--salesbot-designer-border-primary);
+    }
+.salesbot-designer__weekdays-select:after {
+      content: '';
+      position: absolute;
+      top: -5px;
+      left: 50%;
+      margin-left: -6px;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 6px 7px;
+      border-color: transparent transparent rgb(255, 255, 255);
+    }
+.salesbot-designer__weekdays-select-error:before {
+        border-color: transparent transparent #f57472;
+      }
+.salesbot-designer__weekdays-select-error .salesbot-designer__weekdays-select-list {
+        border-color: #f57472;
+      }
+.salesbot-designer__weekdays-select-opened {
+      display: block;
+    }
+.salesbot-designer__weekdays-select-closed {
+      display: none;
+    }
+.salesbot-designer__weekdays-select-list {
+      display: flex;
+      flex-direction: row;
+      border: 1px solid #d5d5d5;
+      border: 1px solid var(--salesbot-designer-border-primary);
+      background: #ffffff;
+      background: var(--salesbot-designer-background-primary);
+      border-radius: 4px;
+      padding: 7px;
+    }
+.salesbot-designer__weekdays-select-list-item:first-child .salesbot-designer__weekdays-select-list-item-container {
+            border-radius: 3px 0 0 3px;
+          }
+.salesbot-designer__weekdays-select-list-item:last-child .salesbot-designer__weekdays-select-list-item-container {
+            border-radius: 0 3px 3px 0;
+            border-right: 1px solid var(--palette-border-primary);
+          }
+.salesbot-designer__weekdays-select-list-item-container {
+          background: #ffffff;
+          background: var(--salesbot-designer-background-primary);
+          border-style: solid;
+          border-color: #d8d9db;
+          border-width: 1px 0 1px 1px;
+        }
+.salesbot-designer__weekdays-select-list-item-container-selected {
+            background: #d8d9db;
+          }
+.salesbot-designer__weekdays-checkbox {
+    display: inline-flex;
+    align-items: center;
+    margin: 0;
+    padding: 0;
+    border: none;
+    cursor: pointer;
+    position: relative;
+  }
+.salesbot-designer__weekdays-checkbox input {
+      position: absolute;
+      opacity: 0;
+      z-index: 4;
+      width: 20px;
+      height: 20px;
+    }
+.salesbot-designer__weekdays-checkbox-body {
+      cursor: pointer;
+      position: absolute;
+    }
+.salesbot-designer__weekdays-checkbox-value {
+      display: inline-flex;
+      font-size: 15px;
+      line-height: 20px;
+      transform: translateY(1px);
+      padding: 4px 7px 4px 8px;
+      margin: 0;
+      z-index: 3;
+      cursor: pointer;
+    }
+.salesbot-designer__time-select .sb-control-select {
+      width: 80px !important;
+      min-width: 80px !important;
+    }
+.sb-guidelines {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: none;
+}
+.sb-guidelines__x,
+  .sb-guidelines__y {
+    position: absolute;
+    background: #fdc9cf;
+  }
+.sb-guidelines__x {
+    top: -10000px;
+    bottom: -10000px;
+    width: 1px;
+  }
+.sb-guidelines__y {
+    left: -10000px;
+    right: -10000px;
+    height: 1px;
+  }
+.salesbot-designer__block {
+    display: flex;
+    flex-direction: column;
+
+    position: absolute !important;
+    background: rgba(245, 245, 245, 0.8);
+    background: var(--salesbot-designer-block-background);
+    /* border: 1px solid  var(--salesbot-designer-block-border); ? */
+    border: 1px solid #e5e5e5;
+    border: 1px solid var(--salesbot-designer-border-default);
+    border-radius: 3px;
+    padding: 7px 9px 0;
+    z-index: 1;
+    cursor: default;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+            user-select: none;
+  }
+.salesbot-designer__block_readonly {
+      pointer-events: none !important;
+    }
+.salesbot-designer__block_readonly .salesbot-designer__block-header,
+      .salesbot-designer__block_readonly .salesbot-designer__block-body,
+      .salesbot-designer__block_readonly .salesbot-designer__block-footer {
+        pointer-events: none !important
+      }
+.salesbot-designer__block_readonly .salesbot-designer__block-header > *, .salesbot-designer__block_readonly .salesbot-designer__block-body > *, .salesbot-designer__block_readonly .salesbot-designer__block-footer > * {
+          pointer-events: none !important;
+        }
+.salesbot-designer__block_readonly .salesbot-designer__block-header .salesbot-designer__goto, .salesbot-designer__block_readonly .salesbot-designer__block-body .salesbot-designer__goto, .salesbot-designer__block_readonly .salesbot-designer__block-footer .salesbot-designer__goto {
+          pointer-events: none !important;
+        }
+.salesbot-designer__block_plug {
+      min-height: 38px;
+      border-style: dotted;
+      background-color: #d5d5d5;
+      background-color: var(--salesbot-designer-border-primary);
+    }
+.salesbot-designer__block_not-ready {
+      display: none !important;
+    }
+.salesbot-designer__block_question {
+      padding-bottom: 12px;
+    }
+.salesbot-designer__block_last-action-wo-margin .salesbot-designer__action:last-child:not(.salesbot-designer__action_write_first):not(.salesbot-designer__action_send_external_message) {
+          margin-bottom: 0;
+        }
+.salesbot-designer__block_condition.ui-draggable-dragging, .salesbot-designer__block_question.ui-draggable-dragging {
+        background: #f5f5f5;
+        background: var(--salesbot-designer-background-default);
+      }
+.salesbot-designer__block_condition {
+      border-style: dashed;
+    }
+.salesbot-designer__block_validation {
+      border-style: dashed;
+      border-color: #2d7ffb;
+      border-color: var(--salesbot-designer-validation-border);
+      background-color: #edf0f5;
+      background-color: var(--salesbot-designer-validation-background);
+    }
+.salesbot-designer__block_start {
+      border-color: #24bc8c;
+      background: rgba(36, 188, 140, 0.05);
+    }
+.salesbot-designer__block_start-play {
+        display: flex;
+        margin: 4px 10px 4px 15px;
+      }
+.salesbot-designer__block_start .salesbot-designer__block-header {
+        color: #24bc8c;
+      }
+.salesbot-designer__block_start .salesbot-designer__block-header .salesbot-designer__block-body {
+          position: static;
+        }
+.salesbot-designer__block_start .salesbot-designer__block-header .salesbot-designer__block-body .salesbot-designer__goto {
+            /* Используются инлайн стили, чтобы не менять логику везде для блока старт используем important */
+            top: 0px !important;
+          }
+.salesbot-designer__block_start .salesbot-designer__block-header-num {
+        color: #24bc8c;
+        border: 1px solid #24bc8c;
+      }
+.salesbot-designer__block_start .salesbot-designer__block-header-name {
+        color: #24bc8c;
+      }
+.salesbot-designer__block_start:not(.salesbot-designer__block_question) {
+      /*
+      Из-за того, что ширина блока зашита в JSON (@see src/workarea/block/model.js),
+      приходится вставлять вот такой костыль
+      */
+      width: 170px !important;
+    }
+.salesbot-designer__block_start:not(.salesbot-designer__block_question) .salesbot-designer__block-body {
+        top: -23.5px;
+        right: 37px;
+      }
+.salesbot-designer__block_start:not(.salesbot-designer__block_question) .salesbot-designer__action-wrapper {
+        display: none;
+      }
+.salesbot-designer__block_finish {
+      border-color: rgba(242, 110, 110, 0.8);
+      border-style: dashed;
+      background-color: rgba(188, 45, 36, 0.04);
+      /*
+      Из-за того, что ширина блока зашита в JSON (@see src/workarea/block/model.js),
+      приходится вставлять вот такой костыль
+      */
+      width: 374px !important;
+    }
+.salesbot-designer__block_finish .salesbot-designer__tip_actions-icon {
+        width: 11px;
+      }
+.salesbot-designer__block_finish .salesbot-designer__block-header {
+        display: flex;
+        height: 35px;
+        padding: 7px 15px;
+      }
+.salesbot-designer__block_finish .salesbot-designer__block-header-name_text {
+          color: #f26e6e;
+        }
+.salesbot-designer__block_finish .salesbot-designer__block-header > svg {
+          margin-right: 12px;
+          height: 16px;
+        }
+.salesbot-designer__block_finish .salesbot-designer__block-header-actions {
+          position: static;
+          padding: 0;
+          margin: 0 5px 0 auto;
+        }
+.salesbot-designer__block_finish .salesbot-designer__block-header-actions .salesbot-designer__tip {
+            margin-left: -34px;
+            top: 28px;
+          }
+.salesbot-designer__block_finish .salesbot-designer__block-header-actions .salesbot-designer__tip_actions-icon {
+            fill: #f26e6e;
+          }
+/** Кнопка "Добавить действие", select отображаем ровно по краю кнопки */
+.salesbot-designer__block_finish .salesbot-designer__block-footer .sb-control-select--list-opened {
+          left: 0;
+        }
+.salesbot-designer__block_wait {
+      background: #ffffff;
+      background: var(--salesbot-designer-background-primary);
+    }
+.salesbot-designer__block_wait,
+    .salesbot-designer__block_distribution {
+      padding-bottom: 0;
+    }
+.salesbot-designer__block_rpa {
+      background: #fcf4da;
+    }
+.salesbot-designer__block-statistic:before,
+    .salesbot-designer__block-statistic:after {
+      content: '';
+      border: transparent solid;
+      position: absolute;
+      width: 0;
+    }
+.salesbot-designer__block-statistic:before {
+      border-top-color: #e5e5e5;
+      border-top-color: var(--salesbot-designer-border-default);
+      border-width: 6px;
+      left: 18px;
+      bottom: -12px;
+    }
+.salesbot-designer__block-statistic:after {
+      border-top-color: #f5f5f5;
+      border-top-color: var(--salesbot-designer-background-default);
+      border-width: 6px;
+      left: 18px;
+      bottom: -11px;
+    }
+.salesbot-designer__block-statistic_closed .salesbot-designer__block-statistic-detail {
+          width: 0px;
+          max-height: 0px;
+        }
+.salesbot-designer__block-statistic_empty.salesbot-designer__block-statistic {
+      padding: 3px 10px;
+      cursor: default;
+    }
+.salesbot-designer__block-statistic_empty.salesbot-designer__block-statistic .salesbot-designer__block-statistic-common:after {
+            display: none;
+          }
+.salesbot-designer__block-statistic-wrapper {
+      position: absolute;
+      left: -1px;
+      right: -1px;
+      top: -31px;
+      transition: top 0.3s ease;
+    }
+.salesbot-designer__block-statistic {
+      display: flex;
+      min-width: 50%;
+      max-width: -moz-max-content;
+      max-width: max-content;
+      position: relative;
+      flex-direction: column;
+      padding: 3px 10px 3px 10px;
+      border: 1px solid #e5e5e5;
+      border: 1px solid var(--salesbot-designer-border-default);
+      background: #f5f5f5;
+      background: var(--salesbot-designer-background-default);
+      border-radius: 3px;
+      color: var(--palette-text-primary);
+      font-size: 13px;
+      cursor: pointer;
+    }
+.salesbot-designer__block-statistic-common {
+        width: 100%;
+        justify-content: flex-start;
+        display: flex;
+      }
+.salesbot-designer__block-statistic-common-title,
+        .salesbot-designer__block-statistic-common-starts,
+        .salesbot-designer__block-statistic-common-conversion {
+          display: flex;
+        }
+.salesbot-designer__block-statistic-common-starts {
+          margin-left: auto
+        }
+.salesbot-designer__block-statistic-common-starts:after {
+            content: '/';
+            margin: 0 4px;
+          }
+.salesbot-designer__block-statistic-detail_test {
+        position: absolute !important;
+        opacity: 0 !important;
+        width: auto !important;
+        max-height: 99999px !important;
+        max-width: 99999px !important;
+        transition: none !important;
+      }
+.salesbot-designer__block-statistic-detail_test * {
+          white-space: nowrap;
+        }
+.salesbot-designer__block-statistic-detail {
+        display: flex;
+        flex-direction: column;
+        background: #f5f5f5;
+        background: var(--salesbot-designer-background-default);
+        overflow: hidden;
+        width: 100%;
+        transition: max-height 0.3s ease;
+      }
+.salesbot-designer__block-statistic-detail-wrapper {
+          margin: 3px 0;
+        }
+.salesbot-designer__block-statistic-detail-item {
+          display: flex;
+        }
+.salesbot-designer__block-statistic-detail-item-value {
+            margin-left: auto;
+          }
+.salesbot-designer__block-statistic-detail-item-title {
+            margin-right: 55px;
+          }
+.salesbot-designer__block-header-select,
+    .salesbot-designer__block-way-of-communication-select {
+      display: flex;
+      align-items: baseline;
+      min-width: 0;
+    }
+.salesbot-designer__block-way-of-communication-select {
+      flex: 0 0 100%;
+      padding-left: 37px;
+      margin-top: 4px;
+    }
+.salesbot-designer__block-way-of-communication-select .salesbot-designer__block-header-filter-name {
+        border-bottom: 1px;
+        border-top: 1px;
+        padding-right: 4px;
+        line-height: 17px;
+      }
+.salesbot-designer__block-header-select-control {
+      min-width: 0;
+    }
+.salesbot-designer__block-header {
+      display: flex;
+      font-size: 13px;
+      align-items: center;
+      margin: -7px -9px 0px;
+      padding: 7px 9px;
+      cursor: pointer;
+    }
+.salesbot-designer__block_send_internal .salesbot-designer__block-header {
+        align-items: baseline;
+      }
+.salesbot-designer__block-header-num {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+
+        color: #8f9a9d;
+
+        color: var(--salesbot-designer-text-secondary-dark);
+        height: 23px;
+        min-width: 30px;
+        border: 1px solid #e5e5e5;
+        border: 1px solid var(--salesbot-designer-border-default);
+        border-radius: 3px;
+        margin-right: 7px;
+      }
+.salesbot-designer__block-header-num-inner {
+          margin-top: 1px;
+        }
+.salesbot-designer__block-header-name {
+        width: 100%;
+        background: none;
+        border-bottom: 1px solid transparent;
+        border-top: 1px solid transparent;
+        color: #8f9a9d;
+        color: var(--salesbot-designer-text-secondary-dark);
+      }
+.salesbot-designer__block-header-name:focus,
+        .salesbot-designer__block-header-name_empty {
+          border-bottom-color: #4280f6;
+        }
+.salesbot-designer__block-header-to {
+        background: none;
+        border-bottom: 1px solid transparent;
+        border-top: 1px solid transparent;
+        color: var(--palette-text-secondary-dark);
+        margin: 0 7px 0 5px;
+      }
+.salesbot-designer__block-header-actions {
+        display: flex;
+        align-items: center;
+      }
+.salesbot-designer__block-header-action {
+        display: flex;
+        flex-shrink: 0;
+
+        padding: 3px;
+        margin: -3px -3px -3px 3px;
+      }
+.salesbot-designer__block-header-action_edit {
+          opacity: 0.3;
+        }
+.salesbot-designer__block-header-action_save {
+          display: none;
+        }
+.salesbot-designer__block-header-actions {
+        position: absolute;
+        right: 24px;
+        top: 14px;
+        padding: 10px 15px;
+        margin: -10px -15px;
+      }
+.salesbot-designer__block-header_list-message .salesbot-designer__block-header-name-wrapper {
+          min-width: 77px;
+        }
+.salesbot-designer__block-header_list-message .salesbot-designer__block-header-name_text {
+          margin-right: -35px;
+        }
+.salesbot-designer__block-header_list-message .salesbot-designer__inline-select-value {
+            margin-right: 32px;
+          }
+.salesbot-designer__block-header_list-message .salesbot-designer__inline-select .sb-control-select {
+            min-width: 305px;
+          }
+.salesbot-designer__block-footer,
+    .salesbot-designer__block-body {
+      position: relative;
+    }
+.salesbot-designer__block-footer {
+      color: var(--palette-text-secondary-dark);
+    }
+.salesbot-designer__block-none-of-conditions {
+      position: relative;
+    }
+.salesbot-designer__block-none-of-conditions .salesbot-designer__action {
+        margin-bottom: 0;
+      }
+.salesbot-designer__block-add-action,
+    .salesbot-designer__block-distribution-limit {
+      position: relative;
+
+      display: flex;
+      margin-bottom: 7px;
+      padding: 0 0 0 15px;
+      align-items: center;
+
+      font-size: 13px;
+      color: #8f9a9d;
+      color: var(
+        --salesbot-designer-text-secondary-dark
+      );
+    }
+/* @todo-theme поменять цвет для блоков с белой заливкой */
+.salesbot-designer__block-add-action svg, .salesbot-designer__block-distribution-limit svg {
+        margin-right: 11px;
+        margin-top: -1px;
+      }
+.salesbot-designer__block-add-action {
+      cursor: pointer;
+    }
+.salesbot-designer__block-add-action svg {
+        fill: #8f9a9d;
+        fill: var(--salesbot-designer-text-secondary-dark);
+      }
+.salesbot-designer__block-add-action_finish {
+        padding-left: 6px;
+      }
+.salesbot-designer__block_external_message .salesbot-designer__block-header {
+        flex-wrap: wrap;
+      }
+.salesbot-designer__block_external_message .salesbot-designer__block-header .salesbot-designer__block-header-name_text,
+        .salesbot-designer__block_external_message .salesbot-designer__block-header .salesbot-designer__block-header-to,
+        .salesbot-designer__block_external_message .salesbot-designer__block-header .salesbot-designer__block-header-filter-name {
+          color: #8f9a9d;
+        }
+.salesbot-designer__block_external_message .salesbot-designer__block-header .sb-send-message-channels_block-header-actions {
+          flex-basis: 100%;
+
+          min-height: 21px;
+          margin-left: 37px;
+          margin-top: 4px;
+          margin-right: auto;
+          padding-left: 0px;
+        }
+.salesbot-designer__block_external_message .salesbot-designer__block-header .sb-send-message-channels_block-header-actions .sb-send-message-channels__container {
+            align-items: stretch;
+          }
+.salesbot-designer__block_external_message .salesbot-designer__block-header .sb-send-message-channels_block-header-actions .sb-send-message-channels__label {
+            color: #8f9a9d;
+          }
+.salesbot-designer__block_external_message .salesbot-designer__block-header .sb-send-message-channels_block-header-actions .sb-send-message-channels-dropdown__button {
+            max-width: none;
+          }
+.salesbot-designer__block_list_message_disabled .salesbot-designer__goto_no-answer,
+        .salesbot-designer__block_list_message_disabled .salesbot-designer__goto_another-answer {
+          opacity: 30%
+        }
+.salesbot-designer__block_list_message_disabled .salesbot-designer__goto_no-answer.disabled, .salesbot-designer__block_list_message_disabled .salesbot-designer__goto_another-answer.disabled {
+            pointer-events: none !important;
+          }
+.salesbot-designer__block_list_message_disabled .salesbot-designer__block-header {
+          margin-bottom: 0;
+
+          cursor: auto;
+        }
+.salesbot-designer__block_list_message_disabled .salesbot-designer__block-header-name_text {
+            margin-right: 24px;
+
+            word-wrap: break-word;
+            white-space: pre-line;
+          }
+.salesbot-designer__block_list_message_disabled .salesbot-designer__block-header-name_text-link {
+              color: var(--palette-salesbot-link);
+              text-decoration: underline
+            }
+.salesbot-designer__block_list_message_disabled .salesbot-designer__block-header-name_text-link:hover {
+                cursor: pointer;
+              }
+.salesbot-designer__block_list_message_disabled .salesbot-designer__block-header .salesbot-designer__block-header-actions:hover {
+              cursor: pointer;
+            }
+.salesbot-designer__block_opt_in .salesbot-designer__block-header {
+        position: relative;
+        margin-bottom: 16px;
+      }
+.salesbot-designer__block_opt_in .salesbot-designer__block-header-select {
+          min-width: -moz-max-content;
+          min-width: max-content;
+        }
+.salesbot-designer__block_opt_in .salesbot-designer__block-header-select-control {
+            min-width: -moz-max-content;
+            min-width: max-content;
+          }
+.salesbot-designer__block_opt_in .salesbot-designer__block-header-select-control .salesbot-designer__inline-select-value {
+              max-width: 205px;
+            }
+.salesbot-designer__block_opt_in .salesbot-designer__block-header-tags-container {
+          position: absolute;
+          top: 26px;
+          left: 46px;
+        }
+.salesbot-designer__block_opt_in .salesbot-designer__block-header-tags-container .salesbot-designer__tags-title {
+            padding-right: 5px;
+            color: #8f9a9d;
+            color: var(--salesbot-designer-text-secondary-dark);
+          }
+.salesbot-designer__block_opt_in .salesbot-designer__block-header-name-wrapper {
+          padding-right: 5px;
+          min-width: 21px;
+        }
+.salesbot-designer__block_opt_in .salesbot-designer__block-header .sb-send-message-channels_block-header-actions {
+          margin-left: 0;
+        }
+.salesbot-designer__block_opt_in .salesbot-designer__block-header .sb-send-message-channels_block-header-actions .checkboxes_dropdown__title-item {
+            border-bottom: 1px dashed;
+          }
+.salesbot-designer__block_opt_in .salesbot-designer__block-header .sb-send-message-channels_block-header-actions .sb-send-message-channels__label {
+              color: #8f9a9d;
+              color: var(--salesbot-designer-text-secondary-dark);
+            }
+.salesbot-designer__block.highlighted_warning {
+      border-color: var(--palette-salesbot-highlighted-warning);
+    }
+.salesbot-designer__block.highlighted_regular {
+      border-color: var(--palette-salesbot-highlighted-regular);
+    }
+.salesbot-designer__block_capi .salesbot-designer__block-header-name_text-link {
+        color: var(--palette-salesbot-link);
+        text-decoration: underline;
+      }
+.salesbot-designer__block .salesbot-designer__block-header-name_text-link {
+      color: var(--palette-salesbot-link);
+      text-decoration: underline;
+    }
+.salesbot-designer__block-header-name-wrapper {
+    display: flex;
+    min-width: 0;
+  }
+.salesbot-designer__block-header-name-wrapper_in-edit .salesbot-designer__block-header-name {
+        border-bottom-color: #4280f6;
+      }
+.salesbot-designer__block-header-name-wrapper_in-edit .salesbot-designer__block-header-action_edit,
+      .salesbot-designer__block-header-name-wrapper_in-edit .salesbot-designer__block-header-name_text {
+        display: none;
+      }
+.salesbot-designer__block-header-name-wrapper_in-edit .salesbot-designer__block-header-name_input,
+      .salesbot-designer__block-header-name-wrapper_in-edit .salesbot-designer__block-header-action_save {
+        display: flex;
+      }
+.salesbot-designer__block-header-name_text {
+    display: inline;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+  }
+.salesbot-designer__block-header-name_input {
+    overflow: hidden;
+    display: none;
+  }
+.salesbot-designer__action {
+  display: flex;
+  align-items: center;
+
+  position: relative;
+  background: #ffffff;
+  background: var(--salesbot-designer-action-background);
+  border: 1px solid #ffffff;
+  border: 1px solid var(--salesbot-designer-action-background);
+  border-radius: 3px;
+  line-height: 20px;
+  margin-bottom: 8px;
+  padding: 6px 30px 6px 13px;
+}
+.salesbot-designer__action_conditions_nps:last-child {
+      margin-bottom: 0;
+    }
+.salesbot-designer__action:not(.salesbot-designer__action_validations):not(.salesbot-designer__action_wait):not(.salesbot-designer__action_condition):not(.salesbot-designer__action_conditions_amo):not(.salesbot-designer__action_conditions_nps):not(.salesbot-designer__action_conditions_onlinechat):not(.salesbot-designer__action_distribution):not(.salesbot-designer__action_conditions):last-child .salesbot-designer__action-body > .salesbot-designer__goto_action {
+                    display: none;
+                  }
+.salesbot-designer__block_message .salesbot-designer__action:not(.salesbot-designer__action_validations):not(.salesbot-designer__action_wait):not(.salesbot-designer__action_condition):not(.salesbot-designer__action_conditions_amo):not(.salesbot-designer__action_conditions_nps):not(.salesbot-designer__action_conditions_onlinechat):not(.salesbot-designer__action_distribution):not(.salesbot-designer__action_conditions):last-child .salesbot-designer__action-body > .salesbot-designer__goto_action {
+                      display: block;
+                    }
+.salesbot-designer__block_message .salesbot-designer__action:not(.salesbot-designer__action_validations):not(.salesbot-designer__action_wait):not(.salesbot-designer__action_condition):not(.salesbot-designer__action_conditions_amo):not(.salesbot-designer__action_conditions_nps):not(.salesbot-designer__action_conditions_onlinechat):not(.salesbot-designer__action_distribution):not(.salesbot-designer__action_conditions):last-child .salesbot-designer__action-body > .salesbot-designer__goto_action .salesbot-designer__goto-circle:after {
+                        display: none;
+                      }
+.salesbot-designer__action_widget_amo {
+    padding: 0;
+  }
+.salesbot-designer__action_disabled {
+    display: none;
+  }
+.salesbot-designer__action_action_change_status {
+      padding-top: 4px;
+      padding-bottom: 4px;
+    }
+.salesbot-designer__action_action_change_status .salesbot-designer__action-edit {
+        margin-top: 2px;
+      }
+.salesbot-designer__action .salesbot-designer__main_goto_action {
+    top: -2px;
+    right: -1px;
+  }
+.salesbot-designer__action_distribution .salesbot-designer__action-edit svg {
+        color: #8f9a9d;
+        color: var(--salesbot-designer-text-secondary-dark);
+      }
+.salesbot-designer__action_validation,
+  .salesbot-designer__action_validations,
+  .salesbot-designer__action_conditions_amo,
+  .salesbot-designer__action_conditions_onlinechat,
+  .salesbot-designer__action_conditions,
+  .salesbot-designer__action_wait,
+  .salesbot-designer__action_finish,
+  .salesbot-designer__action_condition {
+    border: 1px solid #d5d5d5;
+    border: 1px solid var(--salesbot-designer-border-primary);
+    background: #f5f5f5;
+    background: var(--salesbot-designer-background-default);
+    padding-top: 7px;
+    padding-bottom: 5px;
+  }
+.salesbot-designer__action_validation .salesbot-designer__goto_action, .salesbot-designer__action_validations .salesbot-designer__goto_action, .salesbot-designer__action_conditions_amo .salesbot-designer__goto_action, .salesbot-designer__action_conditions_onlinechat .salesbot-designer__goto_action, .salesbot-designer__action_conditions .salesbot-designer__goto_action, .salesbot-designer__action_wait .salesbot-designer__goto_action, .salesbot-designer__action_finish .salesbot-designer__goto_action, .salesbot-designer__action_condition .salesbot-designer__goto_action {
+      height: auto;
+    }
+.salesbot-designer__action_validation .salesbot-designer__inline-input, .salesbot-designer__action_validations .salesbot-designer__inline-input, .salesbot-designer__action_conditions_amo .salesbot-designer__inline-input, .salesbot-designer__action_conditions_onlinechat .salesbot-designer__inline-input, .salesbot-designer__action_conditions .salesbot-designer__inline-input, .salesbot-designer__action_wait .salesbot-designer__inline-input, .salesbot-designer__action_finish .salesbot-designer__inline-input, .salesbot-designer__action_condition .salesbot-designer__inline-input {
+      background: inherit;
+    }
+.salesbot-designer__action_validation,
+  .salesbot-designer__action_validations {
+    border-color: #9fc1f7;
+    background: #ebeff5;
+    background: var(--salesbot-designer-validation-action-background);
+  }
+.salesbot-designer__action_validations:not(:last-child), .salesbot-designer__action_wait:not(:last-child), .salesbot-designer__action_finish:not(:last-child), .salesbot-designer__action_conditions_amo:not(:last-child), .salesbot-designer__action_conditions_nps:not(:last-child), .salesbot-designer__action_conditions_onlinechat:not(:last-child), .salesbot-designer__action_conditions:not(:last-child) {
+      margin-bottom: 19px
+    }
+.salesbot-designer__action_validations:not(:last-child):after, .salesbot-designer__action_wait:not(:last-child):after, .salesbot-designer__action_finish:not(:last-child):after, .salesbot-designer__action_conditions_amo:not(:last-child):after, .salesbot-designer__action_conditions_nps:not(:last-child):after, .salesbot-designer__action_conditions_onlinechat:not(:last-child):after, .salesbot-designer__action_conditions:not(:last-child):after {
+        content: attr(data-or-lang);
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: -20px;
+        text-align: center;
+        font-size: 12px;
+        color: var(--palette-text-secondary-dark);
+      }
+.salesbot-designer__action_write_first,
+  .salesbot-designer__action_show,
+  .salesbot-designer__action_send_message,
+  .salesbot-designer__action_list_message,
+  .salesbot-designer__action_opt_in,
+  .salesbot-designer__action_fields,
+  .salesbot-designer__action_send_img,
+  .salesbot-designer__action_buttons {
+    border-radius: 16px;
+    padding-top: 8px;
+    background: #2d7ffb;
+    background: var(--salesbot-designer-action-show-background);
+    border-color: #2d7ffb;
+    border-color: var(--salesbot-designer-action-show-background);
+  }
+.salesbot-designer__action_send_comment {
+    border-radius: 16px;
+  }
+.salesbot-designer__action_send_comment .salesbot-designer__fields-mention-area[data-placeholder]:empty:not(:focus):before {
+      color: #363b44;
+      color: var(--salesbot-designer-text-primary);
+      opacity: 0.6;
+    }
+.salesbot-designer__action_send_comment .salesbot-designer__action-send-comment-contenteditable {
+      min-height: 26px;
+    }
+.salesbot-designer__action_send_comment .salesbot-designer__action-edit {
+      margin-top: 1px;
+    }
+.salesbot-designer__action_send_external_message {
+    margin-bottom: 7px;
+
+    border-radius: 16px;
+    padding-top: 8px;
+    background: #27ae60;
+    background: var(--salesbot-designer-action-send-external-message-background);
+    border-color: #27ae60;
+    border-color: var(--salesbot-designer-action-send-external-message-background);
+  }
+.salesbot-designer__action_send_external_message .salesbot-designer__action-buttons-button {
+      background: none;
+      background: var(--salesbot-designer-action-send-external-message-button-background);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border: 1px solid var(--salesbot-designer-action-send-external-message-button-border);
+    }
+.salesbot-designer__action_send_external_message .salesbot-designer__action-buttons[data-buttons-type='url'] .salesbot-designer__action-buttons-button.active::after {
+            border-bottom: 1px dashed
+              rgba(255, 255, 255, 0.8);
+            border-bottom: 1px dashed
+              var(--salesbot-designer-action-send-external-message-button-border);
+          }
+.salesbot-designer__action_send_external_message .salesbot-designer__action-buttons-input {
+        font-size: 13px;
+        color: rgba(255, 255, 255, 0.7);
+      }
+.salesbot-designer__action_send_external_message .salesbot-designer__action-buttons[data-buttons-type='inline'] .salesbot-designer__action-buttons-button-wrapper::after {
+          content: '';
+          border-top: 1px dashed rgba(255, 255, 255, 0.8);
+          border-top: 1px dashed var(--salesbot-designer-action-send-external-message-button-border);
+          flex-grow: 1;
+          margin-right: -8px;
+        }
+.salesbot-designer__action_send_external_message .salesbot-designer__media-loader {
+      height: 108px;
+
+      border: 1px dashed rgba(255, 255, 255, 0.8);
+
+      border: 1px dashed var(--salesbot-designer-action-send-external-message-button-border);
+    }
+.salesbot-designer__action_send_external_message .salesbot-designer__media-loader_first-screen .salesbot-designer__media-loader_upload-text,
+        .salesbot-designer__action_send_external_message .salesbot-designer__media-loader_first-screen .salesbot-designer__media-loader_upload-button,
+        .salesbot-designer__action_send_external_message .salesbot-designer__media-loader_first-screen .salesbot-designer__media-loader_drop-text {
+          color: rgba(255, 255, 255, 0.8);
+          color: var(--salesbot-designer-action-send-external-message-button-border);
+        }
+.salesbot-designer__action_send_external_message .salesbot-designer__media-loader_first-screen .salesbot-designer__media-loader_upload-button::after {
+          border-right: 1px solid
+            rgba(255, 255, 255, 0.8);
+          border-right: 1px solid
+            var(--salesbot-designer-action-send-external-message-button-border);
+        }
+.salesbot-designer__action_send_external_message .salesbot-designer__media-loader_first-screen svg {
+          fill: rgba(255, 255, 255, 0.8);
+          fill: var(--salesbot-designer-action-send-external-message-button-border);
+        }
+.salesbot-designer__action_list_message .salesbot-designer__action-message-wrapper {
+      margin-left: -2px;
+    }
+.salesbot-designer__action_list_message_button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 380px;
+      padding: 10px 36px 4px 91px;
+      margin-left: -38px;
+      border-top: 1px solid rgba(255, 255, 255, 0.6);
+    }
+.salesbot-designer__action_list_message_button-input.salesbot-designer__action-buttons-input {
+        box-sizing: content-box;
+        padding: 0 7px
+      }
+.salesbot-designer__action_list_message_button-input.salesbot-designer__action-buttons-input:focus::-moz-placeholder {
+          color: transparent;
+        }
+&-input.salesbot-designer__action-buttons-input:focus::-moz-placeholder {
+          color: transparent;
+        }
+.salesbot-designer__action_list_message_button-input.salesbot-designer__action-buttons-input:focus::placeholder {
+          color: transparent;
+        }
+.salesbot-designer__action_list_message_button svg path {
+          stroke: rgba(255, 255, 255, 0.6);
+        }
+.salesbot-designer__action_list_message_button[focus-within] svg path {
+        stroke: #ffffff;
+      }
+.salesbot-designer__action_list_message_button:focus-within svg path {
+        stroke: #ffffff;
+      }
+.salesbot-designer__action_list_message-options {
+      padding: 10px 48px 12px 36px;
+      background-color: var(--color-white);
+
+      border-radius: 16px;
+    }
+.salesbot-designer__action_list_message-options-section-divider {
+          margin: 14px 0 9px;
+
+          font-size: 13px;
+          color: var(--color-dark-silver);
+        }
+.salesbot-designer__action_list_message-options-section-divider svg {
+            margin-right: 8px;
+
+            fill: var(--color-dark-silver);
+          }
+.salesbot-designer__action_list_message-options-section-divider span,
+          .salesbot-designer__action_list_message-options-section-divider svg {
+            display: none;
+          }
+.salesbot-designer__action_list_message-options-section-divider:before {
+            z-index: 0;
+
+            display: block;
+            border-bottom: 1px solid var(--color-dark-silver);
+
+            content: '';
+          }
+.salesbot-designer__action_list_message-options-section:first-child .salesbot-designer__action_list_message-options-section-remove {
+            display: none;
+          }
+.salesbot-designer__action_list_message-options-section:last-child .salesbot-designer__action_list_message-options-section-divider {
+            margin: 8px 0 -1px;
+
+            cursor: pointer
+          }
+.salesbot-designer__action_list_message-options-section:last-child .salesbot-designer__action_list_message-options-section-divider:before {
+              display: none;
+            }
+.salesbot-designer__action_list_message-options-section:last-child .salesbot-designer__action_list_message-options-section-divider span,
+            .salesbot-designer__action_list_message-options-section:last-child .salesbot-designer__action_list_message-options-section-divider svg {
+              display: inline;
+            }
+.salesbot-designer__action_list_message-options-section:last-child .salesbot-designer__action_list_message-options-section-divider.hide_section {
+              display: none;
+            }
+.salesbot-designer__action_list_message-options-option {
+        position: relative;
+      }
+.salesbot-designer__action_list_message-options-option .salesbot-designer__goto_action {
+          top: 0;
+          right: -49px;
+        }
+.salesbot-designer__action_list_message-options-option-text {
+          margin-top: 4px;
+        }
+.salesbot-designer__action_list_message-options-option-remove {
+          top: 11px;
+          position: absolute;
+          right: -20px;
+
+          display: inline-flex;
+          margin: -5px;
+          padding: 5px;
+
+          cursor: pointer;
+        }
+.salesbot-designer__action_list_message-options-option-divider {
+          position: relative;
+
+          margin-top: 10px;
+          margin-bottom: 5px;
+
+          color: var(--color-dark-silver);
+          font-size: 12px;
+          text-align: center
+        }
+.salesbot-designer__action_list_message-options-option-divider:before {
+            display: block;
+            border-bottom: 1px dashed var(--color-dark-silver);
+
+            content: '';
+          }
+.salesbot-designer__action_list_message-options-option-divider span {
+            z-index: 1;
+            position: relative;
+
+            display: none;
+            padding: 0 10px;
+
+            background: var(--color-white);
+          }
+.salesbot-designer__action_list_message-options-option:last-child .salesbot-designer__action_list_message-options-option-divider {
+            margin-bottom: -1px;
+
+            cursor: pointer
+          }
+.salesbot-designer__action_list_message-options-option:last-child .salesbot-designer__action_list_message-options-option-divider:before {
+              margin-bottom: -9px;
+            }
+.salesbot-designer__action_list_message-options-option:last-child .salesbot-designer__action_list_message-options-option-divider span {
+              display: inline;
+            }
+.salesbot-designer__action_list_message-options-option:last-child .salesbot-designer__action_list_message-options-option-divider.hide_option {
+              display: none;
+            }
+.salesbot-designer__action_send_img_title {
+      color: #ffffff;
+    }
+.salesbot-designer__action_embryo-rpa .salesbot-designer__action-edit_embryo svg {
+      fill: #f7c93d;
+      margin-top: -2px;
+    }
+.salesbot-designer__action_send_external_message .salesbot-designer__media-loader,
+  .salesbot-designer__action_send_message .salesbot-designer__media-loader {
+    margin-top: 0;
+  }
+.salesbot-designer__action_opt_in {
+    padding-bottom: 10px;
+  }
+.salesbot-designer__action_write_first.has-buttons .salesbot-designer__action-body > .salesbot-designer__goto, .salesbot-designer__action_show.has-buttons .salesbot-designer__action-body > .salesbot-designer__goto, .salesbot-designer__action_send_external_message.has-buttons .salesbot-designer__action-body > .salesbot-designer__goto, .salesbot-designer__action_send_message.has-buttons .salesbot-designer__action-body > .salesbot-designer__goto, .salesbot-designer__action_opt_in.has-buttons .salesbot-designer__action-body > .salesbot-designer__goto {
+        display: none;
+      }
+.salesbot-designer__action_write_first .salesbot-designer__media-loader, .salesbot-designer__action_show .salesbot-designer__media-loader, .salesbot-designer__action_send_external_message .salesbot-designer__media-loader, .salesbot-designer__action_send_message .salesbot-designer__media-loader, .salesbot-designer__action_opt_in .salesbot-designer__media-loader {
+      display: none;
+    }
+.salesbot-designer__action_write_first .salesbot-designer__action-actions, .salesbot-designer__action_show .salesbot-designer__action-actions, .salesbot-designer__action_send_external_message .salesbot-designer__action-actions, .salesbot-designer__action_send_message .salesbot-designer__action-actions, .salesbot-designer__action_opt_in .salesbot-designer__action-actions {
+      right: 56px;
+    }
+.salesbot-designer__action_write_first .salesbot-designer__action-edit, .salesbot-designer__action_show .salesbot-designer__action-edit, .salesbot-designer__action_send_external_message .salesbot-designer__action-edit, .salesbot-designer__action_send_message .salesbot-designer__action-edit, .salesbot-designer__action_opt_in .salesbot-designer__action-edit {
+      margin: 1px 0 0 -11px;
+    }
+.salesbot-designer__action_write_first .salesbot-designer__action-body, .salesbot-designer__action_show .salesbot-designer__action-body, .salesbot-designer__action_send_external_message .salesbot-designer__action-body, .salesbot-designer__action_send_message .salesbot-designer__action-body, .salesbot-designer__action_opt_in .salesbot-designer__action-body {
+      display: flex;
+      flex-direction: column;
+      min-width: 0;
+    }
+.salesbot-designer__action_write_first .salesbot-designer__tip_actions .sb-tips-item.js-sb-designer-action-copy, .salesbot-designer__action_show .salesbot-designer__tip_actions .sb-tips-item.js-sb-designer-action-copy, .salesbot-designer__action_send_external_message .salesbot-designer__tip_actions .sb-tips-item.js-sb-designer-action-copy, .salesbot-designer__action_send_message .salesbot-designer__tip_actions .sb-tips-item.js-sb-designer-action-copy, .salesbot-designer__action_opt_in .salesbot-designer__tip_actions .sb-tips-item.js-sb-designer-action-copy {
+        display: none;
+      }
+.salesbot-designer__action_write_first {
+    margin-bottom: 24px
+  }
+.salesbot-designer__action_write_first:after {
+      content: attr(data-warning-message);
+      position: absolute;
+      bottom: -19px;
+      left: 36px;
+      font-size: 12px;
+      line-height: 15px;
+      color: #e1a620;
+    }
+.salesbot-designer__action_write_first .salesbot-designer__action-buttons-text {
+      min-height: 52px !important;
+    }
+.salesbot-designer__action_send_internal {
+    background: #818488;
+    border-color: #8591a5;
+  }
+.salesbot-designer__action_send_internal .salesbot-designer__action-buttons-text {
+      min-height: 40px !important;
+    }
+.salesbot-designer__action_send_internal .salesbot-designer__action-buttons-text-wrapper {
+        margin-bottom: 2px;
+      }
+.salesbot-designer__action_send_internal .salesbot-designer__action-edit {
+      margin-top: 1px;
+    }
+.salesbot-designer__action_widget .salesbot-designer__action-edit img {
+        max-width: 15px;
+        max-height: 15px;
+      }
+.salesbot-designer__action_trigger-with-exits, .salesbot-designer__action_widget-with-exits {
+      flex-direction: column;
+      padding-right: 13px;
+    }
+.salesbot-designer__action_trigger-with-exits .salesbot-designer__action-edit, .salesbot-designer__action_widget-with-exits .salesbot-designer__action-edit {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        position: relative;
+        width: 100%;
+        height: 46px;
+        margin: -7px 0 15px -14px;
+        padding-left: 14px
+      }
+.salesbot-designer__action_trigger-with-exits .salesbot-designer__action-edit:before, .salesbot-designer__action_widget-with-exits .salesbot-designer__action-edit:before {
+          content: '';
+          position: absolute;
+          top: 100%;
+          left: 0;
+          right: -28px;
+          height: 1px;
+          background: #e5e5e5;
+          background: var(--salesbot-designer-border-default);
+        }
+.salesbot-designer__action_trigger-with-exits .salesbot-designer__action-edit img, .salesbot-designer__action_widget-with-exits .salesbot-designer__action-edit img {
+          max-width: 150px;
+          max-height: 30px;
+        }
+.salesbot-designer__action_trigger-with-exits .salesbot-designer__widgets-param-label, .salesbot-designer__action_widget-with-exits .salesbot-designer__widgets-param-label {
+        color: var(--palette-text-secondary-dark);
+      }
+.salesbot-designer__action_trigger .task-edit__body__form__element {
+        margin-bottom: 20px
+      }
+.salesbot-designer__action_trigger .task-edit__body__form__element.only_main_contact {
+          position: relative;
+          padding-top: 19px;
+          margin-bottom: 12px;
+          color: var(--palette-text-secondary-dark)
+        }
+.salesbot-designer__action_trigger .task-edit__body__form__element.only_main_contact:before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -14px;
+            right: -14px;
+            height: 1px;
+            background: #e5e5e5;
+            background: var(--salesbot-designer-border-default);
+          }
+.salesbot-designer__action_trigger .task-edit__body__form .control--select--list-opened {
+        width: calc(100% + 13px);
+        top: -1px;
+      }
+.salesbot-designer__action_buttons {
+    padding-top: 15px;
+  }
+.salesbot-designer__action_rpa .salesbot-designer__action-edit svg {
+      fill: #bcbcbc;
+    }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-caption {
+      font-weight: bold;
+      margin: 2px 0 5px;
+    }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-p {
+      margin-top: 3px
+    }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-p:last-child {
+        margin-bottom: 5px;
+      }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-start {
+      display: flex;
+      margin: 10px 0 5px;
+      position: relative;
+    }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-start-input {
+      width: 100%;
+    }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-buttons {
+      display: flex;
+      margin: 10px 0 5px;
+    }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-loading {
+      display: flex;
+      align-items: center;
+    }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-loader {
+      margin-left: 5px;
+    }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-button {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 10px;
+      border: 1px solid #d5d5d5;
+      border: 1px solid var(--salesbot-designer-border-primary);
+      background: var(--palette-background-primary);
+      cursor: pointer;
+      border-radius: 3px;
+      white-space: nowrap;
+      margin-right: 10px;
+      height: 36px
+    }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-button:active {
+        transform: translateY(1px);
+      }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-button svg {
+        margin: -2px 7px 0 0;
+      }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-button_error,
+      .salesbot-designer__action_rpa .salesbot-designer__rpa-button_start {
+        padding: 0 8px;
+        color: #fff;
+        margin-right: 0;
+      }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-button_error {
+        background: rgba(235, 87, 87, 0.15);
+        border: 1px solid rgba(148, 165, 178, 0.15);
+        color: #eb5757;
+      }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-button_start {
+        margin-left: 10px;
+        background: #24bc8c;
+        border: 1px solid #0e9b6e;
+      }
+.salesbot-designer__action_rpa .salesbot-designer__rpa-delete {
+      display: flex;
+      align-items: center;
+      padding: 10px;
+      cursor: pointer;
+    }
+.salesbot-designer__action_hovered .salesbot-designer__action-actions, .salesbot-designer__action:hover .salesbot-designer__action-actions {
+      visibility: visible;
+    }
+.salesbot-designer__action .salesbot-designer__main_goto_action.highlighted_regular .salesbot-designer__goto-circle, .salesbot-designer__action .salesbot-designer__action-buttons-button-wrapper .salesbot-designer__goto.highlighted_regular .salesbot-designer__goto-circle {
+        border-color: #4280f6;
+      }
+.salesbot-designer__action .salesbot-designer__main_goto_action.highlighted_regular .salesbot-designer__goto-linked-icon svg, .salesbot-designer__action .salesbot-designer__action-buttons-button-wrapper .salesbot-designer__goto.highlighted_regular .salesbot-designer__goto-linked-icon svg {
+        fill: #4280f6;
+      }
+.salesbot-designer__action .salesbot-designer__main_goto_action.highlighted_regular::after, .salesbot-designer__action .salesbot-designer__action-buttons-button-wrapper .salesbot-designer__goto.highlighted_regular::after {
+        background: #4280f6;
+      }
+.salesbot-designer__action-edit {
+    display: flex;
+    align-items: center;
+    align-self: flex-start;
+    justify-content: center;
+    flex-shrink: 0;
+    width: 34px;
+    height: 16px;
+    margin: 0 0 0 -10px;
+    cursor: pointer;
+  }
+.salesbot-designer__action-edit_pencil svg {
+        opacity: 0.2;
+      }
+.salesbot-designer__action-edit_filter svg {
+        margin-top: 5px;
+        margin-left: -2px;
+      }
+.salesbot-designer__action-widget-exit {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+
+    margin-bottom: 8px;
+    height: 34px;
+    position: relative;
+  }
+.salesbot-designer__action-widget-exit-wrapper {
+      display: flex;
+      flex-direction: column;
+      position: absolute;
+      top: calc(100% + 12px);
+      right: 0;
+    }
+.salesbot-designer__action-widget-exit-text {
+      display: inline-flex;
+      align-items: center;
+      height: 34px;
+      padding: 0 36px 0 16px;
+
+      color: #8f9a9d;
+
+      color: var(--salesbot-designer-text-secondary-light);
+      font-size: 15px;
+      line-height: 18px;
+      background: #e8e8e8;
+      background: var(--salesbot-designer-action-exit-background);
+      border-radius: 53px;
+    }
+.salesbot-designer__action-widget-exit-text-inner {
+        max-width: 327px;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        min-width: 0;
+      }
+.salesbot-designer__action-widget-exit-statistic {
+      margin-left: 6px;
+    }
+.salesbot-designer__action-widget-exit .salesbot-designer__goto_action {
+      top: -1px;
+    }
+.salesbot-designer__action-textarea,
+  .salesbot-designer__action-body {
+    width: 100%;
+  }
+.salesbot-designer__action-body-inner {
+    display: flex;
+    align-items: center;
+  }
+.salesbot-designer__action-body-inner_status .sb-control-select {
+        margin-left: 7px;
+        height: 24px;
+        min-width: 0;
+        font-size: 13px;
+      }
+.salesbot-designer__action-body-inner_status .sb-control-select--button {
+          padding-bottom: 0;
+          padding-top: 0;
+        }
+.salesbot-designer__action-body-inner_status .sb-control-select--list-opened {
+          min-width: 250px;
+          top: -7px;
+          left: -14px;
+        }
+.salesbot-designer__action-body-inner_budget {
+      display: block;
+    }
+.salesbot-designer__action-body-inner_budget .salesbot-designer__inline-input {
+        min-width: 10px;
+        max-width: 115px;
+        white-space: nowrap;
+        overflow: hidden;
+      }
+.salesbot-designer__action-input {
+    width: 100%;
+    margin-top: 4px;
+  }
+.salesbot-designer__action-textarea_code {
+    min-height: 37px !important;
+    max-height: 257px;
+    height: auto;
+    overflow: auto !important;
+    resize: none !important;
+    margin-top: 5px;
+  }
+.salesbot-designer__action-textarea_condition {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    max-height: 120px;
+    max-width: 311px;
+    min-width: 35px;
+    margin: 0 0 2px 5px;
+    line-height: 15px !important;
+    border-bottom: 1px dashed
+  }
+.salesbot-designer__action-textarea_condition::-webkit-scrollbar {
+      display: none;
+    }
+.salesbot-designer__action-textarea_condition span {
+      line-height: 15px !important;
+    }
+.salesbot-designer__action-fields {
+    display: flex;
+    flex-direction: column;
+    margin-left: -10px;
+  }
+.salesbot-designer__action-fields-tip {
+      position: relative;
+      margin-left: 10px;
+      padding: 5px 10px;
+      cursor: pointer;
+      margin-bottom: 5px;
+    }
+.salesbot-designer__action-fields-container {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+.salesbot-designer__action-fields-container .salesbot-designer__tip {
+        top: 15px;
+        left: 24px;
+      }
+.salesbot-designer__action-fields-container .sb-control-select--list--item {
+        padding-right: 22px;
+      }
+.salesbot-designer__action-fields-container .sb-control-select--list--item .field-option {
+          display: flex;
+          justify-content: space-between;
+        }
+.salesbot-designer__action-fields-container .salesbot-designer__inline-select-value {
+        border-bottom-color: transparent;
+      }
+.salesbot-designer__action-fields-container .salesbot-designer__inline-select-value .field-count {
+          position: absolute;
+          right: 10px;
+          color: #fff;
+          opacity: 0.5;
+        }
+.salesbot-designer__action-fields-container .salesbot-designer__action-fields-select {
+        position: static;
+        top: -6px !important;
+        left: 0 !important;
+        width: 100%;
+        cursor: pointer;
+        padding: 4px 10px;
+      }
+.salesbot-designer__action-fields-drag-handle {
+      width: 25px;
+      height: 100%;
+      padding-left: 15px;
+      padding-bottom: 6px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      top: 0;
+      left: -25px;
+      position: absolute;
+      -webkit-user-select: none !important;
+         -moz-user-select: none !important;
+              user-select: none !important;
+      cursor: grab;
+    }
+.salesbot-designer__action-fields-drag-handle svg {
+        fill: #c4c4c4;
+      }
+.salesbot-designer__action-fields-drag-fallback {
+      display: none;
+    }
+.salesbot-designer__action-fields-field {
+      display: flex;
+      align-items: center;
+      align-self: flex-start;
+      position: relative;
+      height: 25px;
+      width: 70%;
+      margin-bottom: 5px;
+      background: #418bfa;
+      background: var(--salesbot-designer-action-show-button-background);
+      border: 1px solid #a0c6ff;
+      border: 1px solid var(--salesbot-designer-action-show-button-border);
+      border-radius: 30px;
+    }
+.salesbot-designer__action-fields-field_disabled {
+        pointer-events: none;
+      }
+.salesbot-designer__action-fields-field-add {
+      align-self: flex-start;
+      background: none;
+      border: 1px dashed #a0c6ff;
+      border: 1px dashed var(--salesbot-designer-action-show-button-border);
+      border-radius: 12px;
+      height: 25px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.7);
+      min-width: 120px;
+      padding: 0 9px;
+      cursor: pointer;
+    }
+.salesbot-designer__action-fields-field-add-inner {
+      display: flex;
+      align-items: center;
+    }
+.salesbot-designer__action-fields-field-add-inner svg {
+        fill: #bbd6ff;
+        margin-right: 5px;
+      }
+.salesbot-designer__action-fields-select .salesbot-designer__inline-select-value {
+        color: #fff;
+      }
+.salesbot-designer__action-buttons {
+    display: flex;
+    flex-direction: column;
+    margin-left: -10px;
+  }
+.salesbot-designer__action-buttons-text {
+      color: #fff;
+      background: none;
+      overflow-y: scroll !important;
+      resize: none !important;
+      min-height: 20px !important;
+      max-height: 120px;
+      width: 100%
+    }
+.salesbot-designer__action-buttons-text::-moz-placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+&-text::-moz-placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+.salesbot-designer__action-buttons-text::placeholder {
+        color: rgba(255, 255, 255, 0.6);
+      }
+.salesbot-designer__action-buttons-text + .salesbot-designer__action-buttons:not(:empty) {
+          margin-top: 6px;
+        }
+.salesbot-designer__action-buttons-text-textarea-container {
+        flex-grow: 1;
+        overflow: hidden;
+      }
+.salesbot-designer__action-buttons-text-wrapper {
+        display: flex;
+        overflow: hidden;
+        margin-bottom: 6px
+      }
+.salesbot-designer__action-buttons-text-wrapper + .salesbot-designer__media-loader {
+          margin-top: 0;
+        }
+.salesbot-designer__action-buttons-text-wrapper-attach {
+          display: flex;
+          fill: white;
+          cursor: pointer;
+          padding-left: 3px;
+        }
+.salesbot-designer__action-buttons-button-adders {
+      display: flex;
+      margin-bottom: 5px;
+    }
+.salesbot-designer__action-buttons-adder {
+      align-self: flex-start;
+      background: none;
+      border: 1px dashed #a0c6ff;
+      border: 1px dashed var(--salesbot-designer-action-show-button-border);
+      border-radius: 12px;
+      height: 25px;
+      color: #bbd6ff;
+      min-width: 110px;
+      padding: 0 13px 0 11px;
+      cursor: pointer
+    }
+.salesbot-designer__action-buttons-adder:not(:last-child) {
+        margin-right: 6px;
+      }
+.salesbot-designer__action-buttons-adder-inner {
+        display: flex;
+        align-items: center;
+        line-height: 16px;
+        font-size: 15px;
+      }
+.salesbot-designer__action-buttons-adder-inner svg {
+          fill: #bbd6ff;
+          margin-right: 5px;
+        }
+.salesbot-designer__action-buttons-adder:hover,
+      .salesbot-designer__action-buttons-adder:focus {
+        border-color: #ffffff;
+      }
+.salesbot-designer__action-buttons-container.is_dragging .salesbot-designer__action-buttons-button-wrapper::after {
+          opacity: 0;
+        }
+.salesbot-designer__action-buttons-container.is_dragging .salesbot-designer__action-buttons-remove,
+        .salesbot-designer__action-buttons-container.is_dragging .salesbot-designer__action-buttons-synonyms,
+        .salesbot-designer__action-buttons-container.is_dragging .salesbot-designer__goto_action {
+          opacity: 0;
+        }
+.salesbot-designer__action-buttons-container.is_dragging .salesbot-designer__goto_action::after {
+          opacity: 0;
+        }
+.salesbot-designer__action-buttons-button-wrapper {
+      display: flex;
+      align-items: center;
+      align-self: flex-end;
+      position: relative;
+      width: 100%;
+      margin: 0 0 5px -9px;
+    }
+.salesbot-designer__action-buttons[data-buttons-type='inline'] .salesbot-designer__action-buttons-button-wrapper::after {
+          content: '';
+          border-top: 1px dashed #a0c6ff;
+          border-top: 1px dashed var(--salesbot-designer-action-show-button-border);
+          flex-grow: 1;
+          margin-right: -15px;
+        }
+.salesbot-designer__action-buttons-button-wrapper .salesbot-designer__goto {
+        top: -5px;
+        right: -40px;
+      }
+.salesbot-designer__action-buttons-drag-wrapper {
+      order: -1;
+
+      display: flex;
+    }
+.salesbot-designer__action-buttons-drag-handle {
+      display: flex;
+      align-items: center;
+      height: 25px;
+      margin: 0 4px 0 0;
+
+      cursor: move;
+    }
+.salesbot-designer__action-buttons-sortable-placeholder {
+      order: -1;
+
+      height: 25px;
+      width: 195px;
+      margin: 0 0 0 8px;
+      border-radius: 13px;
+
+      background: #2f80ed;
+
+      background: var(--salesbot-designer-action-show-button-placeholder-background);
+    }
+.salesbot-designer__action-buttons-remove {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 25px;
+      width: 22px;
+      background: none;
+      margin-top: -1px;
+      margin-bottom: auto;
+      margin-left: 2px;
+      cursor: pointer;
+    }
+.salesbot-designer__action-buttons-remove svg {
+        fill: #81b2fd;
+      }
+.salesbot-designer__action-buttons-remove:hover svg,
+      .salesbot-designer__action-buttons-remove:focus svg {
+        fill: #ffffff;
+      }
+.salesbot-designer__action-buttons-synonyms {
+      display: inline-flex;
+      cursor: pointer;
+      position: relative;
+      font-size: 13px;
+      color: #fff;
+      margin: 0 6px;
+      z-index: 10;
+    }
+.salesbot-designer__action-buttons-synonyms-suggest {
+        position: absolute;
+        left: -2px;
+        top: -5px;
+        width: 240px;
+        background: #3188ff;
+        border: 1px solid #9ac6ff;
+        border-radius: 12px;
+        padding: 2px;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.15);
+      }
+.salesbot-designer__action-buttons-synonyms-suggest-list:not(.js-loading) {
+          max-width: 238px;
+          margin-left: 0;
+          margin-top: -3px;
+        }
+.salesbot-designer__action-buttons-synonyms-suggest-list:not(.js-loading) .multisuggest__suggest-item {
+            padding-top: 5px;
+            padding-bottom: 5px;
+          }
+.salesbot-designer__action-buttons-synonyms-suggest .multisuggest__suggest-loader {
+          display: none;
+        }
+.salesbot-designer__action-buttons-synonyms-suggest .multisuggest__list-item {
+          display: inline-flex;
+          align-items: center;
+          max-width: 100%;
+          height: 15px;
+          padding: 0 5px;
+          border: 1px solid #9ac6ff;
+          border-radius: 30px;
+          background: #3188ff;
+          color: #fff;
+        }
+.salesbot-designer__action-buttons-synonyms-suggest .multisuggest__list-item_input {
+            border-color: transparent;
+            border-radius: 0;
+            max-width: 96%
+          }
+.salesbot-designer__action-buttons-synonyms-suggest .multisuggest__list-item_input:not(:first-child) {
+              padding-left: 0;
+            }
+.salesbot-designer__action-buttons-button {
+    display: flex;
+    align-items: baseline;
+    position: relative;
+    background: #418bfa;
+    background: var(--salesbot-designer-action-show-button-background);
+    border: 1px solid #a0c6ff;
+    border: 1px solid var(--salesbot-designer-action-show-button-border);
+    border-radius: 13px;
+    overflow: hidden;
+
+    height: 25px;
+    width: 195px;
+  }
+.salesbot-designer__action-buttons[data-buttons-type='url'] .salesbot-designer__action-buttons-button {
+      width: 253px;
+      flex-direction: column
+    }
+.salesbot-designer__action-buttons[data-buttons-type='url'] .salesbot-designer__action-buttons-button.active {
+        height: 49px
+      }
+.salesbot-designer__action-buttons[data-buttons-type='url'] .salesbot-designer__action-buttons-button.active::after {
+          content: '';
+          display: block;
+          position: absolute;
+          top: 50%;
+          right: 0;
+          left: 0;
+          border-bottom: 1px dashed #bbd6ff;
+          margin: 0 10px;
+        }
+.salesbot-designer__action-buttons[data-buttons-type='url'] .salesbot-designer__action-buttons-button.active .salesbot-designer__action-buttons-input {
+          height: 50%;
+        }
+.salesbot-designer__action-carousel {
+    display: flex;
+    flex-direction: column;
+    margin-top: 10px;
+    margin-bottom: 14px;
+  }
+.salesbot-designer__action-carousel__card {
+      display: flex;
+      flex-direction: column;
+      padding: 4px;
+      padding-bottom: 7px;
+      height: 284px;
+      box-sizing: border-box;
+
+      background-color: var(--palette-background-primary);
+      border-radius: 14px;
+    }
+.salesbot-designer__action-carousel__card-body-wrapper {
+        display: flex;
+        flex-direction: column;
+        padding: 0 4px;
+      }
+.salesbot-designer__action-carousel__card-text {
+        min-height: 60px !important;
+        max-height: 60px !important;
+        margin-bottom: 6px;
+      }
+.salesbot-designer__action-carousel__card-buttons {
+        margin-left: 10px;
+      }
+.salesbot-designer__action-carousel__card-buttons .salesbot-designer__action-buttons-button-wrapper::after {
+            margin-right: 8px !important;
+          }
+.salesbot-designer__action-carousel__card-buttons .salesbot-designer__goto {
+          right: -14px
+        }
+.salesbot-designer__action-carousel__card-buttons .salesbot-designer__goto::after {
+            right: -40px;
+
+            width: 50px;
+          }
+.salesbot-designer__action-carousel__card-buttons .salesbot-designer__action-buttons-button {
+          background: var(--palette-background-secondary-300);
+        }
+.salesbot-designer__action-carousel__card-buttons .salesbot-designer__action-buttons-input {
+          color: var(--color-blueberry);
+        }
+.salesbot-designer__action .salesbot-designer__action-buttons[data-buttons-type='url'] .salesbot-designer__action-buttons-sortable-placeholder {
+      height: 25px;
+      width: 253px;
+      margin: 0 0 0 8px;
+      border-radius: 13px;
+
+      background: #2f80ed;
+
+      background: var(--salesbot-designer-action-show-button-placeholder-background);
+    }
+.salesbot-designer__action-buttons-input {
+    width: 100%;
+    height: 100%;
+    padding: 0 10px;
+    background: transparent;
+    color: #fff;
+  }
+/* Если задать это inline кнопке, то input будет выдвигать статистику за пределы блока */
+.salesbot-designer__action-buttons-button_url .salesbot-designer__action-buttons-input {
+      flex-shrink: 0;
+    }
+.salesbot-designer__action-buttons-input::-moz-placeholder {
+      color: #bbd6ff;
+    }
+&-buttons-input::-moz-placeholder {
+      color: #bbd6ff;
+    }
+.salesbot-designer__action-buttons-input::placeholder {
+      color: #bbd6ff;
+    }
+.salesbot-designer__action-buttons-button-statistic {
+    font-size: 13px;
+    color: white;
+    margin-right: 10px;
+  }
+.salesbot-designer__action-title-input {
+    width: 100%;
+    height: 100%;
+    background: transparent;
+    color: #fff;
+    font-weight: 700;
+    line-height: 20px
+  }
+.salesbot-designer__action-title-input::-moz-placeholder {
+      color: #fff;
+    }
+&-title-input::-moz-placeholder {
+      color: #fff;
+    }
+.salesbot-designer__action-title-input::placeholder {
+      color: #fff;
+    }
+.salesbot-designer__action-conditions-item {
+      position: relative
+    }
+.salesbot-designer__action-conditions-item:last-child .salesbot-designer__action-conditions-item-divide {
+          cursor: pointer;
+          margin-bottom: -1px
+        }
+.salesbot-designer__action-conditions-item:last-child .salesbot-designer__action-conditions-item-divide:before {
+            border-bottom-style: dashed;
+          }
+.salesbot-designer__action-conditions-item:last-child .salesbot-designer__action-conditions-item-divide span:not(.is-last) {
+              display: none;
+            }
+.salesbot-designer__action-conditions-item:last-child .salesbot-designer__action-conditions-item-divide span.is-last {
+              display: inline;
+            }
+.salesbot-designer__action-conditions-item-divide {
+        color: var(--palette-text-secondary-dark);
+        font-size: 12px;
+        text-align: center;
+        position: relative;
+        margin-top: 4px;
+        margin-bottom: -2px
+      }
+.salesbot-designer__action-conditions-item-divide.salesbot-designer__action-conditions-item-divide_validation span {
+            background: #ebeff5;
+            background: var(--salesbot-designer-validation-action-background);
+          }
+.salesbot-designer__action-conditions-item-divide:before {
+          content: '';
+          position: absolute;
+          left: 0;
+          top: 10px;
+          right: 0;
+          height: 0;
+          border-bottom: 1px solid #8f9a9d;
+          z-index: 0;
+        }
+.salesbot-designer__action-conditions-item-divide span {
+          z-index: 1;
+          position: relative;
+          background: #f5f5f5;
+          background: var(--salesbot-designer-background-default);
+          padding: 0 5px
+        }
+.salesbot-designer__action-conditions-item-divide span.is-last {
+            display: none;
+          }
+.salesbot-designer__action-conditions-item-remove {
+        top: 3px;
+        position: absolute;
+        right: -19px;
+        padding: 5px;
+        display: inline-flex;
+        margin: -5px;
+        cursor: pointer;
+      }
+.salesbot-designer__action-conditions-bot_params-api {
+      color: #c3c3c3;
+      text-decoration: underline;
+      font-size: 13px;
+      cursor: pointer;
+    }
+.salesbot-designer__action-actions {
+    display: flex;
+    visibility: hidden;
+    cursor: pointer;
+
+    position: absolute;
+    top: 11px;
+    right: 36px;
+    padding: 10px;
+    margin: -10px;
+    background: inherit;
+  }
+.salesbot-designer__action__stop {
+    padding: 6px 5px 6px 13px;
+  }
+.salesbot-designer__action__stop .salesbot-designer__action-actions {
+    right: 10px;
+  }
+.salesbot-designer__action-responsible {
+    display: inline-flex;
+    border-bottom: 1px dashed;
+    line-height: 15px;
+    cursor: pointer;
+  }
+.salesbot-designer__action-responsible-manage {
+      margin: 0;
+    }
+.salesbot-designer__action-responsible-manage .multisuggest__list-item {
+        margin: 0;
+        height: 20px;
+        border-radius: 0
+      }
+.salesbot-designer__action-responsible-manage .multisuggest__list-item:not(.multisuggest__list-item_input) {
+          display: none;
+        }
+.salesbot-designer__action-message-wrapper {
+    display: flex;
+    flex-direction: column;
+    grid-gap: 4px;
+    gap: 4px;
+    margin-bottom: 10px;
+  }
+.salesbot-designer-handler_send-external-message__text-before,
+  .salesbot-designer-handler_send-external-message__text-after,
+  .salesbot-designer-handler_send-message__text-before,
+  .salesbot-designer-handler_send-message__text-after,
+  .salesbot-designer-handler_opt-in__text-before,
+  .salesbot-designer-handler_opt-in__text-after {
+    margin: 15px 0 5px 4px;
+
+    font-size: 13px;
+    font-weight: 700;
+    line-height: 17px;
+    letter-spacing: 0.3px;
+  }
+.salesbot-designer-handler_send-external-message__text-before, .salesbot-designer-handler_send-message__text-before, .salesbot-designer-handler_opt-in__text-before {
+    margin-top: 3px;
+  }
+.salesbot-designer-handler_send-external-message__no-template-text, .salesbot-designer-handler_send-message__no-template-text, .salesbot-designer-handler_opt-in__no-template-text {
+    margin-left: 4px;
+
+    color: #8f9a9d;
+    font-size: 13px;
+    line-height: 120%;
+    letter-spacing: 0.3px;
+  }
+.salesbot-designer-handler_send-external-message__no-template-text-link, .salesbot-designer-handler_send-message__no-template-text-link, .salesbot-designer-handler_opt-in__no-template-text-link {
+      color: #2f80ed;
+      text-decoration: underline;
+    }
+.salesbot-designer-handler_send-external-message__text-block, .salesbot-designer-handler_send-message__text-block, .salesbot-designer-handler_opt-in__text-block {
+    display: flex;
+    margin-bottom: 6px;
+  }
+.salesbot-designer-handler_send-external-message__text-field, .salesbot-designer-handler_send-message__text-field, .salesbot-designer-handler_opt-in__text-field {
+    flex-grow: 1;
+    min-width: 0;
+  }
+.salesbot-designer-handler_send-external-message__text-contenteditable, .salesbot-designer-handler_send-message__text-contenteditable, .salesbot-designer-handler_opt-in__text-contenteditable {
+    color: #ffffff;
+    background: none;
+    max-height: 120px;
+    width: 100%;
+  }
+.salesbot-designer-handler_send-external-message__text-contenteditable .atwho-inserted, .salesbot-designer-handler_send-message__text-contenteditable .atwho-inserted, .salesbot-designer-handler_opt-in__text-contenteditable .atwho-inserted {
+      color: #ffffff;
+    }
+.salesbot-designer-handler_send-external-message__placeholder-template-select, .salesbot-designer-handler_send-message__placeholder-template-select, .salesbot-designer-handler_opt-in__placeholder-template-select {
+    color: #ffffff;
+
+    pointer-events: auto
+  }
+.salesbot-designer-handler_send-external-message__placeholder-template-select.disabled, .salesbot-designer-handler_send-message__placeholder-template-select.disabled, .salesbot-designer-handler_opt-in__placeholder-template-select.disabled {
+      color: rgba(255, 255, 255, 0.5);
+
+      pointer-events: none;
+    }
+.salesbot-designer-handler_send-external-message__attachment-button, .salesbot-designer-handler_send-message__attachment-button, .salesbot-designer-handler_opt-in__attachment-button {
+    display: flex;
+    fill: #ffffff;
+    cursor: pointer;
+    padding-left: 6px;
+  }
+.salesbot-designer-handler_send-external-message__template-header, .salesbot-designer-handler_send-message__template-header, .salesbot-designer-handler_opt-in__template-header {
+    padding-bottom: 10px;
+    display: flex;
+    align-items: center;
+  }
+.salesbot-designer-handler_send-external-message__header-template-select, .salesbot-designer-handler_send-message__header-template-select, .salesbot-designer-handler_opt-in__header-template-select {
+    border-radius: 3px;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 3px 4px 4px;
+    min-width: 0;
+  }
+.salesbot-designer-handler_send-external-message__header-template-select-value, .salesbot-designer-handler_send-message__header-template-select-value, .salesbot-designer-handler_opt-in__header-template-select-value {
+    color: #ffffff;
+  }
+.salesbot-designer-handler_send-external-message__template-lock, .salesbot-designer-handler_send-message__template-lock, .salesbot-designer-handler_opt-in__template-lock {
+    flex-shrink: 0;
+    padding: 5px 10px;
+    margin: -5px -10px -5px auto;
+    position: relative;
+  }
+.salesbot-designer-handler_send-external-message__template-lock-hint, .salesbot-designer-handler_send-message__template-lock-hint, .salesbot-designer-handler_opt-in__template-lock-hint {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: -12px;
+  }
+.salesbot-designer-handler_send-message__template-lock:not(:hover):not([data-force-hint-show='true'])
+      .salesbot-designer-handler_send-external-message__template-lock-hint, .salesbot-designer-handler_send-message__template-lock:not(:hover):not([data-force-hint-show='true'])
+      .salesbot-designer-handler_send-message__template-lock-hint, .salesbot-designer-handler_send-message__template-lock:not(:hover):not([data-force-hint-show='true'])
+      .salesbot-designer-handler_opt-in__template-lock-hint {
+      display: none;
+    }
+.salesbot-designer-handler_send-external-message__broadcasting-lock-hint, .salesbot-designer-handler_send-message__broadcasting-lock-hint, .salesbot-designer-handler_opt-in__broadcasting-lock-hint {
+    position: absolute;
+    bottom: calc(100% + 4px);
+    left: 50%;
+
+    transform: translateX(-50%)
+  }
+.salesbot-designer-handler_send-external-message__broadcasting-lock-hint::after,
+    .salesbot-designer-handler_send-external-message__broadcasting-lock-hint::before,
+    .salesbot-designer-handler_send-message__broadcasting-lock-hint::after,
+    .salesbot-designer-handler_send-message__broadcasting-lock-hint::before,
+    .salesbot-designer-handler_opt-in__broadcasting-lock-hint::after,
+    .salesbot-designer-handler_opt-in__broadcasting-lock-hint::before {
+      left: 50%;
+
+      transform: translateX(-50%);
+    }
+.js-sb-handler-send-message-content:not(:hover) .salesbot-designer-handler_send-external-message__broadcasting-lock-hint_content, .js-sb-handler-send-message-content:not(:hover) .salesbot-designer-handler_send-message__broadcasting-lock-hint_content, .js-sb-handler-send-message-content:not(:hover) .salesbot-designer-handler_opt-in__broadcasting-lock-hint_content {
+      display: none;
+    }
+.salesbot-designer__block-header:not(:hover) .salesbot-designer-handler_send-external-message__broadcasting-lock-hint_header, .salesbot-designer__block-header:not(:hover) .salesbot-designer-handler_send-message__broadcasting-lock-hint_header, .salesbot-designer__block-header:not(:hover) .salesbot-designer-handler_opt-in__broadcasting-lock-hint_header {
+      display: none;
+    }
+.salesbot-designer-handler_list_message__title-field,
+  .salesbot-designer-handler_list_message__text-field,
+  .salesbot-designer-handler_list_message__subtext-field {
+    min-width: 0;
+  }
+.salesbot-designer-handler_list_message__title-field {
+    font-weight: 700;
+  }
+.salesbot-designer-handler_list_message__subtext-field {
+    font-size: 13px;
+
+    opacity: 0.5;
+  }
+.salesbot-designer-handler_list_message__text-contenteditable,
+  .salesbot-designer-handler_list_message__title-contenteditable,
+  .salesbot-designer-handler_list_message__subtext-contenteditable {
+    color: #ffffff;
+    background: none;
+    max-height: 120px;
+    width: 100%;
+  }
+.salesbot-designer-handler_list_message__text-contenteditable .atwho-inserted, .salesbot-designer-handler_list_message__title-contenteditable .atwho-inserted, .salesbot-designer-handler_list_message__subtext-contenteditable .atwho-inserted {
+      color: #ffffff;
+    }
+.salesbot-designer-handler_list_message__section-title-contenteditable {
+    font-weight: 700;
+  }
+.salesbot-designer-handler_list_message__option-description-contenteditable[contenteditable] {
+    min-height: 15px;
+
+    font-size: 13px;
+    line-height: 16px;
+    opacity: 0.5;
+  }
+.salesbot-designer-handler_list_message__section-title-contenteditable,
+  .salesbot-designer-handler_list_message__option-title-contenteditable,
+  .salesbot-designer-handler_list_message__option-description-contenteditable {
+    max-height: 120px
+  }
+.salesbot-designer-handler_list_message__section-title-contenteditable[data-placeholder]:empty:not(:focus):before, .salesbot-designer-handler_list_message__option-title-contenteditable[data-placeholder]:empty:not(:focus):before, .salesbot-designer-handler_list_message__option-description-contenteditable[data-placeholder]:empty:not(:focus):before {
+      color: var(--color-dark-silver);
+    }
+.salesbot-designer-handler_list_message__section-title-contenteditable[data-placeholder]:empty:not(:focus):before, .salesbot-designer-handler_list_message__option-title-contenteditable[data-placeholder]:empty:not(:focus):before {
+      opacity: 0.5;
+    }
+.salesbot-designer-handler_list_message__text-after {
+    margin: 11px auto;
+
+    font-size: 12px;
+    color: #8f9a9d;
+    color: var(--salesbot-designer-text-secondary-light);
+    text-align: center;
+  }
+.salesbot-designer-handler_opt-in {
+  padding-bottom: 10px;
+}
+.salesbot-designer-handler_opt-in__text-block {
+    margin-bottom: 2px;
+    flex-wrap: wrap;
+  }
+.salesbot-designer-handler_opt-in__text-block--item {
+      display: flex;
+      align-items: center;
+      width: 100%;
+      margin-bottom: 5px;
+    }
+.salesbot-designer-handler_opt-in__text-block--main-text {
+      margin-bottom: 3px;
+      color: #a0c6ff;
+      color: var(--salesbot-designer-action-show-button-border);
+    }
+.salesbot-designer-handler_opt-in__text-block .salesbot-designer__media-loader {
+      height: 164px;
+    }
+.salesbot-designer-handler_opt-in__select-block {
+    position: relative;
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+.salesbot-designer-handler_opt-in__select-block .sb-control-select {
+      width: 195px;
+      height: 25px;
+      margin-left: -5px;
+    }
+.salesbot-designer-handler_opt-in__select-block .sb-control-select--button {
+        position: relative;
+        padding-left: 16px;
+        color: #a0c6ff;
+        color: var(--salesbot-designer-action-show-button-border);
+        font-size: 13px;
+        line-height: 17px;
+        border: 1px solid #a0c6ff;
+        border: 1px solid var(--salesbot-designer-action-show-button-border);
+        border-radius: 12px;
+        background: transparent;
+        cursor: pointer;
+      }
+.salesbot-designer-handler_opt-in__select-block .sb-control-select--button-inner {
+          display: block;
+          max-width: 150px;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+        }
+.salesbot-designer-handler_opt-in__select-block .salesbot-designer__goto_action {
+      top: -5px;
+      right: -31px;
+    }
+.salesbot-designer-handler_opt-in__select-block::after {
+      content: '';
+      border-top: 1px dashed #a0c6ff;
+      border-top: 1px dashed var(--salesbot-designer-action-show-button-border);
+      flex-grow: 1;
+      margin-right: -8px;
+    }
+.salesbot-designer-handler_send-external-message__template-header {
+    padding-bottom: 5px;
+  }
+.salesbot-designer-handler_send-external-message__template-header-text {
+      white-space: pre;
+      color: #ffffff;
+    }
+.salesbot-designer-handler_send-external-message__header-template-select {
+    background: none;
+  }
+.salesbot-designer-handler_send-external-message__text-contenteditable {
+    color: rgba(255, 255, 255, 0.7);
+  }
+.salesbot-designer-handler_send-external-message__text-contenteditable .atwho-inserted {
+      color: rgba(255, 255, 255, 0.7);
+    }
+.salesbot-designer__media-loader_file-loaded
+  .salesbot-designer__action_send_external_message
+  .salesbot-designer__media-loader {
+  border: none;
+}
+.salesbot-designer__action-carousel__card + .salesbot-designer__action-carousel__card {
+  margin-top: 10px;
+}
+.salesbot-designer__block_embryo {
+  width: auto !important;
+
+  border-color: #e5e5e5;
+
+  border-color: var(--salesbot-designer-border-default);
+  background-color: #f5f5f5;
+  background-color: var(--salesbot-designer-background-default);
+}
+.salesbot-designer__block_embryo .salesbot-designer__block-header {
+        margin: -5px -9px 1px;
+        font-size: 15px;
+        white-space: nowrap;
+      }
+.salesbot-designer__block_embryo .salesbot-designer__block-body {
+        width: 225px;
+      }
+.salesbot-designer__block_embryo .salesbot-designer__action {
+      padding-top: 7px;
+      padding-right: 13px;
+      padding-bottom: 5px;
+      margin-bottom: 9px;
+      border-color: #e5e5e5;
+      border-color: var(--salesbot-designer-border-default);
+      cursor: pointer;
+    }
+.salesbot-designer__block_embryo .salesbot-designer__action_disabled {
+        opacity: 0.5;
+      }
+.salesbot-designer__block_embryo .salesbot-designer__action_embryo-stop {
+          border-color: transparent;
+          background: none;
+          padding-top: 0;
+          padding-bottom: 0;
+        }
+.salesbot-designer__block_embryo .salesbot-designer__action-edit {
+        width: 39px;
+        margin-top: 1px;
+      }
+.salesbot-designer__block_embryo .salesbot-designer__action-embryo-select {
+        position: absolute;
+        top: 13px;
+        right: 9px;
+        width: 0;
+        height: 0;
+        border-style: solid;
+        border-width: 5px 4.5px 0 4.5px;
+        border-color: #bcbcbc transparent transparent transparent;
+      }
+.salesbot-designer__goto {
+  position: absolute;
+  top: 0;
+  right: 0;
+  height: auto;
+  padding: 11px 10px 0 0;
+  z-index: 2;
+  pointer-events: none
+}
+.salesbot-designer__goto:after {
+    content: '';
+    position: absolute;
+    top: 17px;
+    right: -9px;
+    width: 19px;
+    height: 1px;
+    background: #e5e5e5;
+    background: var(--salesbot-designer-border-default);
+  }
+.salesbot-designer__goto {
+
+  /* goto с ссылкой */
+}
+.salesbot-designer__goto_portal,
+  .salesbot-designer__goto_hover_path {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+.salesbot-designer__goto_portal_come-from {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+.salesbot-designer__goto_action {
+    top: -2px;
+    right: -1px;
+  }
+.salesbot-designer__goto-circle {
+    position: relative;
+    width: 13px;
+    height: 13px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    border: 1px solid #e5e5e5;
+    border: 1px solid var(--salesbot-designer-border-default);
+    background: #ffffff;
+    background: var(--salesbot-designer-background-primary);
+  }
+.salesbot-designer__goto-linked-icon {
+    display: none;
+
+    width: 7px;
+    height: 7px;
+    position: relative;
+  }
+.salesbot-designer__goto-linked-icon svg {
+      width: 100%;
+      height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      fill: #e5e5e5;
+      fill: var(--salesbot-designer-border-default);
+    }
+.salesbot-designer__goto-another-answer-text,
+  .salesbot-designer__goto-no-answer-text {
+    margin-right: 9px;
+  }
+.salesbot-designer__goto-error-text {
+    margin-right: 9px;
+
+    color: #f37575;
+  }
+.salesbot-designer__goto_another-answer,
+  .salesbot-designer__goto_no-answer,
+  .salesbot-designer__goto_footer,
+  .salesbot-designer__goto_error {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    position: relative;
+
+    margin-left: auto;
+    margin-top: 8px;
+    height: 19px;
+    padding-top: 0;
+
+    font-size: 13px;
+    color: var(--palette-text-secondary-dark);
+    white-space: nowrap
+  }
+.salesbot-designer__goto_another-answer:after, .salesbot-designer__goto_no-answer:after, .salesbot-designer__goto_footer:after, .salesbot-designer__goto_error:after {
+      top: 10px;
+    }
+.salesbot-designer__goto_another-answer .salesbot-designer__goto-circle, .salesbot-designer__goto_no-answer .salesbot-designer__goto-circle, .salesbot-designer__goto_footer .salesbot-designer__goto-circle, .salesbot-designer__goto_error .salesbot-designer__goto-circle {
+      top: 1px;
+    }
+.salesbot-designer__goto_block.highlighted_regular .salesbot-designer__goto-circle, .salesbot-designer__goto_action.highlighted_regular .salesbot-designer__goto-circle, .salesbot-designer__goto_another-answer.highlighted_regular .salesbot-designer__goto-circle, .salesbot-designer__goto_no-answer.highlighted_regular .salesbot-designer__goto-circle, .salesbot-designer__goto_footer.highlighted_regular .salesbot-designer__goto-circle, .salesbot-designer__goto_error.highlighted_regular .salesbot-designer__goto-circle {
+        border-color: #4280f6;
+      }
+.salesbot-designer__goto_block.highlighted_regular .salesbot-designer__goto-linked-icon svg, .salesbot-designer__goto_action.highlighted_regular .salesbot-designer__goto-linked-icon svg, .salesbot-designer__goto_another-answer.highlighted_regular .salesbot-designer__goto-linked-icon svg, .salesbot-designer__goto_no-answer.highlighted_regular .salesbot-designer__goto-linked-icon svg, .salesbot-designer__goto_footer.highlighted_regular .salesbot-designer__goto-linked-icon svg, .salesbot-designer__goto_error.highlighted_regular .salesbot-designer__goto-linked-icon svg {
+        fill: #4280f6;
+      }
+.salesbot-designer__goto_block.highlighted_regular::after, .salesbot-designer__goto_action.highlighted_regular::after, .salesbot-designer__goto_another-answer.highlighted_regular::after, .salesbot-designer__goto_no-answer.highlighted_regular::after, .salesbot-designer__goto_footer.highlighted_regular::after, .salesbot-designer__goto_error.highlighted_regular::after {
+        background: #4280f6;
+      }
+.salesbot-designer__goto[data-linked-entity]:not([data-linked-entity='embryo']) {
+    cursor: pointer;
+    pointer-events: auto;
+  }
+.salesbot-designer__goto[data-linked-entity]:not([data-linked-entity='embryo']) .salesbot-designer__goto-linked-icon[data-goto-linked-icon='fat_cross'] {
+      display: block;
+    }
+.salesbot-designer__goto[data-linked-entity]:not([data-linked-entity='embryo']):hover .salesbot-designer__goto-linked-icon svg {
+        fill: #e03a3a;
+      }
+.salesbot-designer__goto[data-is-goto-collapsed='true'] {
+    cursor: pointer;
+    pointer-events: auto
+  }
+.salesbot-designer__goto[data-is-goto-collapsed='true']:after {
+      display: none;
+    }
+.salesbot-designer__goto[data-is-goto-collapsed='true'] .salesbot-designer__goto-linked-icon[data-goto-linked-icon='fat_cross'] {
+      display: block;
+      transform: rotate(45deg);
+    }
+.salesbot-designer__goto[data-is-goto-collapsed='true']:hover .salesbot-designer__goto-linked-icon svg {
+        fill: #24bc8c;
+      }
+.salesbot-designer__goto[data-linked-entity='embryo'][data-is-goto-collapsed='false'] {
+    cursor: pointer;
+    pointer-events: auto;
+  }
+.salesbot-designer__goto[data-linked-entity='embryo'][data-is-goto-collapsed='false'] .salesbot-designer__goto-linked-icon[data-goto-linked-icon='fat_minus'] {
+      display: block;
+    }
+.salesbot-designer__goto[data-linked-entity='embryo'][data-is-goto-collapsed='false']:hover .salesbot-designer__goto-linked-icon svg {
+        fill: #e03a3a;
+      }
+.salesbot-designer__inline-select {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+.salesbot-designer__inline-select-value {
+    border-bottom: 1px dashed;
+    cursor: pointer;
+    line-height: 15px;
+    display: inline-block;
+    white-space: nowrap;
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+.salesbot-designer__inline-select[data-disabled] {
+    pointer-events: none;
+  }
+.salesbot-designer__inline-select[data-fixed='1']:not(.salesbot-designer__inline-select--readonly) .salesbot-designer__inline-select-value,
+  .salesbot-designer__inline-select[data-disabled]:not(.salesbot-designer__inline-select--readonly) .salesbot-designer__inline-select-value {
+    border-bottom-color: transparent;
+  }
+.salesbot-designer__inline-select .control--select,
+  .salesbot-designer__inline-select .sb-control-select {
+    position: absolute;
+    top: -10px;
+    left: -10px;
+    min-width: 250px;
+    pointer-events: none;
+  }
+.salesbot-designer__inline-select .control--select--button,
+    .salesbot-designer__inline-select .control--select--list,
+    .salesbot-designer__inline-select .sb-control-select--button,
+    .salesbot-designer__inline-select .sb-control-select--list {
+      opacity: 0;
+    }
+.salesbot-designer__inline-select .control--select--button-inner, .salesbot-designer__inline-select .sb-control-select--button-inner {
+      display: none;
+    }
+.salesbot-designer__inline-select .control--select--list-opened, .salesbot-designer__inline-select .sb-control-select--list-opened {
+      opacity: 1;
+      pointer-events: all;
+    }
+.salesbot-designer__inline-select .control--select[data-with-full-text-search='true'], .salesbot-designer__inline-select .sb-control-select[data-with-full-text-search='true'] {
+      top: 24px;
+      left: 9px;
+    }
+/**
+     * В селекте, где отображаемое значение фиксированно,
+     * не требуется показывать галочки у items.
+     * Пример:
+     * Кнопка "Добавить действие" в блоке "Завершить бота"
+     */
+.salesbot-designer__inline-select-permanent .sb-control-select--list--item-inner {
+        background: none;
+      }
+.salesbot-designer__inline-input {
+  min-width: 100px;
+  border: 0;
+  padding: 0;
+  border-bottom: 1px dashed;
+  border-radius: 0;
+  height: 19px;
+}
+.salesbot-designer__inline-input_cf {
+    min-width: 35px;
+    width: 35px;
+    line-height: 15px !important;
+    height: 16px;
+    margin-left: 5px;
+    color: #363b44;
+    color: var(--salesbot-designer-text-primary);
+  }
+html.safari .salesbot-designer__inline-input_cf {
+      height: 18px;
+    }
+.salesbot-designer__tip {
+  display: block;
+  position: absolute;
+  top: 25px;
+  left: 100%;
+  margin-left: -25px;
+  color: #363b44;
+  color: var(--salesbot-designer-text-primary);
+}
+.salesbot-designer__tip_embryo .salesbot-designer__tip-item .sb-tips-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 19px;
+        margin-top: -3px;
+      }
+.salesbot-designer__tip_actions-icon {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transform: rotate(90deg);
+      fill: #c4c4c4;
+      height: 9px;
+    }
+.salesbot-designer__tip_actions .sb-tips-icon {
+      display: flex;
+      margin-top: -2px;
+    }
+.salesbot-designer__tip_actions .sb-tips-icon svg {
+        width: 12px;
+      }
+.salesbot-designer__tip_actions .sb-tips-item[data-id='preview'] .sb-tips-icon {
+        margin: 1px 6px 0 -1px;
+      }
+.salesbot-designer__tip_actions .sb-tips-item[data-id='preview'] .sb-tips-icon svg {
+          width: 14px;
+        }
+.salesbot-designer__tip .sb-tips__inner {
+    box-shadow: 0px 2px 5px rgba(0, 0, 0, 0.15);
+  }
+.salesbot-designer__tip-item .sb-tips-icon {
+      display: flex;
+      margin-top: -1px;
+    }
+.salesbot-designer__tip-item_delimiter {
+      border-top: 1px solid #dadada;
+      font-size: 13px;
+      text-transform: uppercase;
+      font-weight: bold;
+      color: var(--palette-text-secondary-dark)
+    }
+.salesbot-designer__tip-item_delimiter:hover {
+        background-color: transparent !important;
+      }
+.salesbot-designer__tip-item_delimiter .icon-empty, .salesbot-designer__tip-item_preset .icon-empty {
+        width: 12px;
+      }
+.salesbot-designer__tip-item_gray {
+      color: var(--palette-text-secondary-dark);
+    }
+.salesbot-designer__tip-item_gray svg {
+        fill: #8f9a9d;
+      }
+.salesbot-designer__tip-item_red {
+      color: #f26e6e;
+    }
+.salesbot-designer__tip-item_red svg {
+        fill: #f26e6e;
+      }
+.salesbot-designer__tip-item_download svg {
+        fill: #4280f6;
+      }
+/* Если повесить на документ, то курсор будет постоянно схвачен */
+.sb-grabbing * {
+  cursor: grabbing !important;
+}
+.salesbot-designer .validate-has-error {
+    border-color: #f57472 !important;
+  }
+.salesbot-designer__button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    position: relative;
+    min-width: 31px;
+    height: 31px;
+    font-size: 13px;
+
+    color: var(--palette-text-secondary-dark);
+    background: #ffffff;
+    background: var(--salesbot-designer-background-primary);
+    box-shadow: 0px 2px 2px rgba(0, 0, 0, 0.07);
+    border-radius: 36px;
+    -webkit-user-select: none;
+       -moz-user-select: none;
+            user-select: none
+  }
+.salesbot-designer__button:not(.salesbot-designer__button--disabled) {
+      cursor: pointer
+    }
+.salesbot-designer__button:not(.salesbot-designer__button--disabled):active {
+        transform: translateY(1px);
+      }
+.salesbot-designer__button--disabled {
+      cursor: default
+    }
+.salesbot-designer__button--disabled:after {
+        content: '';
+
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        background: #ffffff;
+        background: var(--salesbot-designer-background-primary);
+        opacity: 0.8;
+      }
+.salesbot-designer__goto-back.salesbot-designer__button {
+      justify-content: flex-start;
+      position: absolute;
+      bottom: 167px;
+      left: calc(100% - 236px);
+      max-width: 210px;
+      padding: 0 10px;
+      white-space: nowrap;
+      overflow: hidden;
+      background: transparent
+    }
+.salesbot-designer__goto-back.salesbot-designer__button.hidden {
+        display: none !important;
+      }
+.salesbot-designer__goto-back-progress,
+    .salesbot-designer__goto-back:before {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: #ffffff;
+      background: var(--salesbot-designer-background-primary);
+      z-index: 0;
+    }
+.salesbot-designer__goto-back:before {
+      width: 100%;
+      content: '';
+    }
+.salesbot-designer__goto-back-progress {
+      animation-name: salesbot-designer-goto-back-progress;
+      background: #e5e5e5;
+      background: var(--salesbot-designer-border-default);
+      z-index: 1;
+    }
+.salesbot-designer__goto-back-text {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      z-index: 2;
+    }
+.salesbot-designer__blue-link {
+    color: #1476e5;
+    text-decoration: underline;
+    cursor: pointer
+  }
+.salesbot-designer__blue-link:hover {
+      text-decoration: underline;
+    }
+.salesbot-designer__connections {
+    position: absolute;
+    left: 0;
+    top: 0;
+    z-index: 0;
+    color: #8f9a9d;
+    color: var(--salesbot-designer-connection-background);
+  }
+.salesbot-designer__zoom {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    right: 25px;
+    top: 50%;
+    margin-top: -33px;
+    z-index: 2;
+  }
+.salesbot-designer__zoom-btn:not(:first-child) {
+      margin-top: 5px;
+    }
+.salesbot-designer__zoom-in span, .salesbot-designer__zoom-out span {
+        position: relative;
+        background: #bcbcbc;
+        height: 1px;
+        width: calc(100% - 18px);
+      }
+.salesbot-designer__zoom-in span:before {
+          content: '';
+          position: absolute;
+          height: 11px;
+          width: 1px;
+          background: #bcbcbc;
+          top: -5px;
+        }
+.salesbot-designer__zoom-orig span {
+        position: relative;
+        width: calc(100% - 18px);
+        height: 13px;
+        border: 1px solid #bcbcbc
+      }
+.salesbot-designer__zoom-orig span:before,
+        .salesbot-designer__zoom-orig span:after {
+          content: '';
+          position: absolute;
+          background: #ffffff;
+          background: var(--salesbot-designer-background-primary);
+        }
+.salesbot-designer__zoom-orig span:before {
+          width: calc(100% + 2px);
+          height: 5px;
+          left: -1px;
+          top: 3px;
+        }
+.salesbot-designer__zoom-orig span:after {
+          height: 13px;
+          width: 5px;
+          top: -1px;
+          left: 3px;
+        }
+.salesbot-designer__workarea {
+    position: absolute;
+    top: 0;
+    left: 0;
+    backface-visibility: hidden;
+    font-family: 'PT Sans', Arial, sans-serif;
+    line-height: normal;
+  }
+.salesbot-designer__workarea .hidden {
+      display: none !important;
+    }
+.salesbot-designer__workarea textarea:not(.sb-text-input):not(.text-input) {
+      margin: 0;
+      padding: 0;
+      border: 0;
+      font: inherit;
+      vertical-align: baseline;
+      text-rendering: geometricPrecision;
+      -webkit-font-smoothing: antialiased;
+    }
+.salesbot-designer__workarea-dragging {
+    }
+.salesbot-designer__workarea-panning textarea,
+      .salesbot-designer__workarea-panning [contenteditable],
+      .salesbot-designer__workarea-panning .custom-scroll {
+        pointer-events: none;
+      }
+.salesbot-designer__map {
+    position: absolute;
+    bottom: 25px;
+    right: 25px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 212px;
+    height: 132px;
+    border: 1px solid #e5e5e5;
+    border: 1px solid var(--salesbot-designer-border-default);
+    border-radius: 4px;
+
+    background-color: #ffffff;
+
+    background-color: var(--salesbot-designer-background-primary);
+    box-sizing: border-box;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+
+    transition: opacity 0.7s, width 0.2s, height 0.2s;
+    opacity: 0.3;
+  }
+.salesbot-designer__map-dragging,
+    .salesbot-designer__map:hover {
+      width: 318px;
+      height: 198px;
+      opacity: 1;
+    }
+.salesbot-designer__map-dragging + .salesbot-designer__goto-back, .salesbot-designer__map:hover + .salesbot-designer__goto-back {
+        opacity: 0;
+      }
+.salesbot-designer__map canvas {
+      position: absolute;
+      box-sizing: border-box;
+      top: 5px;
+      right: 5px;
+      bottom: 5px;
+      left: 5px;
+      width: calc(100% - 10px);
+      height: calc(100% - 10px);
+    }
+.salesbot-designer__spinner-icon {
+    display: block;
+    width: 16px;
+    height: 16px;
+    border: solid 2px transparent;
+    border-top-color: #158fd2;
+    border-left-color: #158fd2;
+    border-radius: 100%;
+    animation: salesbot-designer-nprogress-spinner 900ms linear infinite;
+  }
+@keyframes salesbot-designer-nprogress-spinner {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
+}
+@keyframes salesbot-designer-goto-back-progress {
+  0% {
+    width: 0;
+  }
+
+  100% {
+    width: 100%;
+  }
+}

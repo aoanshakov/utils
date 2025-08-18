@@ -1,0 +1,6 @@
+stand-int0-merged-from-master
+master-merged-from-stand-int1
+
+src/statuses/account.tsx
+getIpcRenderer
+src/typings/global.d.ts
