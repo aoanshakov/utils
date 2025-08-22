@@ -48,10 +48,10 @@ index 49f3ff4..628586d 100644
          "@loadable/component": "^5.7.0",
          "@types/react-router": "^4.4.5",
 diff --git a/public/index.html b/public/index.html
-index 2623908..58dbf5e 100644
+index 2623908..ad698bc 100644
 --- a/public/index.html
 +++ b/public/index.html
-@@ -21,7 +21,43 @@
+@@ -21,7 +21,47 @@
        Learn how to configure a non-root public URL by running `npm run build`.
      -->
      <title>UIS Admin</title>
@@ -74,6 +74,10 @@ index 2623908..58dbf5e 100644
 +        .zoom-leave, .zoom-big-fast-leave, .ant-notification-fade-leave, .ant-tabs-tabpane-inactive, .slide-up-leave {
 +            display: none !important;
 +        }
++
++        .cmg-west-menu .ant-menu-hidden {
++            display: block !important;
++        }
 +    </style>
      <link href="https://fonts.googleapis.com/css?family=Open+Sans" rel="stylesheet" />
 +    <script src="/tests/utils/jasmine/lib/jasmine-3.4.0/jasmine.js"></script>
@@ -95,7 +99,7 @@ index 2623908..58dbf5e 100644
  </head>
  
  <body>
-@@ -37,6 +73,9 @@
+@@ -37,6 +77,9 @@
        To begin the development, run `npm start` or `yarn start`.
        To create a production bundle, use `npm run build` or `yarn build`.
      -->
@@ -131,26 +135,13 @@ index 9937105..d590c48 100644
 -export default createBrowserHistory();
 +export default createMemoryHistory();
 diff --git a/src/index.js b/src/index.js
-index 3b3caf5..4bdbc5a 100644
+index 5a8ef61..51abb2f 100644
 --- a/src/index.js
 +++ b/src/index.js
-@@ -14,7 +14,6 @@ import { initReactI18next } from 'react-i18next';
- import i18nconfig from './lib/i18n';
- import 'moment/locale/ru';
- import ru from './components/i18n/ru.json';
--import features from './features.json';
- moment.locale('ru');
- 
- i18n
-@@ -28,18 +27,50 @@ if (process.env.NODE_ENV === 'development') {
- }
+@@ -28,16 +28,47 @@ if (process.env.NODE_ENV === 'development') {
  
  window.isGodMode = window.location.search.indexOf('godmode') !== -1;
--stores.appStore.setFeatures(features);
  
- 
--ReactDOM.render(
--    <Provider {...stores}>
 +window.application = {
 +    run({
 +        setHistory = () => null,
@@ -160,27 +151,28 @@ index 3b3caf5..4bdbc5a 100644
 +    }) {
 +        setHistory(history);
 +        setStores(stores);
++        this.exit();
+ 
+-ReactDOM.render(
+-    <Provider {...stores}>
++        let container = document.getElementById('root');
  
 -        <Router history={history}>
 -            <ConfigProvider locale={ruRU}>
 -                <App />
 -            </ConfigProvider>
 -        </Router>
-+        this.exit();
- 
--    </Provider>,
--    document.getElementById('root'));
-+        let container = document.getElementById('root');
- 
 +        if (!container) {
 +            container = document.createElement('div');
 +            container.id = 'root';
 +            document.body.appendChild(container);
 +        }
-+
+ 
+-    </Provider>,
+-    document.getElementById('root'));
 +        ReactDOM.render(
 +            <Provider {...stores}>
-+
+ 
 +                <Router history={history}>
 +                    <ConfigProvider locale={ruRU}>
 +                        <App setApp={setApp} />
@@ -188,7 +180,7 @@ index 3b3caf5..4bdbc5a 100644
 +                </Router>
 +
 +            </Provider>,
-+            container
++            container,
 +        );
 +    },
 +
@@ -203,3 +195,17 @@ index 3b3caf5..4bdbc5a 100644
 +        container.remove();
 +    }
 +};
+diff --git a/src/lib/components/WestMenu.js b/src/lib/components/WestMenu.js
+index 6de6692..725837c 100644
+--- a/src/lib/components/WestMenu.js
++++ b/src/lib/components/WestMenu.js
+@@ -16,6 +16,9 @@ class MainMenu extends React.Component {
+             <Menu
+                 theme="dark"
+                 mode="inline"
++                className="cmg-west-menu"
++                forceSubMenuRender={true}
++                inlineCollapsed={false}
+                 defaultOpenKeys={selectedOrOpenKeys}
+                 defaultSelectedKeys={selectedOrOpenKeys}
+             >

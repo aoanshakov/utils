@@ -1,0 +1,15 @@
+diff --git a/cjs/scheduler.development.js b/cjs/scheduler.development.js
+index bfc99a2..8189504 100644
+--- a/cjs/scheduler.development.js
++++ b/cjs/scheduler.development.js
+@@ -82,8 +82,8 @@ typeof MessageChannel !== 'function') {
+   // Capture local references to native APIs, in case a polyfill overrides them.
+   var performance = window.performance;
+   var _Date = window.Date;
+-  var _setTimeout = window.setTimeout;
+-  var _clearTimeout = window.clearTimeout;
++  var _setTimeout = (...args) => window.setTimeout(...args);
++  var _clearTimeout = (...args) => window.clearTimeout(...args);
+ 
+   if (typeof console !== 'undefined') {
+     // TODO: Scheduler no longer requires these methods to be polyfilled. But

@@ -1,5 +1,5 @@
-const {Args, isOneOf} = require('./utils/arguments'),
-    {adminFrontend, adminFrontendPatch} = require('./utils/paths'),
+const { Args, isOneOf } = require('./utils/arguments'),
+    { adminFrontend, adminFrontendPatch, scheduler, schedulerPatch } = require('./utils/paths'),
     execute = require('./utils/execute'),
     openAdminFrontendDir = `cd ${adminFrontend} &&`;
 
@@ -13,7 +13,8 @@ const overridenFiles =
     'src/index.js ' +
     'src/App.js ' +
     'public/index.html ' +
-    'config-overrides.js';
+    'config-overrides.js ' +
+    'src/lib/components/WestMenu.js';
 
 actions['create-patch'] = [
     addSafeDirectory,
@@ -27,6 +28,7 @@ actions['restore-code'] = [
 
 actions['modify-code'] = actions['restore-code'].concat([
     `${openAdminFrontendDir} patch -p1 < ${adminFrontendPatch}`,
+    `cd ${scheduler} && patch -p1 < ${schedulerPatch}`,
     `fix-permissions ${adminFrontend}`,
 ]);
 

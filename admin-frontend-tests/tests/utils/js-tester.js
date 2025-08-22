@@ -2483,6 +2483,10 @@ function JsTester_Utils (debug) {
         domElement.scrollIntoView();
     }
 
+    this.isNonExisting = function (value) {
+        return !value || value instanceof JsTester_NoElement;
+    };
+
     this.maybeDecodeArrayBuffer = function (data) {
         if (data instanceof ArrayBuffer) {
             data = (new TextDecoder()).decode(new Uint8Array(data));
@@ -4022,6 +4026,12 @@ function JsTester_DomElement (
         return actualValue;
     }
 
+    this.endTransition = function (propertyName) {
+        getDomElement()?.dispatchEvent(new TransitionEvent('transitionend', {
+            bubbles: true,
+            propertyName
+        }));
+    };
     this.pressEscape = function () {
         this.expectToBeVisible();
         utils.pressEscape(getDomElement());

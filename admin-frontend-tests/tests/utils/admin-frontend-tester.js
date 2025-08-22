@@ -26,6 +26,16 @@ define(() => {
         result = options.runApplication(options);
 
         const {app, path} = result;
+
+        {
+            const open = path.open.bind(path);
+
+            path.open = (...args) => {
+                open(...args);
+                spendTime(0);
+            };
+        }
+
         stores = result.stores;
 
         !resetIsDone && resetStores();
@@ -70,9 +80,11 @@ define(() => {
                     tester.arrowIcon = () => testersFactory.createDomElementTester(
                         getSelect().querySelector('.ant-select-arrow-icon')
                     );
+
+                    tester.expectToBeDisabled = () => tester.expectToHaveClass('ant-select-disabled');
+                    tester.expectToBeEnabled = () => tester.expectNotToHaveClass('ant-select-disabled');
                     
                     addErrorIcon(tester, getSelect);
-
                     return tester;
                 };
 
@@ -106,6 +118,13 @@ define(() => {
                 tester.withPlaceholder = placeholder => {
                     const getDomElement = () => getRoot().querySelector('input[placeholder="' + placeholder + '"]'),
                         tester = testersFactory.createTextFieldTester(getDomElement());
+
+                    const fill = tester.fill.bind(tester);
+
+                    tester.fill = (...args) => {
+                        fill(...args);
+                        spendTime(0);
+                    };
 
                     addErrorIcon(tester, getDomElement);
                     return tester;
@@ -291,7 +310,13 @@ define(() => {
 
                     right() {
                         return getCalendar('right');
-                    }
+                    },
+
+                    input() {
+                        return testersFactory.createDomElementTester(() => document.querySelector(
+                            '.ant-calendar-picker-input'
+                        ));
+                    },
                 }, () => document.body);
             },
 
@@ -300,6 +325,7 @@ define(() => {
             tooltip: testersFactory.createDomElementTester(() =>
                 utils.getVisibleSilently(document.querySelectorAll('.ant-tooltip-inner'))),
             notification: testersFactory.createDomElementTester(() => document.querySelector('.ant-notification')),
+            title: testersFactory.createDomElementTester(() => document.querySelector('.pagetitle')),
 
             table() {
                 const tester = testersFactory.createDomElementTester('.softphone-settings-form');
@@ -394,7 +420,7 @@ define(() => {
                                         column: () => ({
                                             withHeader: text => {
                                                 const headers = document.querySelectorAll(
-                                                    '.softphone-settings-form th'
+                                                    '.ant-table-thead th'
                                                 );
 
                                                 const index = Array.prototype.findIndex.call(
@@ -412,13 +438,40 @@ define(() => {
                                                     );
                                                 }
 
-                                                const getCell = () =>
-                                                    getRow().querySelectorAll(cellSelector)[index];
+                                                const getCell = () => getRow().querySelectorAll(cellSelector)[index];
 
-                                                return createTesters(
+                                                const tester = createTesters(
                                                     getCell,
                                                     testersFactory.createDomElementTester(getCell)
                                                 );
+
+                                                const isChecked = () => {
+                                                    tester.expectToExist();
+
+                                                    return !utils.isNonExisting(
+                                                        getCell().querySelector('.anticon-check')
+                                                    );
+                                                };
+
+                                                tester.expectToBeChecked = () => {
+                                                    if (!isChecked()) {
+                                                        throw Error(
+                                                            `Ячейка в колонке с заголовком "${text}" ${index + 1}-й ` +
+                                                            'строки должна быть отмечена.'
+                                                        );
+                                                    }
+                                                };
+
+                                                tester.expectNotToBeChecked = () => {
+                                                    if (isChecked()) {
+                                                        throw Error(
+                                                            `Ячейка в колонке с заголовком "${text}" ${index + 1}-й ` +
+                                                            'строки не должна быть отмечена.'
+                                                        );
+                                                    }
+                                                };
+
+                                                return tester;
                                             }
                                         })
                                     });
@@ -461,7 +514,13 @@ define(() => {
                 const tester = testersFactory.createAnchorTester(menuitem.querySelector('a') || menuitem),
                     click = tester.click.bind(tester);
 
-                tester.click = () => (click(), Promise.runAll(false, true));
+                tester.click = () => {
+                    click();
+
+                    Promise.runAll(false, true);
+                    spendTime(0);
+                };
+
                 return tester;
             },
 
@@ -595,6 +654,233 @@ define(() => {
                         this.expectToBeSent().receiveResponse();
                     }
                 });
+            },
+
+            employeesRequest() {
+                return {
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                method: 'get.employees',
+                                params: { app_id: '4735' },
+                            }).
+                            respondSuccessfullyWith({
+                                success: true,
+                                total: 1,
+                                data: [{
+                                    total_records: 1,
+                                    id: 25829,
+                                    full_name: 'Великова Богдана Цвятковна',
+                                    short_phone: '32',
+                                    in_external_allowed_call_directions: ['in', 'out'],
+                                    in_internal_allowed_call_directions: ['in', 'out'],
+                                    out_external_allowed_call_directions: ['in', 'out'],
+                                    out_internal_allowed_call_directions: ['in', 'out' ],
+                                    status_id: 40489,
+                                    is_in_call: false,
+                                    phones_count: 2,
+                                    chat_operator_status: 'offline',
+                                    user_id: 155687,
+                                    role_name: null,
+                                    is_permission_granted: true,
+                                    sip_line_number_capacity_id: null,
+                                    sip_line_number_capacity_usage_rule: null,
+                                    licenses: null,
+                                    user_type: 'user',
+                                    sip_line_id: null,
+                                    sip_line_state: null,
+                                    sip_line_physical_state: null,
+                                    sip_line_is_multiterminal: null,
+                                    sip_line_channels_count: null,
+                                    app_role_data_visibility: null
+                                }]
+                            });
+                    },
+                };
+            },
+
+            staffStatusesRequest() {
+                let app_id = '4735';
+
+                return {
+                    anotherAppId() {
+                        app_id = '473';
+                        return this;
+                    },
+
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                method: 'get.staff_statuses',
+                                params: { app_id },
+                            }).
+                            respondSuccessfullyWith({
+                                result: {
+                                    data: [{
+                                        id: 82582,
+                                        is_worktime: true,
+                                        name: 'Доступен',
+                                        mnemonic: 'available',
+                                        is_select_allowed: true,
+                                        is_removed: false,
+                                        description: 'все вызовы',
+                                        color: '#48b882',
+                                        icon: 'tick',
+
+                                        in_external_allowed_call_directions: ['in', 'out'],
+                                        in_internal_allowed_call_directions: ['in', 'out'],
+                                        out_external_allowed_call_directions: ['in', 'out' ],
+                                        out_internal_allowed_call_directions: ['in', 'out'],
+
+                                        is_auto_out_calls_ready: true,
+                                        is_use_availability_in_group: true,
+                                        is_able_to_accept_chat_transfer: false,
+                                        is_able_to_transfer_chat: true,
+                                        is_able_to_accept_chat: false,
+                                        is_able_to_close_chat_offline_message: true,
+                                        is_able_in_forwarding_scenario: false,
+                                        is_able_to_send_chat_messages: true,
+
+                                        allowed_phone_protocols: ['SIP'],
+                                    }, {
+                                        id: 82583,
+                                        is_worktime: true,
+                                        mnemonic: 'break',
+                                        name: 'Перерыв',
+                                        is_select_allowed: true,
+                                        description: 'временное отключение',
+                                        color: '#1179ad',
+                                        icon: 'pause',
+                                        is_auto_out_calls_ready: true,
+                                        is_removed: false,
+
+                                        is_able_to_accept_chat_transfer: true,
+                                        is_able_to_transfer_chat: true,
+                                        is_able_to_accept_chat: false,
+                                        is_able_to_close_chat_offline_message: true,
+                                        is_able_in_forwarding_scenario: true,
+                                        is_able_to_send_chat_messages: true,
+
+                                        in_external_allowed_call_directions: [],
+                                        in_internal_allowed_call_directions: [],
+                                        out_external_allowed_call_directions: [],
+                                        out_internal_allowed_call_directions: [],
+
+                                        allowed_phone_protocols: ['SIP'],
+                                    }],
+                                    metadata: {
+                                        total_items: 2,
+                                    },
+                                },
+                            });
+
+                        spendTime(0);
+                    },
+                };
+            },
+
+            employeesStatusesHistoryRequest() {
+                const getYearAndMonth = (process = value => value) => {
+                    const date = new Date();
+
+                    process(date);
+                    return date.toISOString().substr(0, 7);
+                };
+
+                const date_from = getYearAndMonth(date => date.setMonth(date.getMonth() - 1)),
+                    date_till = getYearAndMonth();
+
+                return {
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                method: 'get.employees_statuses_history',
+                                params: {
+                                    app_id: '4735',
+                                    date_from: `${date_from}-26 00:00:00`,
+                                    date_till: `${date_till}-17 23:59:59`,
+                                    is_use_app_timezone: 'true',
+                                    employee_id: '25829',
+                                    old_value: '82582',
+                                    new_value: '82583',
+                                },
+                            }).
+                            respondSuccessfullyWith({
+                                result: {
+                                    data: [{
+                                        employee_name: 'Аначкова Антоанета Кировна',
+                                        status_name: 'Доступен',
+                                        user_name: 'Великова Богдана Цвятковна',
+                                        change_source: 'Некий источник',
+                                        is_auto: true,
+                                        start_time: '2025-08-21T10:44:24',
+                                        finish_time: '2025-08-21T11:43:23'
+                                    }, {
+                                        employee_name: 'Аначкова Антоанета Кировна',
+                                        status_name: 'Перерыв',
+                                        user_name: 'Великова Богдана Цвятковна',
+                                        change_source: 'Некий источник',
+                                        is_auto: false,
+                                        start_time: '2025-08-21T10:44:24',
+                                        finish_time: null,
+                                    }],
+                                    metadata: {
+                                        total_items: 1,
+                                    },
+                                },
+                            });
+
+                        Promise.runAll();
+                    }
+                };
+            },
+
+            revisionHistoryReportRequest() {
+                return {
+                    receiveResponse() {
+                        ajax.recentRequest().
+                            expectPathToContain('/dataapi/').
+                            expectToHaveMethod('POST').
+                            expectBodyToContain({
+                                method: 'get.revision_history_report',
+                                params: {
+                                    app_id: '4735',
+                                }
+                            }).
+                            respondSuccessfullyWith({
+                                result: {
+                                    data: [{
+                                        date_time: '2025-08-21T10:44:24',
+                                        app_name: 'ООО "НОВОСИСТЕМ"',
+                                        table_name: 'staff.employee',
+                                        table_description: 'Сотрудники',
+                                        record_id: '9117019',
+                                        change_type: 'update',
+                                        user_name: 'Гайнанов Даниял',
+                                        ip: '10.81.100.37',
+                                        total_records: 7,
+                                        old_values: JSON.stringify({
+                                            status_id: 800248,
+                                        }),
+                                        new_values: JSON.stringify({
+                                            status_id: 800242,
+                                        }),
+                                    }],
+                                    metadata: {
+                                        total_items: 1
+                                    }
+                                }
+                            });
+
+                        Promise.runAll();
+                    }
+                };
             },
 
             usersRequest() {
@@ -937,6 +1223,18 @@ define(() => {
                     result = {};
 
                 return {
+                    addTableName() {
+                        keys.push('comagic:public:table_name');
+                        
+                        result['comagic:public:table_name'] = [{
+                            aux_id: 'Сотрудники',
+                            id: 'staff.employee',
+                            name: 'Сотрудники'
+                        }];
+
+                        return this;
+                    },
+
                     addTpTpvAll() {
                         keys.push('billing:_tree:tp_tpv_all');
                         result['billing:_tree:tp_tpv_all'] = [];
