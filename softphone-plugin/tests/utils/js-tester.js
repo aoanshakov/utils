@@ -144,6 +144,7 @@ function JsTester_Container (args) {
             item = item.getOther();
         }
     };
+
     this.add = function (value) {
         const newItem = new JsTester_ContainerItem(value);
 
@@ -156,14 +157,18 @@ function JsTester_Container (args) {
 
         lastItem = newItem;
     };
+
     this.pop = function () {
-        var value = currentItem.getValue();
+        const value = currentItem.getValue();
         currentItem = currentItem.getOther();
+
         return value;
     };
+
     this.isEmpty = function () {
         return currentItem === emptyItem;
     };
+
     this.removeAll = function () {
         currentItem = lastItem = emptyItem;
     };

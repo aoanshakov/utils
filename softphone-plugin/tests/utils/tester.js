@@ -325,7 +325,15 @@ define(() => function ({
     {
         let phoneIconClickHandler = () => null;
 
+        const constants = {
+            user: {
+                amojo_id: '7e3c6faf-3723-46ba-a12f-5f52875b4eac',
+            },
+        };
+
         window.AMOCRM = window.APP = {
+            constant: key => constants[key],
+
             widgets: {
                 list: widgetsInstalled.reduce((list, name) => (list[name] = {}, list), {}),
 
@@ -337,6 +345,7 @@ define(() => function ({
                     phoneIconClickHandler = () => null;
                 },
             },
+
             lang_id: lang,
         };
 
@@ -3818,7 +3827,8 @@ define(() => function ({
 
     me.amocrmStateSettingRequest = () => {
         const processors = [],
-            secondProcessors = [];
+            secondProcessors = [],
+            noLang = () => processors.push(message => delete(message.data.url));
 
         const getMessage = () => {
             const message = {
@@ -3842,10 +3852,17 @@ define(() => function ({
                 return this;
             },
 
+            salesbot() {
+                noLang();
+                return this;
+            },
+
             chats() {
+                noLang();
+
                 processors.push(message => {
-                    delete(message.data.url);
                     message.data.softphone_enabled = true;
+                    message.data.features = ['sources_origins'];
                 });
 
                 return this;
@@ -3853,6 +3870,11 @@ define(() => function ({
 
             softphoneDisabled() {
                 secondProcessors.push(message => message.data.softphone_enabled = false);
+                return this;
+            },
+
+            noFeatures() {
+                secondProcessors.push(message => delete(message.data.features));
                 return this;
             },
 
@@ -3887,43 +3909,70 @@ define(() => function ({
     };
 
     me.sourcesSettingRequest = () => {
-        const message = {
+        const sources = [{
+            id: 23495103,
+            origin: 'amo.ext.32052838.2',
+            chat_channel_id: 40790,
+            is_mine: false,
+        }, {
+            id: 23495104,
+            origin: 'amo.ext.32052838',
+            chat_channel_id: 40791,
+            is_mine: true,
+        }, {
+            id: 23495107,
+            origin: 'amo.ext.32052838',
+            chat_channel_id: 40792,
+            is_mine: false,
+        }, {
+            id: 23495101,
+            origin: 'amo.ext.32052838.2',
+            chat_channel_id: 40793,
+            is_mine: false,
+        }, {
+            id: 23495105,
+            origin: 'amo.ext.32052840.2',
+            chat_channel_id: 40794,
+            is_mine: true,
+        }];
+
+        const origins = [
+            'amo.ext.32052838.2',
+            'amo.ext.32052838',
+            'amo.ext.32052839.2',
+            'amo.ext.32052840.2',
+            'amo.ext.32052841.2'
+        ];
+
+        const getMessageWithoutOrigins = () => ({
             method: 'set_sources',
-            data: [{
-                id: 23495103,
-                origin: 'amo.ext.32052838.2',
-                chat_channel_id: 40790,
-                is_mine: false,
-            }, {
-                id: 23495104,
-                origin: 'amo.ext.32052838',
-                chat_channel_id: 40791,
-                is_mine: true,
-            }, {
-                id: 23495107,
-                origin: 'amo.ext.32052838',
-                chat_channel_id: 40792,
-                is_mine: false,
-            }, {
-                id: 23495101,
-                origin: 'amo.ext.32052838.2',
-                chat_channel_id: 40793,
-                is_mine: false,
-            }, {
-                id: 23495105,
-                origin: 'amo.ext.32052840.2',
-                chat_channel_id: 40794,
-                is_mine: true,
-            }],
-        };
+            data: sources,
+        });
+
+        const getMessageWithOrigins = () => ({
+            method: 'set_sources',
+            data: { sources, origins },
+        });
+
+        let getMessage = getMessageWithOrigins;
 
         return {
-            receive: () => postMessages.receive(message),
+            noOrigins() {
+                getMessage = getMessageWithoutOrigins;
+                return this;
+            },
 
-            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain({
-                ...message,
-                data: message.data.concat(undefined),
-            }),
+            receive: () => {
+                postMessages.receive(getMessage());
+                spendTime(0);
+            },
+
+            expectToBeSent: () => {
+                sources.push(undefined);
+                origins.push(undefined);
+
+                return postMessages.nextMessage().expectMessageToContain(getMessage());
+            },
         };
     };
 
@@ -4681,10 +4730,10 @@ define(() => function ({
                                     'class="tips-icon" ' +
                                     'width="14" ' +
                                     'height="14" ' +
-                                    'alt="bykov_test_bot"' +
+                                    'alt="bykov_test_bot (UIS Telegram Bot)"' +
                                 '>' +
                             '</span>' +
-                            'bykov_test_bot' +
+                            'bykov_test_bot (UIS Telegram Bot)' +
                         '</div>' +
                         '<div ' +
                             'class="tips-item js-tips-item js-cf-actions-item" ' +
@@ -4710,6 +4759,31 @@ define(() => function ({
                                 '>' +
                             '</span>' +
                             'zykov_test_bot' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item" ' +
+                            'data-type="write_first" ' +
+                            'data-source-id="23495106" ' +
+                            'data-source-origin="amo.ext.32052841.3" ' +
+                            'data-contact-id="70907915" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type=""' +
+                        '>' +
+                            '<span class="tips-icon-container">' +
+                                '<img ' +
+                                    'src="' +
+                                        'https://st1.amocrm.ru/origins_icons/' +
+                                            'amo.ext.32052838.2.svg' +
+                                    '" ' +
+                                    'class="tips-icon" ' +
+                                    'width="14" ' +
+                                    'height="14" ' +
+                                    'alt="pykov_test_bot"' +
+                                '>' +
+                            '</span>' +
+                            'pykov_test_bot' +
                         '</div>' +
                         '<div ' +
                             'class="tips-item js-tips-item js-cf-actions-item" ' +
@@ -4773,6 +4847,14 @@ define(() => function ({
             setHistory,
             setNotification,
             active,
+            recipients: {
+                'contact.phone': 'Contact: Phone',
+                'contact.fax': 'Contact: Fax',
+            },
+            variables: {
+                '{id}': 'Unique chat id (id)',
+                '{status}': 'Chat status (status)',
+            },
             bitrixSalesbotSettings: Object.entries(salesbotSettings).reduce(
                 (settings, [key, value]) => (
                     settings[key] = typeof value == 'boolean'
@@ -4781,7 +4863,9 @@ define(() => function ({
 
                     settings
                 ),
-                {},
+                {
+                    recipient: 'contact.fax',
+                },
             ),
             setEventBus: eventBus => {
                 const events = {},

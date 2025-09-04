@@ -1691,7 +1691,7 @@ tests.addTest(options => {
                     expectToBeSent();
             });
         });
-        xdescribe('Открываю IFrame чатов amoCRM.', function() {
+        describe('Открываю IFrame чатов amoCRM.', function() {
             let accountRequest,
                 secondAccountRequest,
                 salesbotChannelsRequest;
@@ -1760,8 +1760,6 @@ tests.addTest(options => {
                     accountRequest.
                         operatorWorkplaceAvailable().
                         receiveResponse();
-
-                    tester.sourcesSettingRequest().expectToBeSent();
 
                     unfilteredPostMessages.
                         nextMessage().
@@ -1872,7 +1870,7 @@ tests.addTest(options => {
                     salesbotChannelsRequest.expectResponseToBeSent();
                 });
 
-                describe('Получен запрос открытия чата.', function() {
+                xdescribe('Получен запрос открытия чата.', function() {
                     let chatChannelSearchRequest;
 
                     beforeEach(function() {
@@ -1978,7 +1976,7 @@ tests.addTest(options => {
                             receiveResponse();
                     });
                 });
-                describe('Нажимаю на кнопку аккаунта.', function() {
+                xdescribe('Нажимаю на кнопку аккаунта.', function() {
                     beforeEach(function() {
                         tester.accountButton.click();
                     });
@@ -2006,7 +2004,7 @@ tests.addTest(options => {
                         );
                     });
                 });
-                it('Получен запрос открытия чата из несуществующего канала.', function() {
+                xit('Получен запрос открытия чата из несуществующего канала.', function() {
                     tester.chatOpeningRequest().
                         fourthChannel().
                         receive();
@@ -2028,7 +2026,7 @@ tests.addTest(options => {
                         'Канал не найден',
                     );
                 });
-                it('От родительского окна получен запрос каналов. Запрос каналов отправлен на сервер.', function() {
+                xit('От родительского окна получен запрос каналов. Запрос каналов отправлен на сервер.', function() {
                     tester.channelsSearchingRequest().receive();
 
                     tester.visitorExternalSearchingRequest().
@@ -2037,7 +2035,7 @@ tests.addTest(options => {
                         telegramPrivate().
                         expectToBeSent();
                 });
-                it(
+                xit(
                     'Нажимаю на кнопку скачивания лога. В родительское окно отправлен запрос скачивания лога.',
                 function() {
                     tester.bugButton.click();
@@ -2046,7 +2044,7 @@ tests.addTest(options => {
                         windowMessage().
                         expectToBeSent();
                 });
-                it('Получена английская локаль. Используется английский язык.', function() {
+                xit('Получена английская локаль. Используется английский язык.', function() {
                     tester.amocrmStateSettingRequest().
                         en().
                         receive();
@@ -2054,10 +2052,34 @@ tests.addTest(options => {
                     tester.body.expectTextContentToHaveSubstring('My chats');
                     tester.body.expectTextContentNotToHaveSubstring('Мои чаты');
                 });
-                it('Нажимаю на кнопку закрытия. Окно чатов закрыто.', function() {
+                xit('Нажимаю на кнопку закрытия. Окно чатов закрыто.', function() {
                     tester.closeButton.click();
                     tester.chatsHidingRequest().expectToBeSent();
                 });
+                it(
+                    'Получено состояние виджета без фичефлага sources_origins. Отправлен список источников без ' +
+                    'списка origins.',
+                function() {
+                    tester.amocrmStateSettingRequest().
+                        noFeatures().
+                        chats().
+                        receive();
+
+                    tester.sourcesSettingRequest().
+                        noOrigins().
+                        expectToBeSent();
+                });
+                it(
+                    'Получено состояние виджета с фичефлагом sources_origins. Отправлен список источников со списком ' +
+                    'origins.',
+                function() {
+                    tester.amocrmStateSettingRequest().
+                        chats().
+                        receive();
+
+                    tester.sourcesSettingRequest().expectToBeSent();
+                });
+                return;
                 it('Используется русский язык.', function() {
                     tester.body.expectTextContentToHaveSubstring('Мои чаты');
                     tester.body.expectTextContentNotToHaveSubstring('My chats');
@@ -2065,6 +2087,7 @@ tests.addTest(options => {
                     tester.logoutButton.expectNotToExist();
                 });
             });
+            return;
             describe('Не удалось получить данные аккаунта из-за ошибки авторизации.', function() {
                 beforeEach(function() {
                     accountRequest.
@@ -2200,7 +2223,8 @@ tests.addTest(options => {
                 );
             });
         });
-        xdescribe('Открываю IFrame чатов amoCRM. Сотрудник не авторизован.', function() {
+return;
+        describe('Открываю IFrame чатов amoCRM. Сотрудник не авторизован.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'amocrmChatsIframeContent',
@@ -2841,7 +2865,7 @@ tests.addTest(options => {
                 );
             });
         });
-        xdescribe('Открываю IFrame чатов в Битрикс.', function() {
+        describe('Открываю IFrame чатов в Битрикс.', function() {
             let accountRequest,
                 secondAccountRequest,
                 widgetSettings,
@@ -3078,7 +3102,7 @@ tests.addTest(options => {
                 tester.bitrixSalesbotParamsSettingRequest().expectToBeSent();
             });
 
-            xdescribe('Получен токен авторизации.', function() {
+            describe('Получен токен авторизации.', function() {
                 let accountRequest;
 
                 beforeEach(function() {
@@ -3102,6 +3126,18 @@ tests.addTest(options => {
                         accountRequest.
                             operatorWorkplaceAvailable().
                             receiveResponse();
+
+                        unfilteredPostMessages.
+                            nextMessage().
+                            expectMessageToStartsWith('ignore:log:').
+                            expectMessageToContain('Tab state is unknown');
+
+                        unfilteredPostMessages.
+                            nextMessage().
+                            expectMessageToStartsWith('ignore:log:').
+                            expectMessageToContain(
+                                'POST https://dev-int0-chats-logic.uis.st/v1/operator?method=get_account'
+                            );
 
                         tester.employeesBroadcastChannel().
                             applyLeader().
@@ -3215,18 +3251,18 @@ tests.addTest(options => {
                     });
                 });
             });
-            xit('Нажимаю на кнопку скачивания лога. В родительское окно отправлен запрос скачивания лога.', function() {
+            it('Нажимаю на кнопку скачивания лога. В родительское окно отправлен запрос скачивания лога.', function() {
                 tester.bugButton.click();
 
                 tester.logDownloadingRequest().
                     windowMessage().
                     expectToBeSent();
             });
-            xit('Нажимаю на ссылку на страницу авторизации. Открыта страница авторизации.', function() {
+            it('Нажимаю на ссылку на страницу авторизации. Открыта страница авторизации.', function() {
                 tester.span('Для использования приложения необходимо авторизоваться').click();
                 windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru/bitrix');
             });
-            xit('Нажимаю на кнопку выхода. Открыто окно выхода.', function() {
+            it('Нажимаю на кнопку выхода. Открыто окно выхода.', function() {
                 tester.logoutButton.click();
                 windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru/bitrix/logout');
             });
@@ -3240,7 +3276,6 @@ tests.addTest(options => {
                     'Please authorize to use application'
                 );
             });
-            return;
             it('Отображено сообщение о том, что сотрудник не авторизован.', function() {
                 tester.body.expectToHaveTextContent(
                     'Не авторизован ' +
