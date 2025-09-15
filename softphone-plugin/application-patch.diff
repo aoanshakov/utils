@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index 1ba1b81..29f63f8 100644
+index f051159..eb85ce5 100644
 --- a/package.json
 +++ b/package.json
 @@ -55,21 +55,22 @@
@@ -8,7 +8,7 @@ index 1ba1b81..29f63f8 100644
    "dependencies": {
 -    "@comagic/core": "1.25.1",
 -    "@comagic/softphone-core": "2.8.3",
--    "@comagic/softphone-widget": "0.0.15-int1",
+-    "@comagic/softphone-widget": "2.4.3",
 -    "@comagic/ui": "3.5.4",
 -    "@comagic/workplace-utils": "1.16.3",
 +    "@comagic/core": "./misc/core",
@@ -32,13 +32,16 @@ index 1ba1b81..29f63f8 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -80,6 +81,9 @@
+@@ -80,6 +81,12 @@
      "react-router-dom": "6.9.0",
      "string-hash": "^1.1.3",
      "twig": "^1.15.1",
 -    "wildcard-match": "^5.1.2"
 +    "twig-loader": "^0.5.5",
 +    "wildcard-match": "^5.1.2",
++    "is-arrayish": "0.3.2",
++    "error-ex": "1.3.2",
++    "debug": "4.4.1",
 +    "js-cookie": "^3.0.5",
 +    "omni": "./misc/omni"
    }

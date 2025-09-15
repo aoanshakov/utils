@@ -64,7 +64,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        xdescribe('Открыт IFrame.', function() {
+        describe('Открыт IFrame.', function() {
             beforeEach(function() {
                 localStorage.setItem('debugMode', '1');
 
@@ -1015,7 +1015,7 @@ tests.addTest(options => {
                 tester.softphone.expectNotToExist();
             });
         });
-        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
+        describe('Открываю попап. Отправлен запрос состояния.', function() {
             let stateRequest,
                 popupStateSettingRequest;
 
@@ -1107,7 +1107,7 @@ tests.addTest(options => {
                     expectToBeReloaded();
             });
         });
-        xdescribe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
+        describe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -3191,7 +3191,7 @@ tests.addTest(options => {
                     expectToBeHidden();
             });
         });
-        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
+        describe('Открываю попап. Отправлен запрос состояния.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'popup',
@@ -3414,7 +3414,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentNotToHaveSubstring('Вы не авторизованы');
             });
         });
-        xdescribe('Открываю background-скрипт. Софтфон авторизован.', function() {
+        describe('Открываю background-скрипт. Софтфон авторизован.', function() {
             let oauthRequest;
 
             beforeEach(function() {
@@ -3651,7 +3651,7 @@ tests.addTest(options => {
                     grant();
             });
         });
-        xdescribe('Открываю background-скрипт.', function() {
+        describe('Открываю background-скрипт.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'background',
@@ -3973,7 +3973,7 @@ tests.addTest(options => {
                 tester.popupStateSettingRequest().expectResponseToBeSent();
             });
         });
-        xdescribe('Контент скрипт встроился в IFrame. Сотрудник авторизован.', function() {
+        describe('Контент скрипт встроился в IFrame. Сотрудник авторизован.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -4100,7 +4100,7 @@ tests.addTest(options => {
                 );
             });
         });
-        xdescribe('Открыт IFrame софтфона amoCRM.', function() {
+        describe('Открыт IFrame софтфона amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'amocrmIframeContent',
@@ -4415,7 +4415,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentToHaveSubstring('Please authorize to use softphone');
             });
         });
-        xdescribe('Открываю виджет amoCRM.', function() {
+        describe('Открываю виджет amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -4661,7 +4661,7 @@ tests.addTest(options => {
                             receiveResponse();
                     });
 
-                    xdescribe('Сотрудник авторизован.', function() {
+                    describe('Сотрудник авторизован.', function() {
                         beforeEach(function() {
                             postMessages.receive({
                                 method: 'set_token',
@@ -4912,7 +4912,7 @@ tests.addTest(options => {
                             );
                         });
                     });
-                    xdescribe('Нажимаю на пункт меню.', function() {
+                    describe('Нажимаю на пункт меню.', function() {
                         beforeEach(function() {
                             tester.navMenuItem.click();
                             tester.chatListOpeningRequest().expectToBeSent();
@@ -4954,7 +4954,7 @@ tests.addTest(options => {
                                 expectToBeVisible();
                         });
                     });
-                    xdescribe('Получены сообщения.', function() {
+                    describe('Получены сообщения.', function() {
                         beforeEach(function() {
                             tester.unreadMessagesCountSettingRequest().
                                 value(75).
@@ -4979,7 +4979,9 @@ tests.addTest(options => {
                             data: tester.oauthToken,
                         });
 
-                        tester.sourcesSettingRequest().receive();
+                        tester.sourcesSettingRequest().
+                            noOrigins().
+                            receive();
 
                         tester.channelsSearchingRequest().
                             second().anotherPhone().
@@ -5026,7 +5028,6 @@ tests.addTest(options => {
                             'Редактировать'
                         );
                     });
-                    return;
                     it('Получен запрос скачивания лога. Лог скачан.', function() {
                         tester.logDownloadingRequest().
                             windowMessage().
@@ -5061,7 +5062,6 @@ tests.addTest(options => {
                             expectToBeHidden();
                     });
                 });
-                return;
                 it('Нажимаю на пункт меню. IFrame чатов не отображён.', function() {
                     tester.navMenuItem.click();
                 });
@@ -5073,7 +5073,6 @@ tests.addTest(options => {
                     tester.navMenuItem.expectToBeDisabled();
                 });
             });
-            return;
             describe('Инициализировано содержимое IFrame. Сотрудник авторизован.', function() {
                 let salesbotChannelsRequest;
 
@@ -5208,7 +5207,6 @@ tests.addTest(options => {
                 });
             });
         });
-return;
         describe(
             'В локальном хранилище сохранен токен. Открыт IFrame софтфона amoCRM. Производится авторизация.',
         function() {

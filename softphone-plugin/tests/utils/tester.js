@@ -3637,6 +3637,7 @@ define(() => function ({
 
                 receive: () => {
                     !isBitrix && postMessages.receive(requestMessage);
+                    responseMessage.data.channels.push(undefined);
 
                     return addResponseModifiers({
                         expectResponseToBeSent: () => postMessages.
@@ -3957,6 +3958,11 @@ define(() => function ({
         let getMessage = getMessageWithOrigins;
 
         return {
+            noGroupsFiltration() {
+                sources[4] = undefined;
+                return this;
+            },
+
             noOrigins() {
                 getMessage = getMessageWithoutOrigins;
                 return this;
@@ -11565,6 +11571,56 @@ define(() => function ({
         }
     });
 
+    me.settingsAppRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('https://$REACT_APP_BASE_URL/settings/app').
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith([]);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
+    me.commonEmployeeStatusRequest = () => {
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('https://$REACT_APP_COMAGIC_API_URL/common/employee_status').
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith([]);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.chatChannelListRequest = () => {
         const data = [{
             id: 101,
@@ -11596,6 +11652,14 @@ define(() => function ({
             is_removed: false,
             name: 'Telegram Private',
             status: 'active',
+            status_reason: '',
+            type: 'telegram_private',
+        }, {
+            id: 216402,
+            channel_id: 216402,
+            is_removed: false,
+            name: 'Астана',
+            status: 'idle',
             status_reason: '',
             type: 'telegram_private',
         }];
@@ -13798,56 +13862,68 @@ define(() => function ({
         }
     });
 
-    me.listRequest = () => ({
-        expectToBeSent(requests) {
-            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('https://$REACT_APP_BASE_URL/operator/list').
-                expectToHaveMethod('GET');
+    me.listRequest = () => {
+        let respond = request => request.respondSuccessfullyWith({
+            data: [{
+                id: 20816,
+                full_name: 'Карадимова Веска Анастасовна',
+                status_id: 1,
+                photo_link: null,
+                groups: [{
+                    group_id: 775873,
+                    group_name: 'Тестовая Декина Саша'
+                }],
+            }, {
+                id: 20817,
+                full_name: 'Чакърова Райна Илковна',
+                status_id: 1,
+                photo_link: null,
+                groups: [{
+                    group_id: 815663,
+                    group_name: 'Группа кампании исх. обзвона "2303" (2)'
+                }],
+            }, {
+                id: 20818,
+                full_name: 'Костова Марвуда Любенова',
+                status_id: 22,
+                photo_link: null,
+                groups: [{
+                    group_id: 815663,
+                    group_name: 'Группа кампании исх. обзвона "2303" (2)'
+                }],
+            }]
+        });
 
-            return {
-                receiveResponse() {
-                    request.respondSuccessfullyWith({
-                        data: [{
-                            id: 20816,
-                            full_name: 'Карадимова Веска Анастасовна',
-                            status_id: 1,
-                            photo_link: null,
-                            groups: [{
-                                group_id: 775873,
-                                group_name: 'Тестовая Декина Саша'
-                            }],
-                        }, {
-                            id: 20817,
-                            full_name: 'Чакърова Райна Илковна',
-                            status_id: 1,
-                            photo_link: null,
-                            groups: [{
-                                group_id: 815663,
-                                group_name: 'Группа кампании исх. обзвона "2303" (2)'
-                            }],
-                        }, {
-                            id: 20818,
-                            full_name: 'Костова Марвуда Любенова',
-                            status_id: 22,
-                            photo_link: null,
-                            groups: [{
-                                group_id: 815663,
-                                group_name: 'Группа кампании исх. обзвона "2303" (2)'
-                            }],
-                        }]
-                    });
+        const addResponseModifiers = me => {
+            me.failed = () => (respond = request => request.respondUnsuccessfullyWith(
+                '500 Internal Server Error Server got itself in trouble'
+            ), me);
 
-                    Promise.runAll(false, true);
-                    spendTime(0)
-                    spendTime(0)
-                }
-            };
-        },
+            return me;
+        };
 
-        receiveResponse() {
-            this.expectToBeSent().receiveResponse();
-        }
-    });
+        return addResponseModifiers({
+            expectToBeSent(requests) {
+                const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                    expectPathToContain('https://$REACT_APP_BASE_URL/operator/list').
+                    expectToHaveMethod('GET');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        respond(request);
+
+                        Promise.runAll(false, true);
+                        spendTime(0)
+                        spendTime(0)
+                    }
+                });
+            },
+
+            receiveResponse() {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
 
     me.statusListRequest = () => {
         const data = [{
