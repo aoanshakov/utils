@@ -4241,6 +4241,7 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
     this.pressEscape = function (target) {
         this.pressSpecialKey(target, 27);
         spendTime(0);
+        spendTime(0);
     };
     this.pressEnter = function (target) {
         this.pressSpecialKey(target, 13, undefined, undefined, 'Enter');
@@ -8223,16 +8224,21 @@ function JsTester_ParentWindowReplacer (fakeWindow) {
 function JsTester_PostMessageTester ({
     postMessages,
     utils,
+    spendTime,
 }) {
     this.nextMessage = () => postMessages.pop();
 
-    this.receive = message => utils.receiveWindowMessage(message.data && message.origin ? {
-        ...message,
-        data: typeof message.data == 'string' ? message.data : JSON.stringify(message.data),
-    } : {
-        data: typeof message == 'string' ? message : JSON.stringify(message),
-        origin: 'https://somedomain.com',
-    });
+    this.receive = message => {
+        utils.receiveWindowMessage(message.data && message.origin ? {
+            ...message,
+            data: typeof message.data == 'string' ? message.data : JSON.stringify(message.data),
+        } : {
+            data: typeof message == 'string' ? message : JSON.stringify(message),
+            origin: 'https://somedomain.com',
+        })
+
+        spendTime(0);
+    };
 }
 
 function JsTester_Tests (factory) {
@@ -8631,6 +8637,7 @@ function JsTester_Tests (factory) {
         postMessagesTester = new JsTester_PostMessageTester({
             postMessages,
             utils,
+            spendTime,
         }),
         fakeWindow = new JsTester_FakeWindow({
             postMessages: postMessages,

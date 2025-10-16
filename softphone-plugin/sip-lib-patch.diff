@@ -1,22 +1,13 @@
 diff --git a/package.json b/package.json
-index 43423f4c..a7863694 100644
+index 9ca20956..622c04c9 100644
 --- a/package.json
 +++ b/package.json
-@@ -15,6 +15,8 @@
-     "lint": "tsc --noEmit && eslint src/**/*.{ts,tsx}",
-     "prettier": "prettier --write ./src/**/**/*.{ts,tsx}",
-     "test": "echo 'No tests specified'"
-+
-+
-   },
-   "author": "CoMagic",
-   "license": "ISC",
-@@ -22,39 +24,26 @@
+@@ -22,40 +22,27 @@
      "url": "https://gitlab.uis.dev/web/sip_lib/issues"
    },
    "homepage": "https://gitlab.uis.dev/web/sip_lib",
 -  "peerDependencies": {
--    "@comagic/ui": ">=3.0.0",
+-    "@comagic/ui": "^3.0.0",
 -    "axios": ">= 0.24.0 < 1.0.0"
 -  },
    "dependencies": {
@@ -24,8 +15,8 @@ index 43423f4c..a7863694 100644
      "@babel/plugin-proposal-class-properties": "^7.8.3",
      "@babel/plugin-proposal-private-methods": "7.13.0",
      "@babel/preset-env": "^7.1.0",
--    "@comagic/softphone-core": "0.0.0-0.0.16-int0",
--    "@comagic/workplace-utils": "0.0.18-int0",
+-    "@comagic/softphone-core": "0.0.0-0.0.18-int0",
+-    "@comagic/workplace-utils": "0.0.19-int0",
      "@types/react": "^18.0.28",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
@@ -40,6 +31,7 @@ index 43423f4c..a7863694 100644
 -    "mobx-react-lite": "^3.4.0",
 -    "mobx-state-tree": "^5.1.5",
      "moment": "2.29.1",
+     "nanoid": "^3.2.0",
      "prop-types": "^15.6.2",
      "qs": "6.7.0",
      "react-draggable": "^4.2.0",

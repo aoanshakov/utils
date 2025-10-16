@@ -659,7 +659,9 @@ tests.addTest(options => {
                                     tester.marksRequest().receiveResponse();
                                     authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
 
-                                    tester.registrationRequest().receiveResponse();
+                                    tester.registrationRequest().
+                                        chromeExtension().
+                                        receiveResponse();
 
                                     tester.slavesNotification().
                                         twoChannels().
@@ -1773,7 +1775,6 @@ tests.addTest(options => {
                                     chatsSettings().
                                     expectToBeSent();
 
-
                                 setNow('2019-12-19T12:10:36');
                                 spendTime(10000);
 
@@ -1782,9 +1783,17 @@ tests.addTest(options => {
                                 tester.anchor.
                                     withFileName('20191219.121036.000.log.txt').
                                     expectHrefToBeBlobWithoutSubstring([
-                                        'Waiting for initialization of ' +
-                                        'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats: ' +
+                                        'Waiting for initialization of IFrame ' +
+                                        '"https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats": ' +
                                         '30000ms',
+                                    ].join("\n\n"));
+
+                                tester.anchor.
+                                    withFileName('20191219.121036.000.log.txt').
+                                    expectHrefToBeBlobWithSubstring([
+                                        'IFrame ' +
+                                        '"https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats" ' +
+                                        'initialized after 20000ms'
                                     ].join("\n\n"));
 
                             });
@@ -1794,8 +1803,8 @@ tests.addTest(options => {
                                 tester.anchor.
                                     withFileName('20191219.121026.000.log.txt').
                                     expectHrefToBeBlobWithSubstring([
-                                        'Waiting for initialization of ' +
-                                        'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats: ' +
+                                        'Waiting for initialization of IFrame ' +
+                                        '"https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats": ' +
                                         '20000ms',
                                     ].join("\n\n"));
                             });
@@ -1806,8 +1815,8 @@ tests.addTest(options => {
                             tester.anchor.
                                 withFileName('20191219.121016.000.log.txt').
                                 expectHrefToBeBlobWithSubstring([
-                                    'Waiting for initialization of ' +
-                                    'https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats: ' +
+                                    'Waiting for initialization of IFrame ' +
+                                    '"https://prod-msk-softphone-widget-iframe.uiscom.ru/chrome/chats": ' +
                                     '10000ms',
                                 ].join("\n\n"));
 
@@ -4100,332 +4109,13 @@ tests.addTest(options => {
                 );
             });
         });
-        describe('Открыт IFrame софтфона amoCRM.', function() {
-            beforeEach(function() {
-                tester = new Tester({
-                    application: 'amocrmIframeContent',
-                    isIframe: true,
-                    softphoneHost: 'my.uiscom.ru',
-                    ...options,
-                });
-
-                postMessages.nextMessage().expectMessageToContain({
-                    method: 'set_token',
-                    data: '',
-                });
-
-                tester.stateSettingRequest().expectToBeSent();
-            });
-
-            describe('Получена русская локаль.', function() {
-                beforeEach(function() {
-                    tester.amocrmStateSettingRequest().receive();
-                });
-
-                describe('Из окна авторизации приходит токен.', function() {
-                    let authCheckRequest,
-                        widgetSettings;
-
-                    beforeEach(function() {
-                        postMessages.receive({
-                            method: 'set_token',
-                            data: tester.oauthToken,
-                        });
-
-                        postMessages.nextMessage().expectMessageToContain({
-                            method: 'set_token',
-                            data: tester.oauthToken,
-                        });
-
-                        widgetSettings = tester.widgetSettings().
-                            amocrm().
-                            request().
-                            expectToBeSent();
-                    });
-
-                    describe('Софтфон доступен. Прозиводится авторизация.', function() {
-                        beforeEach(function() {
-                            widgetSettings.receiveResponse();
-                            tester.availabilitySettingRequest().expectToBeSent();
-
-                            tester.masterInfoMessage().receive();
-
-                            tester.stateSettingRequest().
-                                leader().
-                                expectToBeSent();
-
-                            tester.masterInfoMessage().
-                                tellIsLeader().
-                                expectToBeSent();
-
-                            tester.slavesNotification().expectToBeSent();
-
-                            tester.slavesNotification().
-                                additional().
-                                expectToBeSent();
-
-                            postMessages.nextMessage().expectNotToExist();
-
-                            tester.authTokenRequest().receiveResponse()
-                            authCheckRequest = tester.authCheckRequest().expectToBeSent();
-
-                            unfilteredPostMessages.
-                                nextMessage().
-                                expectMessageToStartsWith('ignore:log:').
-                                expectMessageToContain('POST https://my.uiscom.ru/sup/auth/token');
-                        });
-
-                        describe('Удалось авторизоваться. Софтон готов к использованию.', function() {
-                            beforeEach(function() {
-                                authCheckRequest.receiveResponse();
-
-                                tester.talkOptionsRequest().receiveResponse();
-                                tester.statusesRequest().receiveResponse();
-                                tester.permissionsRequest().receiveResponse();
-                                tester.settingsRequest().receiveResponse();
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    enabled().
-                                    expectToBeSent();
-
-                                notificationTester.grantPermission();
-                                tester.connectEventsWebSocket();
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    enabled().
-                                    softphoneServerConnected().
-                                    expectToBeSent();
-
-                                tester.connectSIPWebSocket();
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    softphoneServerConnected().
-                                    webRTCServerConnected().
-                                    expectToBeSent();
-
-                                tester.marksRequest().receiveResponse();
-                                authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-
-                                tester.registrationRequest().
-                                    amocrmWidget().
-                                    receiveResponse();
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    softphoneServerConnected().
-                                    webRTCServerConnected().
-                                    registered().
-                                    expectToBeSent();
-
-                                authenticatedUserRequest.receiveResponse();
-
-                                tester.stateSettingRequest().
-                                    userDataFetched().
-                                    leader().
-                                    expectToBeSent();
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    softphoneServerConnected().
-                                    webRTCServerConnected().
-                                    registered().
-                                    userDataFetched().
-                                    expectToBeSent();
-                                    tester.allowMediaInput();
-
-                                tester.slavesNotification().
-                                    twoChannels().
-                                    available().
-                                    expectToBeSent();
-                            });
-
-                            describe('Нажимаю на кнопку видимости софтфона.', function() {
-                                beforeEach(function() {
-                                    tester.softphoneVisibilityToggleRequest().receive();
-
-                                    tester.slavesNotification().
-                                        additional().
-                                        visible().
-                                        expectToBeSent();
-
-                                    tester.stateSettingRequest().
-                                        userDataFetched().
-                                        visible().
-                                        leader().
-                                        expectToBeSent();
-                                });
-
-                                it(
-                                    'Софтон открыт в другом окне. Отображено сообщение о том, что софтфон открыт в ' +
-                                    'другом окне.',
-                                function() {
-                                    tester.eventsWebSocket.disconnect(4429);
-
-                                    tester.stateSettingRequest().
-                                        userDataFetched().
-                                        visible().
-                                        destroyed().
-                                        leader().
-                                        expectToBeSent();
-
-                                    tester.slavesNotification().
-                                        userDataFetched().
-                                        twoChannels().
-                                        appAlreadyOpened().
-                                        enabled().
-                                        microphoneAccessGranted().
-                                        expectToBeSent();
-
-                                    tester.authLogoutRequest().receiveResponse();
-                                    tester.registrationRequest().expired().receiveResponse();
-                                    
-                                    spendTime(2000);
-                                    tester.webrtcWebsocket.finishDisconnecting();
-
-                                    tester.softphone.expectTextContentToHaveSubstring(
-                                        'Софтфон открыт в другом окне'
-                                    );
-                                });
-                                it('Нажимаю на кнопку с жучком.', function() {
-                                    tester.bugButton.click();
-
-                                    tester.logDownloadingRequest().
-                                        windowMessage().
-                                        expectToBeSent();
-                                });
-                            });
-                            it('Токен сохранен.', function() {
-                                tester.localStorage.
-                                    key('token').
-                                    expectToHaveValue(tester.oauthToken);
-                            });
-                        });
-                        describe('Не удалось произвести авторизацию.', function() {
-                            beforeEach(function() {
-                                authCheckRequest.
-                                    invalidToken().
-                                    receiveResponse();
-
-                                tester.slavesNotification().
-                                    destroyed().
-                                    expectToBeSent();
-
-                                tester.masterInfoMessage().
-                                    leaderDeath().
-                                    expectToBeSent();
-
-                                tester.authLogoutRequest().receiveResponse();
-
-                                tester.stateSettingRequest().
-                                    destroyed().
-                                    leader().
-                                    expectToBeSent();
-
-                                tester.softphoneVisibilityToggleRequest().receive();
-
-                                tester.stateSettingRequest().
-                                    destroyed().
-                                    visible().
-                                    leader().
-                                    expectToBeSent();
-                            });
-
-                            it('Нажимаю на кнпоку выхода. Открывается окно выхода.', function() {
-                                tester.accountButton.click();
-                                tester.button('Выход').click();
-
-                                windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru/ru/logout');
-                            });
-                            it('Отображено сообщение об отуствтвии прав.', function() {
-                                tester.localStorage.
-                                    key('token').
-                                    expectToHaveValue(tester.oauthToken);
-
-                                tester.body.expectToHaveTextContent(
-                                    'Софтфон недоступен ' +
-                                    'Не хватает прав'
-                                );
-                            });
-                        });
-                    });
-                    it('Софтфон недоступен. Авторизация не прозиводится.', function() {
-                        widgetSettings.
-                            unavailable().
-                            receiveResponse();
-
-                        tester.availabilitySettingRequest().
-                            unavailable().
-                            expectToBeSent();
-                    });
-                });
-                describe('Приходит запрос изменения видимости.', function() {
-                    beforeEach(function() {
-                        tester.softphoneVisibilityToggleRequest().receive();
-
-                        tester.stateSettingRequest().
-                            visible().
-                            expectToBeSent();
-                    });
-                        
-                    it('Нажимаю на ссылку на страницу авторизации. Открыта страница авторизации.', function() {
-                        tester.span('Для использования софтфона необходимо авторизоваться').click();
-                        windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru');
-                    });
-                    it('Нажимаю на кнопку акканта. Кнопка выхода отсутствует.', function() {
-                        tester.accountButton.click();
-                        tester.button('Выход').expectNotToExist();
-                    });
-                    it('Софтфон отображён.', function() {
-                        tester.body.expectToHaveTextContent(
-                            'Не авторизован ' +
-                            'Для использования софтфона необходимо авторизоваться'
-                        );
-                    });
-                });
-                it('Из окна авторизации приходит дубайский токен. Авторизация не производится.', function() {
-                    postMessages.receive({
-                        method: 'set_token',
-                        data: tester.anotherOauthToken,
-                    });
-
-                    postMessages.nextMessage().expectMessageToContain({
-                        method: 'set_token',
-                        data: tester.anotherOauthToken,
-                    });
-
-                    tester.localStorage.
-                        key('token').
-                        expectToBeEmpty();
-                });
-            });
-            it('Получена английская локаль. Используется английский язык.', function() {
-                tester.amocrmStateSettingRequest().
-                    en().
-                    receive();
-
-                tester.softphoneVisibilityToggleRequest().receive();
-
-                tester.stateSettingRequest().
-                    visible().
-                    expectToBeSent();
-
-                tester.body.expectTextContentToHaveSubstring('Please authorize to use softphone');
-            });
-        });
         describe('Открываю виджет amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
                     ...options,
                     application: 'amocrm',
-                });
-
-                postMessages.receive({
-                    method: 'set_token',
-                    data: '',
+                    env: { REACT_APP_CUSTOM_SETTINGS_ENABLED: 'true' },
                 });
             });
 
@@ -4437,6 +4127,15 @@ tests.addTest(options => {
                         receive();
 
                     tester.amocrmStateSettingRequest().expectToBeSent();
+
+                    tester.tokenInitializationRequest().
+                        emptyToken().
+                        receive();
+
+                    postMessages.nextMessage().expectMessageToContain({
+                        method: 'set_token',
+                        data: '',
+                    });
                 });
 
                 describe('Получен дубайский токен авторизации.', function() {
@@ -4460,10 +4159,9 @@ tests.addTest(options => {
                             leader().
                             receive();
 
-                        postMessages.receive({
-                            method: 'set_token',
-                            data: '',
-                        });
+                        tester.tokenInitializationRequest().
+                            emptyToken().
+                            receive();
 
                         postMessages.nextMessage().expectMessageToContain({
                             method: 'set_token',
@@ -4504,11 +4202,11 @@ tests.addTest(options => {
                         tester.logDownloadingRequest().
                             windowMessage().
                             receive();
-
+                        
                         tester.anchor.
-                            withFileName('20191218.121006.000.log.txt').
+                            withFileName('20191219.121006.000.log.txt').
                             expectHrefToBeBlobWithSubstrings([
-                                'Thu Dec 18 2019 12:10:06 GMT+0300 (Moscow Standard Time) Window message received',
+                                'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) Window message received',
                                 '{"method":"set_token","data":"eyJ',//}
                                 
                                 'POST https://my.uiscom.ru/sup/auth/token',
@@ -4618,6 +4316,7 @@ tests.addTest(options => {
                     ...options,
                     application: 'amocrmChats',
                     renderAmocrmLead: true,
+                    env: { REACT_APP_CUSTOM_SETTINGS_ENABLED: 'true' },
                 });
 
                 tester.chatsParentBroadcastChannel().
@@ -4635,11 +4334,6 @@ tests.addTest(options => {
                     expectToBeSent();
 
                 notificationTester.grantPermission();
-
-                postMessages.receive({
-                    method: 'set_token',
-                    data: '',
-                });
             });
 
             describe('Открываю страницу контакта.', function() {
@@ -4655,6 +4349,16 @@ tests.addTest(options => {
                         tester.amocrmStateSettingRequest().
                             chats().
                             expectToBeSent();
+
+                        tester.tokenInitializationRequest().
+                            chats().
+                            emptyToken().
+                            receive();
+
+                        postMessages.nextMessage().expectMessageToContain({
+                            method: 'set_token',
+                            data: '',
+                        });
 
                         tester.iconRequest().
                             arrow().
@@ -4718,7 +4422,7 @@ tests.addTest(options => {
                                         tester.button('Белгород').click();
 
                                         tester.chatOpeningRequest().
-                                            fourthChannel().
+                                            fifthChannel().
                                             expectToBeSent();
                                     });
 
@@ -4912,6 +4616,94 @@ tests.addTest(options => {
                             );
                         });
                     });
+                    describe('Получен дубайский токен авторизации.', function() {
+                        beforeEach(function() {
+                            postMessages.receive({
+                                method: 'set_token',
+                                data: tester.anotherOauthToken,
+                            });
+
+                            tester.unreadMessagesCountSettingRequest().receive();
+
+                            tester.channelsSearchingRequest().
+                                second().anotherPhone().
+                                atIndex(2).email().
+                                atIndex(3).thirdPhone().
+                                expectToBeSent();
+
+                            tester.amocrmStateSettingRequest().
+                                chats().
+                                expectToBeSent();
+
+                            tester.channelsSearchingRequest().
+                                second().anotherPhone().
+                                atIndex(2).email().
+                                atIndex(3).thirdPhone().
+                                expectToBeSent();
+
+                            tester.iconRequest().receiveResponse();
+
+                            tester.tokenInitializationRequest().
+                                chats().
+                                emptyToken().
+                                receive();
+
+                            postMessages.nextMessage().expectMessageToContain({
+                                method: 'set_token',
+                                data: tester.anotherOauthToken,
+                            });
+                        });
+
+                        describe('Раскрываю группу. Спиннер видим.', function() {
+                            beforeEach(function() {
+                                tester.rightPanel.
+                                    group('74951234575').
+                                    title.
+                                    click();
+                            });
+
+                            it('Получен список каналов.', function() {
+                                tester.channelsSearchingResponse().
+                                    addChannel().
+                                    addThirdChannel().
+                                    unavailable().
+                                    receive();
+
+                                tester.channelsSearchingResponse().
+                                    anotherChannel().
+                                    receive();
+
+                                tester.channelsSearchingResponse().
+                                    thirdChannel().
+                                    receive();
+
+                                tester.channelsSearchingResponse().
+                                    fourthChannel().
+                                    receive();
+
+                                tester.channelsSearchingResponse().
+                                    email().
+                                    receive();
+
+                                tester.button('Нижний Новгород').expectToBeVisible();
+                            });
+                            it('Отображён спиннер.', function() {
+                                tester.button('Нижний Новгород').expectNotToExist();
+                                tester.spin.expectToBeVisible();
+                            });
+                        });
+                        it('URL содержимого IFrame был изменён.', function() {
+                            tester.spin.expectNotToExist();
+
+                            tester.iframe.
+                                withSrc('https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/chats/messages').
+                                expectNotToExist();
+
+                            tester.iframe.
+                                withSrc('https://prod-msk-softphone-widget-iframe.callgear.ae/amocrm/chats/messages').
+                                expectToBeHidden();
+                        });
+                    });
                     describe('Нажимаю на пункт меню.', function() {
                         beforeEach(function() {
                             tester.navMenuItem.click();
@@ -5084,6 +4876,16 @@ tests.addTest(options => {
                         chats().
                         expectToBeSent();
 
+                    tester.tokenInitializationRequest().
+                        chats().
+                        emptyToken().
+                        receive();
+
+                    postMessages.nextMessage().expectMessageToContain({
+                        method: 'set_token',
+                        data: '',
+                    });
+
                     tester.iconRequest().
                         arrow().
                         receiveResponse();
@@ -5129,8 +4931,16 @@ tests.addTest(options => {
                                         should_message_to_last_chat: true,
                                         channel_id: 216400,
                                         message: 'Некое сообщение, отправляемое при каких-то изменениях свойств сделки',
-                                        amojo_id: '7e3c6faf-3723-46ba-a12f-5f52875b4eac',
+                                        user_id: '7e3c6faf-3723-46ba-a12f-5f52875b4eac',
+                                        account_id: '8gls8gka-5829-85ns-sdi3-82glapnzpdkw',
                                     });
+                            });
+                            it('Получен запрос шаблонов WABA.', function() {
+                                tester.messageTemplatesRequest().receive();
+
+                                tester.messageTemplatesRequest().
+                                    receiveResponse().
+                                    expectResponseToBeSent();
                             });
                             it(
                                 'Определёно значение по умолчанию для выпадающего списка "Приоритетный канал ' +
@@ -5161,7 +4971,7 @@ tests.addTest(options => {
                         });
                     });
                 });
-                describe('Открываю настройки Salesbot.', function() {
+                describe('Открываю настройки Salesbot. Форма была заполнена ранее.', function() {
                     beforeEach(function() {
                         tester.salesbot().
                             settingsSaved().
@@ -5178,7 +4988,7 @@ tests.addTest(options => {
                             expectToBeSent();
 
                         tester.amocrmStateSettingRequest().
-                            chats().
+                            salesbot().
                             expectToBeSent();
                     });
                     it('Настройки были сохранены ранее.', function() {
@@ -5204,373 +5014,6 @@ tests.addTest(options => {
                     postMessages.
                         nextMessage().
                         expectNotToExist();
-                });
-            });
-        });
-        describe(
-            'В локальном хранилище сохранен токен. Открыт IFrame софтфона amoCRM. Производится авторизация.',
-        function() {
-            let settingsRequest,
-                widgetSettings;
-
-            beforeEach(function() {
-                tester = new Tester({
-                    application: 'amocrmIframeContent',
-                    isIframe: true,
-                    isAuthorized: true,
-                    softphoneHost: 'my.uiscom.ru',
-                    ...options,
-                });
-
-                widgetSettings = tester.widgetSettings().
-                    amocrm().
-                    request().
-                    expectToBeSent();
-
-                postMessages.nextMessage().expectMessageToContain({
-                    method: 'set_token',
-                    data: tester.oauthToken,
-                });
-
-                tester.stateSettingRequest().expectToBeSent();
-                tester.amocrmStateSettingRequest().receive();
-            });
-
-            describe('Получены настройки для IP-телефона.', function() {
-                beforeEach(function() {
-                    widgetSettings.receiveResponse();
-                    tester.masterInfoMessage().receive();
-
-                    tester.stateSettingRequest().
-                        leader().
-                        expectToBeSent();
-
-                    tester.availabilitySettingRequest().expectToBeSent();
-
-                    tester.masterInfoMessage().
-                        tellIsLeader().
-                        expectToBeSent();
-
-                    tester.slavesNotification().expectToBeSent();
-                    
-                    tester.slavesNotification().
-                        additional().
-                        expectToBeSent();
-                        
-                    tester.authTokenRequest().receiveResponse()
-                    tester.authCheckRequest().receiveResponse();
-
-                    tester.talkOptionsRequest().receiveResponse();
-                    tester.statusesRequest().receiveResponse();
-                    tester.permissionsRequest().receiveResponse();
-                    settingsRequest = tester.settingsRequest().expectToBeSent();
-                });
-
-                describe('Управление звонками производится при помощи виджета.', function() {
-                    beforeEach(function() {
-                        settingsRequest.receiveResponse();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            enabled().
-                            expectToBeSent();
-
-                        notificationTester.grantPermission();
-                        tester.connectEventsWebSocket();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            enabled().
-                            softphoneServerConnected().
-                            expectToBeSent();
-
-                        tester.connectSIPWebSocket();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            softphoneServerConnected().
-                            webRTCServerConnected().
-                            expectToBeSent();
-
-                        tester.marksRequest().receiveResponse();
-                        authenticatedUserRequest = tester.authenticatedUserRequest().expectToBeSent();
-
-                        tester.registrationRequest().
-                            amocrmWidget().
-                            receiveResponse();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            softphoneServerConnected().
-                            webRTCServerConnected().
-                            registered().
-                            expectToBeSent();
-
-                        authenticatedUserRequest.receiveResponse();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            softphoneServerConnected().
-                            webRTCServerConnected().
-                            registered().
-                            userDataFetched().
-                            expectToBeSent();
-                            tester.allowMediaInput();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            available().
-                            expectToBeSent();
-
-                        tester.stateSettingRequest().
-                            userDataFetched().
-                            leader().
-                            expectToBeSent();
-
-                        tester.softphoneVisibilityToggleRequest().receive();
-
-                        tester.slavesNotification().
-                            additional().
-                            visible().
-                            expectToBeSent();
-
-                        tester.stateSettingRequest().
-                            userDataFetched().
-                            visible().
-                            leader().
-                            expectToBeSent();
-                    });
-
-                    it('Получен запрос выхода. Отображена ссылка на страницу авторизации.', function() {
-                        postMessages.receive({
-                            method: 'set_token',
-                            data: '',
-                        });
-
-                        tester.stateSettingRequest().
-                            userDataFetched().
-                            visible().
-                            destroyed().
-                            leader().
-                            expectToBeSent();
-
-                        postMessages.nextMessage().expectMessageToContain({
-                            method: 'set_token',
-                            data: '',
-                        });
-
-                        tester.slavesNotification().
-                            userDataFetched().
-                            twoChannels().
-                            enabled().
-                            destroyed().
-                            microphoneAccessGranted().
-                            expectToBeSent();
-
-                        tester.masterInfoMessage().
-                            leaderDeath().
-                            expectToBeSent();
-
-                        tester.eventsWebSocket.finishDisconnecting();
-
-                        tester.authLogoutRequest().receiveResponse();
-                        tester.registrationRequest().expired().receiveResponse();
-                        
-                        spendTime(2000);
-                        tester.webrtcWebsocket.finishDisconnecting();
-
-                        tester.span('Для использования софтфона необходимо авторизоваться').expectToBeVisible();
-                    });
-                    it('Нажимаю на кнпоку выхода. Открывается окно выхода.', function() {
-                        tester.accountButton.click();
-                        tester.button('Выход').click();
-
-                        windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru/ru/logout');
-                    });
-                });
-                describe(
-                    'Включено управление звонками на другом устройстве. Нажимаю на номер телефона. Отправлен запрос ' +
-                    'звонка.',
-                function() {
-                    beforeEach(function() {
-                        settingsRequest.
-                            callsAreManagedByAnotherDevice().
-                            receiveResponse();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            disabled().
-                            expectToBeSent();
-
-                        notificationTester.grantPermission();
-                        tester.connectEventsWebSocket();
-
-                        tester.slavesNotification().
-                            twoChannels().
-                            disabled().
-                            softphoneServerConnected().
-                            expectToBeSent();
-
-                        tester.marksRequest().receiveResponse();
-                        tester.authenticatedUserRequest().receiveResponse();
-
-                        tester.stateSettingRequest().
-                            userDataFetched().
-                            leader().
-                            expectToBeSent();
-
-                        tester.slavesNotification().
-                            userDataFetched().
-                            twoChannels().
-                            disabled().
-                            softphoneServerConnected().
-                            expectToBeSent();
-
-                        postMessages.receive({
-                            method: 'start_call',
-                            data: '79161234567',
-                        });
-
-                        tester.click2CallRequest().receiveResponse();
-                    });
-                    
-                    it('Получен запрос изменения видимости софтфона. Сообщение об ошибке не отображено.', function() {
-                        tester.softphoneVisibilityToggleRequest().receive();
-
-                        tester.slavesNotification().
-                            additional().
-                            visible().
-                            expectToBeSent();
-
-                        tester.stateSettingRequest().
-                            userDataFetched().
-                            visible().
-                            leader().
-                            expectToBeSent();
-
-                        tester.softphone.expectTextContentNotToHaveSubstring(
-                            'Отстутствуют настройки для вызова IP-телефона'
-                        );
-                    });
-                    it('Софтфон скрыт.', function() {
-                        tester.softphone.expectNotToExist();
-                    });
-                });
-            });
-            describe(
-                'Настройки для IP-телефона получены. Включено управление звонками на другом устройстве.',
-            function() {
-                beforeEach(function() {
-                    widgetSettings.
-                        anotherSoftphoneWildcart().
-                        receiveResponse();
-
-                    tester.masterInfoMessage().receive();
-
-                    tester.stateSettingRequest().
-                        leader().
-                        expectToBeSent();
-
-                    tester.availabilitySettingRequest().expectToBeSent();
-
-                    tester.masterInfoMessage().
-                        tellIsLeader().
-                        expectToBeSent();
-
-                    tester.slavesNotification().expectToBeSent();
-
-                    tester.slavesNotification().
-                        additional().
-                        expectToBeSent();
-
-                    tester.authTokenRequest().receiveResponse()
-                    tester.authCheckRequest().receiveResponse();
-
-                    tester.talkOptionsRequest().receiveResponse();
-                    tester.statusesRequest().receiveResponse();
-                    tester.permissionsRequest().receiveResponse();
-                    settingsRequest = tester.settingsRequest().expectToBeSent();
-
-                    settingsRequest.
-                        callsAreManagedByAnotherDevice().
-                        receiveResponse();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        disabled().
-                        expectToBeSent();
-
-                    notificationTester.grantPermission();
-                    tester.connectEventsWebSocket();
-
-                    tester.slavesNotification().
-                        twoChannels().
-                        disabled().
-                        softphoneServerConnected().
-                        expectToBeSent();
-
-                    tester.marksRequest().receiveResponse();
-                    tester.authenticatedUserRequest().receiveResponse();
-
-                    tester.stateSettingRequest().
-                        userDataFetched().
-                        leader().
-                        expectToBeSent();
-
-                    tester.slavesNotification().
-                        userDataFetched().
-                        twoChannels().
-                        disabled().
-                        softphoneServerConnected().
-                        expectToBeSent();
-                });
-
-                it(
-                    'Получен запрос изменения видимости софтфона. Нажимаю на номер телефона. Отображено сообщение об ' +
-                    'отстутствии настроек IP-телефона.',
-                function() {
-                    tester.softphoneVisibilityToggleRequest().receive();
-
-                    tester.slavesNotification().
-                        additional().
-                        visible().
-                        expectToBeSent();
-
-                    tester.stateSettingRequest().
-                        userDataFetched().
-                        visible().
-                        leader().
-                        expectToBeSent();
-
-                    postMessages.receive({
-                        method: 'start_call',
-                        data: '79161234567',
-                    });
-
-                    tester.softphone.expectTextContentToHaveSubstring(
-                        'Отстутствуют настройки для вызова IP-телефона'
-                    );
-                });
-                it('Нажимаю на номер телефона. Отображено сообщение об отстутствии настроек IP-телефона.', function() {
-                    postMessages.receive({
-                        method: 'start_call',
-                        data: '79161234567',
-                    });
-
-                    tester.slavesNotification().
-                        additional().
-                        visible().
-                        expectToBeSent();
-
-                    tester.stateSettingRequest().
-                        visible().
-                        userDataFetched().
-                        leader().
-                        expectToBeSent();
-
-                    tester.softphone.expectTextContentToHaveSubstring(
-                        'Отстутствуют настройки для вызова IP-телефона'
-                    );
                 });
             });
         });
@@ -5915,7 +5358,7 @@ tests.addTest(options => {
                         receiveResponse();
 
                     tester.chatOpeningRequest().
-                        fourthChannel().
+                        fifthChannel().
                         expectToBeSent();
 
                     tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
@@ -6553,7 +5996,7 @@ tests.addTest(options => {
                     receiveResponse();
 
                 tester.chatOpeningRequest().
-                    fourthChannel().
+                    fifthChannel().
                     expectToBeSent();
 
                 tester.installmentSettingsProbableUpdatingRequest().receiveResponse();
@@ -6611,138 +6054,236 @@ tests.addTest(options => {
                     ...options,
                 });
 
-                postMessages.nextMessage().expectMessageToContain({
-                    method: 'set_token',
-                    data: '',
-                });
-
                 tester.salesbotParamsSettingRequest().expectToBeSent();
             });
 
-            describe('Сотрудник авторизован.', function() {
+            describe('В профиле указан русский язык.', function() {
                 beforeEach(function() {
+                    tester.amocrmStateSettingRequest().receive();
+
+                    tester.tokenInitializationRequest().
+                        salesbot().
+                        emptyToken().
+                        expectToBeSent();
+
                     postMessages.receive({
                         method: 'set_token',
-                        data: tester.oauthToken,
+                        data: '',
                     });
 
                     postMessages.nextMessage().expectMessageToContain({
                         method: 'set_token',
-                        data: tester.oauthToken,
+                        data: '',
                     });
                 });
 
-                describe('Получены данные незаполненной формы.', function() {
+                describe('Сотрудник авторизован.', function() {
                     beforeEach(function() {
-                        tester.savedValuesSettingRequest().receive();
+                        postMessages.receive({
+                            method: 'set_token',
+                            data: tester.oauthToken,
+                        });
+
+                        postMessages.nextMessage().expectMessageToContain({
+                            method: 'set_token',
+                            data: tester.oauthToken,
+                        });
                     });
 
-                    it('Заполняю форму.', function() {
-                        tester.checkbox.click();
+                    describe('Получены данные незаполненной формы.', function() {
+                        beforeEach(function() {
+                            tester.savedValuesSettingRequest().receive();
+                        });
 
-                        tester.salesbotParamsSettingRequest().
-                            shouldMessageToLastChat().
-                            expectToBeSent();
+                        describe('Отмечаю чекбокс "Писать в последний диалог".', function() {
+                            beforeEach(function() {
+                                tester.checkbox.click();
 
-                        tester.select.
-                            withPlaceholder('Откуда писать').
-                            click();
+                                tester.salesbotParamsSettingRequest().
+                                    shouldMessageToLastChat().
+                                    expectToBeSent();
+                            });
 
-                        tester.select.
-                            option('Whats App Waba').
-                            click();
+                            describe('Выбираю канал WABA.', function() {
+                                let messageTemplatesRequest;
 
-                        tester.salesbotParamsSettingRequest().
-                            shouldMessageToLastChat().
-                            anotherChannel().
-                            expectToBeSent();
+                                beforeEach(function() {
+                                    tester.select.
+                                        withPlaceholder('Откуда писать, если не нашли диалог').
+                                        click();
 
-                        tester.textarea.fill(
-                            'Некое сообщение, отправляемое при каких-то изменениях свойств сделки'
-                        );
+                                    tester.select.
+                                        option('Whats App Waba').
+                                        click();
 
-                        tester.salesbotParamsSettingRequest().
-                            filled().
-                            expectToBeSent();
+                                    tester.salesbotParamsSettingRequest().
+                                        shouldMessageToLastChat().
+                                        anotherChannel().
+                                        expectToBeSent();
 
-                        tester.select.
-                            withPlaceholder('Переменная').
-                            click();
+                                    messageTemplatesRequest = tester.messageTemplatesRequest().expectToBeSent();
+                                });
 
-                        tester.select.
-                            option('ID сделки').
-                            click();
+                                describe('Получаю список шаблонов.', function() {
+                                    beforeEach(function() {
+                                        messageTemplatesRequest.receiveResponse();
+                                    });
 
-                        tester.salesbotParamsSettingRequest().
-                            filled().
-                            variableAdded().
-                            expectToBeSent();
+                                    describe('Заполняю остальные поля формы.', function() {
+                                        beforeEach(function() {
+                                            tester.select.
+                                                withPlaceholder('Шаблон WABA').
+                                                click();
 
-                        tester.checkbox.expectToBeChecked();
+                                            tester.select.
+                                                option('Другой шаблон Waba').
+                                                click();
 
-                        tester.select.
-                            withPlaceholder('Откуда писать').
-                            expectToHaveTextContent(
-                                'Whats App Waba ' +
-                                'Откуда писать'
+                                            tester.salesbotParamsSettingRequest().
+                                                shouldMessageToLastChat().
+                                                anotherChannel().
+                                                messageTemplateChosen().
+                                                expectToBeSent();
+
+                                            tester.textarea.fill(
+                                                'Некое сообщение, отправляемое при каких-то изменениях свойств сделки'
+                                            );
+
+                                            tester.salesbotParamsSettingRequest().
+                                                filled().
+                                                expectToBeSent();
+                                        });
+                                        
+                                        it('Выбираю другой канал. Выпадающий список шаблонов скрыт.', function() {
+                                            tester.select.
+                                                withPlaceholder('Откуда писать, если не нашли диалог').
+                                                click();
+
+                                            tester.select.
+                                                option('mrDDosT').
+                                                click();
+
+                                            tester.salesbotParamsSettingRequest().
+                                                shouldMessageToLastChat().
+                                                messageFilled().
+                                                expectToBeSent();
+
+                                            tester.select.
+                                                withPlaceholder('Шаблон WABA').
+                                                expectNotToExist();
+                                        });
+                                        it('Поля формы заполнены.', function() {
+                                            tester.select.
+                                                withPlaceholder('Переменная').
+                                                click();
+
+                                            tester.select.
+                                                option('ID сделки').
+                                                click();
+
+                                            tester.salesbotParamsSettingRequest().
+                                                filled().
+                                                variableAdded().
+                                                expectToBeSent();
+
+                                            tester.checkbox.expectToBeChecked();
+
+                                            tester.select.
+                                                withPlaceholder('Откуда писать, если не нашли диалог').
+                                                expectToHaveTextContent(
+                                                    'Whats App Waba ' +
+                                                    'Откуда писать, если не нашли диалог'
+                                                );
+
+                                            tester.textarea.expectToHaveValue(
+                                                'Некое сообщение, отправляемое при каких-то изменениях свойств сделки{{lead.id}}'
+                                            );
+                                        });
+                                    });
+                                    it('Выпадающий список шаблонов доступен.', function() {
+                                        tester.select.
+                                            withPlaceholder('Шаблон WABA').
+                                            expectToBeEnabled();
+                                    });
+                                });
+                                it('Выпадающий список шаблонов заблокирован.', function() {
+                                    tester.select.
+                                        withPlaceholder('Шаблон WABA').
+                                        expectToBeDisabled();
+                                });
+                            });
+                            it('Изменен лейбл списка каналов.', function() {
+                                tester.select.
+                                    withPlaceholder('Откуда писать, если не нашли диалог').
+                                    expectToBeVisible();
+
+                                tester.select.
+                                    withPlaceholder('Откуда писать').
+                                    expectNotToExist();
+                            });
+                        });
+                        it('Форма заполнена данными по умолчанию.', function() {
+                            tester.spin.expectNotToExist();
+                            tester.checkbox.expectNotToBeChecked();
+
+                            tester.select.
+                                withPlaceholder('Откуда писать, если не нашли диалог').
+                                expectNotToExist();
+
+                            tester.select.
+                                withPlaceholder('Откуда писать').
+                                expectToBeVisible();
+
+                            tester.select.
+                                option('Whats App Waba').
+                                expectNotToExist();
+                        });
+                    });
+                    describe('Получены данные заполненной формы.', function() {
+                        beforeEach(function() {
+                            tester.savedValuesSettingRequest().
+                                settingsSaved().
+                                receive();
+
+                            tester.messageTemplatesRequest().receiveResponse();
+                        });
+
+                        it('Снимаю отметку с чекбокса "Писать в последний диалог".', function() {
+                            tester.checkbox.click();
+
+                            tester.salesbotParamsSettingRequest().
+                                anotherChannel().
+                                messageTemplateChosen().
+                                messageFilled().
+                                expectToBeSent();
+                        });
+                        it('Форма заполнена.', function() {
+                            tester.spin.expectNotToExist();
+                            tester.checkbox.expectToBeChecked();
+
+                            tester.select.
+                                withPlaceholder('Откуда писать, если не нашли диалог').
+                                expectToHaveTextContent(
+                                    'Whats App Waba ' +
+                                    'Откуда писать, если не нашли диалог'
+                                );
+
+                            tester.textarea.expectToHaveValue(
+                                'Некое сообщение, отправляемое при каких-то изменениях свойств сделки'
                             );
-
-                        tester.textarea.expectToHaveValue(
-                            'Некое сообщение, отправляемое при каких-то изменениях свойств сделки{{lead.id}}'
-                        );
+                        });
                     });
-                    it('Форма заполнена данными по умолчанию.', function() {
-                        tester.spin.expectNotToExist();
-                        tester.checkbox.expectNotToBeChecked();
-                    });
-                });
-                describe('Получены данные заполненной формы.', function() {
-                    beforeEach(function() {
+                    it('Не удалось получить данные формы.', function() {
                         tester.savedValuesSettingRequest().
-                            settingsSaved().
+                            serverError().
                             receive();
+
+                        tester.body.expectToHaveTextContent('Произошла ошибка сервера');
                     });
-
-                    it('Снимаю отметку с чекбокса "Писать в последний диалог".', function() {
-                        tester.checkbox.click();
-
-                        tester.salesbotParamsSettingRequest().
-                            anotherChannel().
-                            messageFilled().
-                            expectToBeSent();
-                    });
-                    it('Форма заполнена.', function() {
-                        tester.spin.expectNotToExist();
-                        tester.checkbox.expectToBeChecked();
-
-                        tester.select.
-                            withPlaceholder('Откуда писать').
-                            expectToHaveTextContent(
-                                'Whats App Waba ' +
-                                'Откуда писать'
-                            );
-
-                        tester.textarea.expectToHaveValue(
-                            'Некое сообщение, отправляемое при каких-то изменениях свойств сделки'
-                        );
+                    it('Отображён спиннер.', function() {
+                        tester.spin.expectToBeVisible();
                     });
                 });
-                it('Не удалось получить данные формы.', function() {
-                    tester.savedValuesSettingRequest().
-                        serverError().
-                        receive();
-
-                    tester.body.expectToHaveTextContent('Произошла ошибка сервера');
-                });
-                it('Отображён спиннер.', function() {
-                    tester.spin.expectToBeVisible();
-                });
-            });
-            describe('В профиле указан русский язык.', function() {
-                beforeEach(function() {
-                    tester.amocrmStateSettingRequest().receive();
-                });
-
                 it('Нажимаю на иконку с жучком. В родительское окно отправлен запрос скачивания логов.', function() {
                     tester.bugButton.click();
 
@@ -6765,6 +6306,21 @@ tests.addTest(options => {
                 'В профиле указан английский язык. Отображена ссылка на страницу авторизции на английском языке.',
             function() {
                 tester.amocrmStateSettingRequest().en().receive();
+
+                tester.tokenInitializationRequest().
+                    salesbot().
+                    emptyToken().
+                    expectToBeSent();
+
+                postMessages.receive({
+                    method: 'set_token',
+                    data: '',
+                });
+
+                postMessages.nextMessage().expectMessageToContain({
+                    method: 'set_token',
+                    data: '',
+                });
 
                 tester.body.expectToHaveTextContent(
                     'Not authorized ' +
@@ -6816,7 +6372,8 @@ tests.addTest(options => {
                                         expectParamsToContain({
                                             should_message_to_last_chat: 'N',
                                             channel_id: 216400,
-                                            message: 'Некое сообщение, отправляемое при каких-то изменениях свойств сделки',
+                                            message: 'Некое сообщение, отправляемое при каких-то изменениях свойств ' +
+                                                'сделки',
                                             recipient: 'contact.fax',
                                         });
                                 });
@@ -6989,11 +6546,6 @@ tests.addTest(options => {
 
             notificationTester.grantPermission();
 
-            postMessages.receive({
-                method: 'set_token',
-                data: '',
-            });
-
             tester.renderContact();
 
             tester.unreadMessagesCountSettingRequest().receive();
@@ -7003,6 +6555,16 @@ tests.addTest(options => {
                 chats().
                 softphoneDisabled().
                 expectToBeSent();
+
+            tester.tokenInitializationRequest().
+                chats().
+                emptyToken().
+                receive();
+
+            postMessages.nextMessage().expectMessageToContain({
+                method: 'set_token',
+                data: '',
+            });
 
             tester.iconRequest().
                 arrow().
@@ -7103,22 +6665,41 @@ tests.addTest(options => {
                 application: 'amocrm',
             });
 
-            postMessages.receive({
-                method: 'set_token',
-                data: '',
-            });
-
             tester.stateSettingRequest().
                 visible().
                 receive();
 
             tester.amocrmStateSettingRequest().expectToBeSent();
+
+            tester.tokenInitializationRequest().
+                emptyToken().
+                receive();
+
+            postMessages.nextMessage().expectMessageToContain({
+                method: 'set_token',
+                data: '',
+            });
+
             tester.iframe.expectToBeVisible();
 
             tester.iframe.expectAttributeToHaveValue(
                 'src',
                 'https://prod-msk-softphone-widget-iframe.callgear.ae/amocrm/softphone',
             );
+        });
+        it(
+           'Виджет установлен. Кастомная страница настроек включена. Открываю настройки. Кнопока настроек видима.',
+        function() {
+            tester = new Tester({
+                softphoneHost: 'my.uiscom.ru',
+                ...options,
+                application: 'amocrm',
+                active: true,
+                env: { REACT_APP_CUSTOM_SETTINGS_ENABLED: 'true' },
+            });
+
+            tester.openSettings();
+            tester.button('Перейти к настройкам').expectToBeVisible();
         });
         it('Виджет установлен. Открываю настройки. Кнопока настроек видима.', function() {
             tester = new Tester({
@@ -7129,7 +6710,12 @@ tests.addTest(options => {
             });
 
             tester.openSettings();
-            tester.button('Перейти к настройкам').expectToBeVisible();
+            tester.button('Перейти к настройкам').expectNotToExist();
+
+            tester.body.expectTextContentToHaveSubstringsConsideringOrder(
+                'Некое описание ' +
+                'Включить интеграцию'
+            );
         });
         it('Должен использоваться английский язык. Открываю настройки. Используется английский язык.', function() {
             tester = new Tester({
@@ -7138,6 +6724,7 @@ tests.addTest(options => {
                 application: 'amocrm',
                 lang: 'en',
                 active: true,
+                env: { REACT_APP_CUSTOM_SETTINGS_ENABLED: 'true' },
             });
 
             tester.openSettings();

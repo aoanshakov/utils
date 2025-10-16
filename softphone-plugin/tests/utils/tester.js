@@ -10,6 +10,7 @@ define(() => function ({
     spendTime,
     softphoneTester: me,
     isAuthorized = false,
+    anotherToken = false,
     anotherWildcart = false,
     areSettingsExpired = false,
     application = 'softphone',
@@ -328,6 +329,10 @@ define(() => function ({
         const constants = {
             user: {
                 amojo_id: '7e3c6faf-3723-46ba-a12f-5f52875b4eac',
+            },
+
+            account: {
+                amojo_id: '8gls8gka-5829-85ns-sdi3-82glapnzpdkw',
             },
         };
 
@@ -2193,12 +2198,14 @@ define(() => function ({
     const salesbotSettings = {
         should_message_to_last_chat: true,
         channel_id: 216400,
+        message_template_id: 234825,
         message: 'Некое сообщение, отправляемое при каких-то изменениях свойств сделки',
     };
 
     const defaultSalesbotSettings = {
         should_message_to_last_chat: false,
         channel_id: 101,
+        message_template_id: 0,
         message: '',
     };
 
@@ -2260,7 +2267,7 @@ define(() => function ({
 
     if (isAuthorized) {
         if (['amocrmIframeContent', 'amocrmChatsIframeContent'].includes(application)) {
-            window.localStorage.setItem('token', me.oauthToken);
+            window.localStorage.setItem('token', anotherToken ? me.anotherOauthToken : me.oauthToken);
         } else {
             const storageData = me.widgetSettings().storageData();
 
@@ -2467,6 +2474,11 @@ define(() => function ({
                             method: 'set_logs',
 
                             data: utils.expectToStartWith(
+                                'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
+                                'Initializing softphone on https://app.uiscom.ru' +
+
+                                '\n\n' +
+
                                 'Thu Dec 19 2019 12:10:06 GMT+0300 (Moscow Standard Time) ' +
                                 '[chatsParent] Tab state is unknown'
                             )
@@ -2828,6 +2840,41 @@ define(() => function ({
         };
     };
 
+    me.tokenInitializationRequest = () => {
+        const message = {
+            method: 'init_token',
+            data: {
+                token: me.oauthToken,
+                type: 'softphone',
+            },
+        };
+
+        return {
+            chats() {
+                message.data.type = 'chats';
+                return this;
+            },
+
+            salesbot() {
+                message.data.type = 'salesbot';
+                return this;
+            },
+
+            anotherToken() {
+                message.data.token = me.anotherOauthToken;
+                return this;
+            },
+
+            emptyToken() {
+                message.data.token = '';
+                return this;
+            },
+
+            receive: () => postMessages.receive(message),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
+        };
+    };
+
     me.channelsCacheClearingEvent = () => {
         const message = { method: 'channels_cache_cleared' };
 
@@ -2943,7 +2990,9 @@ define(() => function ({
             return message;
         };
 
-        const filled = () => processors.push(message => (message.data.data = defaultSalesbotSettings));
+        const filled = () => processors.push(message => (
+            message.data.data = JSON.parse(JSON.stringify(defaultSalesbotSettings))
+        ));
 
         const setValue = (name, value) => {
             filled();
@@ -2953,6 +3002,11 @@ define(() => function ({
         const fill = name => setValue(name, salesbotSettings[name]);
 
         return {
+            messageTemplateChosen() {
+                fill('message_template_id');
+                return this;
+            },
+
             shouldMessageToLastChat() {
                 fill('should_message_to_last_chat');
                 return this;
@@ -3536,6 +3590,64 @@ define(() => function ({
         };
     };
 
+    me.messageTemplatesRequest = () => {
+        const requestMessage = { method: 'get_message_templates', data: 216400 };
+
+        const responseMessage = {
+            method: 'set_message_templates',
+            data: {
+                channel_id: 216400,
+                message_templates: [{
+                    id: 234824,
+                    name: 'Некий шаблон Waba',
+                }, {
+                    id: 234825,
+                    name: 'Другой шаблон Waba',
+                }],
+            },
+        };
+
+        const addResponseModifiers = me => me;
+
+        return addResponseModifiers({
+            receive: () => {
+                postMessages.receive(requestMessage);
+
+                return addResponseModifiers({
+                    expectResponseToBeSent: () => postMessages.
+                        nextMessage().
+                        expectMessageToContain(responseMessage),
+                });
+            },
+
+            expectToBeSent: () => {
+                postMessages.
+                    nextMessage().
+                    expectMessageToContain(requestMessage);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        postMessages.receive(responseMessage);
+
+                        return {
+                            expectResponseToBeSent: () => postMessages.
+                                nextMessage().
+                                expectMessageToContain(responseMessage),
+                        };
+                    },
+                });
+            },
+
+            expectResponseToBeSent() {
+                this.receive().expectResponseToBeSent();
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
+            },
+        });
+    };
+
     {
         const channels = [{
             id: 101,
@@ -3564,7 +3676,7 @@ define(() => function ({
                     data: {
                         error: '',
                         channels,
-                        values: defaultSalesbotSettings,
+                        values: JSON.parse(JSON.stringify(defaultSalesbotSettings)),
                     },
                 };
 
@@ -3809,6 +3921,14 @@ define(() => function ({
                 return this;
             },
 
+            fifthChannel() {
+                processors.push(message => {
+                    message.data.channel_id = 216405;
+                });
+
+                return this;
+            },
+
             anotherChannel() {
                 processors.push(message => {
                     message.data.channel_id = 216397;
@@ -3829,7 +3949,7 @@ define(() => function ({
     me.amocrmStateSettingRequest = () => {
         const processors = [],
             secondProcessors = [],
-            noLang = () => processors.push(message => delete(message.data.url));
+            noUrl = () => processors.push(message => delete(message.data.url));
 
         const getMessage = () => {
             const message = {
@@ -3837,6 +3957,7 @@ define(() => function ({
                 data: {
                     url: 'https://app.uiscom.ru',
                     locale: lang,
+                    features: ['sources_origins', 'omni_callgear_auth'],
                 },
             };
 
@@ -3854,18 +3975,14 @@ define(() => function ({
             },
 
             salesbot() {
-                noLang();
+                noUrl();
                 return this;
             },
 
             chats() {
-                noLang();
+                noUrl();
 
-                processors.push(message => {
-                    message.data.softphone_enabled = true;
-                    message.data.features = ['sources_origins'];
-                });
-
+                processors.push(message => message.data.softphone_enabled = true);
                 return this;
             },
 
@@ -5621,7 +5738,8 @@ define(() => function ({
                 '.ui-spin-icon-default, ' +
                 '.cmgui-spin-icon-default, ' +
                 '.clct-spinner, ' +
-                '.cm-chats--loading-icon';
+                '.cm-chats--loading-icon, ' +
+                '.cmg-amocrm-chats-spinner';
 
             const getSpin = () => utils.element(getRootElement()).
                 querySelector(selector);
@@ -6141,15 +6259,25 @@ define(() => function ({
                     return addTesters(tester, () => option);
                 };
 
-                tester.expectToBeDisabled = () => selectTester.expectToHaveAnyOfClasses([
+                const disalbedClassed = [
                     'ui-select-disabled',
                     'cmgui-select-disabled',
-                ]);
+                    'ui-select-field-disabled',
+                    'cmgui-select-field-disabled',
+                ];
 
-                tester.expectToBeEnabled = () => selectTester.expectToHaveNoneOfClasses([
-                    'ui-select-disabled',
-                    'cmgui-select-disabled',
-                ]);
+                tester.expectToBeDisabled = () => {
+                    try {
+                        selectTester.expectToHaveAnyOfClasses(disalbedClassed);
+                    } catch (e) {
+                        tester.expectToHaveAnyOfClasses(disalbedClassed)
+                    }
+                };
+
+                tester.expectToBeEnabled = () => {
+                    selectTester.expectToHaveNoneOfClasses(disalbedClassed);
+                    tester.expectToHaveNoneOfClasses(disalbedClassed);
+                };
 
                 return tester;
             };
@@ -6710,6 +6838,24 @@ define(() => function ({
 
             addFourthTag() {
                 bodyParams.mark_ids.push(288);
+                return this;
+            },
+
+            addManyTags() {
+                bodyParams.mark_ids.push(
+                    213,
+                    288,
+                    87,
+                    88,
+                    148,
+                    86,
+                    89,
+                    2,
+                    495,
+                    1,
+                    511,
+                );
+
                 return this;
             },
 
@@ -9415,6 +9561,48 @@ define(() => function ({
         }
     };
 
+    me.updateAvailableMessage = () => {
+        const message = {
+            type: 'message',
+            data: {
+                type: 'update_available',
+                value: undefined,
+            },
+        };
+
+        return {
+            expectToBeSent: () => me.employeesBroadcastChannel().
+                nextMessage().
+                expectToContain(message),
+            
+            receive: () => {
+                me.employeesBroadcastChannel().receiveMessage(message);
+                spendTime(0);
+            },
+        }
+    };
+
+    me.appVersionMessage = () => {
+        const message = {
+            type: 'message',
+            data: {
+                type: 'app_version',
+                value: null,
+            },
+        };
+
+        return {
+            expectToBeSent: () => me.employeesBroadcastChannel().
+                nextMessage().
+                expectToContain(message),
+            
+            receive: () => {
+                me.employeesBroadcastChannel().receiveMessage(message);
+                spendTime(0);
+            },
+        }
+    };
+
     me.employeesWebsocketConnectedMessage = () => {
         const message = {
             type: 'message',
@@ -11607,7 +11795,853 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith([]);
+                        request.respondSuccessfullyWith([{
+                            id: 7,
+                            is_worktime: false,
+                            mnemonic: 'removed',
+                            name: 'Удаленный',
+                            is_select_allowed: false,
+                            icon: 'heart',
+                            color: '#000',
+                            priority: 8,
+                            is_removed: true,
+
+                            is_able_to_accept_chat_transfer: true,
+                            is_able_to_transfer_chat: true,
+                            is_able_to_accept_chat: true,
+                            is_able_to_close_chat_offline_message: true,
+                            is_able_in_forwarding_scenario: true,
+                            is_able_to_send_chat_messages: true,
+
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 1,
+                            is_worktime: true,
+                            mnemonic: 'available',
+                            name: 'Доступен',
+                            is_select_allowed: true,
+                            description: 'все вызовы',
+                            color: '#48b882',
+                            icon: 'tick',
+                            is_auto_out_calls_ready: true,
+                            is_removed: false,
+
+                            is_able_to_accept_chat_transfer: true,
+                            is_able_to_transfer_chat: true,
+                            is_able_to_accept_chat: true,
+                            is_able_to_close_chat_offline_message: true,
+                            is_able_in_forwarding_scenario: true,
+                            is_able_to_send_chat_messages: true,
+
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ],
+                        }, {
+                            id: 2,
+                            is_worktime: true,
+                            mnemonic: 'break',
+                            name: 'Перерыв',
+                            is_select_allowed: true,
+                            description: 'временное отключение',
+                            color: '#1179ad',
+                            icon: 'pause',
+                            is_auto_out_calls_ready: true,
+                            is_removed: false,
+
+                            is_able_to_accept_chat_transfer: true,
+                            is_able_to_transfer_chat: true,
+                            is_able_to_accept_chat: false,
+                            is_able_to_close_chat_offline_message: true,
+                            is_able_in_forwarding_scenario: true,
+                            is_able_to_send_chat_messages: true,
+
+                            in_external_allowed_call_directions: [],
+                            in_internal_allowed_call_directions: [],
+                            out_external_allowed_call_directions: [],
+                            out_internal_allowed_call_directions: [],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ],
+                        }, {
+                            id: 3,
+                            is_worktime: true,
+                            mnemonic: 'do_not_disturb',
+                            name: 'Не беспокоить',
+                            is_select_allowed: true,
+                            icon: 'minus',
+                            description: 'только исходящие',
+                            color: '#cc5d35',
+                            is_auto_out_calls_ready: true,
+                            is_removed: false,
+
+                            is_able_to_accept_chat_transfer: true,
+                            is_able_to_transfer_chat: true,
+                            is_able_to_accept_chat: true,
+                            is_able_to_close_chat_offline_message: true,
+                            is_able_in_forwarding_scenario: true,
+                            is_able_to_send_chat_messages: true,
+
+                            in_external_allowed_call_directions: [],
+                            in_internal_allowed_call_directions: [],
+                            out_external_allowed_call_directions: [],
+                            out_internal_allowed_call_directions: []
+                        }, {
+                            id: 4,
+                            is_worktime: true,
+                            mnemonic: 'not_at_workplace',
+                            name: 'Нет на месте',
+                            is_select_allowed: true,
+                            description: 'все вызовы на мобильном',
+                            color: '#ebb03b',
+                            icon: 'time',
+                            is_auto_out_calls_ready: true,
+                            is_removed: false,
+
+                            is_able_to_accept_chat_transfer: true,
+                            is_able_to_transfer_chat: true,
+                            is_able_to_accept_chat: true,
+                            is_able_to_close_chat_offline_message: true,
+                            is_able_in_forwarding_scenario: true,
+                            is_able_to_send_chat_messages: true,
+
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 5,
+                            is_worktime: false,
+                            mnemonic: 'not_at_work',
+                            name: 'Нет на работе',
+                            is_select_allowed: true,
+                            description: 'полное отключение',
+                            color: '#99acb7',
+                            icon: 'cross',
+                            is_auto_out_calls_ready: true,
+                            is_removed: false,
+
+                            is_able_to_accept_chat_transfer: true,
+                            is_able_to_transfer_chat: true,
+                            is_able_to_accept_chat: true,
+                            is_able_to_close_chat_offline_message: true,
+                            is_able_in_forwarding_scenario: true,
+                            is_able_to_send_chat_messages: true,
+
+                            in_external_allowed_call_directions: [],
+                            in_internal_allowed_call_directions: [],
+                            out_external_allowed_call_directions: [],
+                            out_internal_allowed_call_directions: []
+                        }, {
+                            id: 6,
+                            is_worktime: false,
+                            mnemonic: 'unknown',
+                            name: 'Неизвестно',
+                            is_select_allowed: false,
+                            icon: 'unknown',
+                            color: null,
+                            is_auto_out_calls_ready: true,
+                            is_removed: false,
+
+                            is_able_to_accept_chat_transfer: true,
+                            is_able_to_transfer_chat: true,
+                            is_able_to_accept_chat: true,
+                            is_able_to_close_chat_offline_message: true,
+                            is_able_in_forwarding_scenario: true,
+                            is_able_to_send_chat_messages: true,
+
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 8,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Звёздочка',
+                            is_select_allowed: false,
+                            icon: 'asterisk',
+                            color: '#317f43',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 11,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Колокольчик',
+                            is_select_allowed: false,
+                            icon: 'bell',
+                            color: '#8fcd75',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 12,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Стрелочка',
+                            is_select_allowed: false,
+                            icon: 'bottom_left_arrow',
+                            color: '#9d24d2',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 14,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Кости',
+                            is_select_allowed: false,
+                            icon: 'dice',
+                            color: '#9a3979',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 16,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Многоточие',
+                            is_select_allowed: false,
+                            icon: 'ellipsis',
+                            color: '#29f8a9',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 17,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Восклицание',
+                            is_select_allowed: false,
+                            icon: 'exclamation',
+                            color: '#d6aa82',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 18,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Перемотка',
+                            is_select_allowed: false,
+                            icon: 'fast_forward',
+                            color: '#4a75ff',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 19,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Найти',
+                            is_select_allowed: false,
+                            icon: 'find',
+                            color: '#ff9ec5',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 20,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Воронка',
+                            is_select_allowed: false,
+                            icon: 'funnel',
+                            color: '#dac778',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 21,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Луна',
+                            is_select_allowed: false,
+                            icon: 'half_moon',
+                            color: '#285b47',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 22,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Поднял',
+                            is_select_allowed: false,
+                            icon: 'handset',
+                            color: '#6c9297',
+                            priority: 7,
+
+                            is_able_to_accept_chat_transfer: true,
+                            is_able_to_transfer_chat: true,
+                            is_able_to_accept_chat: true,
+                            is_able_to_close_chat_offline_message: true,
+                            is_able_in_forwarding_scenario: true,
+                            is_able_to_send_chat_messages: true,
+
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 23,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Повесил',
+                            is_select_allowed: false,
+                            icon: 'hangup',
+                            color: '#fd1c30',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 24,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Информация',
+                            is_select_allowed: false,
+                            icon: 'info',
+                            color: '#65674d',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 25,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Молния',
+                            is_select_allowed: false,
+                            icon: 'lightning',
+                            color: '#a39034',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 26,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Список',
+                            is_select_allowed: false,
+                            icon: 'list',
+                            color: '#02b852',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 27,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Ручка',
+                            is_select_allowed: false,
+                            icon: 'pen',
+                            color: '#a547a7',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 28,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Проигрывание',
+                            is_select_allowed: false,
+                            icon: 'play',
+                            color: '#29fb98',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 29,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Вопрос',
+                            is_select_allowed: false,
+                            icon: 'question',
+                            color: '#11aaf1',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 30,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Лучи',
+                            is_select_allowed: false,
+                            icon: 'rays',
+                            color: '#8734bf',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 31,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Звезда',
+                            is_select_allowed: false,
+                            icon: 'star',
+                            color: '#06c9aa',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 32,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Цель',
+                            is_select_allowed: false,
+                            icon: 'target',
+                            color: '#80130c',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }, {
+                            id: 10,
+                            is_worktime: false,
+                            mnemonic: null,
+                            name: 'Исходящий обзвон',
+                            is_select_allowed: false,
+                            icon: 'auto_out_call',
+                            color: '#1e2460',
+                            priority: 7,
+                            in_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            in_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_external_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            out_internal_allowed_call_directions: [
+                                'in',
+                                'out'
+                            ],
+                            allowed_phone_protocols: [
+                                'SIP'
+                            ]
+                        }]);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -13631,6 +14665,81 @@ define(() => function ({
                                 data: true,
                             },
                         });
+
+                    Promise.runAll(false, true);
+                    spendTime(0)
+                }
+            };
+        },
+
+        receiveResponse() {
+            this.expectToBeSent().receiveResponse();
+        }
+    });
+
+    me.channelMessageTemplateListRequest = () => ({
+        expectToBeSent(requests) {
+            const request = (requests ? requests.someRequest() : ajax.recentRequest()).
+                expectPathToContain('https://$REACT_APP_BASE_URL/operator/channel/216400/message_template/list').
+                expectToHaveMethod('GET');
+
+            return {
+                receiveResponse() {
+                    request.respondSuccessfullyWith([{
+                        id: 234824,
+                        name: 'Некий шаблон Waba',
+                        createdAt: '2019-12-18T12:10:06',
+                        content: {
+                            id: 8492834,
+                            text: 'Некое содержимое шаблона Waba',
+                            keyboard: {
+                                rows: [{
+                                    buttons: [{
+                                        text: 'Некий текст кнопки шаблона Waba',
+                                        buttonType: 'PHONE',
+                                        payload: '8Sjsdflsdflsdf32h24234',
+                                        url: 'https://somedomain.com/template/waba/button.png',
+                                        phone: '79162843743',
+                                    }],
+                                }],
+                            },
+                            header: {
+                                text: 'Некий текст заголовка содержимого Waba',
+                                headerExampleMediaUrl: 'https://somedomain.com/template/waba/example.png',
+                                headerType: 'some_header_type',
+                            },
+                            footer: {
+                                text: 'Некий текст футера шаблона Waba',
+                            },
+                        },
+                    }, {
+                        id: 234825,
+                        name: 'Другой шаблон Waba',
+                        createdAt: '2019-12-18T12:10:06',
+                        content: {
+                            id: 8492835,
+                            text: 'Другое содержимое шаблона Waba',
+                            keyboard: {
+                                rows: [{
+                                    buttons: [{
+                                        text: 'Другой текст кнопки шаблона Waba',
+                                        buttonType: 'PHONE',
+                                        payload: '9Sj8fl2t2i48wlskls234',
+                                        url: 'https://somedomain.com/template/waba/button.png',
+                                        phone: '79162843744',
+                                    }],
+                                }],
+                            },
+                            header: {
+                                text: 'Другой текст заголовка содержимого Waba',
+                                headerExampleMediaUrl: 'https://somedomain.com/template/waba/example.png',
+                                headerType: 'some_header_type',
+                            },
+                            footer: {
+                                text: 'Другой текст футера шаблона Waba',
+                            },
+                        },
+                    }]);
 
                     Promise.runAll(false, true);
                     spendTime(0)
@@ -22230,7 +23339,6 @@ define(() => function ({
 
     me.forceUpdate = () => utils.pressKey('k');
     me.body = testersFactory.createDomElementTester('body');
-    me.phoneIcon = testersFactory.createDomElementTester('.cm-top-menu-phone-icon');
 
     me.incomingIcon = testersFactory.createDomElementTester(
         '.ui-direction-icon-incoming, ' +
@@ -22534,7 +23642,9 @@ define(() => function ({
     me.contactBar = (() => {
         const getContactBar = () => {
             let contactBar = utils.querySelector('.cmg-softphone-contact-bar');
-            contactBar instanceof JsTester_NoElement && (contactBar = utils.querySelector('.cm-contacts-contact-bar'));
+
+            utils.isNonExisting(contactBar) &&
+                (contactBar = utils.querySelector('.cm-contacts-contact-bar-tabs-wrapper'));
 
             return contactBar;
         };
@@ -22544,8 +23654,12 @@ define(() => function ({
         tester.click = () => (click(), spendTime(0));
 
         tester.title = (() => {
-            const getTitleElement = () => getContactBar().querySelector('.cm-contacts-contact-bar-title'),
-                tester = addTesters(testersFactory.createDomElementTester(getTitleElement), getTitleElement);
+            const getTitleElement = () => getContactBar().querySelector(
+                '.cm-contacts-contact-bar-title, ' +
+                '.cm-contacts-contact-bar-tabs-header'
+            ) || new JsTester_NoElement();
+
+            const tester = addTesters(testersFactory.createDomElementTester(getTitleElement), getTitleElement);
 
             tester.deleteButton = (() => {
                 const tester = testersFactory.createDomElementTester(
@@ -22569,7 +23683,10 @@ define(() => function ({
 
             tester.closeButton = (() => {
                 const tester = testersFactory.createDomElementTester(
-                    () => getTitleElement().querySelector('.cm-contacts-contact-bar-close-icon')
+                    () => getTitleElement().querySelector(
+                        '.cm-contacts-contact-bar-close-icon, ' +
+                        'span[data-component="Cancel20"]'
+                    )
                 );
 
                 const click = tester.click.bind(tester);
