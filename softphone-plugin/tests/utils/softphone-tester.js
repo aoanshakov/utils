@@ -7187,6 +7187,16 @@ define(function () {
                         state.destroyed = true;
                         return this;
                     },
+                    authorzationFailed: function () {
+                        state.error = 'authorzationFailed';
+                        state.destroyed = true;
+                        return this;
+                    },
+                    invalidToken: function () {
+                        state.error = 'invalidToken';
+                        state.destroyed = true;
+                        return this;
+                    },
                     disabled: function () {
                         state.disabled = true;
                         return this;

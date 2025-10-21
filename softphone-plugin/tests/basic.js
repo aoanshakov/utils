@@ -6196,7 +6196,8 @@ tests.addTest(options => {
                                                 );
 
                                             tester.textarea.expectToHaveValue(
-                                                'Некое сообщение, отправляемое при каких-то изменениях свойств сделки{{lead.id}}'
+                                                'Некое сообщение, отправляемое при каких-то изменениях свойств ' +
+                                                'сделки{{lead.id}}'
                                             );
                                         });
                                     });
@@ -6353,12 +6354,16 @@ tests.addTest(options => {
                     });
 
                     describe('был получен.', function() {
+                        let messageTemplatesRequest;
+
                         beforeEach(function() {
                             salesbotChannelsRequest.receiveResponse();
+                            messageTemplatesRequest = tester.messageTemplatesRequest().expectToBeSent();
                         });
 
                         describe('Снимаю отметку с чекбокса. Чекбокс "Писать в последний диалог".', function() {
                             beforeEach(function() {
+                                messageTemplatesRequest.receiveResponse();
                                 tester.checkbox.click();
                             });
 
@@ -6372,13 +6377,14 @@ tests.addTest(options => {
                                         expectParamsToContain({
                                             should_message_to_last_chat: 'N',
                                             channel_id: 216400,
+                                            message_template_id: 234825,
                                             message: 'Некое сообщение, отправляемое при каких-то изменениях свойств ' +
                                                 'сделки',
                                             recipient: 'contact.fax',
                                         });
                                 });
 
-                                it('Выбираю значение выпадающего списка.', function() {
+                                it('Выбираю значение выпадающего списка. "Куда писать"', function() {
                                     tester.select.
                                         withPlaceholder('Куда писать').
                                         click();
@@ -6392,6 +6398,7 @@ tests.addTest(options => {
                                         expectParamsToContain({
                                             should_message_to_last_chat: 'N',
                                             channel_id: 216400,
+                                            message_template_id: 234825,
                                             recipient: 'contact.phone',
                                             message:
                                                 'Некое сообщение, отправляемое при каких-то изменениях свойств сделки',
@@ -6418,6 +6425,7 @@ tests.addTest(options => {
                                         expectParamsToContain({
                                             should_message_to_last_chat: 'N',
                                             channel_id: 216400,
+                                            message_template_id: 234825,
                                             recipient: 'contact.fax',
                                             message:
                                                 'Некое сообщение, отправляемое при каких-то изменениях свойств ' +
@@ -6444,6 +6452,46 @@ tests.addTest(options => {
                                 tester.checkbox.expectNotToBeChecked();
                             });
                         });
+                        describe('API Битрикс24 иницилазирован.', function() {
+                            beforeEach(function() {
+                                tester.BX24.initialize();
+                                tester.localeSettingRequest().expectToBeSent();
+                            });
+
+                            it('Получен список шаблонов.', function() {
+                                messageTemplatesRequest.receiveResponse();
+
+                                tester.select.
+                                    withPlaceholder('Шаблон WABA').
+                                    expectToBeEnabled();
+
+                                tester.select.
+                                    withPlaceholder('Шаблон WABA').
+                                    expectToHaveTextContent(
+                                        'Другой шаблон Waba ' +
+                                        'Шаблон WABA'
+                                    );
+                            });
+                            it('Форма локализована.', function() {
+                                tester.select.
+                                    withPlaceholder('Шаблон WABA').
+                                    expectToBeDisabled();
+
+                                tester.select.
+                                    withPlaceholder('Куда писать, если не нашли диалог').
+                                    expectToHaveTextContent(
+                                        'Контакт: Номер факса ' +
+                                        'Куда писать, если не нашли диалог'
+                                    );
+
+                                tester.select.
+                                    withPlaceholder('Откуда писать, если не нашли диалог').
+                                    expectToHaveTextContent(
+                                        'Whats App Waba ' +
+                                        'Откуда писать, если не нашли диалог'
+                                    );
+                            });
+                        });
                         it('Получена запись лога.', function() {
                             postMessages.receive('ignore:log:[https://somedomain] Message to parent');
 
@@ -6462,24 +6510,6 @@ tests.addTest(options => {
                                         }
                                     }
                                 }), 'Message to parent']);
-                        });
-                        it('API Битрикс24 иницилазирован. Форма локализована.', function() {
-                            tester.BX24.initialize();
-                            tester.localeSettingRequest().expectToBeSent();
-
-                            tester.select.
-                                withPlaceholder('Куда писать, если не нашли диалог').
-                                expectToHaveTextContent(
-                                    'Контакт: Номер факса ' +
-                                    'Куда писать, если не нашли диалог'
-                                );
-
-                            tester.select.
-                                withPlaceholder('Откуда писать, если не нашли диалог').
-                                expectToHaveTextContent(
-                                    'Whats App Waba ' +
-                                    'Откуда писать, если не нашли диалог'
-                                );
                         });
                         it('Форма заполнена.', function() {
                             tester.checkbox.expectToBeChecked();

@@ -3717,6 +3717,11 @@ define(() => function ({
             };
 
             const addResponseModifiers = me => {
+                me.noChannels = () => {
+                    responseMessage.data.channels = [];
+                    return me;
+                };
+
                 me.serverError = () => {
                     responseMessage.data.error = 'Произошла ошибка сервера';
                     responseMessage.data.channels = [];
@@ -8810,6 +8815,10 @@ define(() => function ({
             visitor_type: 'comagic',
         };
 
+        let respond = request => request.respondSuccessfullyWith({
+            data: [data],
+        });
+
         const bodyParams = {
             limit: 30,
             offset: 0,
@@ -8817,6 +8826,11 @@ define(() => function ({
         };
 
         const addResponseModifiers = me => {
+            me.unauthorized = () => {
+                respond = request => request.respondUnauthorizedWith('401 Unauthorized');
+                return me;
+            };
+
             me.anotherInquiry = () => {
                 processors.push(() => (data.id = 178077));
                 data.name = 'Добрый день';
@@ -8909,9 +8923,7 @@ define(() => function ({
                     receiveResponse() {
                         processors.forEach(process => process());
 
-                        request.respondSuccessfullyWith({
-                            data: [data],
-                        });
+                        respond(request);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -11427,6 +11439,20 @@ define(() => function ({
                 return me;
             };
 
+            me.serverError = () => {
+                Object.keys(response).forEach(key => delete(response[key]));
+                respond = request => request.respondUnsuccessfullyWith(response);
+
+                response.error = {
+                    code: 500,
+                    message: 'Internval server error',
+                    mnemonic: 'server_error',
+                    is_smart: false
+                };
+
+                return me;
+            };
+
             me.accessTokenExpired = () => {
                 Object.keys(response).forEach(key => delete(response[key]));
                 respond = request => request.respondUnauthorizedWith(response);
@@ -11616,6 +11642,20 @@ define(() => function ({
             xWidgetId = utils.expectToBeString();
 
         const addResponseModifiers = me => {
+            me.serverError = () => {
+                response = {
+                    error: {
+                        code: 500,
+                        message: 'Internval server error',
+                        mnemonic: 'server_error',
+                        is_smart: false,
+                    },
+                };
+
+                respond = request => request.respondUnsuccessfullyWith(response);
+                return me;
+            };
+
             me.invalidToken = () => {
                 response = {
                     error: {
@@ -12658,7 +12698,7 @@ define(() => function ({
     me.chatChannelListRequest = () => {
         const data = [{
             id: 101,
-            channel_id: 101,
+            channel_id: 86297,
             is_removed: false,
             name: 'mrDDosT',
             status: 'active',
@@ -12666,7 +12706,7 @@ define(() => function ({
             type: 'telegram'
         }, {
             id: 216395,
-            channel_id: 216395,
+            channel_id: 86298,
             is_removed: false,
             name: 'Whats App',
             status: 'active',
@@ -12674,7 +12714,7 @@ define(() => function ({
             type: 'whatsapp'
         }, {
             id: 216400,
-            channel_id: 216400,
+            channel_id: 86299,
             is_removed: false,
             name: 'Whats App Waba',
             status: 'active',
@@ -12682,7 +12722,7 @@ define(() => function ({
             type: 'waba',
         }, {
             id: 216401,
-            channel_id: 216401,
+            channel_id: 86300,
             is_removed: false,
             name: 'Telegram Private',
             status: 'active',
@@ -12690,7 +12730,7 @@ define(() => function ({
             type: 'telegram_private',
         }, {
             id: 216402,
-            channel_id: 216402,
+            channel_id: 86301,
             is_removed: false,
             name: 'Астана',
             status: 'idle',
@@ -14680,7 +14720,7 @@ define(() => function ({
     me.channelMessageTemplateListRequest = () => ({
         expectToBeSent(requests) {
             const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                expectPathToContain('https://$REACT_APP_BASE_URL/operator/channel/216400/message_template/list').
+                expectPathToContain('https://$REACT_APP_BASE_URL/operator/channel/86299/message_template/list').
                 expectToHaveMethod('GET');
 
             return {
@@ -20238,6 +20278,11 @@ define(() => function ({
             me.anotherEmployee = () => (data[0].chats[0].employee_id = 57292, me);
             me.chatUnavailable = () => (data[0].chats[0].is_available_for_current_employee = false, me);
 
+            me.unauthorized = () => {
+                respond = request => request.respondUnauthorizedWith('401 Unauthorized');
+                return me;
+            };
+
             me.addClosedChat = () => {
                 data[0].chats.push({
                     id: 7189371,
@@ -20411,6 +20456,8 @@ define(() => function ({
             result: { data },
         };
 
+        let respond = request => request.respondSuccessfullyWith(response);
+
         return addResponseModifiers({
             invalidFormat() {
                 response = {
@@ -20498,7 +20545,7 @@ define(() => function ({
                 return addResponseModifiers({
                     receiveResponse: () => {
                         processors.forEach(process => process());
-                        request.respondSuccessfullyWith(response);
+                        respond(request);
 
                         Promise.runAll(false, true);
                         spendTime(0)

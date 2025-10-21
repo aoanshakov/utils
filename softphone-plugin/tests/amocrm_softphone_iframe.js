@@ -283,7 +283,7 @@ tests.addTest(options => {
                         describe('Не удалось произвести авторизацию.', function() {
                             beforeEach(function() {
                                 authCheckRequest.
-                                    invalidToken().
+                                    serverError().
                                     receiveResponse();
 
                                 tester.slavesNotification().
@@ -663,6 +663,77 @@ tests.addTest(options => {
                     });
                     it('Софтфон скрыт.', function() {
                         tester.softphone.expectNotToExist();
+                    });
+                });
+                describe('Открываю софтфона.', function() {
+                    beforeEach(function() {
+                        tester.softphoneVisibilityToggleRequest().receive();
+
+                        tester.stateSettingRequest().
+                            leader().
+                            visible().
+                            expectToBeSent();
+
+                        tester.slavesNotification().
+                            additional().
+                            visible().
+                            expectToBeSent();
+                    });
+
+                    it('Не удалось получить настройки из-за ошибки сервера.', function() {
+                        settingsRequest.
+                            serverError().
+                            receiveResponse();
+
+                        tester.stateSettingRequest().
+                            leader().
+                            visible().
+                            destroyed().
+                            expectToBeSent();
+
+                        tester.slavesNotification().
+                            authorzationFailed().
+                            expectToBeSent();
+
+                        tester.masterInfoMessage().
+                            leaderDeath().
+                            expectToBeSent();
+
+                        tester.authLogoutRequest().receiveResponse();
+
+                        tester.body.expectToHaveTextContent(
+                            'Софтфон недоступен ' +
+                            'Не хватает прав'
+                        );
+                    });
+                    it(
+                        'Не удалось получить настройки, потому что сотрудник не авторизован. Отображена ссылка на ' +
+                        'страницу авторизации.',
+                    function() {
+                        settingsRequest.
+                            accessTokenInvalid().
+                            receiveResponse();
+
+                        tester.stateSettingRequest().
+                            leader().
+                            visible().
+                            destroyed().
+                            expectToBeSent();
+
+                        tester.slavesNotification().
+                            invalidToken().
+                            expectToBeSent();
+
+                        tester.masterInfoMessage().
+                            leaderDeath().
+                            expectToBeSent();
+
+                        tester.authLogoutRequest().receiveResponse();
+
+                        tester.body.expectToHaveTextContent(
+                            'Не авторизован ' +
+                            'Для использования софтфона необходимо авторизоваться'
+                        );
                     });
                 });
             });
