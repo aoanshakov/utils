@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index e410f1083..c4766e807 100644
+index b0a421cc8..2e78e237f 100644
 --- a/package.json
 +++ b/package.json
 @@ -80,17 +80,11 @@
@@ -9,19 +9,19 @@ index e410f1083..c4766e807 100644
 -    "@comagic/core": "^1.17.0",
      "@comagic/crud": "2.60.5",
      "@comagic/flow": "0.6.4",
-     "@comagic/reports": "8.3.1",
--    "@comagic/softphone-core": "0.0.0-0.0.18-int0",
--    "@comagic/softphone-widget": "0.0.47-int0",
--    "@comagic/ui": "3.8.5",
--    "@comagic/workplace-utils": "0.0.19-int0",
+     "@comagic/reports": "8.6.1",
+-    "@comagic/softphone-core": "0.0.0-0.0.11-int1",
+-    "@comagic/softphone-widget": "0.0.33-int1",
+-    "@comagic/ui": "3.25.0",
+-    "@comagic/workplace-utils": "1.17.0",
      "@sentry/react": "^7.73.0",
      "async-mutex": "^0.3.2",
 -    "axios": "0.27.2",
      "classnames": "^2.2.6",
      "dayjs": "1.11.11",
      "dompurify": "^2.3.10",
-@@ -106,26 +100,17 @@
-     "janus-gateway": "1.1.4",
+@@ -109,15 +103,10 @@
+     "linkifyjs": "4.3.2",
      "lodash.clonedeep": "^4.5.0",
      "madge": "^5.0.1",
 -    "magic-ui": "0.0.0-int1",
@@ -36,6 +36,7 @@ index e410f1083..c4766e807 100644
      "react-animate-height": "^2.0.23",
      "react-beautiful-dnd": "^13.1.1",
      "react-color": "2.19.3",
+@@ -125,11 +114,7 @@
      "react-csv": "^2.0.3",
      "react-dnd": "^16.0.1",
      "react-dnd-html5-backend": "^16.0.1",

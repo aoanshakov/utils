@@ -1,0 +1,38 @@
+Wed Dec 24 2025 15:12:49 GMT+0300 (Moscow Standard Time) Window message received
+
+From https://dev-int0-softphone-widget-iframe.uis.st/chrome/softphone
+To https://amodev3.amocrm.ru/leads/list/pipeline/7460922/?skip_filter=Y
+
+{
+    "method":"set_state",
+    "data":{
+        "type":"softphone",
+        "data":{
+            "userName":"",
+            "shortPhone":null,
+            "missedEventsCount":0,
+            "visible":false,
+            "size":{
+                "width":340,
+                "height":568
+            },
+            "destroyed":false,
+            "role":null
+        }
+    }
+}
+
+Wed Dec 24 2025 15:12:49 GMT+0300 (Moscow Standard Time) [https://dev-int0-softphone-widget-iframe.uis.st/chrome/softphone] Window message received
+
+From https://amodev3.amocrm.ru/leads/list/pipeline/7460922/?skip_filter=Y
+To https://dev-int0-softphone-widget-iframe.uis.st/chrome/softphone
+
+{
+    "method":"set_widget_settings",
+    "data":{
+        "token":"eyJhbGciOiJSUzI1NiIsImtpZCI6IjF6b3p5cFF6djFhWElOcnNicXlXX1VHdW1wajdLVVpxeUpsRjdBQkF1dGsiLCJ0eXAiOiJKV1QifQ.eyJqdGkiOiI3M2Y2Mjk5Mi0yZWNjLTRhYzktYjBlNi1hNjIyNmM5MDZhMzIiLCJzaWQiOiI5MzBlZGQ0Mzk4MWY0MGI2OTZlNGRlYTM2OWVmNGU0ZiIsImlzcyI6Imh0dHBzOi8vZGV2LWludDAtdWMtc3NvLWFwaS51aXMuc3QiLCJhdWQiOlsiaHR0cHM6Ly9jaGF0cy1pbnQwLWxvZ2ljLnVpcy5zdCIsImh0dHBzOi8vZGV2LWludDAtY29tYWdpYy1jb250YWN0cy1iYWNrZW5kLnVpcy5zdCIsImh0dHBzOi8vZGV2LWludDAtb21uaS1jaGF0cy1sb2dpYy51aXMuc3QiLCJodHRwczovL25mYW9sYW9nbGtjbGRhZ2JpY2RvcHBnaGFkaWhqZmZsLmNocm9taXVtYXBwLm9yZyIsImh0dHBzOi8vZGV2LWludDAtc29mdHBob25lLXJlc3QtYXBpLnVpcy5zdCIsImh0dHBzOi8vZGV2LWludDAtZGF0YWFwaS1qc29ucnBjLnVpcy5zdCIsImh0dHBzOi8vZGV2LWludDAtY29tYWdpYy1lbXBsb3llZS1yZXN0LnVpcy5zdCIsImh0dHBzOi8vZGV2LWludDAtY29tYWdpYy1lbXBsb3llZS1yZWFsdGltZS51aXMuc3QiXSwic3ViIjoiQ29tYWdpY0RCfGNvbWFnaWN8NDczNXw1OTI3NDMiLCJzdWJkIjp7InByb2plY3QiOiJjb21hZ2ljIiwiZGF0YV9jZW50ZXIiOiJtb3Njb3ciLCJhcHBfaWQiOjQ3MzUsImN1c3RvbWVyX2lkIjoyNjU0MzYsInVzZXJfaWQiOjU5Mjc0MywibG9naW4iOiJhc2thcm92YV9pbnQwIiwiaXNfc3lzdGVtIjpmYWxzZSwidGltZXpvbmUiOiJFdXJvcGUvTW9zY293IiwibGMiOiJydSJ9LCJjbGllbnRfaWQiOiJodHRwczovL25mYW9sYW9nbGtjbGRhZ2JpY2RvcHBnaGFkaWhqZmZsLmNocm9taXVtYXBwLm9yZyIsImlhdCI6MTc2NjU3ODM2N30.E6ZJvBDnKc3flmrftAwOu28Nco8uNdVdToMIXDaQ_8N_lhpOTRSKPsF75G9ExTTXJpvsYu2Gk_aMJoFN6vAQXCFZfnq-hETpKpFa_W3eR7YcHwgg8EEkmmL7fxRwvok2B0p6xia0Rt85DfnH5s6DMU-zLdHNPQYW59CfheLNNMPDWsauziNKzrnIvx8vB2zXLo-49gjnSruI6VaOm0m6loZa5gkaHpul409F0XpwnvK2KU0Bp2b9a5SlirDoL4Pgp76j0yQ-b2hpZJQmLQkEWFiRhDmdNNhq39PYbsiLkZX10XfQIe0VL8IjNazjgaMhu5yTFFsRUH7gu9hnVL-kDEk6NpaQSQnHWETtJO7_okgqJ5QQe2aIW4KDwoDz6BN7WnjQ19Q4IydbCb3Ov-hKNw9lxI-wuXGTscKhI_A8hogpJlk17DHyUp10FhxNk7P7FuyJ0qWYugfYRDHbTiXCQEpjdlbWBmNVMGJ3p8_etu1H1nFQvysFwYtXs6tAmRrELJw7GDnwp2P28Lfrauwo6HiuJdUTaFnKMLHDQrJG2P-9RohyprjL0RU9ZDLub6JjpxlHwdoV_pQCAYZQL7Npvkqwh8e99RZBA3Hp5UV-5V56kGh_5xiZSYOFC3NbNvriBFHkJcth4os3McHrT3ncP8UXrwEvvJozsZLoLmSb5Rg",
+        "padding":null,
+        "button":{...},
+        "click2call":{...}
+    }
+}

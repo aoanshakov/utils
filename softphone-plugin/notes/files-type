@@ -1,0 +1,23 @@
+Привет. Поле называется "files". Это строковое значение, которое представляет собой JSON подобный этому
+
+[{
+    id: 5829574,
+    mime: 'application/zip',
+    type: 'document',
+    filename: 'some-file.zip',
+    size: 925,
+    width: null,
+    height: null,
+    thumbs: null,
+    duration: 42820,
+}, {
+    id: 5829575,
+    mime: 'application/zip',
+    type: 'document',
+    filename: 'other-file.zip',
+    size: 925,
+    width: null,
+    height: null,
+    thumbs: null,
+    duration: 42820,
+}]

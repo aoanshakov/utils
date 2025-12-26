@@ -66,6 +66,7 @@ define(() => function ({
 
     window.resetElectronCookiesManager?.();
     window.destroyMethodCaller?.();
+    window.destroyTransferHandlers?.();
 
     window.isIframe = !!isIframe;
     window.stores = null;
@@ -353,6 +354,8 @@ define(() => function ({
 
             lang_id: lang,
         };
+
+        me.addInstalledWidget = code => (window.APP.widgets.list[code] = {});
 
         me.phoneIcon = (() => {
             return {
@@ -1040,12 +1043,15 @@ define(() => function ({
             chatSettingsProcessors = [],
             settingsProcessors = [],
             storageDataProcessors = [],
+            chromeExtensionFeaturesProcessors = [],
+            callapiProcessors = [],
             anotherStorageDataProcessors = [],
             getQueryParams = () => ({ widget_id });
 
-        const getCallapi = () => ({
+        const getCallapi = () => callapiProcessors.reduce((value, process) => process(value), {
             url: 'https://somedomain.com/click2call/{{ phone }}',
             method: 'post',
+            use_always: false,
             data: {
                 phone: '{{ phone }}',
             },
@@ -1204,6 +1210,11 @@ define(() => function ({
             return anotherStorageDataProcessors.reduce((value, process) => process(value), value);
         };
 
+        const getChromeExtensionFeatures = () => {
+            let value = ['novofon_content_script_logging'];
+            return chromeExtensionFeaturesProcessors.reduce((value, process) => process(value), value);
+        };
+
         let respond = request => {
             const settings = getSettings();
             settings && delete(settings[chatsSettings ? 'softphone' : 'chats'])
@@ -1224,6 +1235,11 @@ define(() => function ({
             })();
 
             const getAmocrmSettings = settings => settings.settings || (settings.settings = {});
+
+            me.useCallapiAlways = () => {
+                callapiProcessors.push(settings => (settings.use_always = true, settings));
+                return me;
+            };
 
             me.unavailable = () => (settingsProcessors.push(
                 settings => (getAmocrmSettings(settings).is_available = false, settings),
@@ -1585,6 +1601,11 @@ define(() => function ({
                     return settings;
                 });
 
+                return me;
+            };
+
+            me.noFeatures = () => {
+                chromeExtensionFeaturesProcessors.push(() => []);
                 return me;
             };
 
@@ -2078,6 +2099,7 @@ define(() => function ({
             method: 'set_widget_settings',
             data: {
                 token: getStorageData().token,
+                features: getChromeExtensionFeatures(),
                 ...(chatsSettings ? {
                     padding: undefined,
                     click2call: undefined,
@@ -2200,6 +2222,27 @@ define(() => function ({
         channel_id: 216400,
         message_template_id: 234825,
         message: 'Некое сообщение, отправляемое при каких-то изменениях свойств сделки',
+        files: JSON.stringify([{
+            id: 5829574,
+            mime: 'application/zip',
+            type: 'document',
+            filename: 'some-file.zip',
+            size: 925,
+            width: null,
+            height: null,
+            thumbs: null,
+            duration: 42820,
+        }, {
+            id: 5829575,
+            mime: 'application/zip',
+            type: 'document',
+            filename: 'other-file.zip',
+            size: 925,
+            width: null,
+            height: null,
+            thumbs: null,
+            duration: 42820,
+        }]),
     };
 
     const defaultSalesbotSettings = {
@@ -2207,6 +2250,7 @@ define(() => function ({
         channel_id: 101,
         message_template_id: 0,
         message: '',
+        files: '',
     };
 
     me.salesbot = () => {
@@ -2506,6 +2550,28 @@ define(() => function ({
             receiveResponse() {
                 this.expectToBeSent().receiveResponse();
             },
+        };
+    };
+
+    me.employeeFetchedMessage = () => {
+        const data = JSON.parse(JSON.stringify(mainTester.authenticatedUser()));
+
+        const message = {
+            type: 'message',
+            data: {
+                type: 'notify_slaves',
+                data: { type: 'employee_fetched', data },
+            },
+        };
+
+        return {
+            lostCalls(value) {
+                data.lost_call_count = value;
+                return this;
+            },
+
+            expectToBeSent: () => me.recentCrosstabMessage().expectToContain(message),
+            receive: () => me.receiveCrosstabMessage(message),
         };
     };
 
@@ -3024,6 +3090,27 @@ define(() => function ({
 
             variableAdded() {
                 setValue('message', salesbotSettings.message + '{{lead.id}}');
+                return this;
+            },
+
+            fileAdded() {
+                setValue('files', JSON.stringify([{
+                    id: 5829574,
+                    mime: 'application/zip',
+                    type: 'document',
+                    filename: 'some-file.zip',
+                    size: 925,
+                    width: null,
+                    height: null,
+                    thumbs: null,
+                    duration: 42820,
+                }]));
+
+                return this;
+            },
+
+            filesAdded() {
+                fill('files');
                 return this;
             },
 
@@ -3591,13 +3678,18 @@ define(() => function ({
     };
 
     me.messageTemplatesRequest = () => {
-        const requestMessage = { method: 'get_message_templates', data: 216400 };
+        const requestMessage = {
+            method: 'call_chats_method',
+            data: {
+                method: 'get_message_templates',
+                data: 216400,
+            },
+        };
 
         const responseMessage = {
-            method: 'set_message_templates',
+            method: 'set_chats_method_result',
             data: {
-                channel_id: 216400,
-                message_templates: [{
+                data: [{
                     id: 234824,
                     name: 'Некий шаблон Waba',
                 }, {
@@ -3611,6 +3703,7 @@ define(() => function ({
 
         return addResponseModifiers({
             receive: () => {
+                requestMessage.data.id = responseMessage.data.id = '5314f800-0f23-425d-bf20-683f0d149675';
                 postMessages.receive(requestMessage);
 
                 return addResponseModifiers({
@@ -3621,12 +3714,20 @@ define(() => function ({
             },
 
             expectToBeSent: () => {
-                postMessages.
-                    nextMessage().
-                    expectMessageToContain(requestMessage);
+                const message = postMessages.nextMessage();
+                let id = message.getJSON()?.data?.id;
+
+                requestMessage.data.id = utils.expectToBeString();
+                message.expectMessageToContain(requestMessage);
 
                 return addResponseModifiers({
+                    anotherId() {
+                        id = '5314f800-0f23-425d-bf20-683f0d149675';
+                        return this;
+                    },
+
                     receiveResponse: () => {
+                        responseMessage.data.id = id;
                         postMessages.receive(responseMessage);
 
                         return {
@@ -3640,6 +3741,178 @@ define(() => function ({
 
             expectResponseToBeSent() {
                 this.receive().expectResponseToBeSent();
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
+            },
+        });
+    };
+
+    me.fileUploadngRequest = () => {
+        const requestMessage = {
+            method: 'call_chats_method',
+            data: {
+                method: 'upload_file',
+                data: {
+                    name: 'some-file.zip',
+                    type: 'application/zip',
+                    size: 283942,
+                },
+            },
+        };
+
+        const responseMessage = {
+            method: 'set_chats_method_result',
+            data: {
+                error: undefined,
+                data: {
+                    id: 5829574,
+                    mime: 'application/zip',
+                    type: 'document',
+                    filename: 'some-file.zip',
+                    size: 925,
+                    width: null,
+                    height: null,
+                    thumbs: null,
+                    duration: 42820,
+                },
+            },
+        };
+
+        const addResponseModifiers = me => {
+            me.failed = () => {
+                responseMessage.data.data = null;
+                responseMessage.data.error = 'AxiosError: Request failed with status code 500';
+
+                return me;
+            };
+
+            me.anotherFile = () => {
+                responseMessage.data.data.filename = requestMessage.data.data.name = 'other-file.zip';
+                responseMessage.data.data.id = 5829575;
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            receive: () => {
+                requestMessage.data.id = responseMessage.data.id = '5314f800-0f23-425d-bf20-683f0d149675';
+
+                requestMessage.data.data.buffer = utils.createUploadedFileArrayBuffer(
+                    utils.createUploadedFile(requestMessage.data.data.name)
+                );
+
+                postMessages.receive(requestMessage);
+
+                return addResponseModifiers({
+                    expectResponseToBeSent: () => postMessages.
+                        nextMessage().
+                        expectMessageToContain(responseMessage),
+                });
+            },
+
+            expectToBeSent: () => {
+                const message = postMessages.nextMessage(),
+                    id = message.getJSON()?.data?.id;
+
+                requestMessage.data.id = utils.expectToBeString();
+
+                requestMessage.data.data.buffer =
+                    utils.expectBufferCreatedFromFileWithName(requestMessage.data.data.name);
+
+                message.expectMessageToContain(requestMessage);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        responseMessage.data.id = id;
+                        postMessages.receive(responseMessage);
+
+                        return addResponseModifiers({
+                            expectResponseToBeSent: () => postMessages.
+                                nextMessage().
+                                expectMessageToContain(responseMessage),
+                        });
+                    },
+                });
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
+            },
+        });
+    };
+
+    me.fileDownloadingRequest = () => {
+        const requestMessage = {
+            method: 'call_chats_method',
+            data: {
+                method: 'download_file',
+                data: {
+                    id: 5829574,
+                    mime: 'application/zip',
+                    type: 'document',
+                    filename: 'some-file.zip',
+                    size: 925,
+                    width: null,
+                    height: null,
+                    duration: 42820,
+                },
+            },
+        };
+
+        const responseMessage = {
+            method: 'set_chats_method_result',
+            data: {
+                data: null,
+            },
+        };
+
+        const addResponseModifiers = me => {
+            me.failed = () => {
+                responseMessage.data.data = null;
+                responseMessage.data.error = 'AxiosError: Request failed with status code 500';
+
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            receive: () => {
+                requestMessage.data.id = responseMessage.data.id = '5314f800-0f23-425d-bf20-683f0d149675';
+                postMessages.receive(requestMessage);
+
+                return addResponseModifiers({
+                    expectResponseToBeSent: () => postMessages.
+                        nextMessage().
+                        expectMessageToContain(responseMessage),
+                });
+            },
+
+            expectToBeSent: () => {
+                const message = postMessages.nextMessage(),
+                    id = message.getJSON()?.data?.id;
+
+                requestMessage.data.id = utils.expectToBeString();
+                message.expectMessageToContain(requestMessage);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        responseMessage.data.id = id;
+                        postMessages.receive(responseMessage);
+
+                        return addResponseModifiers({
+                            expectResponseToBeSent: () => postMessages.
+                                nextMessage().
+                                expectMessageToContain(responseMessage),
+                        });
+                    },
+                });
             },
 
             receiveResponse() {
@@ -3951,6 +4224,18 @@ define(() => function ({
         };
     };
 
+    me.originSettingRequest = () => {
+        const message = {
+            method: 'set_origin',
+            data: 'https://app.uiscom.ru',
+        };
+
+        return {
+            receive: () => postMessages.receive(message),
+            expectToBeSent: () => postMessages.nextMessage().expectMessageToContain(message),
+        };
+    };
+
     me.amocrmStateSettingRequest = () => {
         const processors = [],
             secondProcessors = [],
@@ -4032,7 +4317,7 @@ define(() => function ({
     };
 
     me.sourcesSettingRequest = () => {
-        const sources = [{
+        let sources = [{
             id: 23495103,
             origin: 'amo.ext.32052838.2',
             chat_channel_id: 40790,
@@ -4080,6 +4365,27 @@ define(() => function ({
         let getMessage = getMessageWithOrigins;
 
         return {
+            employeeUnknown() {
+                sources = [{
+                    id: 23495103,
+                    origin: 'amo.ext.32052838.2',
+                    chat_channel_id: 40790,
+                    is_mine: false,
+                }, {
+                    id: 23495107,
+                    origin: 'amo.ext.32052838',
+                    chat_channel_id: 40792,
+                    is_mine: false,
+                }, {
+                    id: 23495101,
+                    origin: 'amo.ext.32052838.2',
+                    chat_channel_id: 40793,
+                    is_mine: false,
+                }];
+
+                return this;
+            },
+
             noGroupsFiltration() {
                 sources[4] = undefined;
                 return this;
@@ -4168,6 +4474,12 @@ define(() => function ({
             };
 
             processors.forEach(process => process(message));
+
+            message.data.userName = message.data.data.userName;
+            message.data.lostCallsCount = message.data.data.missedEventsCount;
+            message.data.visible = message.data.data.visible;
+            message.data.size = message.data.data.size;
+            
             return message;
         };
 
@@ -4624,10 +4936,22 @@ define(() => function ({
                             'data-forced="" ' +
                             'data-value="" ' +
                             'data-suggestion-type="" ' +
-                            'data-widget="uismarketplacedev"' +
+                            'data-widget="uismarketplace"' +
                         '>' +
                             '<span class="tips-icon icon icon-inline icon-phone-dark"></span>' +
                                 'UIS Chats' +
+                        '</div>' +
+                        '<div ' +
+                            'class="tips-item js-tips-item js-cf-actions-item " ' +
+                            'data-type="phone" ' +
+                            'data-id="" ' +
+                            'data-forced="" ' +
+                            'data-value="" ' +
+                            'data-suggestion-type="" ' +
+                            'data-widget="mango"' +
+                        '>' +
+                            '<span class="tips-icon icon icon-inline icon-phone-dark"></span>' +
+                                'Mango Chats' +
                         '</div>' +
                         '<div ' +
                             'class="tips-item js-tips-item js-cf-actions-item" ' +
@@ -5391,6 +5715,113 @@ define(() => function ({
 
     const addTesters = (me, getRootElement) => {
         softphoneTester.addTesters(me, getRootElement);
+
+        me.attachment = text => {
+            const getAttachmentName = () => utils.descendantOf(getRootElement()).
+                matchesSelector('.cmg-salesbot-attachment-name').
+                textEquals(text).
+                find();
+            
+            const tester = testersFactory.createDomElementTester(getAttachmentName),
+                click = tester.click.bind(tester),
+                getAttachment = () => getAttachmentName().closest('.cmg-salesbot-attachment');
+
+            tester.click = () => (click(), spendTime(0));
+
+            tester.removeIcon = (() => {
+                const tester = testersFactory.createDomElementTester(
+                    () => getAttachment().
+                        querySelector('.cmg-salesbot-attachment-remove-button')
+                );
+
+                const click = tester.click.bind(tester);
+                tester.click = () => (click(), spendTime(0), spendTime(0));
+
+                return tester;
+            })();
+
+            const downloadButtonTester = testersFactory.createDomElementTester(
+                () => getAttachmentName().closest('.cmg-salesbot-attachment-download-button')
+            );
+
+            tester.expectToBeDisabled = () => downloadButtonTester.expectToHaveClass(
+                'cmg-salesbot-attachment-download-button-disabled'
+            );
+
+            tester.expectToBeEnabled = () => downloadButtonTester.expectNotToHaveClass(
+                'cmg-salesbot-attachment-download-button-disabled'
+            );
+
+            return addTesters(tester, getAttachment);
+        };
+
+        me.downloadedFile = (() => {
+            const downloadAnchors = new Set();
+
+            const getDownloadAnchor = () => {
+                const downloadAnchor = Array.prototype.find.call(
+                    getRootElement().querySelectorAll('a'),
+                    domElement => domElement.style.display == 'none'
+                ) || document.body.querySelector('a[data-role="file-saver"]') || noElement;
+
+                if (!downloadAnchors.has(downloadAnchor)) {
+                    downloadAnchors.add(downloadAnchor);
+                    downloadAnchor.addEventListener('click', event => event.preventDefault());
+                }
+
+                return downloadAnchor;
+            };
+
+            const downloadAnchorTester = testersFactory.createAnchorTester(getDownloadAnchor);
+            downloadAnchorTester.expectToBeVisible = () => null;
+
+            return {
+                expectToHaveName(expectedName) {
+                    (utils.isNonExisting(getDownloadAnchor()) ? tester.downloadIcon : downloadAnchorTester).
+                        expectAttributeToHaveValue('download', expectedName);
+
+                    return this;
+                },
+
+                expectToHaveContent(expectedContent) {
+                    downloadAnchorTester.expectHrefToHaveHash(expectedContent);
+                    return this;
+                }
+            };
+        })();
+
+        me.failIcon = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => utils.element(getRootElement()).
+                    querySelector('.cmgui-icon[data-component=Fail20]') 
+            );
+
+            const putMouseOver = tester.putMouseOver.bind(tester);
+
+            tester.putMouseOver = () => {
+                putMouseOver();
+                spendTime(100);
+                spendTime(0);
+                spendTime(0);
+                spendTime(0);
+                spendTime(0);
+                spendTime(0);
+            };
+
+            return tester;
+        })();
+
+        me.sendIcon = (() => {
+            const tester = testersFactory.createDomElementTester(
+                () => utils.element(getRootElement()).
+                    querySelector('.cmgui-icon[data-component=SendFilled20]') 
+            );
+
+            const click = tester.click.bind(tester);
+            tester.click = () => (click(), spendTime(0));
+
+            return tester;
+        })();
 
         me.searchIcon = (() => {
             const tester = testersFactory.createDomElementTester(
@@ -6510,6 +6941,47 @@ define(() => function ({
         utils.expectObjectToContain(chatsRootStore.toJSON(), expectedContent);
     };
 
+    me.amocrmFileUploadRequest = () => {
+        const data = {
+            file_name: 'aaa',
+            file_size: 3435,
+            content_type: 'image/jpeg',
+            file_uuid: '367b9f38-5f01-4cea-947e-dfab47aea522'
+        };
+
+        function addResponseModifiers (me) {
+            return me;
+        };
+
+        return addResponseModifiers({
+            expectToBeSent() {
+                const request = ajax.recentRequest().
+                    expectToHaveMethod('POST').
+                    expectPathToContain('/v1.0/sessions');
+
+                return addResponseModifiers({
+                    receiveResponse() {
+                        request.respondSuccessfullyWith({
+                            max_file_size: 314572800,
+                            max_part_size: 524288,
+                            session_id: 26136001,
+                            upload_url: 'https://drive-b.amocrm.ru/v1.0/sessions/upload/' +
+                                'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjc0MTg3MzYwMCwiaWF0Ijo3NDE4NzM2MDAsI' +
+                                'm5iZiI6NzQxODczNjAwLCJhY2NvdW50X2lkIjo3Nzc3Nzc3Nywic2Vzc2lvbl9pZCI6Nzc3Nzc3NzcsInV' +
+                                'zZXJfaWQiOjc3Nzc3NzcsInVzZXJfdHlwZSI6ImludGVybmFsIiwicGFydF9udW0iOjF9.8sdJVTZJ_Mju' +
+                                'HhMGDkU7_eSi2q1u1EG-au_TZhmmXK8'
+                        });
+                        Promise.runAll(false, true);
+                    }
+                });
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     me.userRequest = () => {
         const data = {
             id: 428654,
@@ -6893,7 +7365,42 @@ define(() => function ({
     };
 
     me.resourceRequest = () => {
-        const addResponseModifiers = me => me;
+        const response = {
+            id: 5829574,
+            mime: 'application/zip',
+            type: 'document',
+            filename: 'some-file.zip',
+            size: 925,
+            width: null,
+            height: null,
+            thumbs: null,
+            duration: 42820,
+        };
+
+        let respond = request => request.respondSuccessfullyWith(response);
+
+        const addResponseModifiers = me => {
+            me.failed = () => {
+                respond = request =>
+                    request.respondUnsuccessfullyWith(
+                        '500 Internal Server Error Server got itself in trouble'
+                    );
+
+                return me;
+            };
+
+            me.thumbs = () => {
+                response.thumbs = {
+                    '100x100': {
+                        payload: image,
+                    },
+                };
+
+                return me;
+            };
+
+            return me;
+        };
 
         return addResponseModifiers({
             expectToBeSent() {
@@ -6910,16 +7417,7 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith({
-                            id: 5829574,
-                            mime: 'application/zip',
-                            type: 'document',
-                            filename: 'some-file.zip',
-                            size: 925,
-                            width: null,
-                            height: null,
-                            duration: 42820,
-                        });
+                        respond(request);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -6946,10 +7444,16 @@ define(() => function ({
                 return this;
             },
 
+            thirdFile() {
+                id = '5829574';
+                response = '2gf0s82l24348s982';
+                return this;
+            },
+
             expectToBeSent() {
                 const request = ajax.recentRequest().
                     expectToHaveMethod('GET').
-                    expectPathToContain('https://$REACT_APP_BASE_URL/resource/payload').
+                    expectPathToContain('https://$REACT_APP_BASE_URL/operator/resource/payload').
                     expectQueryToContain({ id });
 
                 return addResponseModifiers({
@@ -6994,7 +7498,6 @@ define(() => function ({
     me.messageAddingRequest = () => {
         const params = {
             chat_id: 7189362,
-            chat_channel_id: null,
             visitor_id: 16479303,
             message: {
                 text: 'Мне тревожно, успокой меня',
@@ -7071,6 +7574,11 @@ define(() => function ({
 
             anotherChat() {
                 params.chat_id = 2718936;
+                return  this;
+            },
+
+            thirdChat() {
+                params.chat_id = 2718935;
                 return  this;
             },
 
@@ -10907,7 +11415,8 @@ define(() => function ({
             contact_full_name: 'Шалева Дора',
             crm_contact_link: 'https://comagicwidgets.amocrm.ru/contacts/detail/382030',
             active_leads: [],
-            is_final: true
+            is_final: true,
+            mark_ids: [23482439],
         };
 
         const createMessage = () => ({
@@ -11597,6 +12106,14 @@ define(() => function ({
         let url = `https://${softphoneHost}/sup/auth/token`;
         const data = { token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0' };
 
+        const queryParams = {
+            widget_type: undefined,
+        };
+
+        const headers = {
+            'X-Widget-Type': undefined,
+        };
+
         const bodyParams = {
             token: mainTester.oauthToken,
         };
@@ -11611,10 +12128,22 @@ define(() => function ({
         };
 
         return addResponseModifiers({
+            amocrm() {
+                headers['X-Widget-Type'] = 'amocrm';
+                queryParams.widget_type = 'amocrm';
+
+                headers['X-Widget-Url'] = 'https://app.uiscom.ru';
+                queryParams.widget_url = 'https://app.uiscom.ru';
+
+                return this;
+            },
+
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
                     expectToHaveMethod('POST').
                     expectToHavePath(url).
+                    expectToHaveHeaders(headers).
+                    expectQueryToContain(queryParams).
                     expectBodyToContain(bodyParams);
 
                 spendTime(0);
@@ -14154,10 +14683,13 @@ define(() => function ({
         }
 
         const chat = chat_id => {
-            paramsProcessors.push(() => (params.is_show_pinned_chats = undefined));
+            paramsProcessors.push(() => {
+                params.is_show_pinned_chats = undefined;
+                params.statuses = undefined;
+            });
+
             params.scroll_direction = undefined;
             params.scroll_from_date = undefined;
-            params.statuses = undefined;
             params.app_id = undefined;
             params.employee_id = undefined;
             params.chat_id = chat_id;
@@ -14782,6 +15314,7 @@ define(() => function ({
                     }]);
 
                     Promise.runAll(false, true);
+                    spendTime(0)
                     spendTime(0)
                 }
             };
@@ -23545,33 +24078,6 @@ define(() => function ({
 
                     return tester;
                 })();
-
-                const downloadAnchor = Array.prototype.find.call(
-                    getMessageElement(filter).querySelectorAll('a'),
-                    domElement => domElement.style.display == 'none'
-                ) || document.body.querySelector('a[data-role="file-saver"]') || noElement;
-
-                if (!downloadAnchors.has(downloadAnchor)) {
-                    downloadAnchors.add(downloadAnchor);
-                    downloadAnchor.addEventListener('click', event => event.preventDefault());
-                }
-
-                downloadAnchorTester = testersFactory.createAnchorTester(downloadAnchor);
-                downloadAnchorTester.expectToBeVisible = () => null;
-
-                tester.downloadedFile = {
-                    expectToHaveName: expectedName => {
-                        (downloadAnchor == noElement ? tester.downloadIcon : downloadAnchorTester).
-                            expectAttributeToHaveValue('download', expectedName);
-
-                        return tester.downloadedFile;
-                    },
-
-                    expectToHaveContent: expectedContent => {
-                        downloadAnchorTester.expectHrefToBeBlobWithContent(expectedContent);
-                        return tester.downloadedFile;
-                    }
-                };
 
                 return addTesters(tester, () => getMessageElement(filter));
             };

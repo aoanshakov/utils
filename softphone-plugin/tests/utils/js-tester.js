@@ -2538,26 +2538,6 @@ function JsTester_NotificationTester (args) {
     };
 }
 
-function JsTester_BrowserVisibilityReplacer ({
-    isBrowserHidden,
-    isBrowserVisible,
-}) {
-    var getBrowserHiddennes = isBrowserHidden.createGetter(),
-        getBrowserVisibility = isBrowserVisible.createGetter();
-
-    this.replaceByFake = function () {
-        Object.defineProperty(document, 'hidden', {
-            get: getBrowserHiddennes,
-            set: function () {}
-        }); 
-
-        Object.defineProperty(document, 'visibilityState', {
-            get: getBrowserVisibility,
-            set: function () {}
-        }); 
-    };
-}
-
 function JsTester_FocusReplacer (hasFocus) {
     var originalHasFocus = window.document.hasFocus,
         setFocus = hasFocus.createSetter(),
@@ -2675,14 +2655,10 @@ function JsTester_BlobTester(args) {
     };
 }
 
-function JsTester_BlobFactory (args) {
-    var OriginalBlob = args.OriginalBlob,
-        blobs = args.blobs,
-        utils = args.utils;
-
+function JsTester_BlobFactory ({ OriginalBlob, blobs, utils }) {
     return function (...args) {
-        var object = new OriginalBlob(...args),
-            id = blobs.length;
+        const object = new OriginalBlob(...args),
+            id = utils.randomString(8);
 
         Object.defineProperty(object, 'id', {
             get: function () {
@@ -2691,9 +2667,9 @@ function JsTester_BlobFactory (args) {
             set: function () {}
         }); 
 
-        blobs.push(new JsTester_BlobTester({
+        blobs.set(id, new JsTester_BlobTester({
             constructorArguments: Array.prototype.slice.call(arguments, 0),
-            utils: utils
+            utils,
         }));
 
         return object;
@@ -2706,7 +2682,7 @@ function JsTester_BlobReplacer (args) {
         blobs = args.blobs;
 
     this.replaceByFake = function () {
-        blobs.splice(0, blobs.length);
+        blobs.clear();
         window.Blob = factory;
     };
 
@@ -2719,20 +2695,16 @@ function JsTester_BlobsTester (args) {
     var blobs = args.blobs,
         utils = args.utils;
 
-    this.getLast = function () {
-        var length = blobs.length;
-        return this.getAt(length ? length - 1 : 0);
-    };
-    this.getAt = function (id) {
-        if (id > (blobs.length -1)) {
-            throw new Error('По-крайней мере ' + (id + 1) + ' блобов должно быть создано, тогда как всего блобов ' +
-                'было создано ' + blobs.length);
+    this.getBy = function (id) {
+        if (!blobs.get(id)) {
+            throw new Error(`Блоб с ID ${id} не был найден`);
         }
 
-        return blobs[id];
+        return blobs.get(id);
     };
+
     this.some = function (callback) {
-        if (!blobs.length) {
+        if (!blobs.size) {
             throw new Error('Должен существовать хотя бы один блоб');
         }
 
@@ -2746,7 +2718,7 @@ function JsTester_BlobsTester (args) {
             }
         });
 
-        if (errors.length == blobs.length) {
+        if (errors.size == blobs.size) {
             errors.forEach(error => console.error(error));
             throw new Error('Ни один блоб не удовлетворяет ожиданиям');
         }
@@ -2767,22 +2739,42 @@ function JsTester_DecodedTracksTester (args) {
     };
 }
 
-function JsTester_FileLoading () {
-    var handler = function () {},
+function JsTester_FileLoading ({ utils, arrayBuffers }) {
+    let handler = function () {},
         me = this,
-        blob = '';
+        blob = '',
+        as = '';
 
-    var maybeGetBlob = function () {
+    let maybeGetDataURL = function () {
         return '';
+    };
+
+    let maybeGetArrayBuffer = function () {
+        return null;
+    };
+
+    const maybeGetResult = () => {
+        switch (as) {
+            case 'dataUrl':
+                return maybeGetDataURL();
+            case 'arrayBuffer':
+                return maybeGetArrayBuffer();
+        }
+
+        return null;
     };
     
     var runHandler = function () {
-        maybeGetBlob = function () {
-            return 'data:audio/wav;base64,' + blob;
+        maybeGetDataURL = function () {
+            return `data:${blob.type || 'audio/wav'};base64,` + (blob.name || blob);
         };
 
+        maybeGetArrayBuffer = () => utils.createUploadedFileArrayBuffer(blob);
+
         handler({
-            target: me.getBlob(),
+            target: {
+                result: me.getResult(),
+            },
         });
 
         runHandler = function () {
@@ -2790,23 +2782,31 @@ function JsTester_FileLoading () {
         };
     };
 
-    this.getBlob = function () {
-        return maybeGetBlob();
+    this.getResult = function () {
+        return maybeGetResult();
     };
-    this.setBlob = function (value) {
-        blob = value;
+
+    this.setBlob = function (v1, v2) {
+        if (as) {
+            throw new Error('Этот экземпляр FileReader уже используется');
+        }
+
+        blob = v1;
+        as = v2;
     };
+
     this.setHandler = function (value) {
         handler = value;
     };
+
     this.runHandler = function () {
         runHandler();
     };
 }
 
-function JsTester_FileReader (files) {
+function JsTester_FileReader ({ utils, files, arrayBuffers }) {
     return function () {
-        var loading = new JsTester_FileLoading(),
+        var loading = new JsTester_FileLoading({ utils, arrayBuffers }),
             handler;
 
         Object.defineProperty(this, 'onload', {
@@ -2821,15 +2821,18 @@ function JsTester_FileReader (files) {
 
         Object.defineProperty(this, 'result', {
             get: function () {
-                return loading.getBlob();
+                return loading.getResult();
             },
             set: function () {}
         });
 
-        this.readAsDataURL = function (blob) {
-            loading.setBlob(blob);
+        const read = (blob, as) => {
+            loading.setBlob(blob, as);
             files.set(blob, loading);
         };
+
+        this.readAsDataURL = blob => read(blob, 'dataUrl');
+        this.readAsArrayBuffer = blob => read(blob, 'arrayBuffer');
     };
 }
 
@@ -2868,12 +2871,12 @@ function JsTester_FileReaderTester ({ files, spendTime }) {
     };
 }
 
-function JsTester_FileReaderMocker (files) {
+function JsTester_FileReaderMocker ({ utils, files, arrayBuffers }) {
     var RealFileReader = window.FileReader;
 
     this.replaceByFake = function () {
         files.clear();
-        window.FileReader = new JsTester_FileReader(files);
+        window.FileReader = new JsTester_FileReader({ utils, files, arrayBuffers });
     };
 
     this.restoreReal = function () {
@@ -3570,8 +3573,27 @@ function JsTester_BroadcastChannelMocker (args) {
     };
 }
 
+function JsTester_BrowserVisibilityReplacer ({
+    isBrowserHidden,
+    isBrowserVisible,
+}) {
+    var getBrowserHiddennes = isBrowserHidden.createGetter(),
+        getBrowserVisibility = isBrowserVisible.createGetter();
+
+    this.replaceByFake = function () {
+        Object.defineProperty(document, 'hidden', {
+            get: getBrowserHiddennes,
+            set: function () {}
+        }); 
+
+        Object.defineProperty(document, 'visibilityState', {
+            get: getBrowserVisibility,
+            set: function () {}
+        }); 
+    };
+}
+
 function JsTester_VisibilitySetter ({
-    setFocus,
     setBrowserHidden,
     setBrowserVisible,
     isBrowserHidden,
@@ -3658,34 +3680,31 @@ function JsTester_DownloadPreventer () {
 
 function JsTester_FileField (
     getDomElement, wait, utils, testersFactory, gender, nominativeDescription, accusativeDescription,
-    genetiveDescription, factory
+    genetiveDescription, factory, spendTime,
 ) {
     factory.admixDomElementTester(this, arguments);
+
+    const fileList = [];
 
     this.upload = function (fileName) {
         this.expectToExist();
 
-        var event = new Event('change', {
+        const event = new Event('change', {
             bubbles: true
         });
 
-        var fileList = [new File([], fileName)];
+        try {
+            Object.defineProperty(getDomElement(), 'files', {
+                set: function () {},
+                get: () => fileList
+            });
+        } catch (e) {}
 
-        Object.defineProperty(fileList[0], 'type', {
-            set: function () {},
-            get: function () {
-                return 'application/zip';
-            }
-        });     
-
-        Object.defineProperty(getDomElement(), 'files', {
-            set: function () {},
-            get: function () {
-                return fileList;
-            }
-        });     
+        fileList.splice(0, fileList.length)
+        fileList.push(utils.createUploadedFile(fileName));
 
         getDomElement().dispatchEvent(event);
+        spendTime(0);
     };
 }
 
@@ -3730,7 +3749,8 @@ function JsTester_TestersFactory (args) {
             'поле загрузки файла',
             'поле загрузки файла',
             'поля загрузки файла',
-            factory
+            factory,
+            spendTime,
         );
     };
     this.createIframeTester = function (domElement) {
@@ -4006,13 +4026,33 @@ function JsTester_Element ({
     };
 }
 
-function JsTester_Utils ({debug, windowSize, spendTime, args}) {
+function JsTester_Utils ({
+    debug,
+    windowSize,
+    spendTime,
+    arrayBuffers,
+    args,
+}) {
     var me = this,
         doNothing = function () {};
 
     function scrollIntoView (domElement) {
         domElement.scrollIntoView();
     }
+
+    this.randomString = length => {
+       length = length || 32;
+
+       var result = '',
+           characters = 'abcdefghijklmnopqrstuvwxyz0123456789',
+           charactersCount = characters.length;
+
+       for (var i = 0; i < length; i++) {
+          result += characters.charAt(Math.floor(Math.random() * charactersCount));
+       }
+
+       return result;
+    };
 
     this.toPercents = function (value) {
         return parseInt(value * 100, 0);
@@ -4064,6 +4104,40 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
         maybeScrollIntoView(domElement);
     };
 
+    this.createUploadedFile = fileName => {
+        const file = new File([], fileName);
+
+        Object.defineProperty(file, 'type', {
+            set: function () {},
+            get: function () {
+                return 'application/zip';
+            }
+        });     
+
+        Object.defineProperty(file, 'size', {
+            set: function () {},
+            get: function () {
+                return 283942;
+            }
+        });     
+
+        return file;
+    };
+
+    this.createUploadedFileArrayBuffer = function (file) {
+        const arrayBuffer = new ArrayBuffer();
+        arrayBuffers.set(arrayBuffer, file);
+
+        Object.defineProperty(arrayBuffer, 'byteLength', {
+            get: function () {
+                return file.size;
+            },
+            set: function () {}
+        }); 
+
+        return arrayBuffer;
+    };
+
     this.expectNonStrict = function (expectedValue) {
         return new JsTests_NonStrictExpectaion(expectedValue);
     };
@@ -4077,6 +4151,14 @@ function JsTester_Utils ({debug, windowSize, spendTime, args}) {
             expectedValue,
             blobsTester: args.blobsTester,
         });
+    };
+
+    this.expectBufferCreatedFromFileWithName = fileName => {
+        return new JsTests_BufferCreatedFromFileWithNameExpectaion({ fileName, arrayBuffers });
+    };
+
+    this.expectBlobCreatedFromBufferToHaveName = fileName => {
+        return new JsTests_BlobCreatedFromBufferToHaveNameExpectaion({ fileName, arrayBuffers });
     };
 
     this.expectEmptyObject = function () {
@@ -5758,15 +5840,7 @@ function JsTester_Anchor (
 
     function getBlob () {
         me.expectToBeVisible();
-
-        var hash = utils.parseUrl(getDomElement().href).hash,
-            id = parseInt(hash, 0);
-
-        if (!hash && hash !== '0' && hash !== (id + '')) {
-            throw new Error('Хэш ' + genetiveDescription + ' должен содержать блоб.');
-        }
-
-        return blobsTester.getAt(id);
+        return blobsTester.getBy(utils.parseUrl(getDomElement().href).hash);
     }
 
     this.expectHrefToHaveHash = function (expectedHash) {
@@ -6705,6 +6779,27 @@ function JsTests_ParamExpectation () {
 
 JsTests_ParamExpectationPrototype = new JsTests_ParamExpectation();
 
+function JsTests_BlobCreatedFromBufferToHaveNameExpectaion ({ fileName, arrayBuffers }) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        console.log('FILE', actualValue);
+    };
+}
+
+function JsTests_BufferCreatedFromFileWithNameExpectaion ({ fileName, arrayBuffers }) {
+    this.maybeThrowError = function (actualValue, keyDescription) {
+        const file = arrayBuffers.get(actualValue),
+            description = `Значением параметра ${keyDescription} должен быть файл с именем ${fileName}, однако`
+
+        if (!file) {
+            throw new Error(`${description} значение не является файлом.`);
+        }
+
+        if (file.name != fileName) {
+            throw new Error(`${description} файл имеет имя "${file.name}".`);
+        }
+    };
+}
+
 function JsTests_EmptyObjectExpectaion () {
     this.maybeThrowError = function (actualValue, keyDescription) {
         if (
@@ -7012,7 +7107,9 @@ JsTests_SetInclusionExpectation.prototype = JsTests_ParamExpectationPrototype;
 JsTests_NotEmptyExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_EmptyExpectaion.prototype = JsTests_ParamExpectationPrototype;
 JsTests_LengthExpectaion.prototype = JsTests_ParamExpectationPrototype;
-JsTests_JSONContentExpectation.prototype = JsTests_ParamExpectationPrototype
+JsTests_JSONContentExpectation.prototype = JsTests_ParamExpectationPrototype;
+JsTests_BufferCreatedFromFileWithNameExpectaion.prototype = JsTests_ParamExpectationPrototype;
+JsTests_BlobCreatedFromBufferToHaveNameExpectaion.prototype = JsTests_ParamExpectationPrototype;
 
 function JsTester_ParamsContainingExpectation (actualParams, paramsDescription) {
     paramsDescription = paramsDescription || '';
@@ -8104,11 +8201,15 @@ function JsTester_WindowMessage (args) {
         utils = args.utils,
         callStack = debug.getCallStack();
 
-    this.startsWith = prefix => actualMessage.indexOf(prefix) === 0;
+    this.startsWith = prefix => actualMessage.indexOf?.(prefix) === 0;
     this.log = () => console.log(`Window message: ${actualMessage}`);
 
     this.getJSON = function () {
         var data;
+
+        if (typeof actualMessage == 'object') {
+            return actualMessage;
+        }
 
         try {
             data = JSON.parse(actualMessage);
@@ -8231,13 +8332,45 @@ function JsTester_PostMessageTester ({
     this.receive = message => {
         utils.receiveWindowMessage(message.data && message.origin ? {
             ...message,
-            data: typeof message.data == 'string' ? message.data : JSON.stringify(message.data),
+            data: message.data,
         } : {
-            data: typeof message == 'string' ? message : JSON.stringify(message),
+            data: message,
             origin: 'https://somedomain.com',
         })
 
         spendTime(0);
+    };
+}
+
+function JsTester_FileTester({ constructorArguments, utils }) {
+    this.expectToHaveBufferArrayCreatedFromFileWithName = function (expectedName) {
+        console.log('CONSTR ARGS', constructorArguments);
+    };
+}
+
+function JsTester_FileFactory ({ OriginalFile, utils, files }) {
+    return function (...args) {
+        const file = new OriginalFile(...args);
+
+        console.log('ARGS', Array.prototype.slice.call(arguments, 0));
+
+        files.push(new JsTester_FileTester({
+            constructorArguments: Array.prototype.slice.call(arguments, 0),
+            utils: utils
+        }));
+
+        return file;
+    };
+}
+
+function JsTester_FileReplacer ({ OriginalFile, factory, files }) {
+    this.replaceByFake = function () {
+        files.splice(0, files.length);
+        window.File = factory;
+    };
+
+    this.restoreReal = function () {
+        window.File = OriginalFile;
     };
 }
 
@@ -8318,16 +8451,18 @@ function JsTester_Tests (factory) {
     };
 
     var storageMocker = new JsTester_StorageMocker(spendTime),
-        fileReaderTester = new JsTester_FileReaderTester({ files, spendTime }),
-        fileReaderMocker = new JsTester_FileReaderMocker(files);
+        arrayBuffers = new Map(),
+        fileReaderTester = new JsTester_FileReaderTester({ files, spendTime });
 
     var windowSize = new JsTester_WindowSize(spendTime),
         utils = factory.createUtils({
             debug,
             windowSize,
             spendTime,
+            arrayBuffers,
             args,
         }),
+        fileReaderMocker = new JsTester_FileReaderMocker({ utils, files, arrayBuffers });
         broadcastChannelMessages = new JsTester_Queue(new JsTester_NoBroadcastChannelMessage()),
         broadcastChannelHandlers = {},
         broadcastChannelShortcutHandlers = {},
@@ -8615,7 +8750,7 @@ function JsTester_Tests (factory) {
                 realEventListenerAssigner: document.addEventListener
             })
         }),
-        blobs = [],
+        blobs = new Map(),
         blobsTester = new JsTester_BlobsTester({
             blobs: blobs,
             utils: utils
@@ -8630,10 +8765,21 @@ function JsTester_Tests (factory) {
                 utils,
             })
         }),
+        files = [],
+        OriginalFile = window.File,
+        fileReplacer = new JsTester_FileReplacer({
+            OriginalFile,
+            files,
+            factory: new JsTester_FileFactory({
+                OriginalFile,
+                files,
+                utils,
+            })
+        }),
         copiedTexts = [],
         copiedTextsTester = new JsTester_CopiedTextsTester(copiedTexts),
         execCommandReplacer = new JsTester_ExecCommandReplacer(copiedTexts),
-        postMessages = new JsTester_Stack(new JsTester_NoWindowMessage()),
+        postMessages = new JsTester_Queue(new JsTester_NoWindowMessage()),
         postMessagesTester = new JsTester_PostMessageTester({
             postMessages,
             utils,
@@ -8832,6 +8978,7 @@ function JsTester_Tests (factory) {
         fileReaderMocker.replaceByFake();
         execCommandReplacer.replaceByFake();
         blobReplacer.replaceByFake();
+        //fileReplacer.replaceByFake();
         focusReplacer.replaceByFake();
         bufferToContent.clear();
         destinationToSource.clear();
@@ -8874,6 +9021,7 @@ function JsTester_Tests (factory) {
         fileReaderMocker.restoreReal();
         execCommandReplacer.restoreReal();
         blobReplacer.restoreReal();
+        //fileReplacer.restoreReal();
         notificationTester.recentNotification().expectNotToExist(exceptions);
         notificationTester.expectNotificationPermissionNotToBeRequested(exceptions);
         Promise.clear();

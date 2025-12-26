@@ -1,0 +1,96 @@
+Thu Nov 27 2025 10:28:30 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+INVITE sip:79162139399@dev-int0-sipve-voip.uis.st SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>
+Call-ID: ht6stef8dtvsgrrmhmlu
+...
+
+Thu Nov 27 2025 10:28:39 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message received:
+
+SIP/2.0 200 OK
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759717442896
+Call-ID: ht6stef8dtvsgrrmhmlu
+...
+
+Thu Nov 27 2025 10:28:39 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+ACK sip:79162139399@10.1.214.33:6077 SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759717442896
+Call-ID: ht6stef8dtvsgrrmhmlu
+...
+
+Thu Nov 27 2025 10:28:53 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+INFO sip:79162139399@10.1.214.33:6077 SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759717442896
+Call-ID: ht6stef8dtvsgrrmhmlu
+...
+
+Signal=#
+Duration=100
+
+Thu Nov 27 2025 10:28:53 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message received:
+
+SIP/2.0 200 OK
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759717442896
+Call-ID: ht6stef8dtvsgrrmhmlu
+CSeq: 3429 INFO
+...
+
+Thu Nov 27 2025 10:28:53 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-softphone-realtime-api.uis.st/ws/sBihE8Dp6OXWZSMwx-alMCq8FXnZ8Vq-PkIGc4Q3xn0 message received:
+
+{
+    "type": "event",
+    "id": "15264844237",
+    "name": "call_hold_control",
+    "params": {
+        "call_session_id": 5200798517,
+        "contact_phone_number": "79162139399",
+        "status": "on",
+        ...
+    }
+}
+
+Thu Nov 27 2025 10:28:55 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+INFO sip:79162139399@10.1.214.33:6077 SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759717442896
+Call-ID: ht6stef8dtvsgrrmhmlu
+...
+
+Signal=#
+Duration=100
+
+Thu Nov 27 2025 10:28:55 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message received:
+
+SIP/2.0 503 Service Unavailable
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759717442896
+Call-ID: ht6stef8dtvsgrrmhmlu
+CSeq: 3430 INFO
+...
+
+Thu Nov 27 2025 10:29:05 GMT+0300 (Moscow Standard Time) method terminate(undefined) called
+
+Thu Nov 27 2025 10:29:05 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+BYE sip:79162139399@10.1.214.33:6077 SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759717442896
+Call-ID: ht6stef8dtvsgrrmhmlu
+...
+
+Thu Nov 27 2025 10:29:05 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message received:
+
+SIP/2.0 503 Service Unavailable
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759717442896
+Call-ID: ht6stef8dtvsgrrmhmlu
+CSeq: 3431 BYE
+...
+
+Thu Nov 27 2025 10:29:12 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message received:
+
+BYE sip:034463@dev-int0-sipve-voip.uis.st;user=e338c3a1-7f43-4b24-94a9-25c1018e30bc;ob SIP/2.0
+From: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759717442896
+Call-ID: ht6stef8dtvsgrrmhmlu
+CSeq: 1 BYE
+Reason: SipVE;cause=10;text="BYE received"
+...

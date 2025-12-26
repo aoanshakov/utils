@@ -183,7 +183,11 @@ define(function () {
 
             {
                 const getInputs = () => Array.prototype.slice.call(
-                    (getRootElement() || new JsTester_NoElement()).querySelectorAll('input[type=text]'), 0
+                    (getRootElement() || new JsTester_NoElement()).querySelectorAll(
+                        'input[type=text], ' +
+                        'input[type=search]'
+                    ),
+                    0,
                 );
 
                 const getInput = () => utils.getVisibleSilently(getInputs());
@@ -1264,7 +1268,15 @@ define(function () {
                 tester.name =
                     testersFactory.createDomElementTester(row.querySelector('.clct-calls-history__item-inner-row'));
 
-                const click = tester.name.click.bind(tester.name);
+                const click = tester.name.click.bind(tester.name),
+                    putMouseOver = tester.name.putMouseOver.bind(tester.name);
+
+                tester.name.putMouseOver = () => {
+                    putMouseOver();
+                    spendTime(100);
+                    spendTime(0);
+                };
+
                 tester.name.click = () => {
                     click();
 
@@ -6631,9 +6643,9 @@ define(function () {
                     disabled: null,
                     channelsCount: 0,
                     currentChannel: 1,
-                    statusId: null,
+                    //statusId: null,
                     destroyed: false,
-                    isSipOnline: false,
+                    //isSipOnline: false,
                     microphoneAccessGranted: false,
                     lastChannelChange:  {
                         previousChannelNumber: null,
@@ -6770,20 +6782,7 @@ define(function () {
                         var processing = [];
 
                         var state = {
-                            channels: {
-                                1: {
-                                    id: '1',
-                                    dtmf: '',
-                                    isTransfered: false,
-                                },
-                                2: {
-                                    id: '2',
-                                    dtmf: '',
-                                    isTransfered: false,
-                                },
-                            },
                             employeeNames: {},
-                            callsData: {},
                             hidden: true,
                             openedPanel: 'calls',
                         };
@@ -6889,7 +6888,7 @@ define(function () {
                             expectToBeSent: function () {
                                 const notification = getNotification();
 
-                                ['employeeNames', 'callsData'].forEach(
+                                ['employeeNames'].forEach(
                                     name => !Object.keys(notification.data.data.state[name]).length &&
                                         (notification.data.data.state[name] = utils.expectEmptyObject())
                                 );
@@ -6949,11 +6948,6 @@ define(function () {
                         addCallEvent('outCallSessionEvent');
 
                         return extendAdditionalSlavesNotification(methods, state, processing);
-                    },
-                    userDataFetched: function () {
-                        state.isSipOnline = true;
-                        state.statusId = 3;
-                        return this;
                     },
                     sipIsOffline: function () {
                         processing.push(() => (state.isSipOnline = false));
@@ -7049,7 +7043,6 @@ define(function () {
                     },
                     available: function () {
                         state.softphoneServerConnected = true;
-                        this.userDataFetched();
                         this.webRTCServerConnected();
                         state.microphoneAccessGranted = true;
                         state.registered = true;

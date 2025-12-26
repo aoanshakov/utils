@@ -1,16 +1,20 @@
 diff --git a/package.json b/package.json
-index 43d2ab1..eb85ce5 100644
+index 7a521e7..661e270 100644
 --- a/package.json
 +++ b/package.json
-@@ -55,21 +55,22 @@
-     "webpack": "^5.74.0"
+@@ -64,15 +64,19 @@
+     "webpack": "^5.74.0",
+     "whistle": "2.9.103"
    },
++  "overrides": {
++    "to-buffer": "1.2.1"
++  },
    "dependencies": {
 -    "@comagic/core": "1.25.1",
--    "@comagic/softphone-core": "0.0.0-0.0.18-int0",
--    "@comagic/softphone-widget": "0.0.60-int0",
+-    "@comagic/softphone-core": "0.0.0-0.0.42-int0",
+-    "@comagic/softphone-widget": "0.0.129-int0",
 -    "@comagic/ui": "3.14.0",
--    "@comagic/workplace-utils": "0.0.19-int0",
+-    "@comagic/workplace-utils": "0.0.25-int0",
 +    "@comagic/core": "./misc/core",
 +    "@comagic/softphone-core": "./misc/sip_lib/uis_webrtc",
 +    "@comagic/softphone-widget": "./misc/sip_lib",
@@ -21,9 +25,10 @@ index 43d2ab1..eb85ce5 100644
      "antd": "^4.8.0",
 -    "axios": "^0.24.0",
 +    "axios": "^0.27.2",
+     "chrome-launcher": "0.15.2",
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
-     "dotenv-expand": "^5.1.0",
+@@ -81,7 +85,7 @@
      "history": "^5.3.0",
      "json3": "3.3.3",
      "jwt-decode": "^4.0.0",
@@ -32,7 +37,7 @@ index 43d2ab1..eb85ce5 100644
      "mobx": "^6.6.1",
      "mobx-react-lite": "^3.4.0",
      "mobx-state-tree": "^5.1.6",
-@@ -80,6 +81,12 @@
+@@ -92,6 +96,12 @@
      "react-router-dom": "6.9.0",
      "string-hash": "^1.1.3",
      "twig": "^1.15.1",

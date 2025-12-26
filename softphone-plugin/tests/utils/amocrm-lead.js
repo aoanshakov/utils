@@ -201,10 +201,22 @@ define(function () {
                                             'data-forced="" ' +
                                             'data-value="" ' +
                                             'data-suggestion-type="" ' +
-                                            'data-widget="uismarketplacedev"' +
+                                            'data-widget="uismarketplace"' +
                                         '>' +
                                             '<span class="tips-icon icon icon-inline icon-phone-dark"></span>' +
                                                 'UIS Chats' +
+                                        '</div>' +
+                                        '<div ' +
+                                            'class="tips-item js-tips-item js-cf-actions-item " ' +
+                                            'data-type="phone" ' +
+                                            'data-id="" ' +
+                                            'data-forced="" ' +
+                                            'data-value="" ' +
+                                            'data-suggestion-type="" ' +
+                                            'data-widget="mango"' +
+                                        '>' +
+                                            '<span class="tips-icon icon icon-inline icon-phone-dark"></span>' +
+                                                'Mango Chats' +
                                         '</div>' +
                                         '<div ' +
                                             'class="tips-item js-tips-item js-cf-actions-item" ' +

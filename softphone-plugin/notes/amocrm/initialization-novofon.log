@@ -1,0 +1,37 @@
+Wed Dec 24 2025 10:39:50 GMT+0300 (Moscow Standard Time) Window message sent
+
+From https://prod-msk-softphone-widget-iframe.novofon.ru/amocrm
+To https://novofon.amocrm.ru/contacts/list/contacts/?skip_filter=Y
+
+{
+    "method":"set_state",
+    "data":{
+        "userName":"",
+        "lostCallsCount":0,
+        "visible":false,
+        "size":{
+            "width":340,
+            "height":212
+        }
+    }
+} 
+
+Wed Dec 24 2025 10:39:50 GMT+0300 (Moscow Standard Time) Window message received
+
+From https://novofon.amocrm.ru/contacts/list/contacts/?skip_filter=Y
+To https://prod-msk-softphone-widget-iframe.novofon.ru/amocrm
+
+{
+    "method":"set_origin",
+    "data":"https://novofon.amocrm.ru"
+}
+
+Wed Dec 24 2025 10:39:55 GMT+0300 (Moscow Standard Time) Window message received
+
+From https://prod-msk-uc-sso-api.novofon.ru
+To https://prod-msk-softphone-widget-iframe.novofon.ru/amocrm
+
+{
+    "method":"set_token",
+    "data":"eyJhbGciOiJSUzI1NiIsImtpZCI6InBqeWNOMndxTkotbU1mcVpRSllIdHAtMGw0Uk1XNVNkUUF3N2JITmhjc00iLCJ0eXAiOiJKV1QifQ.eyJqdGkiOiJkMzU4NjYwZi1iNzA4LTQ2MzEtYmZlNy02YzQwYzVmYTk0ZTUiLCJzaWQiOiJlMjc2NDJiMC02NzIyLTQ0NDUtYjExNi1lNTA4NTU0MGM3ZWYiLCJpc3MiOiJodHRwczovL3Byb2QtbXNrLXVjLXNzby1hcGkubm92b2Zvbi5ydSIsImF1ZCI6WyJodHRwczovL3Byb2QtbXNrLW1ya3QtdWMtZmxvdy1hcHAtbm9kZXMtYW1vY3JtLm5vdm9mb24ucnUiLCJodHRwczovL3Byb2QtbXNrLXNvZnRwaG9uZS1yZXN0LWFwaS5ub3ZvZm9uLnJ1Il0sInN1YiI6IkNvbWFnaWNEQnxub3ZvZm9ufDUwMDk4NDd8NjQwNzk0Iiwic3ViZCI6eyJwcm9qZWN0Ijoibm92b2ZvbiIsImRhdGFfY2VudGVyIjoibW9zY293IiwiYXBwX2lkIjo1MDA5ODQ3LCJjdXN0b21lcl9pZCI6NDAxMTA2NCwidXNlcl9pZCI6NjQwNzk0LCJsb2dpbiI6ImRydWcxMDgiLCJpc19zeXN0ZW0iOmZhbHNlLCJ0aW1lem9uZSI6IkV1cm9wZS9Nb3Njb3ciLCJsYyI6InJ1In0sImNsaWVudF9pZCI6Imh0dHBzOi8vcHJvZC1tc2stbXJrdC11Yy1mbG93LWFwcC1ub2Rlcy1hbW9jcm0ubm92b2Zvbi5ydSIsImlhdCI6MTc2NjU2MTk5NX0.PQI-1jcPsUqPmMTr9FpGyljAmJlgDkiuKqSFtEPV9aoD8xtXWetEML6oCNnafbtVe6cEV_1FYvJDD51N_dRtlWgqoexdFpQ_sLrZxR743bEaxQdGEbLswxrbqrMyL9dIrO2CofM1CeX92rkfZz2mvz1KLyMmNicSAycafNOuIu2Szx29WW3MEER1RKc5csjXTDRgeSY-rVtxd-jhlQw0cm-iMvrh0FHS2imiOmZyL-2TpSiqPIhisXjCMvgvN6yqIFsSp6jbD79Op8d7bV0ANdvRSH4-7g8s8y5bwTYIlFBHaEeGptbSZtj6lS3Jn7O4yk862MKNK7NQddXUAXbfgS0swsextrDpu5uoZlJmc2EC6RBLyByxo6mVkWYSlAmR3JCaB_z2fX4xkbJAy4DRQjy_PVHgxL4nH8elLim8yACphPO5O5hmKG0D71i2TS30iwbhoKlBx9LOCWYtdCvztizOXFx6ws6oGRzrE75AfaF_q7TY49DrU92R1-N9vsddQ1smgw-fUS-KTRhUHatB5ME3V_X6JH4ODrun9cjlHN9ZxBNO1fHzIOCJiKvwKWeEkAMJD2BNh3glOcHD-n0D2FKtCObj-_bFk2Z9I5udCAAkOG1Adt4XK1F5zUw5J8Etd6nI2q3ZGZxrgG3DbgW57ZeBQnQe9P4SKYVAgjXzuZY"
+}

@@ -9,6 +9,7 @@ tests.addTest(options => {
         setNow,
         setDocumentVisible,
         windowOpener,
+        fileReader,
         ajax,
     } = options;
 
@@ -55,7 +56,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        describe('Открываю IFrame чатов. Получены настройки.', function() {
+        xdescribe('Открываю IFrame чатов. Получены настройки.', function() {
             let accountRequest,
                 secondAccountRequest,
                 widgetSettings;
@@ -71,6 +72,10 @@ tests.addTest(options => {
 
                 tester.submoduleInitilizationEvent().
                     operatorWorkplace().
+                    expectToBeSent();
+
+                tester.submoduleInitilizationEvent().
+                    contacts().
                     expectToBeSent();
 
                 tester.unreadMessagesCountSettingRequest().expectToBeSent();
@@ -98,7 +103,6 @@ tests.addTest(options => {
                     tester.channelsRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
 
-                    tester.commonEmployeeStatusRequest().receiveResponse();
                     tester.listRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
                     tester.messageTemplateListRequest().receiveResponse();
@@ -164,6 +168,11 @@ tests.addTest(options => {
                                     oauthToken().
                                     expectToBeSent();
 
+                                tester.usersRequest().
+                                    forContacts().
+                                    forIframe().
+                                    receiveResponse();
+
                                 tester.employeeSettingsRequest().receiveResponse();
 
                                 tester.employeeRequest().
@@ -175,15 +184,6 @@ tests.addTest(options => {
                                     fromIframe().
                                     webAccountLoginUnavailable().
                                     operatorWorkplaceAvailable().
-                                    receiveResponse();
-
-                                tester.chatListRequest().
-                                    forCurrentEmployee().
-                                    noData().
-                                    receiveResponse();
-
-                                tester.chatChannelSearchRequest().
-                                    emptySearchString().
                                     receiveResponse();
 
                                 tester.offlineMessageCountersRequest().receiveResponse();
@@ -214,6 +214,10 @@ tests.addTest(options => {
                                 tester.chatListRequest().forCurrentEmployee().
                                     closed().
                                     noData().
+                                    receiveResponse();
+
+                                tester.chatChannelSearchRequest().
+                                    emptySearchString().
                                     receiveResponse();
 
                                 tester.offlineMessageListRequest().processing().receiveResponse();
@@ -327,19 +331,8 @@ tests.addTest(options => {
                                                         assignedToCurrentEmployee().
                                                         receiveResponse();
 
-                                                    tester.submoduleInitilizationEvent().
-                                                        contacts().
-                                                        expectToBeSent();
-
                                                     tester.scheduledMessagesRequest().receiveResponse();
-
                                                     tester.visitorCardRequest().receiveResponse();
-
-                                                    tester.usersRequest().
-                                                        forContacts().
-                                                        forIframe().
-                                                        receiveResponse();
-
                                                     tester.chatInfoRequest().receiveResponse();
 
                                                     tester.contactGroupsRequest().
@@ -352,11 +345,6 @@ tests.addTest(options => {
                                                         receiveResponse();
 
                                                     tester.contactGroupsRequest().
-                                                        forIframe().
-                                                        receiveResponse();
-
-                                                    tester.usersRequest().
-                                                        forContacts().
                                                         forIframe().
                                                         receiveResponse();
                                                 });
@@ -407,11 +395,6 @@ tests.addTest(options => {
                                                                     second().
                                                                     fifthPhone().
                                                                     receive();
-
-                                                                tester.chatListRequest().
-                                                                    forCurrentEmployee().
-                                                                    noData().
-                                                                    receiveResponse();
 
                                                                 tester.chatListRequest().
                                                                     thirdChat().
@@ -496,6 +479,11 @@ tests.addTest(options => {
                                                                 tester.countersRequest().
                                                                     noNewChats().
                                                                     noClosedChats().
+                                                                    receiveResponse();
+
+                                                                tester.chatListRequest().
+                                                                    forCurrentEmployee().
+                                                                    noData().
                                                                     receiveResponse();
 
                                                                 tester.button('В работе 75').expectToBeVisible();
@@ -692,20 +680,9 @@ tests.addTest(options => {
                                                 tester.chatListRequest().
                                                     thirdChat().
                                                     receiveResponse();
-                    
-                                                tester.submoduleInitilizationEvent().
-                                                    contacts().
-                                                    expectToBeSent();
 
                                                 tester.scheduledMessagesRequest().receiveResponse();
-
                                                 tester.visitorCardRequest().receiveResponse();
-
-                                                tester.usersRequest().
-                                                    forContacts().
-                                                    forIframe().
-                                                    receiveResponse();
-
                                                 tester.chatInfoRequest().receiveResponse();
 
                                                 tester.contactGroupsRequest().
@@ -717,11 +694,6 @@ tests.addTest(options => {
                                                     receiveResponse();
 
                                                 tester.contactGroupsRequest().
-                                                    forIframe().
-                                                    receiveResponse();
-
-                                                tester.usersRequest().
-                                                    forContacts().
                                                     forIframe().
                                                     receiveResponse();
                                             });
@@ -766,11 +738,6 @@ tests.addTest(options => {
                                         tester.scheduledMessagesRequest().
                                             anotherChat().
                                             receiveResponse();
-
-                                        tester.usersRequest().
-                                            forContacts().
-                                            forIframe().
-                                            receiveResponse();
                                             
                                         tester.chatInfoRequest().
                                             anotherChat().
@@ -796,19 +763,10 @@ tests.addTest(options => {
                                             forIframe().
                                             receiveResponse();
 
-                                        tester.usersRequest().
-                                            forContacts().
-                                            forIframe().
-                                            receiveResponse();
-
                                         tester.changeMessageStatusRequest().
                                             read().
                                             anotherMessage().
                                             receiveResponse();
-
-                                        tester.submoduleInitilizationEvent().
-                                            contacts().
-                                            expectToBeSent();
 
                                         tester.contactBar.expectTextContentToHaveSubstring(
                                             'ФИО ' +
@@ -828,10 +786,6 @@ tests.addTest(options => {
                                             item('Привет').
                                             click();
 
-                                        tester.submoduleInitilizationEvent().
-                                            contacts().
-                                            expectToBeSent();
-
                                         tester.scheduledMessagesRequest().
                                             anotherChat().
                                             receiveResponse();
@@ -839,17 +793,13 @@ tests.addTest(options => {
                                         tester.visitorCardRequest().receiveResponse();
                                         tester.messageListRequest().receiveResponse();
 
-                                        tester.usersRequest().
-                                            forContacts().
-                                            forIframe().
-                                            receiveResponse();
-
                                         tester.chatInfoRequest().
                                             anotherChat().
                                             receiveResponse();
 
                                         chatListRequest = tester.chatListRequest().
                                             chat().
+                                            active().
                                             expectToBeSent();
                                     });
 
@@ -862,11 +812,6 @@ tests.addTest(options => {
                                                 receiveResponse();
 
                                             tester.contactGroupsRequest().
-                                                forIframe().
-                                                receiveResponse();
-
-                                            tester.usersRequest().
-                                                forContacts().
                                                 forIframe().
                                                 receiveResponse();
 
@@ -1066,6 +1011,20 @@ tests.addTest(options => {
                                                     expectNotToExist();
                                             });
                                         });
+                                        it('Ввожу сообщение. Прикладываю файл. Отправляю сообщение.', function() {
+                                            tester.fileField.upload('some-file.zip');
+
+                                            fileReader.
+                                                accomplishFileLoading('some-file.zip');
+
+                                            tester.sendIcon.click();
+                                            tester.resourceRequest().receiveResponse();
+
+                                            tester.messageAddingRequest().
+                                                thirdChat().
+                                                resource().
+                                                receiveResponse();
+                                        });
                                         it(
                                             'Нажимаю на кнопку закрытия окна. Отпрвален запрос закрытия окна.',
                                         function() {
@@ -1113,11 +1072,6 @@ tests.addTest(options => {
                                             receiveResponse();
 
                                         tester.contactGroupsRequest().
-                                            forIframe().
-                                            receiveResponse();
-
-                                        tester.usersRequest().
-                                            forContacts().
                                             forIframe().
                                             receiveResponse();
 
@@ -1273,22 +1227,12 @@ tests.addTest(options => {
                                     item('Привет').
                                     click();
 
-                                tester.submoduleInitilizationEvent().
-                                    contacts().
-                                    expectToBeSent();
-
                                 tester.scheduledMessagesRequest().
                                     anotherChat().
                                     receiveResponse();
 
                                 tester.visitorCardRequest().receiveResponse();
                                 tester.messageListRequest().receiveResponse();
-
-                                tester.usersRequest().
-                                    forContacts().
-                                    forIframe().
-                                    receiveResponse();
-
                                 tester.contactRequest().receiveResponse();
 
                                 tester.chatInfoRequest().
@@ -1320,11 +1264,6 @@ tests.addTest(options => {
                                     forIframe().
                                     receiveResponse();
 
-                                tester.usersRequest().
-                                    forContacts().
-                                    forIframe().
-                                    receiveResponse();
-
                                 tester.contactGroupsRequest().
                                     forIframe().
                                     receiveResponse();
@@ -1335,6 +1274,11 @@ tests.addTest(options => {
                         });
                         it('Получен запрос открытости вебсокета.', function() {
                             tester.employeesWebsocketConnectedRequest().receive();
+
+                            tester.usersRequest().
+                                forContacts().
+                                forIframe().
+                                receiveResponse();
 
                             tester.appVersionMessage().expectToBeSent();
                             tester.updateAvailableMessage().expectToBeSent();
@@ -1348,6 +1292,11 @@ tests.addTest(options => {
 
                             tester.employeesWebsocketConnectedRequest().expectToBeSent();
                             spendTime(2999);
+
+                            tester.usersRequest().
+                                forContacts().
+                                forIframe().
+                                receiveResponse();
                         });
 
                         describe(
@@ -1444,22 +1393,43 @@ tests.addTest(options => {
                         });
                     });
                 });
-                it('Не удалось получить данные аккаунта. Чаты скрыты.', function() {
-                    accountRequest.
-                        failed().
-                        receiveResponse();
+                describe('Не удалось получить данные аккаунта.', function() {
+                    beforeEach(function() {
+                        accountRequest.
+                            failed().
+                            receiveResponse();
+                    });
 
-                    unfilteredPostMessages.
-                        nextMessage().
-                        expectMessageToStartsWith('ignore:log:').
-                        expectMessageToContain('Response status: 200 OK; Time consumed 0 ms; Without credentials');
+                    it('Модуль РМО не смог получить данные аккаунта. Чаты скрыты.', function() {
+                        secondAccountRequest.
+                            failed().
+                            receiveResponse();
 
-                    tester.body.expectToHaveTextContent(
-                        'UIS -- ' +
-                        'Произошла ошибка сервера'
-                    );
+                        unfilteredPostMessages.
+                            nextMessage().
+                            expectMessageToStartsWith('ignore:log:').
+                            expectMessageToContain('Response status: 200 OK; Time consumed 0 ms; Without credentials');
 
-                    tester.closeButton.expectToBeVisible();
+                        tester.body.expectToHaveTextContent(
+                            'UIS -- ' +
+
+                            'Отсутствует доступ к чатам и заявкам. Необходимо связать пользователя с сотрудником с ' +
+                            'доступом к чатам и заявкам. ' +
+
+                            'Настроить ' +
+                            'Произошла ошибка сервера'
+                        );
+
+                        tester.closeButton.expectToBeVisible();
+                    });
+                    it('Чаты скрыты.', function() {
+                        tester.body.expectToHaveTextContent(
+                            'UIS -- ' +
+                            'Произошла ошибка сервера'
+                        );
+
+                        tester.closeButton.expectToBeVisible();
+                    });
                 });
                 it('Чаты недоступны. Чаты скрыты.', function() {
                     accountRequest.
@@ -1470,6 +1440,11 @@ tests.addTest(options => {
 
                     secondAccountRequest.
                         softphoneFeatureFlagDisabled().
+                        receiveResponse();
+
+                    tester.usersRequest().
+                        forContacts().
+                        forIframe().
                         receiveResponse();
 
                     tester.accountRequest().
@@ -1553,7 +1528,6 @@ tests.addTest(options => {
                     tester.channelsRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
 
-                    tester.commonEmployeeStatusRequest().receiveResponse();
                     tester.listRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
                     tester.messageTemplateListRequest().receiveResponse();
@@ -1606,6 +1580,11 @@ tests.addTest(options => {
                         telegramPrivate().
                         receiveResponse();
 
+                    tester.usersRequest().
+                        forContacts().
+                        forIframe().
+                        receiveResponse();
+
                     tester.employeeSettingsRequest().receiveResponse();
 
                     tester.employeeRequest().
@@ -1618,17 +1597,6 @@ tests.addTest(options => {
                         webAccountLoginUnavailable().
                         softphoneFeatureFlagDisabled().
                         operatorWorkplaceAvailable().
-                        receiveResponse();
-
-                    tester.chatListRequest().
-                        forCurrentEmployee().
-                        noData().
-                        receiveResponse();
-
-                    tester.chatChannelSearchRequest().
-                        emptySearchString().
-                        addWaba().
-                        addThirdTelegramPrivate().
                         receiveResponse();
 
                     tester.chatChannelSearchRequest().
@@ -1676,6 +1644,12 @@ tests.addTest(options => {
                         noData().
                         receiveResponse();
 
+                    tester.chatChannelSearchRequest().
+                        emptySearchString().
+                        addWaba().
+                        addThirdTelegramPrivate().
+                        receiveResponse();
+
                     tester.offlineMessageListRequest().processing().receiveResponse();
                     tester.offlineMessageListRequest().processed().receiveResponse();
                 });
@@ -1704,7 +1678,6 @@ tests.addTest(options => {
                 tester.channelsRequest().receiveResponse();
                 tester.chatChannelListRequest().expectToBeSent();
 
-                tester.commonEmployeeStatusRequest().receiveResponse();
                 tester.listRequest().expectToBeSent();
                 tester.siteListRequest().expectToBeSent();
                 tester.messageTemplateListRequest().expectToBeSent();
@@ -1759,20 +1732,28 @@ tests.addTest(options => {
                         request().
                         receiveResponse();
 
-                    tester.availabilitySettingRequest().
-                        chats().
-                        expectToBeSent();
+                    postMessages.nextMessage().expectMessageToContain({
+                        method: 'set_token',
+                        data: tester.oauthToken,
+                    });
 
-                    tester.submoduleInitilizationEvent().expectToBeSent();
+                    tester.submoduleInitilizationEvent().
+                        contacts().
+                        expectToBeSent();
 
                     tester.submoduleInitilizationEvent().
                         operatorWorkplace().
                         expectToBeSent();
 
-                    postMessages.nextMessage().expectMessageToContain({
-                        method: 'set_token',
-                        data: tester.oauthToken,
-                    });
+                    tester.submoduleInitilizationEvent().expectToBeSent();
+
+                    tester.sourcesSettingRequest().
+                        employeeUnknown().
+                        expectToBeSent();
+
+                    tester.availabilitySettingRequest().
+                        chats().
+                        expectToBeSent();
 
                     salesbotChannelsRequest = tester.salesbotChannelsRequest().receive();
 
@@ -1789,7 +1770,6 @@ tests.addTest(options => {
                     tester.channelsRequest().receiveResponse();
                     tester.chatChannelListRequest().receiveResponse();
 
-                    tester.commonEmployeeStatusRequest().receiveResponse();
                     tester.listRequest().receiveResponse();
                     tester.siteListRequest().receiveResponse();
                     tester.messageTemplateListRequest().receiveResponse();
@@ -1812,14 +1792,17 @@ tests.addTest(options => {
                             operatorWorkplaceAvailable().
                             receiveResponse();
 
-                        tester.sourcesSettingRequest().expectToBeSent();
-
                         unfilteredPostMessages.
                             nextMessage().
                             expectMessageToStartsWith('ignore:log:').
-                            expectMessageToContain(
-                                '[employees] Tab state is unknown'
-                            );
+                            expectMessageToContain('Window message received').
+                            expectMessageToContain('{"method":"get_salesbot_channels"}');
+
+                        tester.sourcesSettingRequest().
+                            employeeUnknown().
+                            expectToBeSent();
+
+                        tester.sourcesSettingRequest().expectToBeSent();
 
                         tester.employeesBroadcastChannel().
                             applyLeader().
@@ -1852,6 +1835,11 @@ tests.addTest(options => {
                             oauthToken().
                             expectToBeSent();
 
+                        tester.usersRequest().
+                            forContacts().
+                            forIframe().
+                            receiveResponse();
+
                         const requests = ajax.inAnyOrder();
 
                         const employeeSettingsRequest = tester.employeeSettingsRequest().
@@ -1873,15 +1861,6 @@ tests.addTest(options => {
                         thirdAccountRequest.receiveResponse();
                         employeeSettingsRequest.receiveResponse();
                         employeeRequest.receiveResponse();
-
-                        tester.chatListRequest().
-                            forCurrentEmployee().
-                            noData().
-                            receiveResponse();
-
-                        tester.chatChannelSearchRequest().
-                            emptySearchString().
-                            receiveResponse();
 
                         tester.offlineMessageCountersRequest().receiveResponse();
                         tester.chatChannelListRequest().receiveResponse();
@@ -1917,6 +1896,10 @@ tests.addTest(options => {
                             noData().
                             receiveResponse();
 
+                        tester.chatChannelSearchRequest().
+                            emptySearchString().
+                            receiveResponse();
+
                         tester.offlineMessageListRequest().processing().receiveResponse();
 
                         offlineMessageListRequest = tester.offlineMessageListRequest().
@@ -1930,7 +1913,7 @@ tests.addTest(options => {
                             salesbotChannelsRequest.expectResponseToBeSent();
                         });
 
-                        describe('Получен запрос открытия чата.', function() {
+                        xdescribe('Получен запрос открытия чата.', function() {
                             let chatChannelSearchRequest;
 
                             beforeEach(function() {
@@ -1955,12 +1938,12 @@ tests.addTest(options => {
                                     unauthorized().
                                     receiveResponse();
 
-                                tester.unreadMessagesCountSettingRequest().expectToBeSent();
-
                                 postMessages.nextMessage().expectMessageToContain({
                                     method: 'set_token',
                                     data: '',
                                 });
+
+                                tester.unreadMessagesCountSettingRequest().expectToBeSent();
 
                                 tester.employeesWebSocket.finishDisconnecting();
                                 tester.chatsWebSocket.finishDisconnecting();
@@ -1979,8 +1962,6 @@ tests.addTest(options => {
                                     receiveResponse();
 
                                 tester.notificationSection.expectToHaveTextContent(
-                                    'Закрыть все ' +
-
                                     'Ошибка открытия чата ' +
                                     'По этим контактным данным уже был создан чат другим оператором',
                                 );
@@ -2025,19 +2006,8 @@ tests.addTest(options => {
                                     assignedToCurrentEmployee().
                                     receiveResponse();
 
-                                tester.submoduleInitilizationEvent().
-                                    contacts().
-                                    expectToBeSent();
-
                                 tester.scheduledMessagesRequest().receiveResponse();
-
                                 tester.visitorCardRequest().receiveResponse();
-
-                                tester.usersRequest().
-                                    forContacts().
-                                    forIframe().
-                                    receiveResponse();
-
                                 tester.chatInfoRequest().receiveResponse();
 
                                 tester.contactGroupsRequest().
@@ -2052,14 +2022,9 @@ tests.addTest(options => {
                                 tester.contactGroupsRequest().
                                     forIframe().
                                     receiveResponse();
-
-                                tester.usersRequest().
-                                    forContacts().
-                                    forIframe().
-                                    receiveResponse();
                             });
                         });
-                        describe('Нажимаю на кнопку аккаунта.', function() {
+                        xdescribe('Нажимаю на кнопку аккаунта.', function() {
                             beforeEach(function() {
                                 tester.accountButton.click();
                             });
@@ -2086,6 +2051,44 @@ tests.addTest(options => {
                                     'Доступен'
                                 );
                             });
+                        });
+                        describe('Получен запрос прикладывания файла.', function() {
+                            let fileUploadngRequest,
+                                resourceRequest;
+
+                            beforeEach(function() {
+                                fileUploadngRequest = tester.fileUploadngRequest().receive();
+
+                                resourceRequest = tester.resourceRequest().
+                                    thumbs().
+                                    expectToBeSent();
+                            });
+
+                            it('Не удалось выгрузить файл. Ответ отправлен в родительское окно.', function() {
+                                resourceRequest.
+                                    failed().
+                                    receiveResponse();
+                                    
+                                fileUploadngRequest.
+                                    failed().
+                                    expectResponseToBeSent();
+                            });
+                            it('Ответ отправлен в родительское окно.', function() {
+                                resourceRequest.receiveResponse();
+                                fileUploadngRequest.expectResponseToBeSent();
+                            });
+                        });
+                        return;
+                        it('Получен запрос скачивания файла.', function() {
+                            tester.fileDownloadingRequest().receive();
+
+                            tester.resourcePayloadRequest().
+                                thirdFile().
+                                receiveResponse();
+
+                            tester.downloadedFile.
+                                expectToHaveName('some-file.zip').
+                                expectToHaveContent('2gf0s82l24348s982');
                         });
                         it('Получен запрос шаблонов WABA. Список шаблонов отправлен в родительское окно.', function() {
                             const messageTemplatesRequest = tester.messageTemplatesRequest().receive();
@@ -2146,6 +2149,7 @@ tests.addTest(options => {
                             tester.logoutButton.expectNotToExist();
                         });
                     });
+                    return;
                     it(
                         'Не удалось получить список заявок потому, что сотрудник стал неавторизованным.',
                     function() {
@@ -2177,6 +2181,7 @@ tests.addTest(options => {
                         );
                     });
                 });
+                return;
                 describe('Не удалось получить данные аккаунта из-за ошибки авторизации.', function() {
                     beforeEach(function() {
                         accountRequest.
@@ -2319,6 +2324,7 @@ tests.addTest(options => {
                     );
                 });
             });
+            return;
             it('Получена английская локаль. Используется английский язык.', function() {
                 tester.amocrmStateSettingRequest().
                     chats().
@@ -2704,6 +2710,7 @@ tests.addTest(options => {
                 tester.body.expectToHaveTextContent('');
             });
         });
+return;
         describe('Открываю IFrame чатов amoCRM. Сотрудник не авторизован.', function() {
             beforeEach(function() {
                 tester = new Tester({

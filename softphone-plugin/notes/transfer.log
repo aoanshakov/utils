@@ -1,0 +1,304 @@
+Thu Nov 27 2025 17:53:34 GMT+0300 (Moscow Standard Time) Response status: 200; Time consumed 73 ms; With credentials
+
+GET https://dev-int0-softphone-rest-api.uis.st/sup/api/v1/settings
+
+X-Requested-With: XMLHttpRequest
+X-Widget-Id: 38a29b49-1695-4921-8176-7f1aad084ac1
+X-Widget-Type: call_center_web
+Authorization: Bearer sBihE8Dp6OXWZSMwx-alMCq8FXnZ8Vq-PkIGc4Q3xn0
+
+{}
+
+{
+    "data":{
+        "sip":{
+            "sip_login":"034463",
+            ...
+        }
+    }
+}
+
+Thu Nov 27 2025 17:53:37 GMT+0300 (Moscow Standard Time) Response status: 200; Time consumed 50 ms; With credentials
+
+GET https://dev-int0-softphone-rest-api.uis.st/sup/api/v1/users/me
+
+X-Requested-With: XMLHttpRequest
+X-Widget-Id: 38a29b49-1695-4921-8176-7f1aad084ac1
+X-Widget-Type: call_center_web
+Authorization: Bearer sBihE8Dp6OXWZSMwx-alMCq8FXnZ8Vq-PkIGc4Q3xn0
+
+{
+    "data":{
+        "id":9169534,
+        "first_name":null,
+        "last_name":"Аскарова_int0",
+        "position_id":null,
+        "status_id":1063467,
+        "is_in_call":false,
+        "short_phone":"66766",
+        "is_sip_online":true,
+        "lost_call_count":null
+    }
+}
+
+Thu Nov 27 2025 17:55:46 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+INVITE sip:79162139399@dev-int0-sipve-voip.uis.st SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>
+Call-ID: ehclhghtpquedkmlgv7a
+...
+
+Thu Nov 27 2025 17:55:47 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-softphone-realtime-api.uis.st/ws/sBihE8Dp6OXWZSMwx-alMCq8FXnZ8Vq-PkIGc4Q3xn0 message received:
+
+{
+    "type": "event",
+    "name": "out_call_session",
+    "params": {
+        "call_session_id": 5136306275,
+        "contact_phone_number": "79162139399",
+        ...
+    }
+}
+
+Thu Nov 27 2025 17:56:00 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message received:
+
+SIP/2.0 200 OK
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+CSeq: 1754 INVITE
+...
+
+Thu Nov 27 2025 17:56:00 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+ACK sip:79162139399@10.1.214.33:6077 SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+...
+
+Thu Nov 27 2025 17:56:01 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-softphone-realtime-api.uis.st/ws/sBihE8Dp6OXWZSMwx-alMCq8FXnZ8Vq-PkIGc4Q3xn0 message received:
+
+{
+    "type": "event",
+    "name": "call_connected",
+    "params": {
+        "call_session_id": 5136306275,
+        "contact_phone_number": "79162139399",
+        "employee_id": 9169534,
+        "is_transfer": false,
+        "transferred_by_employee_id": null,
+        "calling_phone_number": "034463",
+        ...
+    }
+}
+
+Thu Nov 27 2025 17:56:09 GMT+0300 (Moscow Standard Time) method transfer(12091) called
+
+Thu Nov 27 2025 17:56:09 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+INFO sip:79162139399@10.1.214.33:6077 SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+...
+
+Signal=#
+Duration=100
+
+Thu Nov 27 2025 17:56:09 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message received:
+
+SIP/2.0 200 OK
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+CSeq: 1755 INFO
+...
+
+Thu Nov 27 2025 17:56:09 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+INFO sip:79162139399@10.1.214.33:6077 SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+...
+
+Signal=1
+Duration=100
+
+Thu Nov 27 2025 17:56:10 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-softphone-realtime-api.uis.st/ws/sBihE8Dp6OXWZSMwx-alMCq8FXnZ8Vq-PkIGc4Q3xn0 message received:
+
+{
+    "type": "event",
+    "name": "call_hold_control",
+    "params": {
+        "call_session_id": 5136306275,
+        "contact_phone_number": "79162139399",
+        "status": "on",
+        ...
+    }
+}
+
+Thu Nov 27 2025 17:56:10 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+INFO sip:79162139399@10.1.214.33:6077 SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+...
+
+Signal=2
+Duration=100
+
+Thu Nov 27 2025 17:56:10 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message received:
+
+SIP/2.0 200 OK
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+CSeq: 1757 INFO
+...
+
+Thu Nov 27 2025 17:56:11 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+INFO sip:79162139399@10.1.214.33:6077 SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+...
+
+Signal=0
+Duration=100
+
+Thu Nov 27 2025 17:56:11 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message received:
+
+SIP/2.0 200 OK
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+CSeq: 1758 INFO
+...
+
+Thu Nov 27 2025 17:56:11 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+INFO sip:79162139399@10.1.214.33:6077 SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+...
+
+Signal=9
+Duration=100
+
+Thu Nov 27 2025 17:56:11 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message received:
+
+SIP/2.0 200 OK
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+CSeq: 1759 INFO
+...
+
+Thu Nov 27 2025 17:56:12 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+INFO sip:79162139399@10.1.214.33:6077 SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+...
+
+Signal=1
+Duration=100
+
+Thu Nov 27 2025 17:56:12 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message received:
+
+SIP/2.0 200 OK
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+CSeq: 1760 INFO
+...
+
+Thu Nov 27 2025 17:56:18 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-softphone-realtime-api.uis.st/ws/sBihE8Dp6OXWZSMwx-alMCq8FXnZ8Vq-PkIGc4Q3xn0 message received:
+
+{
+    "type": "event",
+    "name": "call_proceeding",
+    "params": {
+        "call_session_id": 5136306275,
+        "contact_phone_number": "79162139399",
+        "employee_id": 1875485,
+        "is_transfer": true,
+        "transferred_by_employee_id": 9169534,
+        "calling_phone_number": "74952368178",
+        ...
+    }
+}
+
+Thu Nov 27 2025 17:56:27 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-softphone-realtime-api.uis.st/ws/sBihE8Dp6OXWZSMwx-alMCq8FXnZ8Vq-PkIGc4Q3xn0 message received:
+
+{
+    "type": "event",
+    "name": "call_connected",
+    "params": {
+        "call_session_id": 5136306275,
+        "contact_phone_number": "79162139399",
+        "employee_id": 1875485,
+        "is_transfer": true,
+        "transferred_by_employee_id": 9169534,
+        "calling_phone_number": "74952368178",
+        ...
+    }
+}
+
+Thu Nov 27 2025 17:56:39 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-softphone-realtime-api.uis.st/ws/sBihE8Dp6OXWZSMwx-alMCq8FXnZ8Vq-PkIGc4Q3xn0 message received:
+
+{
+    "type": "event",
+    "name": "call_disconnected",
+    "params": {
+        "call_session_id": 5136306275,
+        "contact_phone_number": "79162139399",
+        "employee_id": 1875485,
+        "is_transfer": true,
+        "transferred_by_employee_id": 9169534,
+        "calling_phone_number": "74952368178",
+        ...
+    }
+}
+
+Thu Nov 27 2025 17:56:39 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-softphone-realtime-api.uis.st/ws/sBihE8Dp6OXWZSMwx-alMCq8FXnZ8Vq-PkIGc4Q3xn0 message received:
+
+{
+    "type": "event",
+    "name": "call_hold_control",
+    "params": {
+        "call_session_id": 5136306275,
+        "contact_phone_number": "79162139399",
+        "status": "off"
+        ...
+    }
+}
+
+Thu Nov 27 2025 17:56:43 GMT+0300 (Moscow Standard Time) method terminate(undefined) called
+
+Thu Nov 27 2025 17:56:43 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-sipve-voip.uis.st:19183/ message sent:
+
+BYE sip:79162139399@10.1.214.33:6077 SIP/2.0
+To: <sip:79162139399@dev-int0-sipve-voip.uis.st>;tag=139759715400912
+Call-ID: ehclhghtpquedkmlgv7a
+...
+
+Thu Nov 27 2025 17:56:43 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-softphone-realtime-api.uis.st/ws/sBihE8Dp6OXWZSMwx-alMCq8FXnZ8Vq-PkIGc4Q3xn0 message received:
+
+{
+    "type": "event",
+    "name": "call_disconnected",
+    "params": {
+        "call_session_id": 5136306275,
+        "contact_phone_number": "79162139399",
+        "employee_id": 9169534,
+        "is_transfer": false,
+        "transferred_by_employee_id": null,
+        "calling_phone_number": "034463",
+        ...
+    }
+}
+
+Thu Nov 27 2025 17:56:44 GMT+0300 (Moscow Standard Time) WebSocket wss://dev-int0-softphone-realtime-api.uis.st/ws/sBihE8Dp6OXWZSMwx-alMCq8FXnZ8Vq-PkIGc4Q3xn0 message received:
+
+{
+    "type": "event",
+    "name": "call_session_finished",
+    "params": {
+        "call_session_id": 5136306275,
+        ...
+    }
+}
