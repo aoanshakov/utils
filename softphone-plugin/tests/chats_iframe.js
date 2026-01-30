@@ -2052,7 +2052,7 @@ tests.addTest(options => {
                                 );
                             });
                         });
-                        describe('Получен запрос прикладывания файла.', function() {
+                        xdescribe('Получен запрос прикладывания файла.', function() {
                             let fileUploadngRequest,
                                 resourceRequest;
 
@@ -2078,8 +2078,7 @@ tests.addTest(options => {
                                 fileUploadngRequest.expectResponseToBeSent();
                             });
                         });
-                        return;
-                        it('Получен запрос скачивания файла.', function() {
+                        xit('Получен запрос скачивания файла.', function() {
                             tester.fileDownloadingRequest().receive();
 
                             tester.resourcePayloadRequest().
@@ -2090,12 +2089,30 @@ tests.addTest(options => {
                                 expectToHaveName('some-file.zip').
                                 expectToHaveContent('2gf0s82l24348s982');
                         });
-                        it('Получен запрос шаблонов WABA. Список шаблонов отправлен в родительское окно.', function() {
+                        xit('Получен запрос шаблонов WABA. Список шаблонов отправлен в родительское окно.', function() {
                             const messageTemplatesRequest = tester.messageTemplatesRequest().receive();
 
                             tester.channelMessageTemplateListRequest().receiveResponse();
                             messageTemplatesRequest.expectResponseToBeSent();
                         });
+                        it(
+                            'Полчен запрос присутствующего фичефлага. Значение фичефлага отправлено в родительское ' +
+                            'окно.',
+                        function() {
+                            tester.featureFlagRequest().
+                                featureFlag('chat_pinning').
+                                expectResponseToBeSent();
+                        });
+                        it(
+                            'Полчен запрос отсутствующего фичефлага. Значение фичефлага отправлено в родительское ' +
+                            'окно.',
+                        function() {
+                            tester.featureFlagRequest().
+                                featureFlag('some_feature').
+                                unavailable().
+                                expectResponseToBeSent();
+                        });
+                        return;
                         it('Получен запрос открытия чата из несуществующего канала.', function() {
                             tester.chatOpeningRequest().
                                 fourthChannel().

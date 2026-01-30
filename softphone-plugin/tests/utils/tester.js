@@ -2206,7 +2206,12 @@ define(() => function ({
         const element = document.createElement('div');
         element.id = 'card_fields';
         
-        document.body.appendChild(element);
+        const firstChild = document.body.childNodes[0];
+
+        firstChild
+            ? document.body.insertBefore(element, firstChild)
+            : document.body.appendChild(element);
+
         spendTime(0);
     };
 
@@ -2250,21 +2255,11 @@ define(() => function ({
         channel_id: 101,
         message_template_id: 0,
         message: '',
-        files: '',
+        files: '[]',
     };
 
     me.salesbot = () => {
         let getValues = () => ({});
-
-        const getParams = () => JSON.parse(window.application.onSalesbotDesignerSave(Array.from(
-            document.querySelectorAll('.salesbot-designer__widgets-param')
-        ).reduce((values, element) =>
-            (values[element.dataset?.fieldName] = element.querySelector(
-                '.js-sb-designer-widget-manual-value input'
-            )?.value, values),
-
-            {},
-        )))[0].question[0].params;
 
         return {
             settingsSaved() {
@@ -2278,27 +2273,58 @@ define(() => function ({
                 return this;
             },
 
-            hook: () => ({
-                expectUrlToBe(expectedUrl) {
-                    const actualUrl = getParams().url;
+            hook: () => {
+                const me = {
+                    atIndex: index => {
+                        const getParams = () => JSON.parse(window.application.onSalesbotDesignerSave(Array.from(
+                            document.querySelectorAll('.salesbot-designer__workarea')[index]?.
+                                querySelectorAll('.salesbot-designer__widgets-param') || []
+                        ).reduce((values, element) => {
+                            const input = element.querySelector(
+                                '.js-sb-designer-widget-manual-value input'
+                            );
 
-                    if (actualUrl !== expectedUrl) {
-                        throw new Error(
-                            `Хук должен быть отправлен на URL ${JSON.stringify(expectedUrl)}, ` +
-                            `тогда как он был отправлен на URL ${JSON.stringify(actualUrl)}`
-                        );
-                    }
+                            values[element.dataset?.fieldName] = input?.value;
+                            //console.log('I', { input, value: input?.value });
 
-                    return this;
-                },
+                            return values;
+                        },
 
-                expectBodyToContain(expectedValues) {
-                    return utils.expectObjectToContain(
-                        getParams().data,
-                        expectedValues,
-                    );
-                },
-            }),
+                            {},
+                        )))[0].question[0].params;
+
+                        return {
+                            expectUrlToBe(expectedUrl) {
+                                const actualUrl = getParams(index).url;
+
+                                if (actualUrl !== expectedUrl) {
+                                    throw new Error(
+                                        `Хук должен быть отправлен на URL ${JSON.stringify(expectedUrl)}, ` +
+                                        `тогда как он был отправлен на URL ${JSON.stringify(actualUrl)}`
+                                    );
+                                }
+
+                                return this;
+                            },
+
+                            expectBodyToContain(expectedValues) {
+                                return utils.expectObjectToContain(
+                                    getParams(index).data,
+                                    expectedValues,
+                                );
+                            },
+                        };
+                    },
+                };
+                
+                me.first = me.atIndex(0);
+                return me;
+            },
+
+            close() {
+                window.application.closeSalesbots();
+                spendTime(0);
+            },
 
             open() {
                 removeElements();
@@ -2922,7 +2948,7 @@ define(() => function ({
             },
 
             salesbot() {
-                message.data.type = 'salesbot';
+                message.data.type = 'salesbot-1';
                 return this;
             },
 
@@ -3037,6 +3063,7 @@ define(() => function ({
     };
 
     me.salesbotParamsSettingRequest = () => {
+        let id = '-1';
         const processors = [],
             secondProcessors = [];
 
@@ -3044,7 +3071,7 @@ define(() => function ({
             const message = {
                 method: 'set_state',
                 data: {
-                    type: 'salesbot',
+                    type: `salesbot${id}`,
                     data: {},
                 },
             };
@@ -3068,8 +3095,23 @@ define(() => function ({
         const fill = name => setValue(name, salesbotSettings[name]);
 
         return {
+            depricated() {
+                id = '';
+                return this;
+            },
+
+            second() {
+                id = '-2';
+                return this;
+            },
+
             messageTemplateChosen() {
                 fill('message_template_id');
+                return this;
+            },
+
+            notShouldMessageToLastChat() {
+                setValue('should_message_to_last_chat', false);
                 return this;
             },
 
@@ -3295,7 +3337,7 @@ define(() => function ({
             addThirdChannel(message) {
                 processors.push(message => message.data.channels.push({
                     id: 216402,
-                    name: 'Астана',
+                    name: 'false',
                     type: 'telegram_private',
                     type_name: 'Telegram',
                     icon: 'SourceTelegram20',
@@ -3824,6 +3866,79 @@ define(() => function ({
                 requestMessage.data.data.buffer =
                     utils.expectBufferCreatedFromFileWithName(requestMessage.data.data.name);
 
+                message.expectMessageToContain(requestMessage);
+
+                return addResponseModifiers({
+                    receiveResponse: () => {
+                        responseMessage.data.id = id;
+                        postMessages.receive(responseMessage);
+
+                        return addResponseModifiers({
+                            expectResponseToBeSent: () => postMessages.
+                                nextMessage().
+                                expectMessageToContain(responseMessage),
+                        });
+                    },
+                });
+            },
+
+            receiveResponse() {
+                return this.expectToBeSent().receiveResponse();
+            },
+        });
+    };
+
+    me.featureFlagRequest = () => {
+        const requestMessage = {
+            method: 'call_chats_method',
+            data: {
+                method: 'has_feature_flag',
+            },
+        };
+
+        const responseMessage = {
+            method: 'set_chats_method_result',
+            data: {
+                error: undefined,
+                data: true,
+            },
+        };
+
+        const addResponseModifiers = me => {
+            me.unavailable = () => {
+                responseMessage.data.data = false;
+                return me;
+            };
+
+            return me;
+        };
+
+        return addResponseModifiers({
+            featureFlag(value) {
+                requestMessage.data.data = value;
+                return this;
+            },
+
+            receive: () => {
+                requestMessage.data.id = responseMessage.data.id = '5314f800-0f23-425d-bf20-683f0d149675';
+                postMessages.receive(requestMessage);
+
+                return addResponseModifiers({
+                    expectResponseToBeSent: () => postMessages.
+                        nextMessage().
+                        expectMessageToContain(responseMessage),
+                });
+            },
+
+            expectResponseToBeSent() {
+                this.receive().expectResponseToBeSent();
+            },
+
+            expectToBeSent: () => {
+                const message = postMessages.nextMessage(),
+                    id = message.getJSON()?.data?.id;
+
+                requestMessage.data.id = utils.expectToBeString();
                 message.expectMessageToContain(requestMessage);
 
                 return addResponseModifiers({
@@ -5466,6 +5581,8 @@ define(() => function ({
         } else if (application == 'notificationsIframe') {
             me.history.push('/chrome/notifications');
         } else if (application == 'amocrmSalesbotIframe') {
+            me.history.push('/amocrm/salesbot/1');
+        } else if (application == 'depricatedAmocrmSalesbotIframe') {
             me.history.push('/amocrm/salesbot');
         }
     }
@@ -7482,7 +7599,91 @@ define(() => function ({
 
                 return addResponseModifiers({
                     receiveResponse() {
-                        request.respondSuccessfullyWith([]);
+                        request.respondSuccessfullyWith([{
+                            default_consultant_chat_channel_id: 101,
+                            id: 86297,
+                            is_removed: false,
+                            name: 'mrDDosT',
+                            is_active: true,
+                            channel_type: 'telegram',
+                            scenario_id: null,
+                            omni_account_id: 82983,
+                            employee_id: null,
+                            context: null,
+                            employees_group_id: null,
+                            is_messages_editable: true,
+                            messages_edit_interval: null,
+                        }, {
+                            default_consultant_chat_channel_id: 216395,
+                            id: 86298,
+                            is_removed: false,
+                            name: 'Whats App',
+                            is_active: true,
+                            channel_type: 'whatsapp',
+                            scenario_id: null,
+                            omni_account_id: 82983,
+                            employee_id: null,
+                            context: null,
+                            employees_group_id: null,
+                            is_messages_editable: true,
+                            messages_edit_interval: null,
+                        }, {
+                            default_consultant_chat_channel_id: 216400,
+                            id: 86299,
+                            is_removed: false,
+                            name: 'Whats App Waba',
+                            is_active: true,
+                            channel_type: 'waba',
+                            scenario_id: null,
+                            omni_account_id: 82983,
+                            employee_id: null,
+                            context: null,
+                            employees_group_id: null,
+                            is_messages_editable: true,
+                            messages_edit_interval: null,
+                        }, {
+                            default_consultant_chat_channel_id: 216401,
+                            id: 86300,
+                            is_removed: false,
+                            name: 'Telegram Private',
+                            is_active: true,
+                            channel_type: 'telegram_private',
+                            scenario_id: null,
+                            omni_account_id: 82983,
+                            employee_id: null,
+                            context: null,
+                            employees_group_id: null,
+                            is_messages_editable: true,
+                            messages_edit_interval: null,
+                        }, {
+                            default_consultant_chat_channel_id: 216402,
+                            id: 86301,
+                            is_removed: false,
+                            name: 'Астана',
+                            is_active: false,
+                            channel_type: 'telegram_private',
+                            scenario_id: null,
+                            omni_account_id: 82983,
+                            employee_id: null,
+                            context: null,
+                            employees_group_id: null,
+                            is_messages_editable: true,
+                            messages_edit_interval: null,
+                        }, {
+                            default_consultant_chat_channel_id: 216402,
+                            id: 216402,
+                            is_removed: true,
+                            name: 'Буэнос‑Айрес',
+                            is_active: true,
+                            channel_type: 'sms',
+                            scenario_id: null,
+                            omni_account_id: 82983,
+                            employee_id: null,
+                            context: null,
+                            employees_group_id: null,
+                            is_messages_editable: true,
+                            messages_edit_interval: null,
+                        }]);
 
                         Promise.runAll(false, true);
                         spendTime(0)
@@ -24651,6 +24852,20 @@ define(() => function ({
         tester.click = () => (click(), spendTime(0));
         me.arrowNextToSearchField = tester;
     }
+
+    me.navMenu = (() => {
+        const getDomElement = () => document.querySelector('#nav_menu'),
+            tester = testersFactory.createDomElementTester(getDomElement);
+
+        tester.item = title => testersFactory.createDomElementTester(
+            () => utils.descendantOf(getDomElement()).
+                matchesSelector('.nav__menu__item__title').
+                textEquals(title).
+                find()
+        );
+
+        return tester;
+    })();
 
     me.leftMenu = (() => {
         const getDomElement = () => utils.querySelector(

@@ -1,10 +1,10 @@
 diff --git a/package.json b/package.json
-index e751c38..4bdd539 100644
+index ead1e39..92d9479 100644
 --- a/package.json
 +++ b/package.json
-@@ -11,15 +11,11 @@
-     "build-example": "webpack --mode development",
-     "build": "echo 'skip'"
+@@ -13,15 +13,11 @@
+     "lint": "tsc --noEmit && eslint src/**/*.{ts,tsx}",
+     "prettier": "prettier --write ./src/**/**/*.{ts,tsx}"
    },
 -  "peerDependencies": {
 -    "axios": ">= 0.24.0"
@@ -14,7 +14,7 @@ index e751c38..4bdd539 100644
      "@babel/plugin-proposal-class-properties": "^7.8.3",
      "@babel/plugin-proposal-private-methods": "7.13.0",
      "@babel/preset-env": "^7.1.0",
--    "@comagic/workplace-utils": "0.0.20-int0",
-     "babel-loader": "^8.0.4",
-     "exports-loader": "2.0.0",
-     "janus-gateway": "1.1.4",
+-    "@comagic/workplace-utils": "0.0.25-int0",
+     "@types/node": "22.15.21",
+     "@types/react": "^18.0.17",
+     "@types/react-dom": "^18.0.6",

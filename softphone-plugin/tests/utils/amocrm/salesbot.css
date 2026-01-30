@@ -3620,9 +3620,9 @@ html.safari .salesbot-designer__inline-input_cf {
           left: 3px;
         }
 .salesbot-designer__workarea {
-    position: absolute;
-    top: 0;
-    left: 0;
+    position: relative;
+    width: 418px;
+    height: 751px;
     backface-visibility: hidden;
     font-family: 'PT Sans', Arial, sans-serif;
     line-height: normal;

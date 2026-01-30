@@ -65,7 +65,7 @@ tests.addTest(options => {
                 expectNotToExist();
         });
 
-        xdescribe('Открыт IFrame.', function() {
+        describe('Открыт IFrame.', function() {
             beforeEach(function() {
                 localStorage.setItem('debugMode', '1');
 
@@ -1015,7 +1015,7 @@ tests.addTest(options => {
                 tester.softphone.expectNotToExist();
             });
         });
-        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
+        describe('Открываю попап. Отправлен запрос состояния.', function() {
             let stateRequest,
                 popupStateSettingRequest;
 
@@ -1107,7 +1107,7 @@ tests.addTest(options => {
                     expectToBeReloaded();
             });
         });
-        xdescribe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
+        describe('Открываю страницу с расширением. Токен авторизации не был сохранен.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -3198,7 +3198,7 @@ tests.addTest(options => {
                     expectToBeHidden();
             });
         });
-        xdescribe('Открываю попап. Отправлен запрос состояния.', function() {
+        describe('Открываю попап. Отправлен запрос состояния.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'popup',
@@ -3421,7 +3421,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentNotToHaveSubstring('Вы не авторизованы');
             });
         });
-        xdescribe('Открываю background-скрипт. Софтфон авторизован.', function() {
+        describe('Открываю background-скрипт. Софтфон авторизован.', function() {
             let oauthRequest;
 
             beforeEach(function() {
@@ -3658,7 +3658,7 @@ tests.addTest(options => {
                     grant();
             });
         });
-        xdescribe('Открываю background-скрипт.', function() {
+        describe('Открываю background-скрипт.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'background',
@@ -3980,7 +3980,7 @@ tests.addTest(options => {
                 tester.popupStateSettingRequest().expectResponseToBeSent();
             });
         });
-        xdescribe('Контент скрипт встроился в IFrame. Сотрудник авторизован.', function() {
+        describe('Контент скрипт встроился в IFrame. Сотрудник авторизован.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -4107,7 +4107,7 @@ tests.addTest(options => {
                 );
             });
         });
-        xdescribe('Открываю виджет amoCRM.', function() {
+        describe('Открываю виджет amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -4307,7 +4307,7 @@ tests.addTest(options => {
                 tester.iframe.expectToBeHidden();
             });
         });
-        xdescribe('Открываю виджет чатов amoCRM.', function() {
+        describe('Открываю виджет чатов amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -4342,11 +4342,16 @@ tests.addTest(options => {
                 describe('Инициализировано содержимое IFrame.', function() {
                     beforeEach(function() {
                         tester.unreadMessagesCountSettingRequest().receive();
-                        tester.shortPhoneSettingRequest().expectToBeSent();
+
+                        tester.iconRequest().
+                            arrow().
+                            receiveResponse();
 
                         tester.amocrmStateSettingRequest().
                             chats().
                             expectToBeSent();
+
+                        tester.shortPhoneSettingRequest().expectToBeSent();
 
                         tester.tokenInitializationRequest().
                             chats().
@@ -4357,10 +4362,6 @@ tests.addTest(options => {
                             method: 'set_token',
                             data: '',
                         });
-
-                        tester.iconRequest().
-                            arrow().
-                            receiveResponse();
                     });
 
                     describe('Сотрудник авторизован.', function() {
@@ -4373,13 +4374,13 @@ tests.addTest(options => {
                             tester.sourcesSettingRequest().receive();
                             spendTime(0);
 
+                            tester.iconRequest().receiveResponse();
+
                             tester.channelsSearchingRequest().
                                 second().anotherPhone().
                                 atIndex(2).email().
                                 atIndex(3).thirdPhone().
                                 expectToBeSent();
-
-                            tester.iconRequest().receiveResponse();
                         });
 
                         describe('Получен список каналов.', function() {
@@ -4582,6 +4583,18 @@ tests.addTest(options => {
                                 tester.iframe.
                                     withSrc('https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/softphone').
                                     expectToBeVisible();
+
+                                tester.navMenu.item('UIS Софтфон').expectNotToExist();
+                            });
+                            it(
+                                'Установлен виджет Мегафон. Проходит некоторое время. Нажимаю на иконку трубки. ' +
+                                'Софтфон скрыт.',
+                            function() {
+                                tester.addInstalledWidget('megafon_widget');
+                                spendTime(1000);
+
+                                tester.phoneIcon.click();
+                                tester.navMenu.item('UIS Софтфон').expectToBeVisible();
                             });
                             it(
                                 'В софтфоне получены данные сотрудника. Короткий номер сотрудника отправлен В IFrame ' +
@@ -4601,6 +4614,17 @@ tests.addTest(options => {
                                     withSrc('https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/softphone').
                                     expectToBeHidden();
                             });
+                        });
+                        it(
+                            'Установлен виджет Мегафон. Получено состояние софтфона. Иконка трубки отсутствует.',
+                        function() {
+                            tester.addInstalledWidget('megafon_widget');
+
+                            tester.stateSettingRequest().receive();
+                            tester.amocrmStateSettingRequest().expectToBeSent();
+
+                            tester.phoneIcon.click();
+                            tester.navMenu.item('UIS Софтфон').expectToBeVisible();
                         });
                         it('Отбражен список номера телефонов и E-Mail.', function() {
                             tester.iframe.
@@ -4870,11 +4894,16 @@ tests.addTest(options => {
 
                 beforeEach(function() {
                     tester.unreadMessagesCountSettingRequest().receive();
-                    tester.shortPhoneSettingRequest().expectToBeSent();
+
+                    tester.iconRequest().
+                        arrow().
+                        receiveResponse();
 
                     tester.amocrmStateSettingRequest().
                         chats().
                         expectToBeSent();
+
+                    tester.shortPhoneSettingRequest().expectToBeSent();
 
                     tester.tokenInitializationRequest().
                         chats().
@@ -4885,10 +4914,6 @@ tests.addTest(options => {
                         method: 'set_token',
                         data: '',
                     });
-
-                    tester.iconRequest().
-                        arrow().
-                        receiveResponse();
 
                     postMessages.receive({
                         method: 'set_token',
@@ -4902,7 +4927,7 @@ tests.addTest(options => {
                         salesbotChannelsRequest = tester.salesbotChannelsRequest().expectToBeSent();
                     });
 
-                    describe('Получены каналы WhatsApp.', function() {
+                    describe('Получены каналы.', function() {
                         beforeEach(function() {
                             salesbotChannelsRequest.receiveResponse();
                         });
@@ -4910,13 +4935,145 @@ tests.addTest(options => {
                         describe('Содержимое IFrame Salesbot инициализировано.', function() {
                             beforeEach(function() {
                                 tester.salesbotParamsSettingRequest().receive();
-                                tester.savedValuesSettingRequest().expectToBeSent();
 
                                 tester.amocrmStateSettingRequest().
                                     salesbot().
                                     expectToBeSent();
+
+                                tester.savedValuesSettingRequest().expectToBeSent();
                             });
 
+                            describe('Открываю вторую фомру настроек Salesbot.', function() {
+                                beforeEach(function() {
+                                    tester.salesbot().open();
+                                    salesbotChannelsRequest = tester.salesbotChannelsRequest().expectToBeSent();
+
+                                    tester.salesbotParamsSettingRequest().
+                                        shouldMessageToLastChat().
+                                        receive();
+
+                                    tester.salesbotParamsSettingRequest().
+                                        notShouldMessageToLastChat().
+                                        receive();
+                                });
+
+                                describe('Получены каналы. Содержимое IFrame Salesbot инициализировано.', function() {
+                                    beforeEach(function() {
+                                        salesbotChannelsRequest.receiveResponse();
+                                        tester.savedValuesSettingRequest().expectToBeSent();
+
+                                        tester.salesbotParamsSettingRequest().
+                                            second().
+                                            filled().
+                                            receive();
+
+                                        tester.amocrmStateSettingRequest().
+                                            salesbot().
+                                            expectToBeSent();
+
+                                        tester.savedValuesSettingRequest().expectToBeSent();
+                                    });
+
+                                    it('Значения форм различаются.', function() {
+                                        tester.salesbot().
+                                            hook().
+                                            first.
+                                            expectBodyToContain({
+                                                should_message_to_last_chat: false,
+                                                channel_id: 101,
+                                                message: '',
+                                            });
+
+                                        tester.salesbot().
+                                            hook().
+                                            atIndex(1).
+                                            expectUrlToBe(
+                                                'https://prod-msk-mrkt-app-nodes-amocrm.uiscom.ru/amocrm_trigger/' +
+                                                    'salesbot/hook'
+                                            ).
+                                            expectBodyToContain({
+                                                should_message_to_last_chat: true,
+                                                channel_id: 216400,
+                                                message: 'Некое сообщение, отправляемое при каких-то изменениях ' +
+                                                    'свойств сделки',
+                                                user_id: '7e3c6faf-3723-46ba-a12f-5f52875b4eac',
+                                                account_id: '8gls8gka-5829-85ns-sdi3-82glapnzpdkw',
+                                            });
+                                    });
+                                    it(
+                                        'Получен запрос шаблонов WABA. Ответ на запрос отправлен в IFrame Salesbot.',
+                                    function() {
+                                        tester.messageTemplatesRequest().receive();
+                                        response = tester.messageTemplatesRequest().receiveResponse();
+
+                                        response.expectResponseToBeSent();
+                                        response.expectResponseToBeSent();
+                                    });
+                                });
+                                it('Открыты две формы настроек.', function() {
+                                    tester.iframe.atIndex(2).expectAttributeToHaveValue(
+                                        'src',
+                                        'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/salesbot/1',
+                                    );
+
+                                    tester.iframe.atIndex(3).expectAttributeToHaveValue(
+                                        'src',
+                                        'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/salesbot/2',
+                                    );
+
+                                    tester.salesbot().
+                                        hook().
+                                        atIndex(1).
+                                        expectBodyToContain({
+                                            should_message_to_last_chat: false,
+                                            channel_id: 0,
+                                            message: '',
+                                        });
+                                });
+                            });
+                            it(
+                                'Закрываю настройки Salsebot. Открываю настройки Salesbot ещё раз. Список каналов ' +
+                                'отправлен в содержимое IFrame.',
+                            function() {
+                                tester.salesbot().close();
+                                tester.salesbot().open();
+
+                                tester.salesbotChannelsRequest().receiveResponse();
+
+                                tester.salesbotParamsSettingRequest().
+                                    second().
+                                    filled().
+                                    receive();
+
+                                tester.amocrmStateSettingRequest().
+                                    salesbot().
+                                    expectToBeSent();
+
+                                tester.savedValuesSettingRequest().expectToBeSent();
+                            });
+                            it(
+                                'Открываю вторую фомру настроек Salesbot. Форма была заполнена ранее. Значения формы ' +
+                                'отправлены в IFrame.',
+                            function() {
+                                tester.salesbot().
+                                    settingsSaved().
+                                    open();
+
+                                tester.salesbotChannelsRequest().receiveResponse();
+                                tester.savedValuesSettingRequest().expectToBeSent();
+
+                                tester.salesbotParamsSettingRequest().
+                                    second().
+                                    receive();
+
+                                tester.amocrmStateSettingRequest().
+                                    salesbot().
+                                    expectToBeSent();
+
+                                tester.savedValuesSettingRequest().
+                                    settingsSaved().
+                                    expectToBeSent();
+                            });
                             it('Получены новые значения формы настроек.', function() {
                                 tester.salesbotParamsSettingRequest().
                                     filled().
@@ -4924,6 +5081,7 @@ tests.addTest(options => {
 
                                 tester.salesbot().
                                     hook().
+                                    first.
                                     expectUrlToBe(
                                         'https://prod-msk-mrkt-app-nodes-amocrm.uiscom.ru/amocrm_trigger/salesbot/hook'
                                     ).
@@ -4935,7 +5093,7 @@ tests.addTest(options => {
                                         account_id: '8gls8gka-5829-85ns-sdi3-82glapnzpdkw',
                                     });
                             });
-                            it('Получен запрос шаблонов WABA. Ответ на запрос отправлен в родетельское окно.', function() {
+                            it('Получен запрос шаблонов WABA. Ответ на запрос отправлен в IFrame Salesbot.', function() {
                                 tester.messageTemplatesRequest().receive();
 
                                 tester.messageTemplatesRequest().
@@ -4946,29 +5104,55 @@ tests.addTest(options => {
                                 'Определёно значение по умолчанию для выпадающего списка "Приоритетный канал ' +
                                 'WhatsApp".',
                             function() {
-                                tester.salesbot().hook().expectBodyToContain({
-                                    should_message_to_last_chat: false,
-                                    channel_id: 101,
-                                    message: '',
-                                });
+                                tester.salesbot().
+                                    hook().
+                                    first.
+                                    expectBodyToContain({
+                                        should_message_to_last_chat: false,
+                                        channel_id: 101,
+                                        message: '',
+                                    });
                             });
                         });
                         it(
                             'Определёно значение по умолчанию для выпадающего списка "Приоритетный канал WhatsApp".',
                         function() {
-                            tester.salesbot().hook().expectBodyToContain({
-                                should_message_to_last_chat: false,
-                                channel_id: 101,
-                                message: '',
-                            });
+                            tester.salesbot().
+                                hook().
+                                first.
+                                expectBodyToContain({
+                                    should_message_to_last_chat: false,
+                                    channel_id: 101,
+                                    message: '',
+                                });
                         });
                     });
                     it('Настройки не заданы.', function() {
-                        tester.salesbot().hook().expectBodyToContain({
-                            should_message_to_last_chat: false,
-                            channel_id: 0,
-                            message: '',
-                        });
+                        tester.salesbot().
+                            hook().
+                            first.
+                            expectBodyToContain({
+                                should_message_to_last_chat: false,
+                                channel_id: 0,
+                                message_template_id: 0,
+                                message: '',
+                                files: '[]',
+                            });
+
+                        tester.iframe.first.expectAttributeToHaveValue(
+                            'src',
+                            'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/chats/messages',
+                        );
+                        
+                        tester.iframe.atIndex(1).expectAttributeToHaveValue(
+                            'src',
+                            'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/softphone',
+                        );
+
+                        tester.iframe.atIndex(2).expectAttributeToHaveValue(
+                            'src',
+                            'https://prod-msk-softphone-widget-iframe.uiscom.ru/amocrm/salesbot/1',
+                        );
                     });
                 });
                 describe('Открываю настройки Salesbot. Форма была заполнена ранее.', function() {
@@ -4983,20 +5167,23 @@ tests.addTest(options => {
                     it('Содержимое IFrame Salesbot инициализировано.', function() {
                         tester.salesbotParamsSettingRequest().receive();
 
-                        tester.savedValuesSettingRequest().
-                            settingsSaved().
-                            expectToBeSent();
-
                         tester.amocrmStateSettingRequest().
                             salesbot().
                             expectToBeSent();
+
+                        tester.savedValuesSettingRequest().
+                            settingsSaved().
+                            expectToBeSent();
                     });
                     it('Настройки были сохранены ранее.', function() {
-                        tester.salesbot().hook().expectBodyToContain({
-                            should_message_to_last_chat: true,
-                            channel_id: 216400,
-                            message: 'Некое сообщение, отправляемое при каких-то изменениях свойств сделки',
-                        });
+                        tester.salesbot().
+                            hook().
+                            first.
+                            expectBodyToContain({
+                                should_message_to_last_chat: true,
+                                channel_id: 216400,
+                                message: 'Некое сообщение, отправляемое при каких-то изменениях свойств сделки',
+                            });
                     });
                 });
                 it(
@@ -5062,7 +5249,7 @@ tests.addTest(options => {
                 });
             });
         });
-        xdescribe('Открываю страницу с расширением. Есть номера чатов.', function() {
+        describe('Открываю страницу с расширением. Есть номера чатов.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -5459,7 +5646,7 @@ tests.addTest(options => {
                 );
             });
         });
-        xdescribe('Контент скрипт встроился в IFrame.', function() {
+        describe('Контент скрипт встроился в IFrame.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -5526,7 +5713,7 @@ tests.addTest(options => {
                 postMessages.nextMessage().expectNotToExist();
             });
         });
-        xdescribe('Контент-скрипт встроился в IFrame. Есть номера чатов.', function() {
+        describe('Контент-скрипт встроился в IFrame. Есть номера чатов.', function() {
             let widgetSettings;
 
             beforeEach(function() {
@@ -5786,7 +5973,7 @@ tests.addTest(options => {
                 );
             });
         });
-        xdescribe(
+        describe(
             'Открываю страницу с расширением. Токен авторизации был сохранен. В IFrame отправлен токен.',
         function() {
             beforeEach(function() {
@@ -5926,7 +6113,7 @@ tests.addTest(options => {
                 postMessages.nextMessage().expectNotToExist();
             });
         });
-        xdescribe('Открываю страницу с расширением UIS в amoCRM.', function() {
+        describe('Открываю страницу с расширением UIS в amoCRM.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     softphoneHost: 'my.uiscom.ru',
@@ -6059,7 +6246,7 @@ tests.addTest(options => {
                 );
             });
         });
-        xdescribe('Открываю уведомления.', function() {
+        describe('Открываю уведомления.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'notificationsIframe',
@@ -6091,482 +6278,7 @@ tests.addTest(options => {
                 tester.body.expectToHaveTextContent('Сотрудник yспешно авторизован');
             });
         });
-        xdescribe('Открываю настройки Salesbot amoCRM.', function() {
-            beforeEach(function() {
-                tester = new Tester({
-                    application: 'amocrmSalesbotIframe',
-                    isIframe: true,
-                    ...options,
-                });
-
-                tester.salesbotParamsSettingRequest().expectToBeSent();
-            });
-
-            describe('В профиле указан русский язык.', function() {
-                beforeEach(function() {
-                    tester.amocrmStateSettingRequest().receive();
-
-                    tester.tokenInitializationRequest().
-                        salesbot().
-                        emptyToken().
-                        expectToBeSent();
-
-                    postMessages.receive({
-                        method: 'set_token',
-                        data: '',
-                    });
-
-                    postMessages.nextMessage().expectMessageToContain({
-                        method: 'set_token',
-                        data: '',
-                    });
-                });
-
-                describe('Сотрудник авторизован.', function() {
-                    beforeEach(function() {
-                        postMessages.receive({
-                            method: 'set_token',
-                            data: tester.oauthToken,
-                        });
-
-                        postMessages.nextMessage().expectMessageToContain({
-                            method: 'set_token',
-                            data: tester.oauthToken,
-                        });
-                    });
-
-                    describe('Получены данные незаполненной формы.', function() {
-                        beforeEach(function() {
-                            tester.savedValuesSettingRequest().receive();
-                        });
-
-                        describe('Отмечаю чекбокс "Писать в последний диалог".', function() {
-                            beforeEach(function() {
-                                tester.checkbox.click();
-
-                                tester.salesbotParamsSettingRequest().
-                                    shouldMessageToLastChat().
-                                    expectToBeSent();
-                            });
-
-                            describe('Выбираю канал WABA.', function() {
-                                let messageTemplatesRequest;
-
-                                beforeEach(function() {
-                                    tester.select.
-                                        withPlaceholder('Откуда писать, если не нашли диалог').
-                                        click();
-
-                                    tester.select.
-                                        option('Whats App Waba').
-                                        click();
-
-                                    tester.salesbotParamsSettingRequest().
-                                        shouldMessageToLastChat().
-                                        anotherChannel().
-                                        expectToBeSent();
-
-                                    messageTemplatesRequest = tester.messageTemplatesRequest().expectToBeSent();
-                                });
-
-                                describe('Получаю список шаблонов.', function() {
-                                    beforeEach(function() {
-                                        messageTemplatesRequest.receiveResponse();
-                                    });
-
-                                    describe('Заполняю остальные поля формы.', function() {
-                                        beforeEach(function() {
-                                            tester.select.
-                                                withPlaceholder('Шаблон WABA').
-                                                click();
-
-                                            tester.select.
-                                                option('Другой шаблон Waba').
-                                                click();
-
-                                            tester.salesbotParamsSettingRequest().
-                                                shouldMessageToLastChat().
-                                                anotherChannel().
-                                                messageTemplateChosen().
-                                                expectToBeSent();
-
-                                            tester.textarea.fill(
-                                                'Некое сообщение, отправляемое при каких-то изменениях свойств сделки'
-                                            );
-
-                                            tester.salesbotParamsSettingRequest().
-                                                shouldMessageToLastChat().
-                                                anotherChannel().
-                                                messageTemplateChosen().
-                                                messageFilled().
-                                                expectToBeSent();
-                                        });
-                                        
-                                        describe(
-                                            'Прикладываю файл. В родительское окно отправлен запрос прикладывания ' +
-                                            'файла.',
-                                        function() {
-                                            let fileUploadngRequest;
-
-                                            beforeEach(function() {
-                                                tester.fileField.upload('some-file.zip');
-
-                                                fileReader.
-                                                    accomplishFileLoading('some-file.zip');
-
-                                                fileUploadngRequest = tester.fileUploadngRequest().expectToBeSent();
-                                            });
-
-                                            describe(
-                                                'Получены данные ресурса. Приложенный файл сохранился. Прикладываю ' +
-                                                'ещё один файл. Оба приложенных файла сохранились.',
-                                            function() {
-                                                beforeEach(function() {
-                                                    fileUploadngRequest.receiveResponse();
-
-                                                    tester.button('Прикрепить файл').
-                                                        expectNotToHaveAttribute('disabled');
-
-                                                    tester.salesbotParamsSettingRequest().
-                                                        shouldMessageToLastChat().
-                                                        anotherChannel().
-                                                        messageTemplateChosen().
-                                                        messageFilled().
-                                                        fileAdded().
-                                                        expectToBeSent();
-
-                                                    tester.fileField.upload('other-file.zip');
-
-                                                    fileReader.
-                                                        accomplishFileLoading('other-file.zip');
-
-                                                    fileUploadngRequest = tester.fileUploadngRequest().
-                                                        anotherFile().
-                                                        receiveResponse();
-
-                                                    tester.salesbotParamsSettingRequest().
-                                                        filled().
-                                                        expectToBeSent();
-                                                });
-
-                                                describe(
-                                                    'Нажимаю на кнопку скачивания приложенного файла.',
-                                                function() {
-                                                    let fileDownloadingRequest;
-
-                                                    beforeEach(function() {
-                                                        tester.attachment('some-file.zip').click();
-
-                                                        fileDownloadingRequest = tester.fileDownloadingRequest().
-                                                            expectToBeSent();
-                                                    });
-
-                                                    describe('Не удалось скачать файл.', function() {
-                                                        beforeEach(function() {
-                                                            fileDownloadingRequest.
-                                                                failed().
-                                                                receiveResponse();
-                                                        });
-                                                        
-                                                        it(
-                                                            'Помещаю курсор над иконкой ошибки. Отображено сообщение ' +
-                                                            'об ошибке.',
-                                                        function() {
-                                                            tester.attachment('some-file.zip').
-                                                                failIcon.
-                                                                putMouseOver();
-
-                                                            tester.tooltip.
-                                                                expectToHaveTextContent('Не удалось скачать файл');
-                                                        });
-                                                        it('Отображена иконка ошибки.', function() {
-                                                            tester.attachment('some-file.zip').
-                                                                failIcon.
-                                                                expectToBeVisible();
-
-                                                            tester.attachment('other-file.zip').
-                                                                failIcon.
-                                                                expectNotToExist();
-
-                                                            tester.attachment('some-file.zip').expectToBeEnabled();
-                                                        });
-                                                    });
-                                                    it('Скачивание файла завершено.', function() {
-                                                        fileDownloadingRequest.receiveResponse();
-
-                                                        tester.attachment('some-file.zip').expectToBeEnabled();
-                                                        tester.attachment('other-file.zip').expectToBeEnabled();
-                                                    });
-                                                    it('Кнопка скачивания заблокирована.', function() {
-                                                        tester.attachment('some-file.zip').click();
-
-                                                        tester.attachment('some-file.zip').expectToBeDisabled();
-                                                        tester.attachment('other-file.zip').expectToBeEnabled();
-                                                    });
-                                                });
-                                                it('Нажимаю на кнопку удаления файла.', function() {
-                                                    tester.attachment('other-file.zip').removeIcon.click();
-
-                                                    tester.salesbotParamsSettingRequest().
-                                                        shouldMessageToLastChat().
-                                                        anotherChannel().
-                                                        messageTemplateChosen().
-                                                        messageFilled().
-                                                        fileAdded().
-                                                        expectToBeSent();
-
-                                                    tester.attachment('some-file.zip').expectToBeVisible();
-                                                    tester.attachment('other-file.zip').expectNotToExist();
-                                                });
-                                                it('Отображены кнопки приложенных файлов.', function() {
-                                                    tester.attachment('some-file.zip').expectToBeEnabled();
-                                                    tester.attachment('other-file.zip').expectToBeEnabled();
-
-                                                    tester.attachment('some-file.zip').
-                                                        failIcon.
-                                                        expectNotToExist();
-
-                                                    tester.attachment('other-file.zip').
-                                                        failIcon.
-                                                        expectNotToExist();
-
-                                                    tester.failIcon.expectNotToExist();
-                                                });
-                                            });
-                                            it('Не удалось приложить файл.', function() {
-                                                fileUploadngRequest.
-                                                    failed().
-                                                    receiveResponse();
-
-                                                tester.button('Прикрепить файл').
-                                                    expectNotToHaveAttribute('disabled');
-
-                                                tester.failIcon.putMouseOver();
-
-                                                tester.tooltip.
-                                                    expectToHaveTextContent('Не удалось приложить файл');
-                                            });
-                                            it('Поле файла заблокировано.', function() {
-                                                tester.button('Прикрепить файл').expectToHaveAttribute('disabled');
-                                            });
-                                        });
-                                        it('Выбираю другой канал. Выпадающий список шаблонов скрыт.', function() {
-                                            tester.select.
-                                                withPlaceholder('Откуда писать, если не нашли диалог').
-                                                click();
-
-                                            tester.select.
-                                                option('mrDDosT').
-                                                click();
-
-                                            tester.salesbotParamsSettingRequest().
-                                                shouldMessageToLastChat().
-                                                messageFilled().
-                                                expectToBeSent();
-
-                                            tester.select.
-                                                withPlaceholder('Шаблон WABA').
-                                                expectNotToExist();
-                                        });
-                                        it('Поля формы заполнены.', function() {
-                                            tester.select.
-                                                withPlaceholder('Переменная').
-                                                click();
-
-                                            tester.select.
-                                                option('ID сделки').
-                                                click();
-
-                                            tester.salesbotParamsSettingRequest().
-                                                shouldMessageToLastChat().
-                                                anotherChannel().
-                                                messageTemplateChosen().
-                                                messageFilled().
-                                                variableAdded().
-                                                expectToBeSent();
-
-                                            tester.checkbox.expectToBeChecked();
-
-                                            tester.select.
-                                                withPlaceholder('Откуда писать, если не нашли диалог').
-                                                expectToHaveTextContent(
-                                                    'Whats App Waba ' +
-                                                    'Откуда писать, если не нашли диалог'
-                                                );
-
-                                            tester.textarea.expectToHaveValue(
-                                                'Некое сообщение, отправляемое при каких-то изменениях свойств ' +
-                                                'сделки{{lead.id}}'
-                                            );
-
-                                            tester.button('Прикрепить файл').expectNotToHaveAttribute('disabled');
-                                        });
-                                    });
-                                    it('Выпадающий список шаблонов доступен.', function() {
-                                        tester.select.
-                                            withPlaceholder('Шаблон WABA').
-                                            expectToBeEnabled();
-                                    });
-                                });
-                                it(
-                                    'Получен ответ на другой запрос шаблонов. Выпадающий список шаблонов заблокирован.',
-                                function() {
-                                    messageTemplatesRequest.
-                                        anotherId().
-                                        receiveResponse();
-
-                                    tester.select.
-                                        withPlaceholder('Шаблон WABA').
-                                        expectToBeDisabled();
-                                });
-                                it('Выпадающий список шаблонов заблокирован.', function() {
-                                    tester.select.
-                                        withPlaceholder('Шаблон WABA').
-                                        expectToBeDisabled();
-                                });
-                            });
-                            it('Изменен лейбл списка каналов.', function() {
-                                tester.select.
-                                    withPlaceholder('Откуда писать, если не нашли диалог').
-                                    expectToBeVisible();
-
-                                tester.select.
-                                    withPlaceholder('Откуда писать').
-                                    expectNotToExist();
-                            });
-                        });
-                        describe('Открываю выпдающий список каналов.', function() {
-                            beforeEach(function() {
-                                tester.select.
-                                    withPlaceholder('Откуда писать').
-                                    click();
-                            });
-
-                            it('Ввожу строку поиска. Список каналов отфильтрован.', function() {
-                                tester.select.popup.input.fill('wha');
-
-                                tester.select.popup.expectToHaveTextContent(
-                                    'Whats App ' +
-                                    'Whats App Waba'
-                                );
-                            });
-                            it('Отображены все каналы.', function() {
-                                tester.select.popup.expectToHaveTextContent(
-                                    'mrDDosT ' +
-                                    'Whats App ' +
-                                    'Whats App Waba ' +
-                                    'Telegram Private'
-                                );
-                            });
-                        });
-                        it('Форма заполнена данными по умолчанию.', function() {
-                            tester.spin.expectNotToExist();
-                            tester.checkbox.expectNotToBeChecked();
-
-                            tester.select.
-                                withPlaceholder('Откуда писать, если не нашли диалог').
-                                expectNotToExist();
-
-                            tester.select.
-                                withPlaceholder('Откуда писать').
-                                expectToBeVisible();
-
-                            tester.select.
-                                option('Whats App Waba').
-                                expectNotToExist();
-                        });
-                    });
-                    describe('Получены данные заполненной формы.', function() {
-                        beforeEach(function() {
-                            tester.savedValuesSettingRequest().
-                                settingsSaved().
-                                receive();
-
-                            tester.messageTemplatesRequest().receiveResponse();
-                        });
-
-                        it('Снимаю отметку с чекбокса "Писать в последний диалог".', function() {
-                            tester.checkbox.click();
-
-                            tester.salesbotParamsSettingRequest().
-                                anotherChannel().
-                                messageTemplateChosen().
-                                messageFilled().
-                                filesAdded().
-                                expectToBeSent();
-                        });
-                        it('Форма заполнена.', function() {
-                            tester.spin.expectNotToExist();
-                            tester.checkbox.expectToBeChecked();
-
-                            tester.select.
-                                withPlaceholder('Откуда писать, если не нашли диалог').
-                                expectToHaveTextContent(
-                                    'Whats App Waba ' +
-                                    'Откуда писать, если не нашли диалог'
-                                );
-
-                            tester.textarea.expectToHaveValue(
-                                'Некое сообщение, отправляемое при каких-то изменениях свойств сделки'
-                            );
-                        });
-                    });
-                    it('Не удалось получить данные формы.', function() {
-                        tester.savedValuesSettingRequest().
-                            serverError().
-                            receive();
-
-                        tester.body.expectToHaveTextContent('Произошла ошибка сервера');
-                    });
-                    it('Отображён спиннер.', function() {
-                        tester.spin.expectToBeVisible();
-                    });
-                });
-                it('Нажимаю на иконку с жучком. В родительское окно отправлен запрос скачивания логов.', function() {
-                    tester.bugButton.click();
-
-                    tester.logDownloadingRequest().
-                        windowMessage().
-                        expectToBeSent();
-                });
-                it('Нажимаю на ссылку на страницу авторизации. Открыта страница авторизации.', function() {
-                    tester.span('Для использования приложения необходимо авторизоваться').click();
-                    windowOpener.expectToHavePath('https://uc-sso-amocrm-prod-api.uiscom.ru');
-                });
-                it('Отображена ссылка на страницу авторизции на русском языке', function() {
-                    tester.body.expectToHaveTextContent(
-                        'Не авторизован ' +
-                        'Для использования приложения необходимо авторизоваться'
-                    );
-                });
-            });
-            it(
-                'В профиле указан английский язык. Отображена ссылка на страницу авторизции на английском языке.',
-            function() {
-                tester.amocrmStateSettingRequest().en().receive();
-
-                tester.tokenInitializationRequest().
-                    salesbot().
-                    emptyToken().
-                    expectToBeSent();
-
-                postMessages.receive({
-                    method: 'set_token',
-                    data: '',
-                });
-
-                postMessages.nextMessage().expectMessageToContain({
-                    method: 'set_token',
-                    data: '',
-                });
-
-                tester.body.expectToHaveTextContent(
-                    'Not authorized ' +
-                    'Please authorize to use application'
-                );
-            });
-        });
-        xdescribe('Открываю форму настроек Salesbot Битрикс24.', function() {
+        describe('Открываю форму настроек Salesbot Битрикс24.', function() {
             beforeEach(function() {
                 tester = new Tester({
                     application: 'bitrixSalesbot',
@@ -6986,7 +6698,6 @@ tests.addTest(options => {
                     expectToBeSent();
             });
         });
-return;
         it('Открываю виджет чатов amoCRM. Софтфон выключен. В IFrame передана недоступность софтфона.', function() {
             tester = new Tester({
                 softphoneHost: 'my.uiscom.ru',

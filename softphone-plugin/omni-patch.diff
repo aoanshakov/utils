@@ -1,5 +1,5 @@
 diff --git a/package.json b/package.json
-index b0a421cc8..2e78e237f 100644
+index 4c4ca3606..b129afadd 100644
 --- a/package.json
 +++ b/package.json
 @@ -80,17 +80,11 @@
@@ -10,17 +10,17 @@ index b0a421cc8..2e78e237f 100644
      "@comagic/crud": "2.60.5",
      "@comagic/flow": "0.6.4",
      "@comagic/reports": "8.6.1",
--    "@comagic/softphone-core": "0.0.0-0.0.11-int1",
--    "@comagic/softphone-widget": "0.0.33-int1",
--    "@comagic/ui": "3.25.0",
--    "@comagic/workplace-utils": "1.17.0",
+-    "@comagic/softphone-core": "0.0.0-0.0.44-int0",
+-    "@comagic/softphone-widget": "0.0.135-int0",
+-    "@comagic/ui": "3.26.1",
+-    "@comagic/workplace-utils": "0.0.25-int0",
      "@sentry/react": "^7.73.0",
      "async-mutex": "^0.3.2",
 -    "axios": "0.27.2",
      "classnames": "^2.2.6",
      "dayjs": "1.11.11",
      "dompurify": "^2.3.10",
-@@ -109,15 +103,10 @@
+@@ -108,15 +102,10 @@
      "linkifyjs": "4.3.2",
      "lodash.clonedeep": "^4.5.0",
      "madge": "^5.0.1",
@@ -36,7 +36,7 @@ index b0a421cc8..2e78e237f 100644
      "react-animate-height": "^2.0.23",
      "react-beautiful-dnd": "^13.1.1",
      "react-color": "2.19.3",
-@@ -125,11 +114,7 @@
+@@ -124,11 +113,7 @@
      "react-csv": "^2.0.3",
      "react-dnd": "^16.0.1",
      "react-dnd-html5-backend": "^16.0.1",
@@ -48,3 +48,63 @@ index b0a421cc8..2e78e237f 100644
      "redux": "^4.0.0",
      "redux-thunk": "^2.3.0",
      "sanitize-html": "2.14.0",
+diff --git a/src/modules/chats-distribution/models/scenario/ScenarioStore.ts b/src/modules/chats-distribution/models/scenario/ScenarioStore.ts
+index 096114cf9..d13036f26 100644
+--- a/src/modules/chats-distribution/models/scenario/ScenarioStore.ts
++++ b/src/modules/chats-distribution/models/scenario/ScenarioStore.ts
+@@ -343,7 +343,7 @@ const ScenarioStore = LoaderModel.named('ScenarioStore')
+         scenarioListSearch: types.optional(types.string, ''),
+         channels: types.optional(types.array(ChannelModel), []),
+         scenario: types.optional(ScenarioModel, {}),
+-        scenarioHistory: types.array(types.frozen()),
++        scenarioHistory: types.optional(types.array(types.frozen()), []),
+         scenarioHistoryUndoIdx: -1,
+         lastActiveNodeId: types.frozen<string>('start'),
+         returnCode: types.frozen(
+diff --git a/src/modules/chats/components/chats/chats-list-panel/components/chat-list/index.tsx b/src/modules/chats/components/chats/chats-list-panel/components/chat-list/index.tsx
+index 1250f7d32..1c49226b3 100644
+--- a/src/modules/chats/components/chats/chats-list-panel/components/chat-list/index.tsx
++++ b/src/modules/chats/components/chats/chats-list-panel/components/chat-list/index.tsx
+@@ -17,24 +17,26 @@ const ChatList: React.FC<ChatListProps> = observer(({ chatStateType, children })
+     const { formatMessage: f } = useIntl();
+ 
+     const {
+-        chatListStore: { fetchChatListItems, getChatsCountByType, getLoadingByStatus, countersAreLoading },
++        chatListStore,
++        chatListStore: { fetchChatListItems, getChatsCountByType },
+     } = useMst();
+ 
+-    const isLoading = useMst().chatListStore.isLoading || countersAreLoading || getLoadingByStatus(chatStateType);
+-    const chatsCountByType = getChatsCountByType(chatStateType);
++    const loadingByStatus = () => chatListStore.getLoadingByStatus(chatStateType);
++
++    const isLoading = () => chatListStore.isLoading ||
++        chatListStore.countersAreLoading ||
++        loadingByStatus();
+ 
+     const onScrollToEnd = useCallback(() => {
+         void fetchChatListItems(chatStateType);
+     }, [chatStateType, fetchChatListItems]);
+ 
+     useEffect(() => {
+-        !chatsCountByType && !isLoading && onScrollToEnd();
++        setTimeout(() => !getChatsCountByType(chatStateType) && !isLoading() && onScrollToEnd(), 0);
+     }, []);
+ 
+-    const loadingByStatus = getLoadingByStatus(chatStateType);
+-
+     if (Children.count(children) === 0) {
+-        if (loadingByStatus) {
++        if (loadingByStatus()) {
+             return undefined;
+         }
+         return (
+@@ -48,7 +50,7 @@ const ChatList: React.FC<ChatListProps> = observer(({ chatStateType, children })
+ 
+     return (
+         <div className={classNames(styles.root)}>
+-            <InfiniteScroll isLoading={isLoading} onScrollToEnd={onScrollToEnd}>
++            <InfiniteScroll isLoading={isLoading()} onScrollToEnd={onScrollToEnd}>
+                 {children}
+             </InfiniteScroll>
+         </div>

@@ -66,6 +66,11 @@ const chatOverridenFiles = 'package.json ' +
     'src/models/account/AccountStore.ts ' +
     'src/components/chats/chat-panel/styles.less';
 
+const omniOverridenFiles =
+    'package.json ' +
+    'src/modules/chats/components/chats/chats-list-panel/components/chat-list/index.tsx ' +
+    'src/modules/chats-distribution/models/scenario/ScenarioStore.ts'
+
 const overriding = [{
     application,
     overridenFiles: packageJson,
@@ -100,7 +105,7 @@ const overriding = [{
     applicationPatch: contactsPatch,
 }, {
     application: omni,
-    overridenFiles: packageJson,
+    overridenFiles: omniOverridenFiles,
     applicationPatch: omniPatch,
 }, {
     application: core,
