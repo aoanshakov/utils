@@ -1,0 +1,82 @@
+{
+    "notification": {
+        "worker_type": "common",
+        "name": "\u0417\u0412\u041e\u041d\u041e\u041a - (2) \u041f\u0440\u043e\u043f\u0443\u0449\u0435\u043d\u043d\u044b\u0439 - 09. \u041d\u0410\u0413 (\u0432 \u0433\u0440\u0443\u043f\u043f\u0443) (\u0433\u0440+\u043f\u0440\u0438\u0447) \u0410\u041f\u0418+",
+        "event_version_id": 12,
+        "event_name": "\u041f\u043e\u0442\u0435\u0440\u044f\u043d\u043d\u044b\u0439 \u0437\u0432\u043e\u043d\u043e\u043a",
+        "event_mnemonic": "lost_call_session",
+        "is_active": true,
+        "app_id": 59171,
+        "is_system": false,
+        "schedule_id": null,
+        "is_removed": false,
+        "notification_priority": "normal",
+        "creation_date": "2022-08-04T13:23:57+03:00",
+        "type": null,
+        "id": 76146,
+        "metadata": null
+    },
+    "handler": [
+        {
+            "notification_id": 76146,
+            "name": "HTTP",
+            "app_id": 59171,
+            "handler": "http_request",
+            "params": {
+                "to": [
+                    {
+                        "schedule_id": -1,
+                        "destination": "http://api-connect.ru/notification/telegram.php"
+                    }
+                ],
+                "method": "POST",
+                "subject": ""
+            },
+            "message_template": "{\n\"bot_token\":\"8755677057:AAEpGbei4xapeRdnjLoVF2Y4y5WmlId6lac\",\n\"chat_id\":\"-4120593905\",\n\n\"text1\":\"\u041f\u0420\u041e\u041f\u0423\u0429\u0415\u041d\u041d\u042b\u0419\\n\",\n\"text2\":\"+\",\n\"text3\":{{contact_phone_number}},\n\"text4\":\"\\n\u0412\u0440\u0435\u043c\u044f \",\n\"text5\":{{start_time}},\n\"text6\":\"\\nID \",\n\"text7\":{{call_session_id}}\n}",
+            "default_message_template": "{  \n  \"notification_name\":{{notification_name}},\n  \"virtual_phone_number\":{{virtual_phone_number}},\n  \"notification_time\":{{notification_time}},\n  \"scenario_name\": {{scenario_name}},\n  \"wait_time_duration\" : {{wait_time_duration}},\n  \"employee_ids\":{{employee_ids}},\n  \"contact_info\":{  \n    \"contact_phone_number\":{{contact_phone_number}},\n    \"communication_number\":{{communication_number}},\n    \"contact_id\": {{contact_id}},\n    \"contact_full_name\":{{contact_full_name}}\n  },\n  \"call_session_id\":{{call_session_id}}\n}",
+            "id": 3453061
+        }
+    ],
+    "condition_group": [
+        {
+            "id": 93668,
+            "condition": [
+                {
+                    "notification_id": 76146,
+                    "is_negative": false,
+                    "event_name": "\u041f\u043e\u0442\u0435\u0440\u044f\u043d\u043d\u044b\u0439 \u0437\u0432\u043e\u043d\u043e\u043a",
+                    "app_id": 59171,
+                    "value": [
+                        271092,
+                        "\u041d\u0435 \u0434\u043e\u0437\u0432\u043e\u043d\u0438\u043b\u0438\u0441\u044c \u0434\u043e \u0441\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u043a\u0430"
+                    ],
+                    "param_mnemonic": "group_ids",
+                    "param_id": 486,
+                    "condition_operator": "=",
+                    "group_id": 93668,
+                    "id": 144422,
+                    "event_mnemonic": "lost_call_session"
+                }
+            ]
+        },
+        {
+            "id": 93673,
+            "condition": [
+                {
+                    "notification_id": 76146,
+                    "is_negative": false,
+                    "event_name": "\u041f\u043e\u0442\u0435\u0440\u044f\u043d\u043d\u044b\u0439 \u0437\u0432\u043e\u043d\u043e\u043a",
+                    "app_id": 59171,
+                    "value": "\u041d\u0435 \u0434\u043e\u0437\u0432\u043e\u043d\u0438\u043b\u0438\u0441\u044c \u0434\u043e \u0441\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u043a\u0430",
+                    "param_mnemonic": "lost_reason",
+                    "param_id": 134,
+                    "condition_operator": "=",
+                    "group_id": 93673,
+                    "id": 144427,
+                    "event_mnemonic": "lost_call_session"
+                }
+            ]
+        }
+    ],
+    "success": true
+}

@@ -120,8 +120,12 @@ function SitemanagementAppuser({
                 return this;
             },
             send: function () {
-                respond(requestsManager.recentRequest().expectToHaveMethod('GET').
-                    expectToHavePath('/services/ats__staff/first_sip_line_channels_count/637279/'));
+                respond(
+                    requestsManager.
+                        recentRequest().
+                        expectToHaveMethod('GET').
+                        expectToHavePath('/services/ats__staff/first_sip_line_channels_count/637279/')
+                );
             }
         };
     };
@@ -253,6 +257,20 @@ function SitemanagementAppuser({
         };
     };
 
+    this.changeAppUserRequest = function () {
+        return {
+            receiveResponse: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('/sitemanagement/appuser/appuser/change/').
+                    expectToHaveMethod('POST').
+                    expectBodyToContain({}).
+                    respondSuccessfullyWith({
+                        success: true,
+                    });
+            }
+        };
+    };
+
     this.requestAppUser = function () {
         return {
             send: function () {
@@ -276,7 +294,9 @@ function SitemanagementAppuser({
                                 token: null,
                                 token_expiration_date: null,
                                 user_type: 'user',
-                                watcher_login: null
+                                watcher_login: null,
+                                webrtc_token: '',
+                                is_webrtc_token_enabled: false,
                             }]
                         },
                         metadata: [{
@@ -365,6 +385,31 @@ function SitemanagementAppuser({
         });
     };
 
+    this.twofaAvailabilityRequest = function () {
+        function addMethods (me) {
+            return me;
+        }
+
+        return addMethods({
+            expectToBeSent: function () {
+                return addMethods({
+                    receiveResponse: function () {
+                        requestsManager.recentRequest().
+                            expectToHavePath('/account/personality/is_2fa_enabled/').
+                            expectToHaveMethod('GET').
+                            respondSuccessfullyWith({
+                                success: true,
+                                data: true ,
+                            });
+                    }
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            }
+        });
+    };
+
     this.form = testersFactory.createFormTester(function () {
         return Comagic.getApplication().getViewport();
     });
@@ -375,6 +420,20 @@ function SitemanagementAppuser({
                 return checkbox.ownerCt.down('combobox');
             })
         ).withBoxLabel('Связать с сотрудником'), 'Связать с сотрудником');
+    };
+
+    function field (label, selector) {
+        const field = utils.descendantOfBody().
+            matchesSelector('.x-form-item-label-inner').
+            textEquals(label).
+            find().
+            closest('.x-field, .x-form-fieldcontainer');
+
+        return selector ? field.querySelector(selector) : field;
+    }
+
+    this.switchbox = function (label) {
+        return testersFactory.createDomElementTester(field(label, 'a.x-form-switchbox'));
     };
 
     this.warningWindow = testersFactory.createComponentTester(function () {

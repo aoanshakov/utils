@@ -69,3 +69,4 @@ CONFIGURING ~/.i3/config
 
 exec --no-startup-id "setxkbmap -model pc105 -layout us,ru -option grp:caps_toggle"
 bindsym Mod1+d exec rofi -show run
+bindsym $mod+d exec --no-startup-id gmrun

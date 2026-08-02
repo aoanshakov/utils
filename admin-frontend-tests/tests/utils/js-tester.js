@@ -4287,6 +4287,9 @@ function JsTester_DomElement (
     };
     this.putMouseOver = function () {
         this.expectToBeVisible();
+
+        console.log('MODULSE OVER', getDomElement());
+
         utils.dispatchMouseEvent(getDomElement(), 'mouseover');
         utils.dispatchMouseEvent(getDomElement(), 'mouseenter');
     };

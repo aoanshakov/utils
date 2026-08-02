@@ -82,6 +82,10 @@
             "helpers/ServicesAtsHook.js",
             "tests/services.ats.hook.js"
         ],
+        "services.ats.hook-list": [
+            "helpers/ServicesAtsHookList.js",
+            "tests/services.ats.hook-list.js"
+        ],
         "analytics.call": [
             "helpers/AnalyticsCall.js",
             "tests/analytics.call.js"

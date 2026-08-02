@@ -1,23 +1,24 @@
 diff --git a/package.json b/package.json
-index b3da616e..622c04c9 100644
+index 3a6519e7..bd1338e1 100644
 --- a/package.json
 +++ b/package.json
-@@ -22,40 +22,27 @@
+@@ -22,41 +22,28 @@
      "url": "https://gitlab.uis.dev/web/sip_lib/issues"
    },
    "homepage": "https://gitlab.uis.dev/web/sip_lib",
 -  "peerDependencies": {
 -    "@comagic/ui": "^3.8.5",
--    "axios": ">= 0.24.0 < 1.0.0"
+-    "axios": ">= 1.0.0"
 -  },
    "dependencies": {
      "@babel/core": "^7.1.2",
      "@babel/plugin-proposal-class-properties": "^7.8.3",
      "@babel/plugin-proposal-private-methods": "7.13.0",
      "@babel/preset-env": "^7.1.0",
--    "@comagic/softphone-core": "0.0.0-0.0.42-int0",
--    "@comagic/workplace-utils": "0.0.25-int0",
+-    "@comagic/softphone-core": "0.0.0-0.0.70-int0",
+-    "@comagic/workplace-utils": "0.0.30-int0",
      "@types/react": "^18.0.28",
+     "@types/react-virtualized": "9.22.3",
      "@typescript-eslint/eslint-plugin": "^5.31.0",
      "@typescript-eslint/parser": "^5.31.0",
      "babel-loader": "^8.0.4",
@@ -40,6 +41,6 @@ index b3da616e..622c04c9 100644
      "react-list": "0.8.17",
      "react-resizable": "3.0.5",
 -    "react-router-dom": "6.23.1",
+     "react-virtualized": "9.22.6",
      "sdp-transform": "2.14.1",
      "simplebar-react": "^2.2.1",
-     "typescript": "^4.9.5",

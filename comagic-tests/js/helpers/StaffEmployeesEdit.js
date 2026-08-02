@@ -177,7 +177,8 @@ function StaffEmployeesEdit({ requestsManager, testersFactory, utils }) {
                 app_id: 4735,
                 is_sending_credentials_enabled: null,
                 licenses: [
-                    'omni'
+                    'omni',
+                    'va',
                 ],
                 schedule_id: null,
                 sip_line_number_capacity__is_update: null,
@@ -264,6 +265,15 @@ function StaffEmployeesEdit({ requestsManager, testersFactory, utils }) {
         var modifyEmployee = function () {};
 
         return {
+            webrtcTokenDefined() {
+                modifyEmployee = function (employee) {
+                    employee.webrtc_token = utils.expectNonEmptyString();
+                    employee.is_webrtc_token_enabled = true;
+                };
+
+                return this;
+            },
+
             someGroupsHaveAccessToOtherEmployeesChats() {
                 modifyEmployee = function (employee) {
                     employee.other_employee_chats_access__is_select = true;
@@ -488,6 +498,13 @@ function StaffEmployeesEdit({ requestsManager, testersFactory, utils }) {
         };
 
         const addResponseModifiers = me => {
+            me.webrtcTokenDefined = () => {
+                response.data.employee[0].webrtc_token = '835gj3og853jgo38gjosl8gj2o8gu2o8sgjuu';
+                response.data.employee[0].is_webrtc_token_enabled = true;
+
+                return me;
+            };
+
             me.someGroupsHaveAccessToOtherEmployeesChats = () => {
                 response.data.employee[0].other_employee_chats_access__is_select = true;
                 response.data.employee[0].other_employee_chats_permission_type = 'groups';
@@ -546,6 +563,9 @@ function StaffEmployeesEdit({ requestsManager, testersFactory, utils }) {
                                 id: 'omni',
                                 name: 'Омни',
                                 physical_limit_type: 'max_omni_employee'
+                            }, {
+                                id: 'va',
+                                name: 'ВАТС',
                             }],
                             'comagic:omni:employee': [
                                 {
@@ -1083,6 +1103,7 @@ function StaffEmployeesEdit({ requestsManager, testersFactory, utils }) {
                                 id: 'internal',
                                 name: 'Внутренние'
                             }],
+                            */
                             'comagic:staff:employee': [{
                                 aux_id: [],
                                 aux_id2: true,
@@ -1097,7 +1118,6 @@ function StaffEmployeesEdit({ requestsManager, testersFactory, utils }) {
                                 is_manage_allowed: false,
                                 name: 'Не задан'
                             }]
-                            */
                         }
                     });
             }
@@ -1119,7 +1139,7 @@ function StaffEmployeesEdit({ requestsManager, testersFactory, utils }) {
             matchesSelector('.x-form-item-label-inner').
             textEquals(label).
             find().
-            closest('.x-field');
+            closest('.x-field, .x-form-fieldcontainer');
 
         return selector ? field.querySelector(selector) : field;
     }

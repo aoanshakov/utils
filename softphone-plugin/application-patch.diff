@@ -1,31 +1,37 @@
 diff --git a/package.json b/package.json
-index ca47314..661e270 100644
+index 566a3ff..38d4ea6 100644
 --- a/package.json
 +++ b/package.json
-@@ -10,9 +10,8 @@
-     "dev:widgets": "concurrently -n \"proxy,server\" -c \"yellow,magenta\" --kill-others-on-fail \"npm run dev:widgets:proxy:mitm\" \"npm run dev:widgets:server\"",
-     "dev:widgets:alternate": "concurrently -n \"proxy,server\" -c \"yellow,magenta\" --kill-others-on-fail \"npm run dev:widgets:proxy:whistle\" \"npm run dev:widgets:server\"",
-     "dev:widgets:server": "NODE_ENV=development PORT=8092 node scripts/dev.widgets.server.js",
--    "dev:widgets:proxy:mitm": "npm run clean:cache:proxy && PORT=8092 node scripts/dev.widgets.proxy.mitm.js",
-+    "dev:widgets:proxy:mitm": "PORT=8092 node scripts/dev.widgets.proxy.mitm.js",
-     "dev:widgets:proxy:whistle": "PORT=8092 node scripts/dev.widgets.proxy.whistle.js",
--    "dev:chrome_extension": "node scripts/dev.chrome_extension.js",
-     "bitrix-salesbot": "node scripts/bitrix_salesbot.js",
-     "create-robot": "node scripts/create_bitrix_salesbot_robot.js",
-     "build:prod": "NODE_ENV=prod node scripts/build.js",
-@@ -65,15 +64,19 @@
-     "webpack": "^5.74.0",
-     "whistle": "2.9.103"
-   },
+@@ -37,7 +37,6 @@
+     "@typescript-eslint/eslint-plugin": "^5.31.0",
+     "@typescript-eslint/parser": "^5.31.0",
+     "concurrently": "9.2.0",
+-    "cross-env": "10.1.0",
+     "css-loader": "^5.1.1",
+     "css-minimizer-webpack-plugin": "^1.3.0",
+     "eslint": "^8.20.0",
+@@ -55,21 +54,27 @@
+     "less-loader": "^11.0.0",
+     "mini-css-extract-plugin": "^2.6.1",
+     "prettier": "^2.7.1",
++    "rimraf": "6.1.2",
+     "style-loader": "^3.3.1",
+     "terser-webpack-plugin": "^5.1.4",
+     "ts-loader": "^9.3.1",
+     "typescript": "^4.7.4",
+-    "webpack": "^5.74.0"
++    "webpack": "^5.74.0",
++    "whistle": "2.9.103"
++  },
 +  "overrides": {
 +    "to-buffer": "1.2.1"
-+  },
+   },
    "dependencies": {
 -    "@comagic/core": "1.25.1",
--    "@comagic/softphone-core": "0.0.0-0.0.48-int0",
--    "@comagic/softphone-widget": "0.0.152-int0",
--    "@comagic/ui": "3.14.0",
--    "@comagic/workplace-utils": "0.0.25-int0",
+-    "@comagic/softphone-core": "0.0.0-0.0.70-int0",
+-    "@comagic/softphone-widget": "0.0.198-int0",
+-    "@comagic/ui": "3.26.1",
+-    "@comagic/workplace-utils": "0.0.30-int0",
 +    "@comagic/core": "./misc/core",
 +    "@comagic/softphone-core": "./misc/sip_lib/uis_webrtc",
 +    "@comagic/softphone-widget": "./misc/sip_lib",
@@ -34,23 +40,22 @@ index ca47314..661e270 100644
 +    "@comagic/crud": "^2.38.1",
      "@types/chrome": "^0.0.263",
      "antd": "^4.8.0",
--    "axios": "^0.24.0",
+-    "axios": "1.12.2",
 +    "axios": "^0.27.2",
      "chrome-launcher": "0.15.2",
      "classnames": "^2.2.6",
      "dotenv": "^8.2.0",
-@@ -82,8 +85,7 @@
-     "history": "^5.3.0",
+@@ -79,7 +84,7 @@
      "json3": "3.3.3",
      "jwt-decode": "^4.0.0",
--    "lodash.debounce": "^4.0.8",
+     "lodash.debounce": "4.0.8",
 -    "magic-ui": "0.0.0-int1",
 +    "magic-ui": "./misc/magic_ui",
-     "mobx": "^6.6.1",
-     "mobx-react-lite": "^3.4.0",
-     "mobx-state-tree": "^5.1.6",
-@@ -94,6 +96,12 @@
-     "react-router-dom": "6.9.0",
+     "mobx": "6.6.1",
+     "mobx-react-lite": "3.4.0",
+     "mobx-state-tree": "5.1.8",
+@@ -90,6 +95,12 @@
+     "react-router-dom": "6.23.1",
      "string-hash": "^1.1.3",
      "twig": "^1.15.1",
 -    "wildcard-match": "^5.1.2"

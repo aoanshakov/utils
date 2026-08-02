@@ -11,6 +11,7 @@ define(() => {
         stores.appStore.user = null;
         stores.featureFlagsStore.initParams();
         stores.eventsStore.initParams();
+        stores.employeeStatusesStore.initParams();
 
         return true;
     };
@@ -440,10 +441,17 @@ define(() => {
 
                                                 const getCell = () => getRow().querySelectorAll(cellSelector)[index];
 
+                                                const valueTester = testersFactory.createDomElementTester(
+                                                    () => getCell().querySelector('.cell-value > span')
+                                                );
+                                                
                                                 const tester = createTesters(
                                                     getCell,
                                                     testersFactory.createDomElementTester(getCell)
                                                 );
+
+                                                const putMouseOver = valueTester.putMouseOver.bind(valueTester);
+                                                tester.putMouseOver = () => (putMouseOver(), spendTime(500));
 
                                                 const isChecked = () => {
                                                     tester.expectToExist();
@@ -577,6 +585,11 @@ define(() => {
 
                     me.allowReadManagementAppsLoginToApp = () => {
                         addPermission('apps_management_apps_login_to_app', 'r');
+                        return me;
+                    };
+
+                    me.allowReadStatisticsStatusesHistory = () => {
+                        addPermission('statistics_statuses_history', 'r');
                         return me;
                     };
 
@@ -795,27 +808,32 @@ define(() => {
                     date_till = getYearAndMonth();
 
                 return {
+                    getRequestParams() {
+                        return {
+                            app_id: '4735',
+                            date_from: `${date_from}-26 00:00:00`,
+                            date_till: `${date_till}-17 23:59:59`,
+                            is_use_app_timezone: 'true',
+                            employee_id: '25829',
+                            from_status_id: '82582',
+                            to_status_id: '82583',
+                        };
+                    },
+
                     receiveResponse() {
                         ajax.recentRequest().
                             expectPathToContain('/dataapi/').
                             expectToHaveMethod('POST').
                             expectBodyToContain({
                                 method: 'get.employees_statuses_history',
-                                params: {
-                                    app_id: '4735',
-                                    date_from: `${date_from}-26 00:00:00`,
-                                    date_till: `${date_till}-17 23:59:59`,
-                                    is_use_app_timezone: 'true',
-                                    employee_id: '25829',
-                                    old_value: '82582',
-                                    new_value: '82583',
-                                },
+                                params: this.getRequestParams(),
                             }).
                             respondSuccessfullyWith({
                                 result: {
                                     data: [{
                                         employee_name: 'Аначкова Антоанета Кировна',
-                                        status_name: 'Доступен',
+                                        from_status_name: 'Доступен',
+                                        to_status_name: 'Не беспокоить',
                                         user_name: 'Великова Богдана Цвятковна',
                                         change_source: 'Некий источник',
                                         is_auto: true,
@@ -823,7 +841,8 @@ define(() => {
                                         finish_time: '2025-08-21T11:43:23'
                                     }, {
                                         employee_name: 'Аначкова Антоанета Кировна',
-                                        status_name: 'Перерыв',
+                                        from_status_name: 'Перерыв',
+                                        to_status_name: 'Нет на месте',
                                         user_name: 'Великова Богдана Цвятковна',
                                         change_source: 'Некий источник',
                                         is_auto: false,
@@ -842,7 +861,33 @@ define(() => {
             },
 
             revisionHistoryReportRequest() {
-                return {
+                const data = [{
+                    date_time: '2025-08-21T10:44:24',
+                    app_name: 'ООО "НОВОСИСТЕМ"',
+                    table_name: 'staff.employee',
+                    table_description: 'Сотрудники',
+                    record_id: '9117019',
+                    change_type: 'update',
+                    user_name: 'Гайнанов Даниял',
+                    ip: '10.81.100.37',
+                    total_records: 7,
+                    old_values: JSON.stringify({
+                        status_id: 800248,
+                    }),
+                    new_values: JSON.stringify({
+                        status_id: 800242,
+                    }),
+                }];
+
+                const addResponseModifiers = me => {
+                    me.longAppName = () => ((
+                        data[0].table_description = 'ООО "Кобыла и трупоглазые жабы искали цезию нашли поздно утром свистящего хна"'
+                    ), me);
+
+                    return me;
+                };
+
+                return addResponseModifiers({
                     receiveResponse() {
                         ajax.recentRequest().
                             expectPathToContain('/dataapi/').
@@ -855,23 +900,7 @@ define(() => {
                             }).
                             respondSuccessfullyWith({
                                 result: {
-                                    data: [{
-                                        date_time: '2025-08-21T10:44:24',
-                                        app_name: 'ООО "НОВОСИСТЕМ"',
-                                        table_name: 'staff.employee',
-                                        table_description: 'Сотрудники',
-                                        record_id: '9117019',
-                                        change_type: 'update',
-                                        user_name: 'Гайнанов Даниял',
-                                        ip: '10.81.100.37',
-                                        total_records: 7,
-                                        old_values: JSON.stringify({
-                                            status_id: 800248,
-                                        }),
-                                        new_values: JSON.stringify({
-                                            status_id: 800242,
-                                        }),
-                                    }],
+                                    data,
                                     metadata: {
                                         total_items: 1
                                     }
@@ -880,7 +909,7 @@ define(() => {
 
                         Promise.runAll();
                     }
-                };
+                });
             },
 
             usersRequest() {

@@ -312,10 +312,12 @@ function! SetUpEslint()
         let isReactApp = stridx(path, '/amocrm_widget/')  != -1
         let isReactApp = isReactApp || stridx(path, '/proposal_generator_frontend/')  != -1
         let isReactApp = isReactApp || stridx(path, '/admin_frontend/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/admin-app/')  != -1
         let isReactApp = isReactApp || stridx(path, '/desktop/')  != -1
         let isReactApp = isReactApp || stridx(path, '/omni-tests/')  != -1
         let isReactApp = isReactApp || stridx(path, '/comagic-tests/')  != -1
         let isReactApp = isReactApp || stridx(path, '/consultant/')  != -1
+        let isReactApp = isReactApp || stridx(path, '/leadgen/')  != -1
         let isReactApp = isReactApp || stridx(path, '/sip_lib/')  != -1
         let isReactApp = isReactApp || stridx(path, '/bitrix_widget/')  != -1
         let isReactApp = isReactApp || stridx(path, '/react_widget/')  != -1
@@ -334,6 +336,9 @@ function! SetUpEslint()
         let isReactApp = isReactApp || stridx(path, '/softphone-chrome-widget/') != -1
         let isReactApp = isReactApp || stridx(path, '/softphone-plugin/') != -1
         let isReactApp = isReactApp || stridx(path, '/omni/') != -1
+        let isReactApp = isReactApp || stridx(path, '/softphone-widget/') != -1
+        let isReactApp = isReactApp || stridx(path, '/softphone-core/') != -1
+        let isReactApp = isReactApp || stridx(path, '/workplace-utils/') != -1
 
         if stridx(path, '/bitrix-digital-pipeline/script.js') != -1
             let isReactApp = 0

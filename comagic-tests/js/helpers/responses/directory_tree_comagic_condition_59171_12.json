@@ -1,0 +1,671 @@
+{
+    "children": [
+        {
+            "children": [],
+            "expanded": false,
+            "help_text": null,
+            "id": -12,
+            "text": "AI \u0430\u043d\u0430\u043b\u0438\u0437"
+        },
+        {
+            "children": [
+                {
+                    "available_operators": [
+                        "="
+                    ],
+                    "data_type": "number",
+                    "help_text": null,
+                    "id": 473,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [],
+                    "text": "\u0420\u0435\u0433\u0438\u043e\u043d \u043d\u043e\u043c\u0435\u0440\u0430 \u0430\u0431\u043e\u043d\u0435\u043d\u0442\u0430",
+                    "value_list_directory": "comagic:_tree:regions"
+                },
+                {
+                    "available_operators": [
+                        "in",
+                        "=",
+                        "starts_with",
+                        "ends_with",
+                        "is_not_null",
+                        "is_null"
+                    ],
+                    "data_type": "string",
+                    "help_text": null,
+                    "id": 474,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [],
+                    "text": "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0440\u0435\u0433\u0438\u043e\u043d\u0430 \u043d\u043e\u043c\u0435\u0440\u0430 \u0430\u0431\u043e\u043d\u0435\u043d\u0442\u0430",
+                    "value_list_directory": null
+                }
+            ],
+            "expanded": false,
+            "help_text": null,
+            "id": -11,
+            "text": "\u0420\u0435\u0433\u0438\u043e\u043d \u0430\u0431\u043e\u043d\u0435\u043d\u0442\u0430"
+        },
+        {
+            "children": [],
+            "expanded": false,
+            "help_text": null,
+            "id": -10,
+            "text": "\u0421\u043e\u0431\u044b\u0442\u0438\u0435"
+        },
+        {
+            "children": [
+                {
+                    "available_operators": [
+                        "=",
+                        "is_null",
+                        "is_not_null"
+                    ],
+                    "data_type": "number",
+                    "help_text": null,
+                    "id": 370,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [
+                        "consultant",
+                        "lead",
+                        "sitephone",
+                        "omni_widget"
+                    ],
+                    "text": "\u0412\u044b\u0431\u0440\u0430\u043d\u043d\u0430\u044f \u043f\u043e\u0441\u0435\u0442\u0438\u0442\u0435\u043b\u0435\u043c \u0433\u0440\u0443\u043f\u043f\u0430",
+                    "value_list_directory": "comagic:staff:group"
+                },
+                {
+                    "available_operators": [
+                        "=",
+                        "starts_with",
+                        "ends_with",
+                        "in",
+                        "is_null",
+                        "is_not_null"
+                    ],
+                    "data_type": "string",
+                    "help_text": null,
+                    "id": 371,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [
+                        "consultant",
+                        "lead",
+                        "sitephone",
+                        "omni_widget"
+                    ],
+                    "text": "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0432\u044b\u0431\u0440\u0430\u043d\u043d\u043e\u0439 \u043f\u043e\u0441\u0435\u0442\u0438\u0442\u0435\u043b\u0435\u043c \u0433\u0440\u0443\u043f\u043f\u044b",
+                    "value_list_directory": null
+                }
+            ],
+            "expanded": false,
+            "help_text": null,
+            "id": -9,
+            "text": "\u0413\u0440\u0443\u043f\u043f\u0430 \u043d\u0430 \u0432\u0438\u0434\u0436\u0435\u0442\u0435"
+        },
+        {
+            "children": [],
+            "expanded": false,
+            "help_text": null,
+            "id": -8,
+            "text": "\u041f\u043e\u043b\u044c\u0437\u043e\u0432\u0430\u0442\u0435\u043b\u044c"
+        },
+        {
+            "children": [
+                {
+                    "available_operators": [
+                        "=",
+                        "starts_with",
+                        "ends_with",
+                        "in",
+                        "is_null",
+                        "is_not_null"
+                    ],
+                    "data_type": "string",
+                    "help_text": null,
+                    "id": 107,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [
+                        "va"
+                    ],
+                    "text": "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0441\u0446\u0435\u043d\u0430\u0440\u0438\u044f \u0412\u0410\u0422\u0421",
+                    "value_list_directory": null
+                },
+                {
+                    "available_operators": [
+                        "=",
+                        "is_null",
+                        "is_not_null"
+                    ],
+                    "data_type": "number",
+                    "help_text": null,
+                    "id": 109,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [
+                        "va"
+                    ],
+                    "text": "\u0421\u0446\u0435\u043d\u0430\u0440\u0438\u0439 \u0412\u0410\u0422\u0421",
+                    "value_list_directory": "comagic:va:scenario"
+                },
+                {
+                    "available_operators": [
+                        "=",
+                        "is_null",
+                        "is_not_null"
+                    ],
+                    "data_type": "number",
+                    "help_text": null,
+                    "id": 136,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [
+                        "lead"
+                    ],
+                    "text": "\u0421\u0446\u0435\u043d\u0430\u0440\u0438\u0439 \u041b\u0438\u0434\u043e\u0433\u0435\u043d\u0435\u0440\u0430\u0442\u043e\u0440\u0430",
+                    "value_list_directory": "comagic:_tree:lead_scenario_by_sites"
+                },
+                {
+                    "available_operators": [
+                        "=",
+                        "starts_with",
+                        "ends_with",
+                        "in",
+                        "is_null",
+                        "is_not_null"
+                    ],
+                    "data_type": "string",
+                    "help_text": null,
+                    "id": 141,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [
+                        "lead"
+                    ],
+                    "text": "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0441\u0446\u0435\u043d\u0430\u0440\u0438\u044f \u041b\u0438\u0434\u043e\u0433\u0435\u043d\u0435\u0440\u0430\u0442\u043e\u0440\u0430",
+                    "value_list_directory": null
+                },
+                {
+                    "available_operators": [
+                        "=",
+                        "is_null",
+                        "is_not_null"
+                    ],
+                    "data_type": "number",
+                    "help_text": null,
+                    "id": 477,
+                    "is_multiselect": true,
+                    "leaf": true,
+                    "required_components": [
+                        "va"
+                    ],
+                    "text": "\u041f\u043e\u0441\u043b\u0435\u0434\u043d\u044f\u044f \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u044f \u0441\u0446\u0435\u043d\u0430\u0440\u0438\u044f",
+                    "value_list_directory": "comagic:_tree:scenario_actions"
+                },
+                {
+                    "available_operators": [
+                        "=",
+                        "starts_with",
+                        "ends_with",
+                        "in"
+                    ],
+                    "data_type": "string",
+                    "help_text": null,
+                    "id": 478,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [
+                        "va"
+                    ],
+                    "text": "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u043f\u043e\u0441\u043b\u0435\u0434\u043d\u0435\u0439 \u043e\u043f\u0435\u0440\u0430\u0446\u0438\u0438 \u0441\u0446\u0435\u043d\u0430\u0440\u0438\u044f",
+                    "value_list_directory": null
+                }
+            ],
+            "expanded": false,
+            "help_text": null,
+            "id": -7,
+            "text": "\u0421\u0446\u0435\u043d\u0430\u0440\u0438\u0439"
+        },
+        {
+            "children": [],
+            "expanded": false,
+            "help_text": null,
+            "id": -6,
+            "text": "\u0421\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u043a"
+        },
+        {
+            "children": [
+                {
+                    "available_operators": [
+                        "="
+                    ],
+                    "data_type": "number",
+                    "help_text": null,
+                    "id": 24,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [
+                        "call_tracking",
+                        "consultant",
+                        "sitephone",
+                        "lead",
+                        "omni_widget",
+                        "call_tracking_3_0",
+                        "ad_analytics"
+                    ],
+                    "text": "\u0421\u0430\u0439\u0442",
+                    "value_list_directory": "comagic:analytics:site"
+                },
+                {
+                    "available_operators": [
+                        "=",
+                        "starts_with",
+                        "ends_with",
+                        "in"
+                    ],
+                    "data_type": "string",
+                    "help_text": null,
+                    "id": 25,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [
+                        "call_tracking",
+                        "consultant",
+                        "sitephone",
+                        "lead",
+                        "omni_widget",
+                        "call_tracking_3_0",
+                        "ad_analytics"
+                    ],
+                    "text": "\u0410\u0434\u0440\u0435\u0441 \u0441\u0430\u0439\u0442\u0430",
+                    "value_list_directory": null
+                }
+            ],
+            "expanded": false,
+            "help_text": null,
+            "id": -5,
+            "text": "\u0421\u0430\u0439\u0442"
+        },
+        {
+            "children": [
+                {
+                    "available_operators": [
+                        "=",
+                        "starts_with",
+                        "ends_with",
+                        "in"
+                    ],
+                    "data_type": "string",
+                    "help_text": null,
+                    "id": 18,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [
+                        "call_tracking",
+                        "consultant",
+                        "lead",
+                        "call_tracking_3_0",
+                        "ad_analytics"
+                    ],
+                    "text": "\u041d\u0430\u0437\u0432\u0430\u043d\u0438\u0435 \u0440\u0435\u043a\u043b\u0430\u043c\u043d\u043e\u0439 \u043a\u0430\u043c\u043f\u0430\u043d\u0438\u0438",
+                    "value_list_directory": null
+                },
+                {
+                    "available_operators": [
+                        "=",
+                        "is_null",
+                        "is_not_null"
+                    ],
+                    "data_type": "number",
+                    "help_text": null,
+                    "id": 19,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [
+                        "call_tracking",
+                        "consultant",
+                        "lead",
+                        "call_tracking_3_0",
+                        "ad_analytics"
+                    ],
+                    "text": "\u0420\u0435\u043a\u043b\u0430\u043c\u043d\u0430\u044f \u043a\u0430\u043c\u043f\u0430\u043d\u0438\u044f",
+                    "value_list_directory": "comagic:_tree:ac_by_sites"
+                }
+            ],
+            "expanded": false,
+            "help_text": null,
+            "id": -4,
+            "text": "\u0420\u0435\u043a\u043b\u0430\u043c\u043d\u0430\u044f \u043a\u0430\u043c\u043f\u0430\u043d\u0438\u044f"
+        },
+        {
+            "children": [],
+            "expanded": false,
+            "help_text": null,
+            "id": -3,
+            "text": "\u041f\u0440\u043e\u0441\u0442\u0430\u0432\u043b\u0435\u043d\u043d\u044b\u0439 \u0442\u0435\u0433"
+        },
+        {
+            "children": [
+                {
+                    "available_operators": [
+                        "=",
+                        "is_null",
+                        "is_not_null"
+                    ],
+                    "data_type": "number",
+                    "help_text": null,
+                    "id": 12,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [],
+                    "text": "\u041a\u043e\u043d\u0442\u0430\u043a\u0442",
+                    "value_list_directory": "comagic:phone_book:contact"
+                },
+                {
+                    "available_operators": [
+                        "=",
+                        "starts_with",
+                        "ends_with",
+                        "in",
+                        "is_null",
+                        "is_not_null"
+                    ],
+                    "data_type": "string",
+                    "help_text": null,
+                    "id": 13,
+                    "is_multiselect": false,
+                    "leaf": true,
+                    "required_components": [],
+                    "text": "\u0424.\u0418.\u041e \u043a\u043e\u043d\u0442\u0430\u043a\u0442\u0430",
+                    "value_list_directory": null
+                }
+            ],
+            "expanded": false,
+            "help_text": null,
+            "id": -2,
+            "text": "\u041a\u043e\u043d\u0442\u0430\u043a\u0442"
+        },
+        {
+            "children": [],
+            "expanded": false,
+            "help_text": null,
+            "id": -1,
+            "text": "\u041a\u043b\u0438\u0435\u043d\u0442"
+        },
+        {
+            "available_operators": [
+                "=",
+                "in",
+                "is_null",
+                "is_not_null",
+                "sub",
+                "intersect"
+            ],
+            "data_type": "array",
+            "help_text": null,
+            "id": 5,
+            "is_multiselect": true,
+            "leaf": true,
+            "required_components": [
+                "call_tracking",
+                "consultant",
+                "lead",
+                "call_tracking_3_0",
+                "ad_analytics"
+            ],
+            "text": "\u0421\u043f\u0438\u0441\u043e\u043a \u0441\u0435\u0433\u043c\u0435\u043d\u0442\u043e\u0432",
+            "value_list_directory": "comagic:_tree:segments_by_sites"
+        },
+        {
+            "available_operators": [
+                "="
+            ],
+            "data_type": "string",
+            "help_text": null,
+            "id": 6,
+            "is_multiselect": false,
+            "leaf": true,
+            "required_components": [],
+            "text": "\u0418\u0441\u0442\u043e\u0447\u043d\u0438\u043a \u0437\u0432\u043e\u043d\u043a\u0430",
+            "value_list_directory": "comagic:public:call_session_component"
+        },
+        {
+            "available_operators": [
+                "="
+            ],
+            "data_type": "string",
+            "help_text": null,
+            "id": 7,
+            "is_multiselect": false,
+            "leaf": true,
+            "required_components": [],
+            "text": "\u041d\u0430\u043f\u0440\u0430\u0432\u043b\u0435\u043d\u0438\u0435 \u0437\u0432\u043e\u043d\u043a\u0430",
+            "value_list_directory": "comagic:public:call_session_direction"
+        },
+        {
+            "available_operators": [
+                "=",
+                "starts_with",
+                "ends_with",
+                "in"
+            ],
+            "data_type": "string",
+            "help_text": null,
+            "id": 9,
+            "is_multiselect": false,
+            "leaf": true,
+            "required_components": [],
+            "text": "\u041d\u043e\u043c\u0435\u0440 \u0432\u044b\u0437\u044b\u0432\u0430\u0435\u043c\u043e\u0439 \u0441\u0442\u043e\u0440\u043e\u043d\u044b",
+            "value_list_directory": null
+        },
+        {
+            "available_operators": [
+                "=",
+                "in",
+                "sub",
+                "intersect"
+            ],
+            "data_type": "array",
+            "help_text": null,
+            "id": 14,
+            "is_multiselect": true,
+            "leaf": true,
+            "required_components": [],
+            "text": "\u0421\u043f\u0438\u0441\u043e\u043a \u0433\u0440\u0443\u043f\u043f \u043a\u043e\u043d\u0442\u0430\u043a\u0442\u0430",
+            "value_list_directory": "comagic:phone_book:group"
+        },
+        {
+            "available_operators": [
+                "=",
+                "starts_with",
+                "ends_with",
+                "in",
+                "is_null",
+                "is_not_null"
+            ],
+            "data_type": "string",
+            "help_text": null,
+            "id": 15,
+            "is_multiselect": false,
+            "leaf": true,
+            "required_components": [],
+            "text": "\u041d\u043e\u043c\u0435\u0440 \u0430\u0431\u043e\u043d\u0435\u043d\u0442\u0430",
+            "value_list_directory": null
+        },
+        {
+            "available_operators": [
+                "="
+            ],
+            "data_type": "string",
+            "help_text": null,
+            "id": 16,
+            "is_multiselect": false,
+            "leaf": true,
+            "required_components": [],
+            "text": "\u0412\u0438\u0440\u0442\u0443\u0430\u043b\u044c\u043d\u044b\u0439 \u043d\u043e\u043c\u0435\u0440",
+            "value_list_directory": "comagic:public:number_capacity_with_common"
+        },
+        {
+            "available_operators": [
+                "sub"
+            ],
+            "data_type": "string",
+            "help_text": null,
+            "id": 21,
+            "is_multiselect": true,
+            "leaf": true,
+            "required_components": [],
+            "text": "\u0422\u0438\u043f \u043e\u0431\u0440\u0430\u0449\u0435\u043d\u0438\u044f",
+            "value_list_directory": "comagic:analytics:communication_type"
+        },
+        {
+            "available_operators": [
+                "=",
+                ">",
+                "<",
+                "is_null",
+                "is_not_null"
+            ],
+            "data_type": "number",
+            "help_text": null,
+            "id": 22,
+            "is_multiselect": false,
+            "leaf": true,
+            "required_components": [
+                "call_tracking",
+                "consultant",
+                "sitephone",
+                "lead",
+                "omni_widget",
+                "call_tracking_3_0",
+                "ad_analytics"
+            ],
+            "text": "\u041d\u043e\u043c\u0435\u0440 \u043e\u0431\u0440\u0430\u0449\u0435\u043d\u0438\u044f",
+            "value_list_directory": null
+        },
+        {
+            "available_operators": [
+                "=",
+                "in",
+                "starts_with",
+                "ends_with",
+                "~",
+                "is_null",
+                "is_not_null"
+            ],
+            "data_type": "string",
+            "help_text": null,
+            "id": 50,
+            "is_multiselect": false,
+            "leaf": true,
+            "required_components": [
+                "call_tracking",
+                "consultant",
+                "lead",
+                "call_tracking_3_0",
+                "ad_analytics"
+            ],
+            "text": "\u0421\u0442\u0440\u0430\u043d\u0438\u0446\u0430 \u0432\u0445\u043e\u0434\u0430",
+            "value_list_directory": null
+        },
+        {
+            "available_operators": [
+                "=",
+                ">",
+                "<"
+            ],
+            "data_type": "number",
+            "help_text": "\u0417\u043d\u0430\u0447\u0435\u043d\u0438\u0435 \u0434\u043e\u043b\u0436\u043d\u043e \u0431\u044b\u0442\u044c \u0432 \u0441\u0435\u043a\u0443\u043d\u0434\u0430\u0445",
+            "id": 110,
+            "is_multiselect": false,
+            "leaf": true,
+            "required_components": [],
+            "text": "\u0414\u043b\u0438\u0442\u0435\u043b\u044c\u043d\u043e\u0441\u0442\u044c \u043e\u0436\u0438\u0434\u0430\u043d\u0438\u044f",
+            "value_list_directory": null
+        },
+        {
+            "available_operators": [
+                "="
+            ],
+            "data_type": "string",
+            "help_text": null,
+            "id": 134,
+            "is_multiselect": false,
+            "leaf": true,
+            "required_components": [],
+            "text": "\u041f\u0440\u0438\u0447\u0438\u043d\u0430 \u043f\u043e\u0442\u0435\u0440\u0438",
+            "value_list_directory": "comagic:public:call_session_finish_reason"
+        },
+        {
+            "available_operators": [
+                "="
+            ],
+            "data_type": "boolean",
+            "help_text": null,
+            "id": 480,
+            "is_multiselect": false,
+            "leaf": true,
+            "required_components": [],
+            "text": "\u041f\u0435\u0440\u0435\u0430\u0434\u0440\u0435\u0441\u043e\u0432\u0430\u043d\u043d\u044b\u0439 \u0437\u0432\u043e\u043d\u043e\u043a",
+            "value_list_directory": "comagic:public:true_false"
+        },
+        {
+            "available_operators": [
+                "=",
+                "in",
+                "sub",
+                "intersect"
+            ],
+            "data_type": "array",
+            "help_text": null,
+            "id": 486,
+            "is_multiselect": true,
+            "leaf": true,
+            "required_components": [],
+            "text": "\u0421\u043f\u0438\u0441\u043e\u043a \u0432\u044b\u0437\u0432\u0430\u043d\u043d\u044b\u0445 \u0433\u0440\u0443\u043f\u043f \u0441\u043e\u0442\u0440\u0443\u0434\u043d\u0438\u043a\u043e\u0432",
+            "value_list_directory": "comagic:staff:group"
+        },
+        {
+            "available_operators": [
+                "=",
+                "starts_with",
+                "ends_with",
+                "in",
+                "is_null",
+                "is_not_null"
+            ],
+            "data_type": "string",
+            "help_text": null,
+            "id": 503,
+            "is_multiselect": false,
+            "leaf": true,
+            "required_components": [
+                "call_tracking",
+                "consultant",
+                "sitephone",
+                "lead",
+                "omni_widget",
+                "call_tracking_3_0",
+                "ad_analytics"
+            ],
+            "text": "URL \u0441\u0442\u0440\u0430\u043d\u0438\u0446\u044b \u043e\u0431\u0440\u0430\u0449\u0435\u043d\u0438\u044f",
+            "value_list_directory": null
+        },
+        {
+            "available_operators": [
+                "="
+            ],
+            "data_type": "boolean",
+            "help_text": null,
+            "id": 597,
+            "is_multiselect": false,
+            "leaf": true,
+            "required_components": [],
+            "text": "\u0412\u043d\u0443\u0442\u0440\u0435\u043d\u043d\u0438\u0439 \u0437\u0432\u043e\u043d\u043e\u043a",
+            "value_list_directory": "comagic:public:true_false"
+        }
+    ],
+    "success": true
+}

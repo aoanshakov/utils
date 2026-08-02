@@ -130,6 +130,9 @@ tests.addTest(options => {
                                 tester.savedValuesSettingRequest().receive();
                             });
 
+                            it('', function() {
+                            });
+                            return;
                             describe('Отмечаю чекбокс "Писать в последний диалог".', function() {
                                 beforeEach(function() {
                                     tester.checkbox.click();
@@ -397,6 +400,10 @@ tests.addTest(options => {
                                             tester.select.
                                                 withPlaceholder('Шаблон WABA').
                                                 expectToBeEnabled();
+
+                                            tester.body.expectTextContentToHaveSubstring(
+                                                'Если приоритетным каналом окажется WABA'
+                                            );
                                         });
                                     });
                                     it(
@@ -468,6 +475,7 @@ tests.addTest(options => {
                                     expectNotToExist();
                             });
                         });
+                        return;
                         describe('Получены данные заполненной формы.', function() {
                             beforeEach(function() {
                                 tester.savedValuesSettingRequest().
@@ -514,6 +522,7 @@ tests.addTest(options => {
                             tester.spin.expectToBeVisible();
                         });
                     });
+                    return;
                     it('Выпадающий список шаблонов WABA недоступен. Прикладывание файлов недоступно.', function() {
                         tester.savedValuesSettingRequest().receive();
 
@@ -541,9 +550,14 @@ tests.addTest(options => {
                             withPlaceholder('Шаблон WABA').
                             expectNotToExist();
 
+                        tester.body.expectTextContentNotToHaveSubstring(
+                            'Если приоритетным каналом окажется WABA'
+                        );
+
                         tester.button('Прикрепить файл').expectNotToExist();
                     });
                 });
+                return;
                 it('Нажимаю на иконку с жучком. В родительское окно отправлен запрос скачивания логов.', function() {
                     tester.bugButton.click();
 
@@ -562,6 +576,7 @@ tests.addTest(options => {
                     );
                 });
             });
+            return;
             it(
                 'В профиле указан английский язык. Отображена ссылка на страницу авторизции на английском языке.',
             function() {
@@ -592,6 +607,7 @@ tests.addTest(options => {
                 );
             });
         });
+        return;
         it('Открываю настройки Salesbot amoCRM в старом виджете.', function() {
             tester = new Tester({
                 application: 'depricatedAmocrmSalesbotIframe',

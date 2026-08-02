@@ -1,0 +1,33 @@
+[Comagic.staff.employees.view.VaTab]
+[name=webrtc_token]
+
+- available
+    if
+        ComagicDB(`
+            select
+                staff.employee_license
+            where
+                el.employee_id = ${employee_id}
+        `) includes va
+    and
+        getDirectory(comagic:staff:employee_licenses)
+            includes item.id == 'va'
+
+- visible if project != 'megafon' && project != 'novofon'
+
+- value ComagicDB(
+    `select
+        permission.app_user
+    where
+        user_id=${user_id}`
+).webrtc_token
+
+function generateToken() {
+    return ['', '', '', ''].map(function(){
+        return Math.random().toString(36).substring(2);
+    }).join('').slice(0, 40);
+}
+
+В новом лк нужно добавить свойство "license" в ответ на запрос
+https://dev-int0-comagic-api.uis.st/agent/employee/9614114, такое же, как то, что определено в элментах ответа на запрос
+https://dev-int0-comagic-api.uis.st/common/employee_staff

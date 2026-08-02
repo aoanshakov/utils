@@ -4049,6 +4049,10 @@ define(function () {
                     softphoneType = 'comagic Softphone Desktop';
                     return this;
                 },
+                uisWebrtc: function () {
+                    softphoneType = 'UISWebRTC';
+                    return this;
+                },
                 amocrmWidget: function () {
                     softphoneType = 'Softphone AmoCRM widget';
                     return this;
@@ -6636,7 +6640,7 @@ define(function () {
                 var state = {
                     visible: true,
                     holded: undefined,
-                    muted: false,
+                    //muted: false,
                     direction: 'outgoing',
                     state: 'idle',
                     phoneNumber: '',
@@ -6666,7 +6670,8 @@ define(function () {
                         endedNormally: null,
                         holded: undefined,
                         holdButtonPressed: false,
-                        muted: false,
+                        microphoneEnabled: false,
+                        //muted: false,
                         direction: 'outgoing',
                         state: 'idle',
                         phoneNumber: ''
@@ -7060,9 +7065,9 @@ define(function () {
                         state.channels[channel].endedNormally = false; 
                         return this;
                     },
-                    muted: function () {
+                    microphoneEnabled: function () {
                         updateChannel(channel);
-                        state.channels[channel].muted = true; 
+                        state.channels[channel].microphoneEnabled = true; 
                         return this;
                     },
                     holded: function () {

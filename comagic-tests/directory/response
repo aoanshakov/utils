@@ -1,0 +1,120 @@
+[{
+    "aux_id": 7,
+    "aux_id2": "visitor_email",
+    "data_example": "example@example.ru",
+    "data_type": "string",
+    "description": "Электронный адрес посетителя",
+    "id": 1,
+    "name": "E-mail адрес посетителя",
+    "required_components": []
+  },
+  {
+    "aux_id": 98,
+    "aux_id2": "visitor_email",
+    "data_example": "example@example.ru",
+    "data_type": "string",
+    "description": "Электронный адрес посетителя",
+    "id": 2,
+    "name": "E-mail адрес посетителя",
+    "required_components": []
+  },
+  {
+    "aux_id": 102,
+    "aux_id2": "visitor_email",
+    "data_example": "example@example.ru",
+    "data_type": "string",
+    "description": "Электронный адрес посетителя",
+    "id": 3,
+    "name": "E-mail адрес посетителя",
+    "required_components": []
+  },
+  {
+    "aux_id": 118,
+    "aux_id2": "first_talked_employee_email",
+    "data_example": "john-doe@example.com",
+    "data_type": "string",
+    "description": "Email первого сотрудника, который разговаривал с абонентом в рамках конкретного вызова",
+    "id": 4,
+    "name": "Email первого разговаривавшего сотрудника",
+    "required_components": []
+  },
+  {
+    "aux_id": 1,
+    "aux_id2": "first_talked_employee_email",
+    "data_example": "john-doe@example.com",
+    "data_type": "string",
+    "description": "Email первого сотрудника, который разговаривал с абонентом в рамках конкретного вызова",
+    "id": 5,
+    "name": "Email первого разговаривавшего сотрудника",
+    "required_components": []
+  },
+  {
+    "aux_id": 118,
+    "aux_id2": "last_talked_employee_email",
+    "data_example": "john-doe@example.com",
+    "data_type": "string",
+    "description": "Email последнего сотрудника, который разговаривал с абонентом в рамках конкретного вызова",
+    "id": 6,
+    "name": "Email последнего разговаривавшего сотрудника",
+    "required_components": []
+  },
+  {
+    "aux_id": 1,
+    "aux_id2": "last_talked_employee_email",
+    "data_example": "john-doe@example.com",
+    "data_type": "string",
+    "description": "Email последнего сотрудника, который разговаривал с абонентом в рамках конкретного вызова",
+    "id": 7,
+    "name": "Email последнего разговаривавшего сотрудника",
+    "required_components": []
+  },
+  {
+    "aux_id": 1,
+    "aux_id2": "employee_email",
+    "data_example": "john-doe@example.com",
+    "data_type": "string",
+    "description": "Email сотрудника",
+    "id": 8,
+    "name": "Email сотрудника",
+    "required_components": []
+  },
+  {
+    "aux_id": 118,
+    "aux_id2": "employee_email",
+    "data_example": "john-doe@example.com",
+    "data_type": "string",
+    "description": "Email сотрудника",
+    "id": 9,
+    "name": "Email сотрудника",
+    "required_components": []
+  },
+  {
+    "aux_id": 118,
+    "aux_id2": "first_answered_employee_email",
+    "data_example": "john-doe@example.com",
+    "data_type": "string",
+    "description": "Email первого сотрудника, ответившего на звонок в рамках конкретного вызова",
+    "id": 10,
+    "name": "Email сотрудника, который принял вызов первым",
+    "required_components": []
+  },
+  {
+    "aux_id": 12,
+    "aux_id2": "first_answered_employee_email",
+    "data_example": "john-doe@example.com",
+    "data_type": "string",
+    "description": "Email первого сотрудника, ответившего на звонок в рамках конкретного вызова",
+    "id": 11,
+    "name": "Email сотрудника, который принял вызов первым",
+    "required_components": []
+  },
+  {
+    "aux_id": 1,
+    "aux_id2": "first_answered_employee_email",
+    "data_example": "john-doe@example.com",
+    "data_type": "string",
+    "description": "Email первого сотрудника, ответившего на звонок в рамках конкретного вызова",
+    "id": 12,
+    "name": "Email сотрудника, который принял вызов первым",
+    "required_components": []
+  }]

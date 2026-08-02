@@ -675,6 +675,11 @@ function JsTester_Utils (debug) {
             throw new Error('Найдено ' + count + ' видимых элементов, тогда как видимым должен быть только один.');
         });
     };
+
+    this.expectNonEmptyString = function () {
+        return new JsTests_StringExpectaion();
+    };
+
     this.expectToInclude = function (expectedSubset) {
         return new JsTests_ArrayInclusionExpectation({
             expectedSubset,

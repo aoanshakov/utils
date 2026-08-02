@@ -14,6 +14,7 @@ define(() => function ({
     anotherWildcart = false,
     areSettingsExpired = false,
     application = 'softphone',
+    widgetCode,
     platform = 'windows',
     webSockets,
     path = '/',
@@ -3337,7 +3338,7 @@ define(() => function ({
             addThirdChannel(message) {
                 processors.push(message => message.data.channels.push({
                     id: 216402,
-                    name: 'false',
+                    name: 'Астана',
                     type: 'telegram_private',
                     type_name: 'Telegram',
                     icon: 'SourceTelegram20',
@@ -5414,6 +5415,7 @@ define(() => function ({
             setHistory,
             setNotification,
             active,
+            widgetCode,
             recipients: {
                 'contact.phone': 'Contact: Phone',
                 'contact.fax': 'Contact: Fax',
@@ -5584,6 +5586,8 @@ define(() => function ({
             me.history.push('/amocrm/salesbot/1');
         } else if (application == 'depricatedAmocrmSalesbotIframe') {
             me.history.push('/amocrm/salesbot');
+        } else if (application == 'sandbox') {
+            me.history.push('/sandbox');
         }
     }
 
@@ -12308,11 +12312,11 @@ define(() => function ({
         const data = { token: 'XaRnb2KVS0V7v08oa4Ua-sTvpxMKSg9XuKrYaGSinB0' };
 
         const queryParams = {
-            widget_type: undefined,
+            widget_type: 'crm_widget',
         };
 
         const headers = {
-            'X-Widget-Type': undefined,
+            'X-Widget-Type': 'crm_widget',
         };
 
         const bodyParams = {
@@ -12330,9 +12334,6 @@ define(() => function ({
 
         return addResponseModifiers({
             amocrm() {
-                headers['X-Widget-Type'] = 'amocrm';
-                queryParams.widget_type = 'amocrm';
-
                 headers['X-Widget-Url'] = 'https://app.uiscom.ru';
                 queryParams.widget_url = 'https://app.uiscom.ru';
 

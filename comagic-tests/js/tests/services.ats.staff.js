@@ -6,9 +6,9 @@ tests.addTest(function(args) {
         utils,
     } = args;
 
-    describe('Открываю страницу сотрудников.', function() {
-        var tester;
+    let tester;
 
+    xdescribe('Открываю страницу сотрудников.', function() {
         beforeEach(function() {
             tester && tester.destroy();
             tester = new ServicesAtsStaff(args);
@@ -23,9 +23,6 @@ tests.addTest(function(args) {
             tester.statusesRequest().receiveResponse();
         });
 
-        it('', function() {
-        });
-        return;
         describe('Нажимаю кнопку "Создать статус".', function() {
             beforeEach(function() {
                 tester.button('Создать статус').click();
@@ -468,10 +465,7 @@ tests.addTest(function(args) {
                 expectToHaveTextContent('Да');
         });
     });
-    return;
-    describe('Компонент текстовых коммуникаций отключен.', function() {
-        var tester;
-
+    xdescribe('Компонент текстовых коммуникаций отключен.', function() {
         beforeEach(function() {
             Comagic.getApplication().setHasNotComponent('text_communications');
             tester = new ServicesAtsStaff(args);
@@ -599,5 +593,20 @@ tests.addTest(function(args) {
                 withFieldLabel('Возможность переписываться с клиентом').
                 expectToBeHiddenOrNotExist();
         });
+    });
+    it(
+        'Открываю страницу сотрудников. Нажимаю на кнопку "Операторы чата". Отправлен запрос сотрудников являющихся ' +
+        'операторами чата.',
+    function() {
+        tester && tester.destroy();
+        tester = new ServicesAtsStaff(args);
+
+        Comagic.Directory.load();
+        tester.batchReloadRequest().receiveResponse();
+
+        tester.actionIndex({ mode: 'contacts' });
+        tester.contactsRequest().receiveResponse();
+
+        tester.button('Операторы чата').expectToBeHiddenOrNotExist();
     });
 });

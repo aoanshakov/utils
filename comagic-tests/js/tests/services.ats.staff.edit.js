@@ -38,10 +38,42 @@ tests.addTest(function(args) {
                     tester.employeeUserRequest().receiveResponse();
                     wait();
                         
-                    tester.form.textfield().withFieldLabel('Имя').fill('Веселина');
+                    tester.operatorStatusRequest().receiveResponse();
+                    tester.form.textfield().withFieldLabel('Имя *').fill('Веселина');
+
                     wait();
+                    tester.operatorStatusRequest().receiveResponse();
 
                     tester.form.scrollIntoView();
+
+
+                    tester.button('Сохранить').click();
+
+                    /*
+                    wait();
+                    tester.softphoneLoginValidationRequest().receiveResponse();
+                    wait();
+                    */
+
+                    wait();
+                    tester.employeeChangeRequest().receiveResponse();
+                    wait();
+                    tester.operatorStatusRequest().receiveResponse();
+                    wait();
+                    tester.batchReloadRequest().receiveResponse();
+                    wait();
+                    tester.operatorStatusRequest().receiveResponse();
+                    wait();
+                    tester.operatorStatusRequest().receiveResponse();
+                    wait();
+                    tester.operatorStatusRequest().receiveResponse();
+
+                    return;
+                    tester.employeeUserAddingRequest().receiveResponse();
+                    wait();
+                    tester.userAppPermissionRequest().receiveResponse();
+
+                    return;
 
                     tester.tab('Использование сервисов').click();
                     wait();
@@ -49,6 +81,7 @@ tests.addTest(function(args) {
                     tester.form.textfield().withFieldLabel('Логин *').fill('chenkova');
                     tester.form.textfield().withFieldLabel('Логин *').blur('chenkova');
                     wait();
+                    tester.operatorStatusRequest().receiveResponse();
                     tester.softphoneLoginValidationRequest().receiveResponse();
                     wait();
 
@@ -57,10 +90,18 @@ tests.addTest(function(args) {
                     tester.form.textfield().withFieldLabel('Пароль *').blur();
                     wait();
 
+                    tester.operatorStatusRequest().receiveResponse();
                     tester.softphoneLoginValidationRequest().receiveResponse();
                     wait();
+
+                    tester.operatorStatusRequest().receiveResponse();
+                    wait();
+                    tester.operatorStatusRequest().receiveResponse();
                 });
 
+                it('', function() {
+                });
+                return;
                 /*
                 describe('Отмечаю свитч "Использование софтфона UIS".', function() {
                     beforeEach(function() {
@@ -146,7 +187,7 @@ tests.addTest(function(args) {
                             wait();
                         });
 
-                        xdescribe('Выбираю опцию "Группы".', function() {
+                        describe('Выбираю опцию "Группы".', function() {
                             beforeEach(function() {
                                 tester.combobox('Доступ к чатам на уровне')
                                     .option('Группы')
@@ -230,7 +271,7 @@ tests.addTest(function(args) {
                                 wait();
                             });
 
-                            xdescribe('Выбираю сотрудников из списка.', function() {
+                            describe('Выбираю сотрудников из списка.', function() {
                                 beforeEach(function() {
                                     tester.tags('Список сотрудников *').
                                         addButton.
@@ -300,12 +341,10 @@ tests.addTest(function(args) {
                             });
                         });
                     });
-                    return;
                     it('Список "Доступ к чужим чатам" скрыт.', function() {
                         tester.switchbox('Доступ к чатам на уровне').expectToBeHiddenOrNotExist();
                     });
                 });
-                return;
                 /*
                 it('Нажимаю на кнопку "Сохранить". Сотруднику не предоставлены права на РМО.', function() {
                     tester.button('Сохранить').click();

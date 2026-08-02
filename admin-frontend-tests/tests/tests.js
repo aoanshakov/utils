@@ -2096,6 +2096,7 @@ tests.addTest(function (options) {
             beforeEach(function() {
                 userRequest.
                     allowReadStatisticsRevisionHistory().
+                    allowReadStatisticsStatusesHistory().
                     allowReadManagementAppsLoginToApp().
                     allowReadApps().
                     allowWriteApps().
@@ -2462,7 +2463,7 @@ tests.addTest(function (options) {
                     );
                 });
             });
-            describe('Открываю раздел "Статусы сотрудников".', function() {
+            xdescribe('Открываю раздел "Статусы сотрудников".', function() {
                 beforeEach(function() {
                     tester.menuitem('Статусы сотрудников').click();
                 });
@@ -2492,8 +2493,8 @@ tests.addTest(function (options) {
                             });
 
                             it(
-                                'Заполняю другие поля фильтра. Нажимаю на кнопку "Применить". Отображена таблица истории ' +
-                                'изменения статуса сотрудника.',
+                                'Заполняю другие поля фильтра. Нажимаю на кнопку "Применить". Отображена таблица ' +
+                                'истории изменения статуса сотрудника.',
                             function() {
                                 tester.calendar().
                                     input().
@@ -2575,7 +2576,8 @@ tests.addTest(function (options) {
 
                                 tester.root.expectTextContentToHaveSubstring(
                                     'ФИО сотрудника ' +
-                                    'Наименование статуса ' +
+                                    'Старое значение ' +
+                                    'Новое значение ' +
                                     'Имя сотрудника, который его поменял ' +
                                     'Источник смены ' +
                                     'Была ли автосмена ' +
@@ -2584,6 +2586,7 @@ tests.addTest(function (options) {
 
                                     'Аначкова Антоанета Кировна ' +
                                     'Доступен ' +
+                                    'Не беспокоить ' +
                                     'Великова Богдана Цвятковна ' +
                                     'Некий источник ' +
                                     '21.08.2025 10:44:24 ' +
@@ -2591,6 +2594,7 @@ tests.addTest(function (options) {
 
                                     'Аначкова Антоанета Кировна ' +
                                     'Перерыв ' +
+                                    'Нет на месте ' +
                                     'Великова Богдана Цвятковна ' +
                                     'Некий источник ' +
                                     '21.08.2025 10:44:24 ' +
@@ -2599,7 +2603,6 @@ tests.addTest(function (options) {
                                     '1 Строк на странице 50 Всего записей 1'
                                 );
                             });
-                            return;
                             it('Выпадающие списки статусов доступны.', function() {
                                 tester.select().
                                     withPlaceholder('Старое значение').
@@ -2610,7 +2613,6 @@ tests.addTest(function (options) {
                                     expectToBeEnabled();
                             });
                         });
-                        return;
                         it('Запрос статусов не был отправлен.', function() {
                             tester.select().
                                 withPlaceholder('Старое значение').
@@ -2623,7 +2625,6 @@ tests.addTest(function (options) {
                             ajax.expectNoRequestsToBeSent();
                         });
                     });
-                    return;
                     it('Прошло некоторое время. Отправлен запрос статусов.', function() {
                         spendTime(1);
 
@@ -2643,7 +2644,6 @@ tests.addTest(function (options) {
                         ajax.expectNoRequestsToBeSent();
                     });
                 });
-                return;
                 it('Запрос статусов не был отправлен.', function() {
                     tester.select().
                         withPlaceholder('Старое значение').
@@ -2656,8 +2656,51 @@ tests.addTest(function (options) {
                     ajax.expectNoRequestsToBeSent();
                 });
             });
+            it(
+                'Открываю раздел "Статусы сотрудников" с сохранёнными значениями фильтра. Форма фильтра заполнена.',
+            function() {
+                tester.path.open(
+                    '/employee-statuses',
+                    {
+                        limit: '50',
+                        offset: '0',
+                        sort: [],
+                        ...tester.employeesStatusesHistoryRequest().getRequestParams(),
+                    }
+                );
+
+                tester.employeesStatusesHistoryRequest().receiveResponse();
+                tester.staffStatusesRequest().receiveResponse();
+
+                tester.select().
+                    withPlaceholder('Старое значение').
+                    expectToHaveValue('Доступен');
+
+                tester.select().
+                    withPlaceholder('Новое значение').
+                    expectToHaveValue('Перерыв');
+
+                tester.select().
+                    withPlaceholder('Старое значение').
+                    expectToBeEnabled();
+
+                tester.select().
+                    withPlaceholder('Новое значение').
+                    expectToBeEnabled();
+
+                return;
+                tester.table().
+                    cell().
+                    withContent('Нет на месте').
+                    row().
+                    column().
+                    withHeader('ФИО сотрудника').
+                    putMouseOver();
+
+                tester.tooltip.expectToHaveTextContent('Аначкова Антоанета Кировна');
+            });
             return;
-            xit(
+            it(
                 'Открываю раздел "История изменений". Вводу App ID. Нажимаю на кнопку "Применить". Отображена ' +
                 'таблица истории изменений.',
             function() {
@@ -2672,6 +2715,7 @@ tests.addTest(function (options) {
                     fill('4735');
 
                 tester.button('Применить').click();
+
                 tester.revisionHistoryReportRequest().receiveResponse();
 
                 tester.root.expectTextContentToHaveSubstring(

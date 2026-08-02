@@ -24,14 +24,14 @@ class Widget {
     private widgetActions;
     private settings;
 
-    constructor(active) {
+    constructor({ active, widgetCode }) {
         this.widgetActions = {};
 
         this.settings = {
             finished: active ? 'Y' : 'N',
             id: 1022170,
             status: 'installed',
-            widget_code: 'qxxjueyui7po3xx7xhiw52sy9kzy1pxnfjgofuit',
+            widget_code: widgetCode || 'qxxjueyui7po3xx7xhiw52sy9kzy1pxnfjgofuit',
             path: '/upl/qxxjueyui7po3xx7xhiw52sy9kzy1pxnfjgofuit/widget',
             version: '1.0.0',
             oauth_client_uuid: 'e4830af5-279e-440b-a955-18a3cf60fd3c',
@@ -114,6 +114,7 @@ window.application = {
     run({
         application = 'softphone',
         active = false,
+        widgetCode,
         setHistory,
     }) {
         let rootStore;
@@ -126,7 +127,7 @@ window.application = {
         container.id = 'root';
         document.body.appendChild(container);
 
-        window.widget = new Widget(active);
+        window.widget = new Widget({ active, widgetCode });
         const widget = new Application(window.widget);
 
         root = createRoot(document.getElementById('root')),

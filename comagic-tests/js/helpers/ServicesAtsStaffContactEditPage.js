@@ -195,6 +195,21 @@ function ServicesAtsStaffContactEditPage({ requestsManager, testersFactory, util
         };
     };
 
+    this.operatorStatusRequest = function () {
+        return {
+            receiveResponse: function () {
+                requestsManager.recentRequest().
+                    expectToHavePath('/services/ats__staff/operator_status/').
+                    respondSuccessfullyWith({
+                        success: true,
+                        data: {
+                            operator_status: 'online',
+                        }
+                    });
+            }
+        };
+    };
+
     function getEmployeeData (callback) {
         var data = {
             coach: [],
@@ -235,7 +250,7 @@ function ServicesAtsStaffContactEditPage({ requestsManager, testersFactory, util
                 is_consultant_chat: false,
                 is_consultant_invite: false,
                 is_consultant_offline_message: false,
-                is_consultant_operator: false,
+                is_consultant_operator: true,
                 is_consultant_operator_active: false,
                 is_need_out_call_rating: false,
                 last_name: 'Ченкова',

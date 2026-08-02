@@ -1,0 +1,18 @@
+Я внёс правки на фронте. Теперьь нужно перевести задачу на кого-нибудь, кто займётся правками comagic-api.
+
+**Свойство "license"**
+
+Нужно добавить свойство "license" в ответ на запрос
+https://dev-int0-comagic-api.uis.st/agent/employee/12345, такое же, как то, что определено в элментах ответа на запрос
+https://dev-int0-comagic-api.uis.st/common/employee_staff
+
+**Свойство "webrtc_token"**
+
+Нужно добавить параметр "webrtc_token" в объект, возвращаемый запросом
+GET https://dev-int0-comagic-api.uis.st/agent/employee/12345 и принимать этот параметр при сохранении данных сотрдуника
+
+"webrtc_token" хранится в таблице permission.app_user БД Comagic, если я правильно понял.
+
+**Тестироание**
+
+Проверить WebRTC токен можно здесь - https://dev-int0-softphone-widget-iframe.uis.st/sandbox

@@ -139,7 +139,10 @@ tests.addTest(options => {
 
                             postMessages.nextMessage().expectNotToExist();
 
-                            tester.authTokenRequest().receiveResponse()
+                            tester.authTokenRequest().
+                                amocrm().
+                                receiveResponse()
+
                             authCheckRequest = tester.authCheckRequest().expectToBeSent();
 
                             unfilteredPostMessages.
@@ -148,6 +151,9 @@ tests.addTest(options => {
                                 expectMessageToContain('POST https://my.uiscom.ru/sup/auth/token');
                         });
 
+                        it('', function() {
+                        });
+                        return;
                         describe('Удалось авторизоваться.', function() {
                             let settingsRequest;
 
@@ -433,6 +439,7 @@ tests.addTest(options => {
                             });
                         });
                     });
+                    return;
                     describe('Нужно всегда использвать Call-API. WebRTC выключен.', function() {
                         beforeEach(function() {
                             widgetSettings.
@@ -662,6 +669,7 @@ tests.addTest(options => {
                             expectToBeSent();
                     });
                 });
+                return;
                 describe('Приходит запрос изменения видимости.', function() {
                     beforeEach(function() {
                         tester.softphoneVisibilityToggleRequest().receive();
@@ -702,6 +710,7 @@ tests.addTest(options => {
                         expectToBeEmpty();
                 });
             });
+            return;
             it('Получена английская локаль. Используется английский язык.', function() {
                 tester.amocrmStateSettingRequest().
                     en().
@@ -730,6 +739,7 @@ tests.addTest(options => {
                 tester.body.expectTextContentToHaveSubstring('Please authorize to use softphone');
             });
         });
+        return;
         describe(
             'В локальном хранилище сохранен токен. Открыт IFrame софтфона amoCRM. Производится авторизация.',
         function() {

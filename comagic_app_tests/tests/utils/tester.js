@@ -5921,9 +5921,9 @@ define(() => function ({
             forCurrentMonth() {
                 queryParams.date_from = '2019-12-01T00:00:00.000+03:00';
 
-                Object.entries(data).forEach(
-                    ([key, value]) => (typeof value == 'number' && (data[key] = value * 30))
-                );
+            Object.entries(data).forEach(
+                ([key, value]) => (typeof value == 'number' && (data[key] = value * 30))
+            );
 
                 return this;
             },
@@ -6664,7 +6664,7 @@ define(() => function ({
             
             expectToBeSent(requests) {
                 const request = (requests ? requests.someRequest() : ajax.recentRequest()).
-                    expectPathToContain('\/sup\/auth\/logout').
+                    expectPathToContain('/sup/auth/logout').
                     expectToHaveHeaders(headers);
 
                 return addResponseModifiers({

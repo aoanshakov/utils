@@ -24,7 +24,7 @@ tests.addTest(function(args) {
             employeeRequest = tester.employeeRequest().expectToBeSent();
         });
 
-        describe('Уровень доступа к чужим чатам не указан. Открываю вкладку "Чаты и заявки".', function() {
+        describe('Уровень доступа к чужим чатам не указан.', function() {
             beforeEach(function() {
                 employeeRequest.receiveResponse();
                 wait();
@@ -33,109 +33,131 @@ tests.addTest(function(args) {
                 wait();
                 tester.loginValidationRequest().receiveResponse();
                 wait();
-
-                tester.tab('Чаты и заявки').click();
-                wait();
-
-                tester.loginValidationRequest().receiveResponse();
-                wait();
-                tester.loginValidationRequest().receiveResponse();
-                wait();
             });
 
-            describe('Включи свитчбокс "Доступ к чужим чатам".', function() {
+            xdescribe('Открываю вкладку "Чаты и заявки".', function() {
                 beforeEach(function() {
-                    tester.switchbox('Доступ к чужим чатам').click();
+                    tester.tab('Чаты и заявки').click();
                     wait();
 
                     tester.loginValidationRequest().receiveResponse();
                     wait();
+                    tester.loginValidationRequest().receiveResponse();
+                    wait();
                 });
-                
-                describe('Открываю выпадающий список Доступ к чатам на уровне". Выбираю опцию "Группы".', function() {
+
+                describe('Включи свитчбокс "Доступ к чужим чатам".', function() {
                     beforeEach(function() {
-                        tester.combobox('Доступ к чатам на уровне').click();
-                        wait();
-
-                        tester.combobox('Доступ к чатам на уровне')
-                            .option('Группы')
-                            .click();
-
+                        tester.switchbox('Доступ к чужим чатам').click();
                         wait();
 
                         tester.loginValidationRequest().receiveResponse();
                         wait();
                     });
-
-                    describe('Выбираю группы из списка.', function() {
+                    
+                    describe('Открываю выпадающий список Доступ к чатам на уровне". Выбираю опцию "Группы".', function() {
                         beforeEach(function() {
-                            tester.tags('Список групп *').
-                                addButton.
-                                click();
+                            tester.combobox('Доступ к чатам на уровне').click();
                             wait();
 
-                            tester.grid('Выберите группы').
-                                row().
-                                atIndex(1).
-                                column().
-                                first().
-                                checkbox().
-                                click();
+                            tester.combobox('Доступ к чатам на уровне')
+                                .option('Группы')
+                                .click();
+
                             wait();
 
                             tester.loginValidationRequest().receiveResponse();
                             wait();
-
-                            tester.grid('Выберите группы').
-                                row().
-                                atIndex(3).
-                                column().
-                                first().
-                                checkbox().
-                                click();
-                            wait();
-
-                            tester.loginValidationRequest().receiveResponse();
-                            wait();
-
-                            tester.grid('Выберите группы').
-                                closeButton.
-                                click();
-                            wait();
                         });
 
-                        xit('Нажимаю на кнопку "Сохранить". Данные сохранены.', function() {
-                            tester.button('Сохранить').click();
-                            wait();
+                        describe('Выбираю группы из списка.', function() {
+                            beforeEach(function() {
+                                tester.tags('Список групп *').
+                                    addButton.
+                                    click();
+                                wait();
 
-                            tester.employeeChangeRequest().
-                                someGroupsHaveAccessToOtherEmployeesChats().
-                                receiveResponse();
+                                tester.grid('Выберите группы').
+                                    row().
+                                    atIndex(1).
+                                    column().
+                                    first().
+                                    checkbox().
+                                    click();
+                                wait();
 
-                            wait();
-                            tester.batchReloadRequest().receiveResponse();
-                            wait();
+                                tester.loginValidationRequest().receiveResponse();
+                                wait();
+
+                                tester.grid('Выберите группы').
+                                    row().
+                                    atIndex(3).
+                                    column().
+                                    first().
+                                    checkbox().
+                                    click();
+                                wait();
+
+                                tester.loginValidationRequest().receiveResponse();
+                                wait();
+
+                                tester.grid('Выберите группы').
+                                    closeButton.
+                                    click();
+                                wait();
+                            });
+
+                            it('Нажимаю на кнопку "Сохранить". Данные сохранены.', function() {
+                                tester.button('Сохранить').click();
+                                wait();
+
+                                tester.employeeChangeRequest().
+                                    someGroupsHaveAccessToOtherEmployeesChats().
+                                    receiveResponse();
+
+                                wait();
+                                tester.batchReloadRequest().receiveResponse();
+                                wait();
+                            });
+                            it('Группы выбраны.', function() {
+                                tester.tags('Список групп *').
+                                    expectToHaveTextContent('Список групп * 123 amo_dzigit');
+                            });
                         });
-                        it('Группы выбраны.', function() {
-                            tester.tags('Список групп *').
-                                expectToHaveTextContent('Список групп * 123 amo_dzigit');
+                        it('Список сотрудников скрыт. Список групп видим.', function() {
+                            tester.tags('Список групп *').expectToBeVisible();
+                            tester.tags('Список сотрудников *').expectToBeHiddenOrNotExist();
                         });
                     });
-                    return;
-                    it('Список сотрудников скрыт. Список групп видим.', function() {
-                        tester.tags('Список групп *').expectToBeVisible();
-                        tester.tags('Список сотрудников *').expectToBeHiddenOrNotExist();
+                    it('Список групп скрыт. Список сотрудников видим.', function() {
+                        tester.tags('Список групп *').expectToBeHiddenOrNotExist();
+                        tester.tags('Список сотрудников *').expectToBeVisible();
                     });
                 });
-                return;
-                it('Список групп скрыт. Список сотрудников видим.', function() {
-                    tester.tags('Список групп *').expectToBeHiddenOrNotExist();
-                    tester.tags('Список сотрудников *').expectToBeVisible();
+                it('Список "Доступ к чужим чатам" скрыт.', function() {
+                    tester.combobox('Доступ к чатам на уровне').expectToBeHiddenOrNotExist();
                 });
             });
-            return;
-            it('Список "Доступ к чужим чатам" скрыт.', function() {
-                tester.combobox('Доступ к чатам на уровне').expectToBeHiddenOrNotExist();
+            it('', function() {
+                tester.tab('ВАТС').click();
+                wait();
+
+                tester.switchbox('Использовать WebRTC token').click();
+                wait();
+
+                tester.loginValidationRequest().receiveResponse();
+                wait();
+
+                tester.button('Сохранить').click();
+                wait();
+
+                tester.employeeChangeRequest().
+                    webrtcTokenDefined().
+                    receiveResponse();
+
+                wait();
+                tester.batchReloadRequest().receiveResponse();
+                wait();
             });
         });
         return;

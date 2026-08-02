@@ -32,6 +32,7 @@ tests.addTest(function({
 
             wait();
 
+            tester.twofaAvailabilityRequest().receiveResponse();
             tester.requestValidateLogin().send();
             wait();
             tester.requestValidateLogin().send();
@@ -172,11 +173,68 @@ tests.addTest(function({
             });
         });
         it('', function() {
-            tester.form.textfield().withFieldLabel('Имя в чате *').fill('Ченкова Веселина Добриновна');
+            tester.form.textfield().withFieldLabel('Имя').fill('Ченкова Веселина Добриновна');
+
             wait();
+            wait();
+            wait();
+            wait();
+            wait();
+
+            tester.twofaAvailabilityRequest().receiveResponse();
             tester.requestValidateLogin().send();
 
+            tester.form.textfield().withFieldLabel('Имя в чате *').fill('Ченкова Веселина Добриновна');
+            wait();
+            wait();
+            wait();
+            wait();
+            wait();
+
+            tester.requestValidateLogin().send();
+
+            wait();
+            wait();
+            wait();
+            wait();
+            wait();
+
+            tester.switchbox('Использовать WebRTC token').click();
+
+            wait();
+            wait();
+            wait();
+            wait();
+            wait();
+
+
+            wait();
+            wait();
+            wait();
+            wait();
+            wait();
+
             tester.button('Сохранить').click();
+
+            wait();
+            wait();
+            wait();
+            wait();
+            return;
+
+            tester.changeAppUserRequest().receiveResponse();
+
+            wait();
+            wait();
+            wait();
+            wait();
+
+            tester.batchReloadRequest().receiveResponse();
+
+            wait();
+            wait();
+            wait();
+            wait();
         });
     });
 });

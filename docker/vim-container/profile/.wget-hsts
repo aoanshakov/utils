@@ -3,11 +3,17 @@
 # <hostname>	<port>	<incl. subdomains>	<created>	<max-age>
 bitrix-webrtc-lg0.uis.st	0	1	1676897277	15724800
 cg-lat-softphone-widget-iframe.callgear.com	0	1	1754512237	15724800
-dev-int0-softphone-widget-iframe.uis.st	0	1	1754930330	15724800
-cg-dub-softphone-widget-iframe.callgear.ae	0	1	1755168892	15724800
-prod-msk-softphone-server-widget-iframe.uiscom.ru	0	1	1755025046	15724800
-cg-dub-softphone-server-widget-iframe.callgear.ae	0	1	1741812445	15724800
+dev-int1-softphone-widget-iframe.uis.st	0	1	1756221595	15724800
+prod-msk-softphone-widget-iframe.novofon.ru	0	1	1774534279	15724800
+dev-int0-softphone-widget-iframe.uis.st	0	1	1784125584	15724800
+cg-dub-softphone-widget-iframe.callgear.ae	0	1	1761117162	15724800
+app.novofon.ru	0	1	1774450681	15724800
+uis-pp-msk-softphone-widget-iframe.uiscom.ru	0	1	1772205381	15724800
+prod-msk-softphone-server-widget-iframe.uiscom.ru	0	1	1776861963	15724800
+communications-embed.cp.megafon.ru	0	1	1783943636	31536000
+rl-lat-softphone-widget-iframe.octe.cc	0	1	1765961751	15724800
 cg-lat-softphone-server-widget-iframe.callgear.com	0	1	1740559043	15724800
+cg-dub-softphone-server-widget-iframe.callgear.ae	0	1	1741812445	15724800
 dev-int0-softphone-server-widget-iframe.uis.st	0	1	1745335656	15724800
-github.com	0	1	1745950137	31536000
+github.com	0	1	1763455901	31536000
 dev-mfpp-softphone-widget-iframe.uis.st	0	1	1727691369	15724800

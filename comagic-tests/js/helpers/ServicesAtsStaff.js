@@ -1,5 +1,5 @@
 tests.requireClass('Comagic.services.ats.staff.store.StatusRecords');
-tests.requireClass('Comagic.services.ats.staff.controller.StatusList');
+tests.requireClass('Comagic.services.ats.staff.store.ContactRecords');
 tests.requireClass('Comagic.services.ats.staff.controller.Page');
 
 function ServicesAtsStaff({ requestsManager, testersFactory, utils, wait }) {
@@ -357,6 +357,46 @@ function ServicesAtsStaff({ requestsManager, testersFactory, utils, wait }) {
                     });
             }
         };
+    };
+
+    this.contactsRequest = function () {
+        const filterobj = {
+            search:'',
+            is_user_of: 'ignore',
+            record_talk_direction: 'ignore',
+            group_id: 'ignore',
+            schedule_id: 'ignore',
+            status_id: 'ignore',
+            call_center_role: 'ignore'
+        };
+
+        function addMethods (me) {
+            me.isUserOf = value => (filterobj.is_user_of = value, me);
+            return me;
+        }
+
+        return addMethods({
+            expectToBeSent: function () {
+                return addMethods({
+                    receiveResponse: function () {
+                        requestsManager.recentRequest().
+                            expectToHavePath('/services/ats__staff/contacts/read/').
+                            expectToHaveMethod('GET').
+                            expectQueryToContain({
+                                filterobj: JSON.stringify(filterobj)
+                            }).
+                            respondSuccessfullyWith({
+                                success: true,
+                                total: 1,
+                                data: [],
+                            });
+                    },
+                });
+            },
+            receiveResponse: function () {
+                this.expectToBeSent().receiveResponse();
+            },
+        });
     };
 
     this.batchReloadRequest = function () {

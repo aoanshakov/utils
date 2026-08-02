@@ -1,0 +1,166 @@
+condition_group: [{
+    id: 93668,
+    condition: [{
+        notification_id: 76146,
+        is_negative: false,
+        event_name: \"\\u041f\\u043e\\u0442\\u0435\\u0440\\u044f\\u043d\\u043d\\u044b\\u0439 \\u0437\\u0432\\u043e\\u043d\\u043e\\u043a\",
+        app_id: 59171,
+        value: [
+            271092,
+            "\\u041d\\u0435 \\u0434\\u043e\\u0437\\u0432\\u043e\\u043d\\u0438\\u043b\\u0438\\u0441\\u044c \\u0434\\u043e \\u0441\\u043e\\u0442\\u0440\\u0443\\u0434\\u043d\\u0438\\u043a\\u0430\",
+            "\\u041d\\u0435 \\u0434\\u043e\\u0437\\u0432\\u043e\\u043d\\u0438\\u043b\\u0438\\u0441\\u044c \\u0434\\u043e \\u0441\\u043e\\u0442\\u0440\\u0443\\u0434\\u043d\\u0438\\u043a\\u0430\"
+        ],
+        param_mnemonic: "group_ids",
+        param_id: 486,
+        condition_operator: "=",
+        group_id: 93668,
+        id: 144422,
+        event_mnemonic: "lost_call_session"
+    }]
+}]
+
+
+Common labels: {"dbname":"comagic","env":"prod","error_severity":"LOG","server":"pavo.uis","user":"webuser"}
+Line limit: "1000 (1 returned)"
+Total bytes processed: "562  MB"
+
+
+2026-04-01T16:16:27+03:00	{
+    "timestamp":"2026-04-01 16:16:27.650 MSK",
+    "user":"webuser",
+    "dbname":"comagic",
+    "pid":31813,
+    "remote_host":"[local]",
+    "session_id":"69cd1a44.7c45",
+    "line_num":390,
+    "ps":"SELECT",
+    "session_start":"2026-04-01 16:14:44 MSK",
+    "vxid":"170/0",
+    "txid":0,
+    "error_severity":"LOG",
+    "message":"duration: 15.093 ms  statement: SELECT * FROM ns.update_notification('{
+        \"puser_id\": 102021,
+        \"ip\": \"213.87.151.138\",
+        \"app_id\": 59171,
+        \"is_system\": false,
+        \"login\": \"mikhail.safronov.84@yandex.ru\",
+        \"customer_id\": 899988,
+        \"ruser_id\": 102021
+    }',
+    59171,
+    76146,'{
+        \"notification\": {
+            \"worker_type\": \"common\",
+            \"name\": \"\\u0417\\u0412\\u041e\\u041d\\u041e\\u041a - (2) \\u041f\\u0440\\u043e\\u043f\\u0443\\u0449\\u0435\\u043d\\u043d\\u044b\\u0439 - 09. \\u041d\\u0410\\u0413 (\\u0432 \\u0433\\u0440\\u0443\\u043f\\u043f\\u0443) (\\u0433\\u0440+\\u043f\\u0440\\u0438\\u0447) \\u0410\\u041f\\u0418\",
+            \"event_version_id\": 12,
+            \"event_name\": \"\\u041f\\u043e\\u0442\\u0435\\u0440\\u044f\\u043d\\u043d\\u044b\\u0439 \\u0437\\u0432\\u043e\\u043d\\u043e\\u043a\",
+            \"is_active\": true,
+            \"app_id\": 59171,
+            \"is_system\": false,
+            \"metadata\": null,
+            \"schedule_id\": null,
+            \"is_removed\": false,
+            \"id\": 76146,
+            \"creation_date\": \"2022-08-04T13:23:57+03:00\",
+            \"type\": null,
+            \"notification_priority\": \"normal\",
+            \"event_mnemonic\": \"lost_call_session\"
+        },
+        \"handler\": [{
+            \"notification_id\": 76146,
+            \"toStore\": [{
+                \"value\": {
+                    \"schedule_id\": 104438,
+                    \"destination\": \"-4120593905\"
+                }
+            }],
+            \"is_handler_active\": true,
+            \"name\": \"Telegram\",
+            \"event_version_id\": 12,
+            \"handlerName\": \"telegram_message\",
+            \"app_id\": 59171,
+            \"method\": \"\",
+            \"to\": [{
+                \"schedule_id\": 104438,
+                \"destination\": \"-4120593905\"
+            }],
+            \"handler\": \"telegram_message\",
+            \"params\": {
+                \"to\": [{
+                    \"schedule_id\": 104438,
+                    \"destination\": \"-4120593905\"
+                }], \"method\": \"\", \"subject\": \"\"
+            },
+            \"message_template\": \"\\u041f\\u0420\\u041e\\u041f\\u0423\\u0429\\u0415\\u041d\\u041d\\u042b\\u0419 +{{contact_phone_number}}\\n{{start_time}}\",
+            \"default_message_template\": \"\\u0423\\u0432\\u0430\\u0436\\u0430\\u0435\\u043c\\u044b\\u0439 \\u043a\\u043b\\u0438\\u0435\\u043d\\u0442 UIS.\\n\\u0421\\u0440\\u0430\\u0431\\u043e\\u0442\\u0430\\u043b\\u043e \\u0441\\u043e\\u0431\\u044b\\u0442\\u0438\\u0435 \\\"{{notification_name}}\\\". \\u0412\\u0440\\u0435\\u043c\\u044f \\u043d\\u0430\\u0441\\u0442\\u0443\\u043f\\u043b\\u0435\\u043d\\u0438\\u044f \\u0441\\u043e\\u0431\\u044b\\u0442\\u0438\\u044f: {{notification_time}}, \\u0432\\u0438\\u0440\\u0442\\u0443\\u0430\\u043b\\u044c\\u043d\\u044b\\u0439 \\u043d\\u043e\\u043c\\u0435\\u0440: {{virtual_phone_number}}, \\u043d\\u043e\\u043c\\u0435\\u0440 \\u0441 \\u043a\\u043e\\u0442\\u043e\\u0440\\u043e\\u0433\\u043e \\u043f\\u043e\\u0441\\u0442\\u0443\\u043f\\u0438\\u043b \\u0432\\u044b\\u0437\\u043e\\u0432: {{contact_phone_number}}, \\u0432\\u0440\\u0435\\u043c\\u044f \\u043e\\u0436\\u0438\\u0434\\u0430\\u043d\\u0438\\u044f: {{wait_time_duration}} \\u0441\\u0435\\u043a., \\u0441\\u043e\\u0442\\u0440\\u0443\\u0434\\u043d\\u0438\\u043a\\u0438 \\u0443\\u0447\\u0430\\u0441\\u0442\\u0432\\u0443\\u044e\\u0449\\u0438\\u0435 \\u0432 \\u043e\\u0431\\u0437\\u0432\\u043e\\u043d\\u0435: {{noanswered_employee_full_names}}.\",
+            \"id\": 107221,
+            \"subject\": \"\"
+        }, {
+            \"is_handler_active\": true,
+            \"message_template\": \"{\\n\\\"bot_token\\\":\\\"8735971617:AAHaUx3K-NLE8gUEQHpz2v2U8sV1NdpRNeA\\\",
+            \\n\\\"chat_id\\\":\\\"-4120593905\\\",
+            \\n\\n\\\"text1\\\":\\\"\\u041f\\u0420\\u041e\\u041f\\u0423\\u0429\\u0415\\u041d\\u041d\\u042b\\u0419\\\\n\\\",
+            \\n\\\"text2\\\":\\\"+\\\",
+            \\n\\\"text3\\\":{{contact_phone_number}},
+            \\n\\\"text4\\\":\\\"\\\\n\\u0412\\u0440\\u0435\\u043c\\u044f \\\",
+            \\n\\\"text5\\\":{{start_time}},
+            \\n\\\"text6\\\":\\\"\\\\nID \\\",
+            \\n\\\"text7\\\":{{call_session_id}}\\n}\",
+            \"event_version_id\": 12,
+            \"method\": \"POST\",
+            \"handler\": \"http_request\",
+            \"params\": {\"to\": [{\"schedule_id\": -1,
+            \"destination\": \"http://api-connect.ru/notification/telegram.php\"}],
+            \"method\": \"POST\",
+            \"subject\": \"\"},
+            \"handlerName\": \"http_request\",
+            \"default_message_template\": \"{  \\n  \\\"notification_name\\\":{{notification_name}},
+            \\n  \\\"virtual_phone_number\\\":{{virtual_phone_number}},
+            \\n  \\\"notification_time\\\":{{notification_time}},
+            \\n  \\\"scenario_name\\\": {{scenario_name}},
+            \\n  \\\"wait_time_duration\\\" : {{wait_time_duration}},
+            \\n  \\\"employee_ids\\\":{{employee_ids}},
+            \\n  \\\"contact_info\\\":{  \\n    \\\"contact_phone_number\\\":{{contact_phone_number}},
+            \\n    \\\"communication_number\\\":{{communication_number}},
+            \\n    \\\"contact_id\\\": {{contact_id}},
+            \\n    \\\"contact_full_name\\\":{{contact_full_name}}\\n  },
+            \\n  \\\"call_session_id\\\":{{call_session_id}}\\n}\",
+            \"to_url\": \"http://api-connect.ru/notification/telegram.php\"
+        }],
+        \"condition_group\": [{
+            \"id\": 93668,
+            \"condition\": [{
+                \"notification_id\": 76146,
+                \"is_negative\": false,
+                \"event_name\": \"\\u041f\\u043e\\u0442\\u0435\\u0440\\u044f\\u043d\\u043d\\u044b\\u0439 \\u0437\\u0432\\u043e\\u043d\\u043e\\u043a\",
+                \"app_id\": 59171,
+                \"value\": [
+                    271092,
+                    \"\\u041d\\u0435 \\u0434\\u043e\\u0437\\u0432\\u043e\\u043d\\u0438\\u043b\\u0438\\u0441\\u044c \\u0434\\u043e \\u0441\\u043e\\u0442\\u0440\\u0443\\u0434\\u043d\\u0438\\u043a\\u0430\",
+                    \"\\u041d\\u0435 \\u0434\\u043e\\u0437\\u0432\\u043e\\u043d\\u0438\\u043b\\u0438\\u0441\\u044c \\u0434\\u043e \\u0441\\u043e\\u0442\\u0440\\u0443\\u0434\\u043d\\u0438\\u043a\\u0430\"
+                ],
+                \"param_mnemonic\": \"group_ids\",
+                \"param_id\": 486,
+                \"condition_operator\": \"=\",
+                \"group_id\": 93668,
+                \"id\": 144422,
+                \"event_mnemonic\": \"lost_call_session\"
+            }]
+        }, {
+            \"id\": 93673,
+            \"condition\": [{
+                \"notification_id\": 76146,
+                \"is_negative\": false,
+                \"event_name\": \"\\u041f\\u043e\\u0442\\u0435\\u0440\\u044f\\u043d\\u043d\\u044b\\u0439 \\u0437\\u0432\\u043e\\u043d\\u043e\\u043a\",
+                \"app_id\": 59171,
+                \"value\": \"\\u041d\\u0435 \\u0434\\u043e\\u0437\\u0432\\u043e\\u043d\\u0438\\u043b\\u0438\\u0441\\u044c \\u0434\\u043e \\u0441\\u043e\\u0442\\u0440\\u0443\\u0434\\u043d\\u0438\\u043a\\u0430\",
+                \"param_mnemonic\": \"lost_reason\",
+                \"param_id\": 134,
+                \"condition_operator\": \"=\",
+                \"group_id\": 93673,
+                \"id\": 144427,
+                \"event_mnemonic\": \"lost_call_session\"
+            }]
+        }], \"success\": true
+    }')","backend_type":"client backend","query_id":3892528506317718141
+}

@@ -1,0 +1,148 @@
+[name=webrtc_token] - value read
+
+get(/sitemanagement/appuser/appuser/read/app_user/104561/).
+    data.
+    app_user[0].
+    is_webrtc_token_enabled
+
+GET /sitemanagement/appuser/appuser/read/app_user/155687/
+
+ComagicUDB.callproc select get_recursive(
+    '{
+        "puser_id": 13775,
+        "ip": "127.0.0.1",
+        "app_id": 4735,
+        "is_system": true,
+        "login": "v.pryakhin@uiscom.ru",
+        "customer_id": 265436,
+        "ruser_id": 128852
+    }',
+    4735,
+    '[{
+        "belongs_to": [],
+        "filtering": [{
+            "comparison": "=",
+            "name": "app_id",
+            "value": 4735
+        }, {
+            "comparison": "=",
+            "name": "id",
+            "value": "155687"
+        }],
+        "name": "permission.app_user",
+        "ordering": [],
+        "fields": [{
+            "alias": "consultant_operator_display_name",
+            "sql_expression": "(
+                select
+                    e.consultant_operator_display_name
+                from
+                    staff.employee e
+                where
+                    e.id = app_user.employee_id
+            )",
+            "name": "consultant_operator_display_name"
+        }, {
+            "name": "api_permissions"
+        }, {
+            "name": "token_expiration_date"
+        }, {
+            "name": "user_type"
+        }, {
+            "alias": "licenses",
+            "sql_expression": "(
+                select
+                    coalesce(array_agg(el.license), ''{}'')
+                from
+                    staff.employee_license el
+                where
+                    el.employee_id = app_user.employee_id
+            )",
+            "name": "licenses"
+        }, {
+            "alias": "watcher_login",
+            "sql_expression": "
+                case
+                    when user_type = ''watcher''
+                then (
+                    select permission.get_watcher_login(app_id, app_user.id)
+                )
+                end
+            ",
+            "name": "watcher_login"
+        }, {
+            "name": "id"
+        }, {
+            "alias": "is_webrtc_token_enabled",
+            "sql_expression": "webrtc_token is not null",
+            "name": "is_webrtc_token_enabled"
+        }, {
+            "alias": "employee_id",
+            "sql_expression": "
+                case
+                    when employee_id is not null
+                then
+                    employee_id else -1
+                end
+            ",
+            "name": "employee_id"
+        }, {
+            "alias": "call_center_role",
+            "sql_expression": "coalesce(
+                (
+                    select
+                        call_center_role::text
+                    from
+                        staff.employee e
+                    where
+                        e.id = app_user.employee_id
+                ), ''null''
+            )",
+            "name": "call_center_role"
+        }, {
+            "name": "webrtc_token"
+        }, {
+            "alias": "is_linked_to_employee",
+            "sql_expression": "
+                case
+                    when employee_id is not null
+                then
+                    true
+                end
+            ",
+            "name": "is_linked_to_employee"
+        }, {
+            "alias": "is_system",
+            "sql_expression": "is_system",
+            "name": "is_system"
+        }, {
+            "name": "description"
+        }, {
+            "name": "is_active"
+        }, {
+            "name": "app_id"
+        }, {
+            "alias": "password",
+            "sql_expression": "''''",
+            "name": "password"
+        }, {
+            "name": "name"
+        }, {
+            "name": "token"
+        }, {
+            "alias": "app_role_name",
+            "sql_expression": "(
+                select
+                    r.name
+                from
+                    permission.app_role r where r.id = app_user.app_role_id
+            )",
+            "name": "app_role_name"
+        }, {
+            "name": "app_role_id"
+        }, {
+            "name": "login"
+        }],
+        "has_many": []
+    }]'
+)

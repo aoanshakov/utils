@@ -86,6 +86,11 @@ Ext.application({
                 itemId: 'main-container',
                 region: 'center',
                 setMainViewFlex: Ext.emptyFn,
+                items: [{
+                    xtype: 'container',
+                    itemId: 'cards',
+                    layout: 'card',
+                }],
                 down: function(selector) {
                     if (selector == '#main-view') {
                         return this;
@@ -132,6 +137,9 @@ Ext.application({
                 }
             });
 
+            this.getMainContainer = function () {
+                return viewport;
+            };
             this.selectSite = function () {
             };
             this.getCurrentPage = function() {
@@ -158,6 +166,10 @@ Ext.application({
             }
 
             Comagic.Permission = this.Permission = {
+                hasUserPermission: () => true,
+                isTptv10: function () {
+                    return true; 
+                },
                 isTptv20: function () {
                     return true; 
                 },
@@ -267,7 +279,8 @@ Ext.application({
             };
 
             this.stateManager = Ext.create('Comagic.base.StateManager', {
-                app: this
+                app: this,
+                back: () => {},
             });
 
             this.setSiteId = function() {
@@ -320,8 +333,11 @@ Ext.application({
                 this.addToViewport(arguments[1]);
             };
             this.addToViewport = function(component) {
-                viewport.removeAll();
-                viewport.add(component);
+                //viewport.down('#cards').removeAll();
+                const cards = viewport.down('#cards');
+
+                cards.add(component);
+                cards.getLayout().setActiveItem(cards.items.length - 1);
             };
             this.maskMainView = Ext.emptyFn;
 
