@@ -1,4 +1,3 @@
-use crate::vimlike_list;
 use std::collections::HashMap;
 
 pub struct Item {
@@ -18,76 +17,29 @@ struct Parent<'a> {
     last_index: usize,
 }
 
-struct KeyHandler<'a> {
-    key_handler: Option<fn(item: &vimlike_list::Item, code: String) -> bool>,
-    item_extensions: &'a Option<HashMap<u32, ItemExtension>>,
-}
-
-impl<'a> KeyHandler<'a>  {
-    pub fn new(
-        key_handler: fn(item: &vimlike_list::Item, code: String) -> bool,
-        item_extensions: &'a Option<HashMap<u32, ItemExtension>>,
-    ) -> Self {
-        KeyHandler { key_handler, item_extensions }
-    }
-}
-
-impl<'a> vimlike_list::AbstractKeyHandler for KeyHandler<'a>  {
-    fn handle_key(&self, item: &vimlike_list::Item, code: String) -> bool {
-        let has_children = match self.item_extensions {
-            Some(item_extensions) => match item_extensions.get(&item.id) {
-                Some(item_extension) => !item_extension.is_leaf,
-                None => false,
-            },
-            None => false,
-        };
-
-        if code == "o" && has_children {
-            return false;
-        }
-
-        return (self.key_handler)(item, code);
-    }
-}
-
 trait ItemHandler {
-    fn handle_item(&mut self, item: &Item, depth: u16, parent_id: u32) -> ();
+    fn handle_item(&mut self, item: &Item, depth: u32, parent_id: u32) -> ();
 }
 
-struct ListBuilder<'a> {
-    list_items: Vec<vimlike_list::Item>,
+struct NamePrinter<'a> {
     item_extensions: &'a Option<HashMap<u32, ItemExtension>>,
 }
 
-impl<'a> ListBuilder<'a> {
-    fn new(item_extensions: &'a Option<HashMap<u32, ItemExtension>>) -> Self {
-        ListBuilder {
-            list_items: vec![],
-            item_extensions
-        }
-    }
-}
-
-impl<'a> ItemHandler for ListBuilder<'a> {
-    fn handle_item(&mut self, item: &Item, depth: u16, _: u32) -> () {
+impl<'a> ItemHandler for NamePrinter<'a> {
+    fn handle_item(&mut self, item: &Item, depth: u32, _: u32) -> () {
         let mut indent = String::new();
 
         for _ in 0..depth {
             indent.push_str("  ");
         }
 
-        self.list_items.push(vimlike_list::Item {
-            id: item.id,
-            cursor_position: depth * 2,
-
-            name: format!("{}{}{}", indent, item.name, if match self.item_extensions {
-                Some(item_extensions) => match item_extensions.get(&item.id) {
-                    Some(item_extension) => !item_extension.is_leaf,
-                    None => false,
-                },
+        println!("{}{}", indent, format!("{}{}", item.name, if match self.item_extensions {
+            Some(item_extensions) => match item_extensions.get(&item.id) {
+                Some(item_extension) => !item_extension.is_leaf,
                 None => false,
-            } { "/" } else { "" }),
-        });
+            },
+            None => false,
+        } { "/" } else { "" }));
     }
 }
 
@@ -109,7 +61,7 @@ impl ItemExtentor {
 }
 
 impl ItemHandler for ItemExtentor {
-    fn handle_item(&mut self, item: &Item, _: u16, parent_id: u32) -> () {
+    fn handle_item(&mut self, item: &Item, _: u32, parent_id: u32) -> () {
         self.map.insert(item.id, ItemExtension {
             parent_id,
             is_leaf: item.children.len() == 0,
@@ -120,14 +72,13 @@ impl ItemHandler for ItemExtentor {
 impl Tree {
     pub fn new(
         items: Vec<Item>,
-        key_handler: fn(item: &vimlike_list::Item, code: String) -> bool,
     ) -> Self {
         let mut tree = Tree {
             items,
             item_extensions: None,
         };
         
-        tree.init(key_handler);
+        tree.init();
         return tree;
     }
 
@@ -139,7 +90,7 @@ impl Tree {
         let mut current_items = vec![&self.items[0]];
         let mut current_root = &self.items;
         let mut root_index = 0;
-        let mut depth: u16 = 0;
+        let mut depth = 0;
         let mut parents: HashMap<u32, Parent> = HashMap::new();
 
         while index < current_items.len() {
@@ -210,15 +161,11 @@ impl Tree {
         }
     }
 
-    pub fn render(&mut self, key_handler: fn(item: &vimlike_list::Item, code: String) -> bool) {
-        let mut list_builder = ListBuilder::new(&self.item_extensions);
-        self.traverse(&mut list_builder);
+    pub fn render(&mut self) {
+        let mut name_printer = NamePrinter {
+            item_extensions: &self.item_extensions,
+        };
 
-        let list_items = list_builder.list_items;
-        let key_handler = KeyHandler::new(&self.item_extensions);
-
-        let list = vimlike_list::VimlikeList::new(list_items);
-        
-        self.key_handler = Some(list.render(key_handler));
+        self.traverse(&mut name_printer);
     }
 }

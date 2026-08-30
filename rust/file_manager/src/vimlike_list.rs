@@ -18,34 +18,16 @@ pub trait AbstractKeyHandler {
     fn handle_key(&self, item: &Item, code: String) -> bool;
 }
 
-pub struct KeyHandler {
-    key_handler: fn(item: &Item, code: String) -> bool,
-}
-
-impl KeyHandler  {
-    pub fn new(key_handler: fn(item: &Item, code: String) -> bool) -> Self {
-        KeyHandler { key_handler }
-    }
-}
-
-impl AbstractKeyHandler for KeyHandler  {
-    fn handle_key(&self, item: &Item, code: String) -> bool {
-        return (self.key_handler)(item, code);
-    }
-}
-
 pub struct VimlikeList {
     items: Vec<Item>,
     selected_row: u16,
-    key_handler: Box<dyn AbstractKeyHandler>,
 }
 
 impl VimlikeList {
-    pub fn new(items: Vec<Item>, key_handler: Box<dyn AbstractKeyHandler>) -> Self {
+    pub fn new(items: Vec<Item>) -> Self {
         VimlikeList {
             items,
             selected_row: 0,
-            key_handler,
         }
     }
 
@@ -56,7 +38,7 @@ impl VimlikeList {
         ).expect("Failed to execute crossterm");
     }
 
-    pub fn render(&mut self) {
+    pub fn render<H: AbstractKeyHandler>(&mut self, key_handler: H) {
         let mut stdout = io::stdout();
         let mut previous_code = String::new();
 
@@ -111,7 +93,7 @@ impl VimlikeList {
                                     self.update_selection();
                                 }
                             } else {
-                                if self.key_handler.handle_key(&self.items[self.selected_row as usize], code) {
+                                if key_handler.handle_key(&self.items[self.selected_row as usize], code) {
                                     break;
                                 } else {
                                     continue;

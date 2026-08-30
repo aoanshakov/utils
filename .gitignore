@@ -51,5 +51,6 @@ electron-updater/tests-server.pid
 
 rust/file_manager/target
 rust/guessing_game/target
+rust/employees/target
 rust/file_manager/main
 rust/guessing_game/main

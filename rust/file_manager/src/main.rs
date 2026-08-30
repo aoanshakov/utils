@@ -1,39 +1,7 @@
-use std::io;
 mod vimlike_list;
 mod vimlike_tree;
 
-use crossterm::{
-    cursor,
-    execute,
-    style::Print,
-    terminal::{self, ClearType},
-};
-
-fn handle_key(item: &vimlike_list::Item, code: String) -> bool {
-    let mut stdout = io::stdout();
-
-    if code == "q" {
-        execute!(
-            stdout,
-            terminal::Clear(ClearType::All),
-            cursor::MoveTo(0, 0),
-            Print("Goodbye!\n"),
-            cursor::MoveTo(0, 1),
-        ).expect("Failed to execute crossterm");
-
-        return true;
-    } else if code == "o" {
-        execute!(
-            stdout,
-            terminal::Clear(ClearType::All),
-            cursor::MoveTo(0, 0),
-            Print(format!("You selected item # {}", item.id)),
-            cursor::MoveTo(0, 1),
-        ).expect("Failed to execute crossterm");
-
-        return true;
-    }
-
+fn empty_fn(_: &vimlike_list::Item, _: String) -> bool {
     return false;
 }
 
@@ -84,7 +52,10 @@ fn main() {
         children: vec![],
     }];
 
-    let mut tree = vimlike_tree::Tree::new(&items, handle_key);
-    tree.render();
+    let mut tree = vimlike_tree::Tree::new(items);
+
+    tree.render(empty_fn);
+    tree.print_item_extensions();
+
     //terminal::disable_raw_mode().expect("Failed to exit raw mode");
 }
