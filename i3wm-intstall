@@ -68,8 +68,12 @@ CONFIGURING ~/.i3/config
 ------------------------
 
 exec --no-startup-id "setxkbmap -model pc105 -layout us,ru -option grp:caps_toggle"
+
 bindsym Mod1+d exec rofi -show run
-bindsym $mod+d exec --no-startup-id gmrun
+bindsym Mod1+d exec --no-startup-id gmrun
+
+bindsym $mod+m exec gnome-terminal -e "alsamixer"
+bindsym $mod+p exec /home/anshakov/gitlab.uis.dev/desktop/dist/Softphone-installer.AppImage
 
 CONFIGURING ~/.tmux.conf
 
