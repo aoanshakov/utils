@@ -79,3 +79,20 @@ CONFIGURING ~/.tmux.conf
 
 set-window-option -g mode-keys vi
 set-option -g history-limit 100000
+
+CONFIGURING /etc/X11/xorg.conf.d/00-keyboard.conf
+
+Section "InputClass"
+
+        Identifier "system-keyboard"
+
+        MatchIsKeyboard "on"
+
+        Option "XkbLayout" "us,ru"
+
+        Option "XkbModel" "pc104"
+
+        Option "XkbOptions" "grp:caps_toggle"
+
+EndSection
+
